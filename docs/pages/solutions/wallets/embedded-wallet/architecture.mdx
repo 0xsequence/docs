@@ -15,14 +15,14 @@ On top of this core security layer, Sequence WaaS architecture offers additional
 
 - **Sequence Auth:** Running in an encrypted AWS Nitro Enclave, Sequence Auth acts as the first signer and it's locked into the latest publicly audited version by Quantstamp. Sequence doesn't have the ability to access the enclave or push updates to it without Quantstamp's approval.
 - **Sequence Guard:** Running independently from Sequence Auth, Guard is capable of reviewing both the user's identity and intent before signing transactions.
-- **OpenID Connect Compatibility:** Sequence WaaS leverages established OpenID Connect providers such as Google, Apple and any other provider that follows the same protocol. Unlike any other solution on the market, WaaS also allows developers to leverage their own OIDC identifiers with these services. So you have full access to the user profiles created.
+- **OpenID Connect Compatibility:** Sequence WaaS leverages established OpenID Connect providers such as Google, Apple and any other provider that follows the same protocol. Unlike any other solution on the market, WaaS also allows developers to leverage their own OIDC identifiers with these services.
 
 ## Sequence Auth
 
-Sequence Auth is an API service that runs on the [AWS Nitro Enclaves](https://aws.amazon.com/ec2/nitro/nitro-enclaves/) platform and allows for secure wallet management. Sequence Auth provides a simple way to add account creation, login, session management, and wallet support to your app, enabling applications to provide traditional web experiences (i.e. social login, email login, etc.) while providing access to crypto wallets to interact with smart contracts.
+Sequence Auth is an API service that runs on the [AWS Nitro Enclaves](https://aws.amazon.com/ec2/nitro/nitro-enclaves/) platform and provides an authentication signer which contributes to the 2/2 multisig configuration per user wallet. Sequence Auth provides a simple way to add account creation, login, session management, and wallet support to your app, enabling applications to provide traditional web experiences (i.e. social login, email login, etc.) while providing access to crypto wallets to interact with smart contracts.
 
 ### WaaS Configuration Key
-For every new instance, a WaaS Configuration Key is used to authenticate a Game Client. This provides access to the blockchain through the WaaS SDK via the generated intents sent to Sequence Auth. Within a configuration key multiple Login Provider client ID's can be registered, which each individually determine the wallet addresses generated per Provider. This means, if a client ID for a Login Provider (e.g. Google or Apple) is shared across instances, users using the same Login Provider with authentication credentials will yield the same address. 
+For every new instance, a WaaS Configuration Key is used to authenticate an App or Game Client. This provides access to the blockchain through the WaaS SDK via the generated intents sent to Sequence Auth. Within a configuration key multiple Login Provider client ID's can be registered, which each individually determine the wallet addresses generated per Provider. This means, if a client ID for a Login Provider (e.g. Google or Apple) is shared across instances, users using the same Login Provider with authentication credentials will yield the same address. 
 
 ### Wallet Private Keys
 
@@ -43,7 +43,7 @@ Sequence Auth source code is [publicly available and independently audited](http
 
 ## Sequence Guard
 
-Sequence Guard is a service hosted by Sequence and contains the other key of the wallets. It's meant to be another line of defense, verifying not only user's _identity_ but also their _intent_. It achieves this in two different ways:
+Sequence Guard is a service hosted by Sequence and is the other key of the wallets which contributes to the 2/2 configuration per wallet. It's meant to be another line of defense, verifying not only user's _identity_ but also their _intent_. It achieves this in two different ways:
 
 1 - Limits and allowlists: you can (from the development dashboard) configure what kind of actions are allowed, this means that the guard will only sign transactions within these constraints. For example, you can define that only NFT contract X can be called, and the guard will enforce that no other transactions can take place.
 
