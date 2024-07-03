@@ -93,14 +93,14 @@ export const sidebar = {
             {text: 'Transaction Receipts', link: '/solutions/wallets/embedded-wallet/examples/transaction-receipts'},
             ]
           },
-          {text: 'Architecture', link: '/solutions/wallets/embedded-wallet/architecture'},
           {
-            text: 'Implementation Details', collapsed: true, items: [
-            {text: 'Action payloads', link: '/solutions/wallets/embedded-wallet/implementation-details/action-payloads'},
-            {text: 'Response payloads', link: '/solutions/wallets/embedded-wallet/implementation-details/response-payloads'},
-            {text: 'Trust Contract Recovery Flow', link: '/solutions/wallets/embedded-wallet/implementation-details/trust-contract-recovery-flow'},
-            {text: 'Enclave-Verification', link: '/solutions/wallets/embedded-wallet/implementation-details/enclave-verification'},
-            {text: 'Intents', link: '/solutions/wallets/embedded-wallet/implementation-details/intents'},
+            text: 'Architecture', collapsed: true, items: [
+            {text: 'Overview', link: '/solutions/wallets/embedded-wallet/architecture/overview'},
+            {text: 'Action Payloads', link: '/solutions/wallets/embedded-wallet/architecture/action-payloads'},
+            {text: 'Response Payloads', link: '/solutions/wallets/embedded-wallet/architecture/response-payloads'},
+            {text: 'Trust Contract Recovery Flow', link: '/solutions/wallets/embedded-wallet/architecture/trust-contract-recovery-flow'},
+            {text: 'Enclave Verification', link: '/solutions/wallets/embedded-wallet/architecture/enclave-verification'},
+            {text: 'Intents', link: '/solutions/wallets/embedded-wallet/architecture/intents'},
             ]
           },
         ]
