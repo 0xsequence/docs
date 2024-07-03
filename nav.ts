@@ -389,10 +389,18 @@ export const sidebar = {
           { text: 'Installation', link: '/sdk/unreal/installation' }, 
           { text: 'Upgrading', link: '/sdk/unreal/upgrading' },
           { text: 'Setup', link: '/sdk/unreal/setup' },
+          { text: 'Built-in GUI', link: '/sdk/unreal/built-in-gui' },
           { text: 'Authentication', link: '/sdk/unreal/authentication' },
+          { text: 'API', collapsed: true, match: '/sdk/unreal/api', items: [
+            { text: 'Sequence API', link: '/sdk/unreal/api'},
+            { text: 'Managing Session', link: '/sdk/unreal/managing-session' },
+            { text: 'Read from Blockchain', link: '/sdk/unreal/read-from-blockchain' },
+            { text: 'Write to Blockchain', link: '/sdk/unreal/write-to-blockchain' },
+            { text: 'Advanced', link: '/sdk/unreal/advanced' },
+             ]
+           },
           { text: 'Packaging', link: '/sdk/unreal/packaging' },
-          { text: 'API', link: '/sdk/unreal/api' }
-          ] 
+          ]
         }
       ]
     },
