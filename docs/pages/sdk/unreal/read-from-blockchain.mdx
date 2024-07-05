@@ -1,0 +1,236 @@
+---
+title: Sequence - Web3 Gaming Platform - Unreal SDK Sequence API
+description: Documentation for Unreal SDK API for the Sequence infrastructure stack for web3 gaming.
+---
+
+# Read From Blockchain
+
+## Indexer & the Wallet
+
+The [Indexer](/api/indexer/overview) is tied nicely with the wallet to allow for ease of use. One thing to note is the NetworkId you set with your wallet is the one that will be used with the Indexer. The default network we set is 137 (Polygon Mainnet). See the list of network ids supported by Sequence [here](https://status.sequence.info/).
+
+## Ping
+
+```cpp
+const TSuccessCallback<bool> GenericSuccess = [=](const bool bSuccess)
+{
+	//Ping response is in bSuccess
+};
+const FFailureCallback GenericFailure = [=](const FSequenceError& Error)
+{
+	//Ping failure
+};
+const FCredentials_BE Credentials;//Replace this var with your own credentials however you choose to get them
+const TOptional<USequenceWallet*> WalletOptional = USequenceWallet::Get(Credentials);
+if (WalletOptional.IsSet() && WalletOptional.GetValue())
+{
+	USequenceWallet * Api = WalletOptional.GetValue();
+	Api->Ping(GenericSuccess, GenericFailure);
+}
+```
+
+## Version
+
+```cpp
+const TSuccessCallback<FVersion> GenericSuccess = [=](const FVersion& version)
+{
+	//Response contained in FVersion
+};
+const FFailureCallback GenericFailure = [=](const FSequenceError& Error)
+{
+	//Version Failure
+};
+const FCredentials_BE Credentials;//Replace this var with your own credentials however you choose to get them
+const TOptional<USequenceWallet*> WalletOptional = USequenceWallet::Get(Credentials);
+if (WalletOptional.IsSet() && WalletOptional.GetValue())
+{
+	USequenceWallet * Api = WalletOptional.GetValue();
+	Api->Version(GenericSuccess, GenericFailure);
+}
+```
+
+## RunTimeStatus
+
+```cpp
+const TSuccessCallback<FRuntimeStatus> GenericSuccess = [=](const FRuntimeStatus& runTimeStatus)
+{
+	//Response is in FRunTimeStatus
+};
+const FFailureCallback GenericFailure = [=](const FSequenceError& Error)
+{
+	//RunTimeStatus Failure
+};
+const FCredentials_BE Credentials;//Replace this var with your own credentials however you choose to get them
+const TOptional<USequenceWallet*> WalletOptional = USequenceWallet::Get(Credentials);
+if (WalletOptional.IsSet() && WalletOptional.GetValue())
+{
+	USequenceWallet * Api = WalletOptional.GetValue();
+	Api->RunTimeStatus(GenericSuccess, GenericFailure);
+}
+```
+
+## GetChainID
+
+```cpp
+const TSuccessCallback<int64> GenericSuccess = [=](const int64 chainID)
+{
+	//Response in int64
+};
+const FFailureCallback GenericFailure = [=](const FSequenceError& Error)
+{
+	//GetChainID Failure
+};
+const FCredentials_BE Credentials;//Replace this var with your own credentials however you choose to get them
+const TOptional<USequenceWallet*> WalletOptional = USequenceWallet::Get(Credentials);
+if (WalletOptional.IsSet() && WalletOptional.GetValue())
+{
+	USequenceWallet * Api = WalletOptional.GetValue();
+	Api->GetChainID(GenericSuccess, GenericFailure);
+}
+```
+
+## GetEtherBalance
+
+```cpp
+const TSuccessCallback<FEtherBalance> GenericSuccess = [=](const FEtherBalance& etherBalance)
+{
+	//Response in FEtherBalance
+};
+const FFailureCallback GenericFailure = [=](const FSequenceError& Error)
+{
+	//GetEtherBalance Failure
+};
+	
+const FCredentials_BE Credentials;//Replace this var with your own credentials however you choose to get them
+const TOptional<USequenceWallet*> WalletOptional = USequenceWallet::Get(Credentials);
+if (WalletOptional.IsSet() && WalletOptional.GetValue())
+{
+	USequenceWallet * Api = WalletOptional.GetValue();
+	Api->GetEtherBalance(Api->GetWalletAddress(), GenericSuccess, GenericFailure);
+}
+```
+
+## GetTokenBalances
+
+```cpp
+	const TSuccessCallback<FGetTokenBalancesReturn> GenericSuccess = [=](const FGetTokenBalancesReturn& tokenBalances)
+	{
+		//Response in FGetTokenBalancesReturn
+	};
+	const FFailureCallback GenericFailure = [=](const FSequenceError& Error)
+	{
+		//GetTokenBalances Failure
+	};
+   
+	const FCredentials_BE Credentials;//Replace this var with your own credentials however you choose to get them
+	const TOptional<USequenceWallet*> WalletOptional = USequenceWallet::Get(Credentials);
+	if (WalletOptional.IsSet() && WalletOptional.GetValue())
+	{
+		USequenceWallet * Api = WalletOptional.GetValue();
+		FGetTokenBalancesArgs args;
+		args.accountAddress = Api->GetWalletAddress();
+		args.includeMetaData = true;
+		Api->GetTokenBalances(args, GenericSuccess, GenericFailure);
+	}
+```
+
+## GetTokenSupplies
+
+```cpp  
+  const TSuccessCallback<FGetTokenSuppliesReturn> GenericSuccess = [=](const FGetTokenSuppliesReturn& tokenSupplies)
+	{
+		//Response is in FGetTokenSuppliesReturn
+	};
+	const FFailureCallback GenericFailure = [=](const FSequenceError& Error)
+	{
+		//GetTokenSupplies Failure
+	};
+    
+	const FCredentials_BE Credentials;//Replace this var with your own credentials however you choose to get them
+	const TOptional<USequenceWallet*> WalletOptional = USequenceWallet::Get(Credentials);
+	if (WalletOptional.IsSet() && WalletOptional.GetValue())
+	{
+		USequenceWallet * Api = WalletOptional.GetValue();
+		FGetTokenSuppliesArgs args;
+		args.contractAddress = "0x01";//Testing Contract Address in hex with leading 0x
+		args.includeMetaData = true;
+		Api->GetTokenSupplies(args, GenericSuccess, GenericFailure);
+	}
+```
+
+## GetTokenSuppliesMap
+
+```cpp  
+const TSuccessCallback<FGetTokenSuppliesMapReturn> GenericSuccess = [=](const FGetTokenSuppliesMapReturn& tokenSuppliesMap)
+{
+	//Response is in FGetTokenSuppliesMapReturn
+};
+const FFailureCallback GenericFailure = [=](const FSequenceError& Error)
+{
+	//GetTokenSuppliesMap Failure
+};
+const FCredentials_BE Credentials;//Replace this var with your own credentials however you choose to get them
+const TOptional<USequenceWallet*> WalletOptional = USequenceWallet::Get(Credentials);
+if (WalletOptional.IsSet() && WalletOptional.GetValue())
+{
+	USequenceWallet * Api = WalletOptional.GetValue();    
+	TMap<FString, FTokenList> tokenMap;
+	const TPair<FString,FTokenList> item;
+	tokenMap.Add(item);
+	FGetTokenSuppliesMapArgs args;
+	args.includeMetaData = true;
+	args.tokenMap = tokenMap;
+	Api->GetTokenSuppliesMap(args, GenericSuccess, GenericFailure);
+}
+```
+
+## GetBalanceUpdates
+
+```cpp
+const TSuccessCallback<FGetBalanceUpdatesReturn> GenericSuccess = [=](const FGetBalanceUpdatesReturn& balanceUpdates)
+{
+	//Response in FGetBalanceUpdatesReturn
+};
+const FFailureCallback GenericFailure = [=](const FSequenceError& Error)
+{
+	//GetBalanceUpdates Failure
+};
+	
+const FCredentials_BE Credentials;//Replace this var with your own credentials however you choose to get them
+const TOptional<USequenceWallet*> WalletOptional = USequenceWallet::Get(Credentials);
+if (WalletOptional.IsSet() && WalletOptional.GetValue())
+{
+	USequenceWallet * Api = WalletOptional.GetValue();
+	FGetBalanceUpdatesArgs args;
+	args.contractAddress = "0x0E0f9d1c4BeF9f0B8a2D9D4c09529F260C7758A2";
+	args.page.page = 10;
+	args.page.more = true;
+	Api->GetBalanceUpdates(args, GenericSuccess, GenericFailure);
+}
+```
+
+## GetTransactionHistory
+
+```cpp
+const TSuccessCallback<FGetTransactionHistoryReturn> GenericSuccess = [=](const FGetTransactionHistoryReturn& transactionHistory)
+{
+	//Response is in FGetTransactionHistoryReturn
+};
+const FFailureCallback GenericFailure = [=](const FSequenceError& Error)
+{
+	//GetTransactionHistory Failure
+};
+   
+const FCredentials_BE Credentials;//Replace this var with your own credentials however you choose to get them
+const TOptional<USequenceWallet*> WalletOptional = USequenceWallet::Get(Credentials);
+if (WalletOptional.IsSet() && WalletOptional.GetValue())
+{
+	USequenceWallet * Api = WalletOptional.GetValue();
+	FGetTransactionHistoryArgs args;
+	args.filter.accountAddress = Api->GetWalletAddress();
+	args.includeMetaData = true;
+	args.page.page = 0;
+	args.page.more = true;    
+	Api->GetTransactionHistory(args, GenericSuccess, GenericFailure);
+}
+```
