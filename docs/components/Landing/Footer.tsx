@@ -1,5 +1,5 @@
 import clsx from 'clsx'
-import { ReactNode, useEffect, useRef, useState } from 'react'
+import { type ReactNode, useEffect, useRef, useState } from 'react'
 import { TwitterIcon, InstagramIcon, DiscordIcon } from './icons'
 import { SmartLink } from './SmartLink'
 
@@ -17,7 +17,7 @@ export const Footer = ({ logo }: { logo: ReactNode }) => {
           <div className="flex gap-10 md:items-start md:flex-row flex-col">
             <div className="flex-1">
               <form
-                onSubmit={e => {
+                onSubmit={(e) => {
                   e.preventDefault()
                   submitToHubspot(email)
                 }}
@@ -27,7 +27,7 @@ export const Footer = ({ logo }: { logo: ReactNode }) => {
                     className={clsx(
                       'pl-1 pr-4 w-full outline-none bg-transparent text-sm',
                       'dark:text-white-80 text-black-80',
-                      'dark:placeholder:text-white-50 placeholder:text-black-50'
+                      'dark:placeholder:text-white-50 placeholder:text-black-50',
                     )}
                     placeholder="Stay up to date"
                     type="text"
@@ -35,11 +35,11 @@ export const Footer = ({ logo }: { logo: ReactNode }) => {
                       state === 'invalid'
                         ? 'Please enter a valid email address!'
                         : state === 'success'
-                        ? 'Thanks for joining!'
-                        : email
+                          ? 'Thanks for joining!'
+                          : email
                     }
                     disabled={state !== 'initial'}
-                    onChange={e => setEmail(e.target.value)}
+                    onChange={(e) => setEmail(e.target.value)}
                   />
                   <button
                     type="submit"
@@ -55,7 +55,7 @@ export const Footer = ({ logo }: { logo: ReactNode }) => {
                               'w-3 h-3 border-2 rounded-full border border-l-transparent animate-spin',
                               'dark:border-t-white border-t-black-80',
                               'dark:border-r-white border-r-black-80',
-                              'dark:border-b-white border-b-black-80'
+                              'dark:border-b-white border-b-black-80',
                             )}
                           />
                         </div>
@@ -69,21 +69,11 @@ export const Footer = ({ logo }: { logo: ReactNode }) => {
             </div>
             <div className="flex-1 flex gap-2 text-xs font-medium text-themed-secondary">
               {LINKS.map((linkListGroup, groupIndex) => (
-                <div
-                  key={groupIndex}
-                  className="w-1/2 flex md:flex-row flex-col gap-2.5"
-                >
+                <div key={groupIndex} className="w-1/2 flex md:flex-row flex-col gap-2.5">
                   {linkListGroup.map((linkList, listIndex) => (
-                    <div
-                      key={listIndex}
-                      className="md:grow flex flex-col gap-3"
-                    >
+                    <div key={listIndex} className="md:grow flex flex-col gap-3">
                       {linkList.map((link, linkIndex) => (
-                        <SmartLink
-                          key={linkIndex}
-                          href={link.href}
-                          className="w-fit hover-fade"
-                        >
+                        <SmartLink key={linkIndex} href={link.href} className="w-fit hover-fade">
                           {link.text}
                         </SmartLink>
                       ))}
@@ -156,12 +146,7 @@ const LINKS: { text: string; href: string }[][][] = [
   ],
 ]
 
-type NewsletterSignupState =
-  | 'initial'
-  | 'loading'
-  | 'success'
-  | 'invalid'
-  | 'error'
+type NewsletterSignupState = 'initial' | 'loading' | 'success' | 'invalid' | 'error'
 
 const EMAIL_PATTERN =
   /(?:[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*|"(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21\x23-\x5b\x5d-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])*")@(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\[(?:(?:(2(5[0-5]|[0-4][0-9])|1[0-9][0-9]|[1-9]?[0-9]))\.){3}(?:(2(5[0-5]|[0-4][0-9])|1[0-9][0-9]|[1-9]?[0-9])|[a-z0-9-]*[a-z0-9]:(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21-\x5a\x53-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])+)\])/
@@ -177,7 +162,7 @@ const useNewsletterSignup = () => {
       clearTimeout(timeout.current)
       timeout.current = undefined
     },
-    []
+    [],
   )
 
   const submit = async (email: string) => {
@@ -202,7 +187,7 @@ const useNewsletterSignup = () => {
           },
           skipValidation: 'false',
         }),
-      }
+      },
     )
 
     const { result } = await response.json()

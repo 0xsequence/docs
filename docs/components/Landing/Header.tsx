@@ -1,4 +1,4 @@
-import { ReactNode } from 'react'
+import type { ReactNode } from 'react'
 import { MatrixBackground } from './MatrixBackground'
 
 export const Header = ({ logo }: { logo: ReactNode }) => (
@@ -6,7 +6,9 @@ export const Header = ({ logo }: { logo: ReactNode }) => (
     <section className="flex flex-col items-center gap-4 max-w-screen-lg mx-auto">
       {logo}
       <h2 className="text-xl font-bold text-themed-primary max-w-3xl text-center text-wrap px-6">
-        {`Welcome to Sequence docs. Here you can learn about the modular Sequence products that empower game developers to build engaging web3 games on any Ethereum-compatible chain.`}
+        {
+          'Welcome to Sequence docs. Here you can learn about the modular Sequence products that empower game developers to build engaging web3 games on any Ethereum-compatible chain.'
+        }
       </h2>
     </section>
   </MatrixBackground>
