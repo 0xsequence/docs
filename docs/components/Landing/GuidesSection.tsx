@@ -5,8 +5,8 @@ export const GuidesSection = () => (
     <div className="flex flex-col gap-1 py-5">
       <h3 className="text-3xl text-themed-primary font-bold">Guides</h3>
       <p className="text-md leading-6 font-medium dark:text-white-80 text-black-80 mr-8">
-        Follow our step-by-step guides and open source code templates to
-        accelerate your time to market.
+        Follow our step-by-step guides and open source code templates to accelerate your time to
+        market.
       </p>
     </div>
     <div className="flex flex-wrap gap-4 md:flex-row flex-col">
@@ -53,9 +53,7 @@ const GuideCard = ({
         </div>
       )}
       <p className="text-xl leading-7 text-themed-primary font-bold">{title}</p>
-      <p className="text-themed-secondary text-md font-medium leading-6">
-        {body}
-      </p>
+      <p className="text-themed-secondary text-md font-medium leading-6">{body}</p>
       <SmartLink
         href={link}
         className="hover-fade rounded-md dark:bg-white-15 bg-black-7 px-4 py-3 text-themed-primary text-sm font-bold w-fit"

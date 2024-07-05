@@ -6,8 +6,8 @@ export const APIsSection = () => (
     <div className="flex flex-col gap-1 py-5">
       <h3 className="text-3xl text-themed-primary font-bold">APIs</h3>
       <p className="text-md leading-6 font-medium max-w-xl dark:text-white-80 text-black-80 mr-8">
-        Use our modular APIs for more advanced integrations and for accessing
-        on-chain data through easy-to-use interfaces.
+        Use our modular APIs for more advanced integrations and for accessing on-chain data through
+        easy-to-use interfaces.
       </p>
     </div>
     <div className="flex flex-wrap gap-2 md:flex-row flex-col">

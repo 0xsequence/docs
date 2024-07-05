@@ -6,8 +6,8 @@ export const SDKsSection = () => (
     <div className="flex flex-col gap-1 py-5">
       <h3 className="text-3xl text-themed-primary font-bold">SDKs</h3>
       <p className="text-md leading-6 font-medium max-w-xl dark:text-white-80 text-black-80 mr-8">
-        Leverage our open source SDKs to easily integrate from any popular game
-        development framework or language.
+        Leverage our open source SDKs to easily integrate from any popular game development
+        framework or language.
       </p>
     </div>
     <div className="flex flex-wrap gap-2 md:flex-row flex-col">
@@ -29,7 +29,7 @@ export const SDKsSection = () => (
         body="Leverage Sequence APIs easily from your Go backend."
         link="/sdk/go/overview"
       />
-        <Card
+      <Card
         icon="NodeJSIcon"
         title="Typescript"
         body="Integrate Sequence APIs with our TypeScript SDK."

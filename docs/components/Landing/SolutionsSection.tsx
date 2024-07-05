@@ -6,8 +6,8 @@ export const SolutionsSection = () => (
     <div className="flex flex-col gap-1 py-5">
       <h3 className="text-3xl text-themed-primary font-bold">Solutions</h3>
       <p className="text-md leading-6 font-medium max-w-xl dark:text-white-80 text-black-80 mr-8">
-        Follow our solution guides to boost your game's onboarding experience,
-        unlock new ways to monetize and power your game with the Sequence platform.
+        Follow our solution guides to boost your game's onboarding experience, unlock new ways to
+        monetize and power your game with the Sequence platform.
       </p>
     </div>
     <div className="flex md:flex-row flex-col gap-4">
@@ -129,17 +129,11 @@ const SolutionsGroup = ({
     <div className="flex-1 h-fit shrink-0 rounded-xl dark:bg-white-10 bg-white overflow-hidden">
       <div className="flex flex-col gap-3 p-4 relative">
         <div
-          className={clsx(
-            'absolute inset-0 opacity-20 z-0 pointer-events-none',
-            {
-              ['dark:bg-gradient-to-b from-[#3400A0] to-transparent']:
-                theme === 'purple',
-              ['dark:bg-gradient-to-b from-[#0A3F16] to-transparent']:
-                theme === 'green',
-              ['dark:bg-gradient-to-b from-[#897031] to-transparent']:
-                theme === 'yellow',
-            }
-          )}
+          className={clsx('absolute inset-0 opacity-20 z-0 pointer-events-none', {
+            'dark:bg-gradient-to-b from-[#3400A0] to-transparent': theme === 'purple',
+            'dark:bg-gradient-to-b from-[#0A3F16] to-transparent': theme === 'green',
+            'dark:bg-gradient-to-b from-[#897031] to-transparent': theme === 'yellow',
+          })}
         />
         <p className="px-4 font-bold text-themed-primary z-10">{heading}</p>
         {items.map((item, index) => {
@@ -159,9 +153,7 @@ const SolutionsGroup = ({
                   {item.title}
                 </p>
               </div>
-              <p className="text-themed-secondary text-sm font-medium">
-                {item.body}
-              </p>
+              <p className="text-themed-secondary text-sm font-medium">{item.body}</p>
             </a>
           )
         })}
