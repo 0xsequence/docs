@@ -707,7 +707,6 @@ export const sidebar = {
         {
           text: 'Examples',
           collapsed: false,
-          link: '/api/indexer/examples/fetch-tokens',
           items: [
             { text: 'Fetch Tokens', link: '/api/indexer/examples/fetch-tokens' },
             { text: 'Transaction History', link: '/api/indexer/examples/transaction-history' },
@@ -735,7 +734,6 @@ export const sidebar = {
         {
           text: 'Examples',
           collapsed: false,
-          link: '/api/analytics/examples/wallets',
           items: [
             { text: 'Wallets', link: '/api/analytics/examples/wallets' },
             { text: 'Marketplaces', link: '/api/analytics/examples/marketplace' },
@@ -751,7 +749,6 @@ export const sidebar = {
         {
           text: 'Examples',
           collapsed: false,
-          link: '/api/metadata/token-metadata',
           items: [
             { text: 'Token Metadata', link: '/api/metadata/token-metadata' },
             { text: 'Contract Metadata', link: '/api/metadata/contract-metadata' },
