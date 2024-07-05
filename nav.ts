@@ -73,7 +73,7 @@ export const sidebar = {
       text: 'Onboard',
       items: [
         { text: 'Overview', link: '/solutions/wallets/overview' },
-        { text: 'Embedded Wallet', link: '/solutions/wallets/embedded-wallet/overview', collapsed: false, items: [
+        { text: 'Embedded Wallet', collapsed: false, items: [
           {text: 'Overview', link: '/solutions/wallets/embedded-wallet/overview'},
           {text: 'Quickstart', link: '/solutions/wallets/embedded-wallet/quickstart'},
           {text: 'Setup', collapsed: true, items: [
@@ -121,7 +121,7 @@ export const sidebar = {
           {text: 'Integration Guide', link: '/solutions/wallets/link-wallets/integration-guide'}
           ]
         },
-        { text: 'Universal Wallet', collapsed: true, link: '/solutions/wallets/universal-wallet/overview',
+        { text: 'Universal Wallet', collapsed: true,
         items: [
           {text: 'Overview', link: '/solutions/wallets/universal-wallet/overview'},
           {text: 'Quickstart', link: '/solutions/wallets/universal-wallet/quickstart'},
@@ -322,7 +322,7 @@ export const sidebar = {
     {
       text: 'Build an Embedded Wallet Linking Service',
       collapsed: true,
-      link: '/guides/linked-wallets-guide'
+      link: '/solutions/wallets/link-wallets/integration-guide'
     },
     {
       text: 'Build a Custom Marketplace',
@@ -453,7 +453,6 @@ export const sidebar = {
     {
       text: 'Transactions',
       collapsed: false,
-      link: '/api/transactions/overview',
       items: [
         { text: 'Overview', link: '/api/transactions/overview' },
         { text: 'Installation', link: '/api/transactions/installation' },
@@ -468,7 +467,6 @@ export const sidebar = {
     {
       text: 'Indexer',
       collapsed: false,
-      link: '/api/indexer/overview',
       items: [
         {text: 'Overview', link: '/api/indexer/overview'},
         {text: 'Installation', link: '/api/indexer/installation'},
@@ -488,7 +486,6 @@ export const sidebar = {
     {
       text: 'Analytics',
       collapsed: false,
-      link: '/api/analytics/overview',
       items: [
         {text: 'Overview', link: '/api/analytics/overview'},
         {text: 'Examples', collapsed: false, link: '/api/analytics/examples/wallets', items: [
@@ -501,7 +498,6 @@ export const sidebar = {
     {
       text: 'Metadata',
       collapsed: false,
-      link: '/api/metadata/overview',
       items: [
         { text: 'Overview', link: '/api/metadata/overview' },
         {text: 'Examples', collapsed: false, link: '/api/metadata/token-metadata', items: [
@@ -515,7 +511,6 @@ export const sidebar = {
     {
       text: 'Marketplace',
       collapsed: false,
-      link: '/api/marketplace/overview',
       items: [
         { text: 'Overview', link: '/api/marketplace/overview' },
         // { text: 'Schema', link: '/api/marketplace/schema' },
@@ -533,7 +528,8 @@ export const sidebar = {
       text: 'Node Gateway',
       collapsed: false,
       items: [
-        { text: 'Overview', link: '/api/node-gateway' }      ]
+        { text: 'Overview', link: '/api/node-gateway' }      
+      ]
     },
   ],
   
