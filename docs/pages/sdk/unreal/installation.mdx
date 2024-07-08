@@ -5,16 +5,46 @@ description: Documentation for Unreal SDK Installation for the Sequence infrastr
 
 # Installation
 
+1. Navigate to the root directory of your Unreal project using a file management system or command line and create a `Plugins` folder (if you don't already have one)
 
-1) Once you have the `SequencePlugin` folder, you'll need to go to your project directory and create a `Plugins` folder in it,
-   then copy over the `SequencePlugin` folder into the `Plugins` folder. If a `Plugins` folder already exists just copy the `SequencePlugin` folder into it.
+2. [Download & unzip the `SequencePlugin`](https://github.com/0xsequence/sequence-unreal/releases). Copy the `SequencePlugin` folder into the `Plugins` folder in your Unreal project's root directory.
 
-2) Launch your project, then allow it to update the UProject Settings.
+3. Launch your project, then allow it to update the UProject Settings.
 
-3) To find the `SequencePlugin` content folder in your content drawer enable view plugin content
+4. To find the `SequencePlugin` content folder in your content drawer enable show plugin content: `Content Drawer > Settings > Show Plugin Content`
 
 ## Using Epic Games marketplace
 
 To get started with the Sequence SDK for Unreal, follow the link below.
 
 https://www.unrealengine.com/marketplace/en-US/product/sequence-embedded-wallets
+
+1. Click "Free" to add the plugin to your purchased Assets
+2. Click "Open in Launcher"
+3. Click "Install to Engine", select the engine version, then "Install"
+4. Open your project in Unreal Editor
+5. Navigate to `Edit > Plugins`
+6. Search for the `SequencePlugin` and enable it
+7. Restart the Unreal Editor so the changes can take effect
+8. To find the `SequencePlugin` content folder in your content drawer enable show engine content: `Content Drawer > Settings > Show Engine Content`
+
+## Adding PrivateDependencyModule 
+
+### YourProject.Build.cs
+
+In some instances your build.cs may not update properly for your project when this happens you'll be unable to import plugin, if this occurs in your Projects Build.cs file please check the private Dependency module such that it includes "SequencePlugin":
+
+```cpp
+    public SequenceTest(ReadOnlyTargetRules Target) : base(Target)
+    {
+        PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
+		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore" });
+        //The line below is what you want
+		PrivateDependencyModuleNames.AddRange(new string[] { "SequencePlugin" });
+		// Uncomment if you are using Slate UI
+		// PrivateDependencyModuleNames.AddRange(new string[] { "Slate", "SlateCore" });
+		// Uncomment if you are using online features
+		// PrivateDependencyModuleNames.Add("OnlineSubsystem");
+		// To include OnlineSubsystemSteam, add it to the plugins section in your uproject file with the Enabled attribute set to true
+	}
+```
