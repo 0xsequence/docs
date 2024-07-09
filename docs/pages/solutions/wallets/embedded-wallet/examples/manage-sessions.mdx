@@ -233,16 +233,18 @@ The following are details included in the returned JWT's:
 - `exp` (aka Expiration time) (number) - The expiration timestamp of the token, beyond which the token should not be considered valid.
 
 #### Apple JWT Parsing `idToken` Contents
-- `iss` (aka Issuer) (string) - The issuer of the token, typically https://appleid.apple.com.
-- `aud` (aka Audience) (string) - The audience for the token, which is your application's client ID.
-- `sub` (aka Subject) (string) - The subject of the token, a unique identifier for the user.
-- `email` (string) - The user's email address (only provided if requested and the user consents).
-- `email_verified` (boolean) - "true" if the user's email has been verified; "false" otherwise.
-- `is_private_email` (boolean) - "true" if the email address is a private relay email specific to your application; "false" otherwise.
-- `auth_time` (number) - The timestamp when the user authenticated.
-- `nonce` (string) - The nonce value passed during the authorization request.
-- `exp` (aka Issued at) (number) - The expiration time of the token, in Unix time.
-- `iat` (aka Expiration time) (number) - The time at which the token was issued, in Unix time.
+- `iss` (string) - The issuer registered claim identifies the principal that issues the identity token. Because Apple generates the token, the value is https://appleid.apple.com.
+- `sub` (string) - The subject registered claim identifies the principal that’s the subject of the identity token. Because this token is for your app, the value is the unique identifier for the user.
+- `aud` (string) - The audience registered claim identifies the recipient of the identity token. Because the token is for your app, the value is the client_id from your developer account.
+- `iat` (number) - The issued at registered claim indicates the time that Apple issues the identity token, in the number of seconds since the Unix epoch in UTC.
+- `exp` (number) - The expiration time registered claim identifies the time that the identity token expires, in the number of seconds since the Unix epoch in UTC. The value must be greater than the current date and time when verifying the token.
+- `nonce` (string) - A string for associating a client session with the identity token. This value mitigates replay attacks and is present only if you pass it in the authorization request.
+- `nonce_supported` (boolean) - A Boolean value that indicates whether the transaction is on a nonce-supported platform. If you send a nonce in the authorization request, but don’t see the nonce claim in the identity token, check this claim to determine how to proceed. If this claim returns true, treat nonce as mandatory and fail the transaction; otherwise, you can proceed treating the nonce as optional.
+- `email` (string) - A string value that represents the user’s email address. The email address is either the user’s real email address or the proxy address, depending on their private email relay service. This value may be empty for Sign in with Apple at Work & School users. For example, younger students may not have an email address.
+- `email_verified` (string || boolean) - A string or Boolean value that indicates whether the service verifies the email. The value can either be a string ("true" or "false") or a Boolean (true or false). The system may not verify email addresses for Sign in with Apple at Work & School users, and this claim is "false" or false for those users.
+- `is_private_email` (string || boolean) - A string or Boolean value that indicates whether the email that the user shares is the proxy address. The value can either be a string ("true" or "false") or a Boolean (true or false).
+- `real_user_status` (number) - An Integer value that indicates whether the user appears to be a real person. Use the value of this claim to mitigate fraud. The possible values are: 0 (or Unsupported), 1 (or Unknown), 2 (or LikelyReal). This claim is present only in iOS 14 and later, macOS 11 and later, watchOS 7 and later, tvOS 14 and later. The claim isn’t present or supported for web-based apps.
+- `transfer_sub` (string) - A string value that represents the transfer identifier for migrating users to your team. This claim is present only during the 60-day transfer period after you transfer an app.
 
 #### Example JS Code for Parsing
 

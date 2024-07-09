@@ -5,18 +5,46 @@ description: Documentation for Unreal SDK Installation for the Sequence infrastr
 
 # Installation
 
-## Configuration Key Management
+1. Navigate to the root directory of your Unreal project using a file management system or command line and create a `Plugins` folder (if you don't already have one)
 
-Before you can use the Sequence Unreal SDK, you need to acquire the following configuration keys from the Sequence Builder:
+2. [Download & unzip the `SequencePlugin`](https://github.com/0xsequence/sequence-unreal/releases). Copy the `SequencePlugin` folder into the `Plugins` folder in your Unreal project's root directory.
 
-- `WaaSConfigKey`: This key can be learned about [here](/solutions/builder/embedded-wallet)
-- `ProjectAccessKey`: This key can be learned about [here](/solutions/builder/getting-started#claim-an-api-access-key)
+3. Launch your project, then allow it to update the UProject Settings.
 
-You can then add these credentials in the `SequenceConfig.ini` file under `[YourProject]/Config/SequenceConfig.ini`.
+4. To find the `SequencePlugin` content folder in your content drawer enable show plugin content: `Content Drawer > Settings > Show Plugin Content`
 
-## Security
+## Using Epic Games marketplace
 
-You must provide a 32 character encryption key in the **[SequenceConfig.ini]** file under [YourProject]/Config/SequenceConfig.ini
-under the config variable `FallbackEncryptionKey`.
+To get started with the Sequence SDK for Unreal, follow the link below.
 
-In order to prevent tampering with data you must encrypt your packaged project using Unreals packaging settings. You can refer to [these docs](https://dev.epicgames.com/documentation/en-us/unreal-engine/packaging-unreal-engine-projects?application_version=5.3) for more information.
+https://www.unrealengine.com/marketplace/en-US/product/sequence-embedded-wallets
+
+1. Click "Free" to add the plugin to your purchased Assets
+2. Click "Open in Launcher"
+3. Click "Install to Engine", select the engine version, then "Install"
+4. Open your project in Unreal Editor
+5. Navigate to `Edit > Plugins`
+6. Search for the `SequencePlugin` and enable it
+7. Restart the Unreal Editor so the changes can take effect
+8. To find the `SequencePlugin` content folder in your content drawer enable show engine content: `Content Drawer > Settings > Show Engine Content`
+
+## Adding PrivateDependencyModule 
+
+### YourProject.Build.cs
+
+In some instances your build.cs may not update properly for your project when this happens you'll be unable to import plugin, if this occurs in your Projects Build.cs file please check the private Dependency module such that it includes "SequencePlugin":
+
+```cpp
+    public SequenceTest(ReadOnlyTargetRules Target) : base(Target)
+    {
+        PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
+		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore" });
+        //The line below is what you want
+		PrivateDependencyModuleNames.AddRange(new string[] { "SequencePlugin" });
+		// Uncomment if you are using Slate UI
+		// PrivateDependencyModuleNames.AddRange(new string[] { "Slate", "SlateCore" });
+		// Uncomment if you are using online features
+		// PrivateDependencyModuleNames.Add("OnlineSubsystem");
+		// To include OnlineSubsystemSteam, add it to the plugins section in your uproject file with the Enabled attribute set to true
+	}
+```

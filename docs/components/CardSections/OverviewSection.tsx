@@ -4,7 +4,7 @@ import * as ICONS from '../Landing/icons'
 export const OverviewSection = () => (
   <section className="flex flex-col gap-5 border-t border-black-10">
     <div className="flex md:flex-row flex-col gap-4">
-    <SolutionsGroup
+      <SolutionsGroup
         theme="black"
         heading="Get Started"
         items={[
@@ -64,9 +64,8 @@ export const OverviewSection = () => (
           },
         ]}
       />
-      </div>
-      <div className="flex md:flex-row flex-col gap-4">
-
+    </div>
+    <div className="flex md:flex-row flex-col gap-4">
       <SolutionsGroup
         theme="green"
         heading="Earn more revenue"
@@ -155,19 +154,12 @@ const SolutionsGroup = ({
     <div className="flex-1 h-fit shrink-0 rounded-xl dark:bg-white-10 bg-white overflow-hidden">
       <div className="flex flex-col gap-3 p-4 relative">
         <div
-          className={clsx(
-            'absolute inset-0 opacity-20 z-0 pointer-events-none',
-            {
-              ['dark:bg-gradient-to-b from-[#3400A0] to-transparent']:
-                theme === 'purple',
-              ['dark:bg-gradient-to-b from-[#0A3F16] to-transparent']:
-                theme === 'green',
-              ['dark:bg-gradient-to-b from-[#897031] to-transparent']:
-                theme === 'yellow',
-              ['dark:bg-gradient-to-b from-[#000000] to-transparent']:
-                theme === 'black',
-            }
-          )}
+          className={clsx('absolute inset-0 opacity-20 z-0 pointer-events-none', {
+            'dark:bg-gradient-to-b from-[#3400A0] to-transparent': theme === 'purple',
+            'dark:bg-gradient-to-b from-[#0A3F16] to-transparent': theme === 'green',
+            'dark:bg-gradient-to-b from-[#897031] to-transparent': theme === 'yellow',
+            'dark:bg-gradient-to-b from-[#000000] to-transparent': theme === 'black',
+          })}
         />
         <p className="px-4 font-bold text-themed-primary z-10">{heading}</p>
         {items.map((item, index) => {
@@ -187,9 +179,7 @@ const SolutionsGroup = ({
                   {item.title}
                 </p>
               </div>
-              <p className="text-themed-secondary text-sm font-medium">
-                {item.body}
-              </p>
+              <p className="text-themed-secondary text-sm font-medium">{item.body}</p>
             </a>
           )
         })}
