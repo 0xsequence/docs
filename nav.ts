@@ -578,7 +578,6 @@ export const sidebar = {
           { text: 'Installation', link: '/sdk/unreal/installation' }, 
           { text: 'Upgrading', link: '/sdk/unreal/upgrading' },
           { text: 'Setup', link: '/sdk/unreal/setup' },
-          { text: 'Built-in GUI', link: '/sdk/unreal/built-in-gui' },
           { text: 'Authentication', link: '/sdk/unreal/authentication' },
           { text: 'API', collapsed: true, match: '/sdk/unreal/api', items: [
             { text: 'Sequence API', link: '/sdk/unreal/api'},
