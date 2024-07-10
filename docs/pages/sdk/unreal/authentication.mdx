@@ -5,9 +5,23 @@ description: Documentation for Unreal SDK authentication for the Sequence infras
 
 # Authentication
 
-:::info
-If you are using the built-in GUI, authentication should work automatically. You can skip this page; unless, of course, you're curious to learn more about how it works.
+## Built-In UI
+
+### Before Starting:
+
+You can simply duplicate the `[BP_CustomSpectatorPawn]` but since it and its parent class reside within the realm of the plugin, during updates all modifications you make within the plugin could potentially be lost. These are here as a reference for how things should be done. We recommend you duplicate the `BP_CustomSpectatorPawn` out of the plugin folder, then update its parent class to a C++ class of your own making that also resides outside the plugins content folder.
+
+Some additional setup of the GameMode will need to be done prior to any UI showing up. The SequencePlugin comes bundled with an example GameMode `[GM_Sequence]` stored within `[Demonstration]` in the plugin content folder. Duplicate this GameMode and move it outside the plugin folder. Then open up `[GM_Sequence]` and set the DefaultPawn to the Pawn Blueprint you've just made.
+
+Lastly in Project Settings you'll need to set this GameMode as the default GameMode. Specifically in `ProjectSettings -> Maps & Modes`
+
+:::tip
+Try running your project now! You should be able to log in using your social credentials if you've set everything up correctly so far!
 :::
+
+### Customizing the built-in UI
+
+In the folder located at *SequencePlugin Content/Core/Style* you'll find a struct `F_SequenceUIStyle`. In the default values section of this struct you'll be able to update the colours and images displayed throughout the UI. Currently we only read from `Sequence_Style_Dark_Mode`
 
 ## Custom UI Integration
 
