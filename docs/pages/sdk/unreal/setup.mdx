@@ -47,24 +47,3 @@ In order to prevent tampering with data you must encrypt your packaged project u
 :::warning
 Only alphanumeric characters are accepted!
 :::
-
-## Adding PrivateDependencyModule 
-
-### YourProject.Build.cs
-
-In some instances your build.cs may not update properly for your project when this happens you'll be unable to import plugin, if this occurs in your Projects Build.cs file please check the private Dependency module such that it includes "SequencePlugin":
-
-```cpp
-    public SequenceTest(ReadOnlyTargetRules Target) : base(Target)
-    {
-        PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
-		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore" });
-        //The line below is what you want
-		PrivateDependencyModuleNames.AddRange(new string[] { "SequencePlugin" });
-		// Uncomment if you are using Slate UI
-		// PrivateDependencyModuleNames.AddRange(new string[] { "Slate", "SlateCore" });
-		// Uncomment if you are using online features
-		// PrivateDependencyModuleNames.Add("OnlineSubsystem");
-		// To include OnlineSubsystemSteam, add it to the plugins section in your uproject file with the Enabled attribute set to true
-	}
-```
