@@ -220,6 +220,40 @@ const handleTotalTxns = async (env: Env, request: Request) => {
 	return new Response(JSON.stringify(data.walletStats), { status: 200 });
 }
 ```
+
+### Included Spacing for Days of Zero Data
+Included in the Sequence Analytics API is the days with zero activity removed from the response. However, if you want to include this in your Dune queries to showcase the spacing of time in relation of data, you can use the following function to complete the days not showing data in the correct date format:
+
+```typescript
+const fillMissingDates = (data: any[], startDate: string, endDate: string) => {
+	const filledData: { value: number, label: string }[] = [];
+	const start = new Date(startDate);
+	const end = new Date(endDate);
+	
+	for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+		const dateString = d.toISOString().substring(0, 10);
+		const existingData = data.find(entry => entry.label === dateString);
+		if (existingData) {
+			filledData.push(existingData);
+		} else {
+			filledData.push({ value: 0, label: dateString });
+		}
+	}
+	
+	return filledData;
+}
+```
+
+Then for **both** call responses include the following method call with the `walletStats` data passed in:
+
+```typescript
+	...
+	const data: any = await resp.json();
+	const filledData = fillMissingDates(data.walletStats, startDate(env), endDate());
+	return new Response(JSON.stringify(filledData), { status: 200 });
+}
+```
+
 ::::
 
 Now you can test your API by calling the respective paths with host name (`/dailyActiveUsers` & `/totalTransactionsSent`) once you have redeployed with `wrangler deploy`.
