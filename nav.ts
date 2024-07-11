@@ -549,48 +549,66 @@ export const sidebar = {
       text: 'Game Engine',
       // collapsed: true,
       items: [
-        { text: 'Unity', collapsed: true, match: '/sdk/unity/overview', items: [
-          { text: 'Overview', link: '/sdk/unity/overview' },
-          { text: 'Installation', link: '/sdk/unity/installation' },
-          { text: 'Setup', link: '/sdk/unity/setup' },
-          { text: 'Authentication', link: '/sdk/unity/authentication' },
-          { text: 'Write to blockchain', link: '/sdk/unity/write-to-blockchain' },
-          { text: 'Read from Blockchain', link: '/sdk/unity/read-from-blockchain' },
-          { text: 'Sign Messages', link: '/sdk/unity/sign-messages' },
-          { text: 'Recovering Sessions', link: '/sdk/unity/recovering-sessions'},
-          { text: 'Deploy Contracts', link: '/sdk/unity/deploy-contracts' },
-          { text: 'On-Ramp Funds via Credit Card', link: '/sdk/unity/onboard-user-funds'},
-          { text: 'Connect with External Wallets', link: '/sdk/unity/connecting-external-wallets' },
-          { text: 'Wallet UI', link: '/sdk/unity/wallet-ui' },
-          { text: 'Advanced Blockchain Interactions', collapsed: true,  items: [
-            { text: 'Introduction', link: '/sdk/unity/Advanced/introduction' },
-            { text: 'Wallets', link: '/sdk/unity/Advanced/wallets' },
-            { text: 'Clients', link: '/sdk/unity/Advanced/clients' },
-            { text: 'Transfers', link: '/sdk/unity/Advanced/transfers' },
-            { text: 'Contracts', link: '/sdk/unity/Advanced/contracts' },
-            { text: 'Tokens', link: '/sdk/unity/Advanced/tokens' }
-             ]
-           },
-          ]
+        {
+          text: 'Unity',
+          collapsed: true,
+          match: '/sdk/unity/overview',
+          items: [
+            { text: 'Overview', link: '/sdk/unity/overview' },
+            { text: 'Installation', link: '/sdk/unity/installation' },
+            { text: 'Setup', link: '/sdk/unity/setup' },
+            { text: 'Authentication', link: '/sdk/unity/authentication' },
+            { text: 'Write to blockchain', link: '/sdk/unity/write-to-blockchain' },
+            { text: 'Read from Blockchain', link: '/sdk/unity/read-from-blockchain' },
+            { text: 'Sign Messages', link: '/sdk/unity/sign-messages' },
+            { text: 'Recovering Sessions', link: '/sdk/unity/recovering-sessions' },
+            { text: 'Deploy Contracts', link: '/sdk/unity/deploy-contracts' },
+            { text: 'On-Ramp Funds via Credit Card', link: '/sdk/unity/onboard-user-funds' },
+            {
+              text: 'Connect with External Wallets',
+              link: '/sdk/unity/connecting-external-wallets',
+            },
+            { text: 'Wallet UI', link: '/sdk/unity/wallet-ui' },
+            {
+              text: 'Advanced Blockchain Interactions',
+              collapsed: true,
+              items: [
+                { text: 'Introduction', link: '/sdk/unity/Advanced/introduction' },
+                { text: 'Wallets', link: '/sdk/unity/Advanced/wallets' },
+                { text: 'Clients', link: '/sdk/unity/Advanced/clients' },
+                { text: 'Transfers', link: '/sdk/unity/Advanced/transfers' },
+                { text: 'Contracts', link: '/sdk/unity/Advanced/contracts' },
+                { text: 'Tokens', link: '/sdk/unity/Advanced/tokens' },
+              ],
+            },
+          ],
         },
-        { text: 'Unreal', collapsed: true, match: '/sdk/unreal/overview', items: [
-          { text: 'Overview', link: '/sdk/unreal/overview' },
-          { text: 'Installation', link: '/sdk/unreal/installation' }, 
-          { text: 'Upgrading', link: '/sdk/unreal/upgrading' },
-          { text: 'Setup', link: '/sdk/unreal/setup' },
-          { text: 'Authentication', link: '/sdk/unreal/authentication' },
-          { text: 'API', collapsed: true, match: '/sdk/unreal/api', items: [
-            { text: 'Sequence API', link: '/sdk/unreal/api'},
-            { text: 'Managing Session', link: '/sdk/unreal/managing-session' },
-            { text: 'Read from Blockchain', link: '/sdk/unreal/read-from-blockchain' },
-            { text: 'Write to Blockchain', link: '/sdk/unreal/write-to-blockchain' },
-            { text: 'Advanced', link: '/sdk/unreal/advanced' },
-             ]
-           },
-          { text: 'Packaging', link: '/sdk/unreal/packaging' },
-          ]
-        }
-      ]
+        {
+          text: 'Unreal',
+          collapsed: true,
+          match: '/sdk/unreal/overview',
+          items: [
+            { text: 'Overview', link: '/sdk/unreal/overview' },
+            { text: 'Installation', link: '/sdk/unreal/installation' },
+            { text: 'Upgrading', link: '/sdk/unreal/upgrading' },
+            { text: 'Setup', link: '/sdk/unreal/setup' },
+            { text: 'Authentication', link: '/sdk/unreal/authentication' },
+            {
+              text: 'API',
+              collapsed: true,
+              match: '/sdk/unreal/api',
+              items: [
+                { text: 'Sequence API', link: '/sdk/unreal/api' },
+                { text: 'Managing Session', link: '/sdk/unreal/managing-session' },
+                { text: 'Read from Blockchain', link: '/sdk/unreal/read-from-blockchain' },
+                { text: 'Write to Blockchain', link: '/sdk/unreal/write-to-blockchain' },
+                { text: 'Advanced', link: '/sdk/unreal/advanced' },
+              ],
+            },
+            { text: 'Packaging', link: '/sdk/unreal/packaging' },
+          ],
+        },
+      ],
     },
     {
       text: 'Mobile',
