@@ -124,12 +124,12 @@ export const sidebar = {
               collapsed: true,
               items: [
                 {
-                  text: 'Manage Sessions',
-                  link: '/solutions/wallets/embedded-wallet/examples/manage-sessions',
-                },
-                {
                   text: 'Use Wallets',
                   link: '/solutions/wallets/embedded-wallet/examples/use-wallets',
+                },
+                {
+                  text: 'Manage Sessions',
+                  link: '/solutions/wallets/embedded-wallet/examples/manage-sessions',
                 },
                 { text: 'On-ramp', link: '/solutions/wallets/embedded-wallet/examples/on-ramp' },
                 {
