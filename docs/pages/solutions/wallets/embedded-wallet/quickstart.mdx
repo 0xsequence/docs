@@ -6,26 +6,24 @@ description: Quickstart guide for Embedded Wallet for the Sequence infrastructur
 import { Callout } from 'vocs/components'
 
 # Quickstart
-
-
 :::info
-Looking for Unity, Unreal or Mobile? We have you covered with our dedicated SDKs.
+Looking for [Unity](/sdk/unity/overview), [Unreal](/sdk/unreal/overview) or [Mobile](/sdk/mobile)? We have you covered with our dedicated SDKs.
 :::
 
-You can quickly get started with our React or Next boilerplates by running the following from your terminal:
+You can quickly get started with our React boilerplate by running the following from your terminal:
 
 ::::steps
-### Clone Starter Repo
+### Prerequisites
 
-:::code-group
+Ensure you have the pnpm package manager installed on your machine. If you don't have, please follow the instructions for your OS [here](https://pnpm.io/installation).
+
+### Clone Starter Repo
+Run the following from your terminal to clone the starter repo.
+
 ```bash [React]
 git clone https://github.com/0xsequence/embedded-wallet-react-boilerplate.git
 ```
 
-```bash [Next]
-git clone https://github.com/0xsequence/embedded-wallet-react-boilerplate.git
-```
-:::
 
 ### Install Packages and Start
 
@@ -46,114 +44,12 @@ Now that you have a working authentication, you can take look at our examples fo
 ::::
 
 
-
-We are using example variables in the .env file, so we recommend creating a project on Sequence Builder and [setting up your own wallet configuration](https://sequence.build/project/default/wallet/embedded-wallet) to control your social providers, customize email, and more.
-
-
-
-
-## Getting Started with TypeScript SDK
-
-::::steps
-
-### SDK Installation
-You can install the TypeScript SDK with:
-
-```bash
-pnpm install @0xsequence/waas
-```
-
-### Project Setup
-You can test out the library with the Project Access Key and WaaS Configuration Key provided above. Once you are ready to configure your own Embedded Wallet, follow [the Builder guide here](/solutions/builder/embedded-wallet).
-
-### Library Setup
-To start using Sequence Embedded Wallet SDK, you'll need to create a new instance of the `waas` class:
-
-```typescript
-import { SequenceWaaS } from '@0xsequence/waas'
-
-const waas = new SequenceWaaS({
-  projectAccessKey: `${process.env.PROJECT_ACCESS_KEY}`,
-  waasConfigKey: `${process.env.WAAS_CONFIG_KEY}`,
-  network: 'arbitrum-nova'
-})
-```
-::::
+:::tip
+We are using example variables in the .env file, so we recommend creating a project on Sequence Builder and [setting up your own wallet configuration](https://sequence.build/project/default/wallet/embedded-wallet) and update the environment variables to control your social providers, customize email templates, and more.
+:::
 
 
 
-
-
-
-
-
-
-
-
-
-You can quickly try out a Sequence Embedded Wallet integration before doing a complete configuration specific to your application. There are several ways to test out the features:
-
-- Try out [Sequence WaaS demo](https://waas-demo.sequence.xyz/), showcasing a sample authentication and transaction flow leveraging Sequence Kit for web applications
-- Play with [Aviator](https://0xsequence.github.io/aviator-demo/), a complete WebGL game built using the Embedded Wallet, leveraging [Sequence Marketplace API](/solutions/marketplaces/orderbook/overview) as well as [serverless Cloudflare Worker](/guides/mint-collectibles-serverless) for minting
 - Browse [Jelly Forest source code](https://github.com/0xsequence/sequence-unity-demo), our Unity WaaS SDK demo implementation that natively runs on iOS and Android
 
-You can also do a quick integration of Embedded Wallet into your own application by using the following test configuration keys:
 
-- Project Access Key: `AQAAAAAAAAcXCGUslr6n_m8uV4oQxJXgPII`
-- WaaS Configuration Key: 
-```
-eyJwcm9qZWN0SWQiOjE2ODE1LCJlbWFpbFJlZ2lvbiI6ImNhLWNlbnRyYWwtMSIsImVtYWlsQ2xpZW50SWQiOiI2N2V2NXVvc3ZxMzVmcGI2OXI3NnJoYnVoIiwicnBjU2VydmVyIjoiaHR0cHM6Ly93YWFzLnNlcXVlbmNlLmFwcCJ9
-```
-
-These keys leverage Sequence's own Google, Apple and email test authentication configurations and are whitelisted for `localhost` usage only. They cannot be used in a production setup.
-
-To leverage Google or Apple Auth, you can use the following client ids:
-
-- Google Auth Client ID: `970987756660-35a6tc48hvi8cev9cnknp0iugv9poa23.apps.googleusercontent.com`
-- Apple Auth Client ID: `com.horizon.sequence.waas`
-
-Email authentication works out of the box.
-
-To see how to integrate these keys into a sample demo application, you can browse the [Demo WaaS repository](https://github.com/0xsequence/demo-waas-auth).
-
-You can also view SDK-specific guides here:
-
-- [TypeScript SDK](/solutions/wallets/embedded-wallet/quickstart)
-- [Unity SDK](/sdk/unity/overview)
-- [Unreal SDK](/sdk/unreal/overview)
-
-When you are ready to configure your own Embedded Wallet, you can [follow the Sequence Builder guide here](/solutions/builder/embedded-wallet).
-
-<Callout type="info">
-You will notice when you configure your Embedded Wallet, for every new Login Provider included via a unique `client id` (i.e. for Google or Apple Auth), a new accessible index of wallets will be created for that Provider. Therefore, wallets across experiences will share the same wallet address if the client id of the Login Provider remains the same. 
-</Callout>
-
-## Getting Started with TypeScript SDK
-
-::::steps
-
-### SDK Installation
-You can install the TypeScript SDK with:
-
-```bash
-pnpm install @0xsequence/waas
-```
-
-### Project Setup
-You can test out the library with the Project Access Key and WaaS Configuration Key provided above. Once you are ready to configure your own Embedded Wallet, follow [the Builder guide here](/solutions/builder/embedded-wallet).
-
-### Library Setup
-To start using Sequence Embedded Wallet SDK, you'll need to create a new instance of the `waas` class:
-
-```typescript
-import { SequenceWaaS } from '@0xsequence/waas'
-
-const waas = new SequenceWaaS({
-  projectAccessKey: `${process.env.PROJECT_ACCESS_KEY}`,
-  waasConfigKey: `${process.env.WAAS_CONFIG_KEY}`,
-  network: 'arbitrum-nova'
-})
-```
-::::
-
-Note that the library is operational, but it can't be used to interact with any wallet until you have authenticated **as a user**.
