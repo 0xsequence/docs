@@ -10,11 +10,11 @@ description: Documentation for Unreal SDK API for the Sequence infrastructure st
 Used to Sign a message
 
 ```cpp
-const TSuccessCallback<FSignedMessage> OnResponse = [=] (const FSignedMessage& Response)
+const TSuccessCallback<FSignedMessage> OnResponse = [this] (const FSignedMessage& Response)
 {
 	//Response is the signed message
 };
-const FFailureCallback OnFailure = [=](const FSequenceError& Error)
+const FFailureCallback OnFailure = [this](const FSequenceError& Error)
 {
 	UE_LOG(LogTemp,Display,TEXT("Error Message: %s"),*Error.Message);
 };
@@ -27,35 +27,52 @@ if (WalletOptional.IsSet() && WalletOptional.GetValue())
    Api->SignMessage(Message,OnResponse,OnFailure);
 }
 ```
-
 ## Example SendTransaction
 
-Used to send a transaction / perform contract calls
+Used to send a transaction / perform contract calls.
 
-*Note: if you want call contracts with the Raw type you'll want include the header #include "ABI/ABI.h" in order to use the ABI to encode the data for a contract call.*
+To send transactions, first create each desired transaction individually and append it to a `TArray<TUnion<FRawTransaction,FERC20Transaction,FERC721Transaction,FERC1155Transaction>>` object. This allows you to send multiple transactions in a single request. 
 
 ```cpp
-const FFailureCallback OnFailure = [=](const FSequenceError& Error)
+const FFailureCallback OnFailure = [this](const FSequenceError& Error)
 {
 	UE_LOG(LogTemp,Display,TEXT("Error Message: %s"),*Error.Message);
 };
 
-	//Create the Transaction object list
+// Create the Transaction object list
 TArray<TUnion<FRawTransaction,FERC20Transaction,FERC721Transaction,FERC1155Transaction>> Txn;
+```
+###ERC20 Transaction
 
-	//Create the transactions you wish to perform
-	//ERC20
+```cpp
+// Create the ERC20 transaction
 FERC20Transaction T20;
 T20.to = "0x0E0f9d1c4BeF9f0B8a2D9D4c09529F260C7758A2";
 T20.tokenAddress = "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174";
 T20.value = "1000";
-	//ERC721
+
+// Append the ERC20 transaction to the Txn object
+Txn.Push(TUnion<FRawTransaction,FERC20Transaction,FERC721Transaction,FERC1155Transaction>(T20));
+```
+
+###ERC721 Transaction
+
+```cpp
+// Create the ERC721 transaction
 FERC721Transaction T721;
 T721.safe = true;
 T721.id = "54530968763798660137294927684252503703134533114052628080002308208148824588621";
 T721.to = "0x0E0f9d1c4BeF9f0B8a2D9D4c09529F260C7758A2";
 T721.tokenAddress = "0xa9a6A3626993D487d2Dbda3173cf58cA1a9D9e9f";
-	//ERC1155
+
+// Append the ERC721 transaction to the Txn object
+Txn.Push(TUnion<FRawTransaction,FERC20Transaction,FERC721Transaction,FERC1155Transaction>(T721));
+```
+
+###ERC1155 Transaction
+
+```cpp
+// Create the ERC1155 transaction
 FERC1155Transaction T1155;
 T1155.to = "0x0E0f9d1c4BeF9f0B8a2D9D4c09529F260C7758A2";
 T1155.tokenAddress = "0x631998e91476DA5B870D741192fc5Cbc55F5a52E";
@@ -64,7 +81,17 @@ FERC1155TxnValue Val;
 Val.amount = "1";
 Val.id = "66635";
 T1155.vals.Add(Val);
-	//Raw (Example contract call)
+
+// Append the ERC1155 transaction to the Txn object
+Txn.Push(TUnion<FRawTransaction,FERC20Transaction,FERC721Transaction,FERC1155Transaction>(T1155));
+```
+
+###Raw Transaction (Example Contract Call)
+
+*Note: if you want call contracts with the Raw type you'll want include the header #include "ABI/ABI.h" in order to use the ABI to encode the data for a contract call.*
+
+```cpp
+// Create the Raw transaction
 FString FunctionSignature = "balanceOf(address,uint256)";
 TFixedABIData Account = ABI::Address(FAddress::From("0E0f9d1c4BeF9f0B8a2D9D4c09529F260C7758A2"));
 TFixedABIData Id = ABI::UInt32(0x01);
@@ -77,29 +104,84 @@ T.data = "0x" + EncodedData.ToHex();
 T.to = "0x64d9f9d527abe2a1c1ce3fada98601c4ac5bfdd2";
 T.value = "0";
 
-	//Now append your transaction requests to the Txn object
-	
-Txn.Push(TUnion<FRawTransaction,FERC20Transaction,FERC721Transaction,FERC1155Transaction>(T20));//ERC20
-Txn.Push(TUnion<FRawTransaction,FERC20Transaction,FERC721Transaction,FERC1155Transaction>(T721));//ERC721
-Txn.Push(TUnion<FRawTransaction,FERC20Transaction,FERC721Transaction,FERC1155Transaction>(T1155));//ERC1155
-Txn.Push(TUnion<FRawTransaction,FERC20Transaction,FERC721Transaction,FERC1155Transaction>(T));//ContractCall
-//Now send the transaction
-const FCredentials_BE Credentials;//Replace this var with your own credentials however you choose to get them
+// Append the Raw transaction to the Txn object
+Txn.Push(TUnion<FRawTransaction,FERC20Transaction,FERC721Transaction,FERC1155Transaction>(T));
+```
+
+###Sending the Transaction
+
+```cpp
+// Now send the transaction
+const FCredentials_BE Credentials; // Replace this var with your own credentials however you choose to get them
 const TOptional<USequenceWallet*> WalletOptional = USequenceWallet::Get(Credentials);
 if (WalletOptional.IsSet() && WalletOptional.GetValue())
 {
-	USequenceWallet * Api = WalletOptional.GetValue();
-		Api->SendTransaction(Txn,[=](const FTransactionResponse& Transaction)
-		{
-			TSharedPtr<FJsonObject> Json = Transaction.Json;
-			TSharedPtr<FJsonObject> Receipt = Transaction.Receipt;
-			TSharedPtr<FJsonObject> NativeReceipt = Transaction.NativeReceipt;
-			TSharedPtr<FJsonObject> Request = Transaction.Request;
-			TArray<TSharedPtr<FJsonValue>> Simulations = Transaction.Simulations;
-			FString TxHash = Transaction.TxHash;
-			FString IdentifyingCode = Transaction.IdentifyingCode;
-			FString MetaTxHash = Transaction.MetaTxHash;
-	},OnFailure);
+	USequenceWallet* Api = WalletOptional.GetValue();
+	Api->SendTransaction(Txn, [this](const FTransactionResponse& Transaction)
+	{
+		TSharedPtr<FJsonObject> Json = Transaction.Json;
+		TSharedPtr<FJsonObject> Receipt = Transaction.Receipt;
+		TSharedPtr<FJsonObject> NativeReceipt = Transaction.NativeReceipt;
+		TSharedPtr<FJsonObject> Request = Transaction.Request;
+		TArray<TSharedPtr<FJsonValue>> Simulations = Transaction.Simulations;
+		FString TxHash = Transaction.TxHash;
+		FString IdentifyingCode = Transaction.IdentifyingCode;
+		FString MetaTxHash = Transaction.MetaTxHash;
+	}, OnFailure);
+}
+```
+
+## Send Transaction with Fee Options
+
+To send transactions with fee options, first retrieve the available fee options using the `GetFeeOptions` method. Once the fee options are received, select a fee option and use the `SendTransactionWithFeeOption` method to send the transaction with the selected fee.
+
+```cpp
+// Define the callback for handling the fee options response
+const TFunction<void(TArray<FFeeOption>)> OnFeeResponse = [Transactions, OnSuccess, OnFailure](const TArray<FFeeOption>& Response)
+{
+   if (Response.Num() > 0)
+   {
+      const FFeeOption SelectedFeeOption = Response[0];
+      UE_LOG(LogTemp, Display, TEXT("Using FeeOption: %s"), *UIndexerSupport::StructToString(SelectedFeeOption));
+      
+      const FFailureCallback OnTransactionFailure = [OnFailure](const FSequenceError& Error)
+      {
+         OnFailure("Transaction failure", Error);
+      };
+
+      const UAuthenticator* Auth = NewObject<UAuthenticator>();
+      const TOptional<USequenceWallet*> WalletOptional = USequenceWallet::Get(Auth->GetStoredCredentials().GetCredentials());
+      if (WalletOptional.IsSet() && WalletOptional.GetValue())
+      {
+         USequenceWallet* Api = WalletOptional.GetValue();
+         Api->SendTransactionWithFeeOption(Transactions, SelectedFeeOption, [=](const FTransactionResponse& Transaction)
+         {
+            FString OutputString;
+            const TSharedRef<TJsonWriter<>> Writer = TJsonWriterFactory<>::Create(&OutputString);
+            FJsonSerializer::Serialize(Transaction.Json.ToSharedRef(), Writer);
+            OnSuccess(OutputString);
+         }, OnTransactionFailure);
+      }
+   }
+   else
+   {
+      OnFailure("Test failed no fee options in response", FSequenceError(EErrorType::EmptyResponse, "Empty fee option response"));
+   }
+};
+
+// Define the callback for handling fee options retrieval failure
+const FFailureCallback OnFeeFailure = [OnFailure](const FSequenceError& Error)
+{
+   OnFailure("Get Fee Option Response failure", Error);
+};
+
+// Retrieve fee options and send the transaction with the selected fee option
+const UAuthenticator* Auth = NewObject<UAuthenticator>();
+const TOptional<USequenceWallet*> WalletOptional = USequenceWallet::Get(Auth->GetStoredCredentials().GetCredentials());
+if (WalletOptional.IsSet() && WalletOptional.GetValue())
+{
+   USequenceWallet* Api = WalletOptional.GetValue();
+   Api->GetFeeOptions(Transactions, OnFeeResponse, OnFeeFailure);
 }
 ```
 
