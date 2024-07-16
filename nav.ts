@@ -333,8 +333,8 @@ export const sidebar = {
           ],
         },
         {
-          text: 'Transactions Manager',
-          link: '/solutions/transactions-api/overview',
+          text: 'Transaction Manager',
+          link: '/solutions/transaction-manager/overview',
         },
         {
           text: 'Analytics',

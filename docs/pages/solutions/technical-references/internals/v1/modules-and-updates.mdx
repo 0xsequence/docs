@@ -12,7 +12,7 @@ Sequence modules can be assigned to wallets either by the factory or by updating
 
 The `updateImplementation` allows to update the underlying implementation of the wallet proxy. This implementation contains all the core code that defines the wallet's behaviour.
 
-:::warning Dangerous operation
+:::warning[Dangerous operation]
 Calling `updateImplementation` with an invalid implementation will result in the corruption of the wallet.
 
 Corrupt wallets may lead to the loss of funds.
@@ -53,7 +53,7 @@ console.log(implementation)
 
 ## Wallet configuration validation
 
-:::info Fixed configuration
+:::info[Fixed configuration]
 Signer's configuration on wallets using `MainModule` can't be changed. The only way to change the set of signers or threshold is by updating the module of the wallet.
 :::
 
@@ -103,7 +103,7 @@ Updates the wallet `imageHash`, this is the hash that defines the wallet configu
 |-------------|---------|-----------------------------------------------|
 | _imageHash  | bytes32 | Hash of the new configuration for the wallet. |
 
-:::caution Unsanitized input
+:::caution[Unsanitized input]
 The `imageHash` is not validated, it is the responsibility of the caller to ensure that the hash is correct. Reasons for incorrect hashes include:
 
   * The combined weight of the signers is below the threshold.
@@ -168,7 +168,7 @@ The `value` of the transaction is always zero, since the transaction is a self-r
 
 The `gasLimit` of the transaction is always zero, since it represents an unlimited amount of gas.
 
-:::warning Dangerous operation
+:::warning[Dangerous operation]
 
 When the wallet is first updated to the `MainModuleUpgradable` it doesn't have a valid `imageHash` yet. It's imperative that the `imageHash` is updated before the transaction bundle finishes executing.
 If the `imageHash` is not updated before the transaction bundle finishes executing, the wallet will be rendered unusable.
