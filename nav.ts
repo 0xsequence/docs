@@ -180,6 +180,7 @@ export const sidebar = {
                 },
               ],
             },
+            { text: 'FAQ', link: '/solutions/wallets/embedded-wallet/faq' },
           ],
         },
         {
