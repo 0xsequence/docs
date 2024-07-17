@@ -1,3 +1,7 @@
+---
+title: Title: Implementing Authentication with Sequence WaaS SDK
+description: The WaaS SDK emphasizes the importance of authentication, utilizing an OIDC idToken for session establishment.
+---
 # Authentication
 
 As a WaaS SDK, authentication is extremely important. Authentication works by establishing a session signing wallet through association with an [OIDC idToken](https://auth0.com/docs/secure/tokens/id-tokens/id-token-structure#sample-id-token). For more on how our Embedded Wallet works, please [see Embedded Wallet docs](/solutions/wallets/embedded-wallet/overview).
@@ -18,7 +22,8 @@ Note: Email sign in is not available to projects on the Community tier in the Bu
 
 ## 2. Social Sign in
 
-Available on all platforms except WebGL (currently), social sign in uses [OIDC](https://openid.net/developers/how-connect-works/) with the [implicit flow](https://auth0.com/docs/authenticate/login/oidc-conformant-authentication/oidc-adoption-implicit-flow) to allow users to login via their existing Google, Discord, Facebook, or Apple accounts.
+Available on all platforms except WebGL (currently), social sign in uses [OIDC](https://openid.net/developers/how-connect-works/) with the [implicit flow](https://auth0.com/docs/authenticate/login/oidc-conformant-authentication/oidc-adoption-implicit-flow) to allow users to login via their existing Google or Apple accounts. You'll want to [whitelist your Google Client ID in the Builder](https://docs.sequence.xyz/solutions/builder/embedded-wallet#google-auth) and [whitelist your Apple Client ID in the Builder](https://docs.sequence.xyz/solutions/builder/embedded-wallet#apple-auth) and add them to your `SequenceConfig` scriptable object.
+
 Once the user successfully signs in, an idToken is returned via deep link to the application.
 In order to enable deep linking, we must register a custom URL scheme for our application. There are some platform specific requirements to set this up.
 
