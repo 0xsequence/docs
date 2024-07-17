@@ -11,6 +11,7 @@ const Video = (props: any) => {
       if (videoRef.current && imageRef.current) {
         videoRef.current.style.display = 'block'
         imageRef.current.style.display = 'none'
+        videoRef.current.muted = false
         videoRef.current.play() // Start playing the video
       }
     }
