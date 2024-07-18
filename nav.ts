@@ -579,6 +579,7 @@ export const sidebar = {
               text: 'Connect with External Wallets',
               link: '/sdk/unity/connecting-external-wallets',
             },
+            { text: 'Upgrading from v2 to v3', link: '/sdk/unity/v2-to-v3-upgrade-guide' },
             { text: 'Wallet UI', link: '/sdk/unity/wallet-ui' },
             {
               text: 'Advanced Blockchain Interactions',
