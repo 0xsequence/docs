@@ -1,0 +1,230 @@
+# Authentication - Introduction
+
+As a WaaS SDK, authentication is extremely important. Authentication works by establishing a session signing wallet through association with an [OIDC idToken](https://auth0.com/docs/secure/tokens/id-tokens/id-token-structure#sample-id-token). For more on how our Embedded Wallet works, please [see Embedded Wallet docs](/solutions/wallets/embedded-wallet/overview).
+
+To implement authentication, we recommend using our `LoginPanel` prefab. Locate this prefab under `SequenceExamples > Prefabs` and drag it under a [Canvas](https://docs.unity3d.com/2020.1/Documentation/Manual/UICanvas.html) in your scene.
+We recommend having the `Canvas Scaler` component attached to your `Canvas` use the "Scale with Screen Size" UI Scale Mode. This will make it so that the LoginPanel (and any other UI elements under this Canvas) are scaled automatically when switching between build targets.
+
+Note: The `LoginPanel` is hidden by default. You can open it with the `Open` method and no arguments. To help with this, the `LoginPanel` GameObject is not disabled, so feel free to use [GetComponentInChildren](https://docs.unity3d.com/ScriptReference/Component.GetComponentInChildren.html), [FindObjectOfType](https://docs.unity3d.com/ScriptReference/Object.FindObjectOfType.html), or similar to obtain a reference to the `LoginPanel` MonoBehaviour.
+
+This will provide you easy access to two authentication methods:
+
+1. [Email + OTP Sign In](/sdk/unity/authentication/email)
+
+2. [OIDC-based Social Sign In](/sdk/unity/authentication/oidc)
+
+The SDK also provides support for:
+
+3. [PlayFab Sign In](/sdk/unity/authentication/playfab)
+
+4. [Guest Sign In](/sdk/unity/authentication/guest)
+
+## Retrieving the `SequenceWallet`
+
+Once you've obtained credentials from one of the supported authentication methods (please see their respective documentation), you'll want to catch a reference to your newly created `SequenceWallet`.
+
+Please subscribe to the `SequenceWallet.OnWalletCreated` event. This can be done with the following code snippet:
+
+```
+SequenceWallet.OnWalletCreated += OnWalletCreatedHandler;
+
+public void OnWalletCreatedHandler(SequenceWallet wallet) {
+  // Do something
+}
+```
+
+where `OnWalletCreatedHandler` is a function accepting a `SequenceWallet` as it's only parameter. If you're unfamiliar with working with events in Unity, check out this great [Reddit post](https://www.reddit.com/r/gamedev/comments/u3hz2v/how_to_use_events_a_supersimple_unity_example/)!
+
+## 2. Social Sign in
+
+Available on all platforms except WebGL (currently), social sign in uses [OIDC](https://openid.net/developers/how-connect-works/) with the [implicit flow](https://auth0.com/docs/authenticate/login/oidc-conformant-authentication/oidc-adoption-implicit-flow) to allow users to login via their existing Google or Apple accounts. You'll want to [whitelist your Google Client ID in the Builder](https://docs.sequence.xyz/solutions/builder/embedded-wallet#google-auth) and [whitelist your Apple Client ID in the Builder](https://docs.sequence.xyz/solutions/builder/embedded-wallet#apple-auth) and add them to your `SequenceConfig` scriptable object.
+
+Once the user successfully signs in, an idToken is returned via deep link to the application.
+In order to enable deep linking, we must register a custom URL scheme for our application. There are some platform specific requirements to set this up.
+
+### Editor
+
+For social sign in to work in the editor, you will need to deploy a simple server on your local machine. We provide a sample implementation [here](https://gist.github.com/BellringerQuinn/d012cd29eb9e756fe3555d4d03b001b2).
+
+To deploy this sample server, please perform the following.
+
+1. Download and install Go: https://go.dev/dl/
+2. Open a terminal/command prompt and verify your installation by typing
+
+```
+go version
+```
+
+3. Create a directory for your go project and a main.go file
+
+```
+mkdir myUnityServer
+cd myUnityServer
+touch main.go
+```
+
+4. Copy + paste the [gist](https://gist.github.com/BellringerQuinn/d012cd29eb9e756fe3555d4d03b001b2) into the main.go
+5. Initialize the project by creating a go module
+
+```
+go mod init myUnityServer
+```
+
+6. Run the server
+
+```
+go run main.go
+```
+
+7. You should see `Server listening on port 8080` printed to your terminal/command prompt
+
+If you choose to deploy the server to somewhere else (a different port, a public server, etc.), you'll want to change the `OpenIdAuthenticator.RedirectUrl` in your code before initiating the sign in process
+
+```
+OpenIdAuthenticator.InjectRedirectUrl("the url for your deployed server");
+```
+
+Note: you'll want to use a web client for your social sign in provider with `http://localhost:8080/` (or your server url) whitelisted as a redirect url under `Standalone Platforms` in `SequenceConfig`
+
+### iOS
+
+#### Sign in with Apple
+
+This SDK supports native Sign in with Apple via the popular [`apple-signin-unity` package](https://github.com/lupidan/apple-signin-unity). This [requires the `Sign in with Apple` capability in XCode](https://developer.apple.com/documentation/xcode/configuring-sign-in-with-apple#Add-the-Sign-in-with-Apple-capability-to-your-app) in order to function. Provided you have [imported the `Setup` scripts via Package Manager > Samples](https://docs.sequence.xyz/sdk/unity/installation#package-manager---recommended) and/or have `SignInWithApplePostprocessor.cs` under an `Editor` subfolder, this capability will be added to your XCode builds automatically.
+
+Please be aware that this capability is not supported by `Personal Teams`.
+
+#### Other Social Platforms
+
+All other social platforms are supported by default, just be sure to add your client IDs in `SequenceConfig`.
+
+### MacOS
+
+1. Open the Windows/Mac/Linux Player Settings window (menu: Edit > Project Settings > Player Settings, then select Windows/Mac/Linux).
+2. Select `Other Settings`, then scroll down to `Mac Configuration`.
+3. Expand the `Supported URL schemes` section, and add 1 to the size.
+4. In the new `Element N` field, enter the URL scheme you've configured in `SequenceConfig`.
+
+![Mac URL Scheme](/img/unity/unity-url-scheme-mac.png)
+
+### PC
+
+No additional steps required.
+
+:::tip
+When configuring your social sign in web client credentials with Google (for example) for desktop platforms (and Android), you'll want to whitelist https://api.sequence.app/oauth/callback as "Authorized redirect URIs"
+:::
+
+### Android
+
+1. In the Project window, browse to `Assets > Plugins > Android`.
+
+a) Note: in Unity versions 2021.2 and up this path doesn't exist by default. Please navigate to `Edit > Project Settings > Player` and under the Android Publishing Settings, enable `Custom Main Manifest` in the Build section. See https://docs.unity3d.com/Manual/deep-linking-android.html for more info.
+
+2. If it doesn't already exist, create a new file and name it `AndroidManifest.xml`.
+3. Paste the following XML into the file, or, if you already have one, add the new keys from this XML to it.
+4. Make sure to replace 'sdk-powered-by-sequence' with the Url Scheme you set in `SequenceConfig`
+
+```xml
+   <?xml version="1.0" encoding="utf-8"?>
+   <manifest
+     xmlns:android="http://schemas.android.com/apk/res/android"
+     xmlns:tools="http://schemas.android.com/tools"
+   >
+     <application>
+       <activity
+         android:name="com.unity3d.player.UnityPlayerActivity"
+         android:theme="@style/UnityThemeSelector"
+       >
+         <intent-filter>
+           <action android:name="android.intent.action.MAIN" />
+           <category android:name="android.intent.category.LAUNCHER" />
+         </intent-filter>
+         <intent-filter>
+           <action android:name="android.intent.action.VIEW" />
+           <category android:name="android.intent.category.DEFAULT" />
+           <category android:name="android.intent.category.BROWSABLE" />
+           <data android:scheme="sdk-powered-by-sequence"/> <!-- substitute 'sdk-powered-by-sequence' with the Url Scheme you set in `SequenceConfig` -->
+         </intent-filter>
+       </activity>
+     </application>
+   </manifest>
+```
+
+b) Note: Unity 2022 versions prior to `2022.3.7f1` and 2023 versions prior to `2023.1.7f1`, `2023.2.0b3`, or `2023.3.0a1` contain a bug with Android deep-linking. Please use this XML instead.
+
+```xml
+<?xml version="1.0" encoding="utf-8"?>
+<manifest
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:tools="http://schemas.android.com/tools"
+>
+    <application>
+        <activity
+                android:name="com.unity3d.player.UnityPlayerActivity"
+                android:theme="@style/UnityThemeSelector"
+                android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+            <meta-data android:name="unityplayer.UnityActivity" android:value="true" />
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="sdk-powered-by-sequence"/> <!-- substitute 'sdk-powered-by-sequence' with the Url Scheme you set in `SequenceConfig` -->
+            </intent-filter>
+        </activity>
+    </application>
+</manifest>
+```
+
+i.e. add `<meta-data android:name="unityplayer.UnityActivity" android:value="true" />` after your first `intent-filter`. Please see https://forum.unity.com/threads/deep-linking-in-unity-2022-the-app-is-restarted.1447300/ for more info.
+
+### Web
+
+Social sign in on Web platforms uses React via the [WebGLTemplate](https://docs.unity3d.com/Manual/webgl-templates.html) found under `WebGLTemplates/SequenceReact`. This has been validated on WebGL and WebGPU. To learn how to enable WebGPU in Unity, please see [this forum post](https://forum.unity.com/threads/early-access-to-the-new-webgpu-backend-in-unity-2023-3.1516621/).
+
+#### One-time setup
+
+Drag this `WebGLTemplates` folder under `Assets` (or just drag the `SequenceReact` template into your existing `WebGLTemplates` folder is you already have one) such that you have `Assets/WebGLTemplates/SequenceReact`.
+
+:::warning
+It is very important that your `WebGLTemplates` are at `Assets/WebGLTemplates`. Much like the `Plugins` folder, if they aren't in this exact location, Unity will not pick them up!
+:::
+
+Once you've added the `SequenceReact` template, you'll want to restart the editor so that Unity picks up your newly added template.
+
+From here, you can select the template under `Project Settings > Player Settings > Resolution and Presentation`.
+
+#### Building
+
+After the one time setup, when you build your Unity project on Web platforms it will be built as part of a React project.
+
+1. Open up a command line at the root of your new build
+2. [Install pnpm](https://pnpm.io/installation) if you don't already have it
+3. `pnpm install` to install dependancies
+4. `pnpm dev` to run the project on your localhost (defaulting to port 4444 - configurable in `SequenceReact/package.json`)
+5. Open http://localhost:4444
+
+:::tip
+When configuring your social sign in credentials with Google (for example), you'll want to whitelist http://localhost:4444 and your game's eventual hosted URL as "Authorized Javascript origins"
+:::
+
+## Connecting with WaaS
+
+Once we've received the `idToken` from either email login or social sign in, the SDK will handle connecting with WaaS servers for you. If you're curious how this is done, please see [`ConnectToWaaS` in `WaaSLogin.cs`](https://github.com/0xsequence/sequence-unity/blob/master/Assets/SequenceSDK/WaaS/WaaSLogin.cs#L88).
+You'll want to subscribe to the `WaaSWallet.OnWaaSWalletCreated` event. This can be done with the following code snippet:
+
+```
+WaaSWallet.OnWaaSWalletCreated += OnWaaSWalletCreatedHandler;
+
+public void OnWaaSWalletCreatedHandler(WaaSWallet wallet) {
+  // Do something
+}
+```
+
+where `OnWaaSWalletCreatedHandler` is a function accepting a `WaaSWallet` as it's only parameter. If you're unfamiliar with working with events in Unity, check out this great [Reddit post](https://www.reddit.com/r/gamedev/comments/u3hz2v/how_to_use_events_a_supersimple_unity_example/)!
+
+Congratulations! You've just connected your user with WaaS, creating them a new account and non-custodial smart contract wallet as needed.

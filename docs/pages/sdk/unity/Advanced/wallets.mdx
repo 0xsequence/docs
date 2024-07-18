@@ -2,28 +2,28 @@
 
 In the context of SequenceEthereum, a `Wallet` is defined by the `IWallet` interface. There are currently 2 implementations of the `IWallet` interface in this SDK.
 
-## 1. [EthWallet](https://github.com/0xsequence/sequence-unity/blob/master/Assets/SequenceSDK/Ethereum/Wallet/EthWallet.cs)
+## 1. EOAWallet
 
-`EthWallet` is a standard [EOA wallet](https://ethereum.stackexchange.com/questions/5828/what-is-an-eoa-account) for EVM chains.
+`EOAWallet` is a standard [EOA wallet](https://ethereum.stackexchange.com/questions/5828/what-is-an-eoa-account) for EVM chains.
 
-An EthWallet is easily created:
+An EOAWallet is easily created:
 ```
-IWallet eoaWallet = new EthWallet(); // This will generate a cryptographically random private key
-IWallet eoaWallet = new EthWallet(privateKeyString); // Create a wallet using a previously generated private key
+IWallet eoaWallet = new EOAWallet(); // This will generate a cryptographically random private key
+IWallet eoaWallet = new EOAWallet(privateKeyString); // Create a wallet using a previously generated private key
 ```
 
-## 2. [WaaSToWalletAdapter](https://github.com/0xsequence/sequence-unity/blob/master/Assets/SequenceSDK/WaaS/WaaSToWalletAdapter.cs)
+## 2. SequenceWalletToEOAWalletAdapter
 
-`WaaSToWalletAdapter` is an adapter that allows you to use a `WaaSWallet` with the same [`IWallet` interface](https://github.com/0xsequence/sequence-unity/blob/master/Assets/SequenceSDK/Ethereum/Wallet/IWallet.cs) as an `EthWallet` so that it may be used interchangeably with EOA wallets throughout the rest of the SequenceEthereum library.
+`SequenceWalletToEOAWalletAdapter` is an adapter that allows you to use a `SequenceWallet` with the same `IWallet` interface as an `EOAWallet` so that it may be used interchangeably with EOA wallets throughout the rest of the SequenceEthereum library.
 
-A WaaSToWalletAdapter is easily created once you have a WaaSWallet:
+A SequenceWalletToEOAWalletAdapter is easily created once you have a SequenceWallet:
 ```
-IWallet waasAdapter = new WaaSToWalletAdapter(waasWallet);
+IWallet sequenceAdapter = new SequenceWalletToEOAWalletAdapter(sequenceWallet);
 ```
 
 ## Methods
 
-The [`IWallet` interface](https://github.com/0xsequence/sequence-unity/blob/master/Assets/SequenceSDK/Ethereum/Wallet/IWallet.cs) provides a number of methods for you. The most important of which are:
+The `IWallet` interface provides a number of methods for you. The most important of which are:
 
 ### GetAddress
 
@@ -49,8 +49,8 @@ TransactionReceipt receipt = await wallet.SendTransactionAndWaitForReceipt(clien
 ### SendTransactionBatch
 
 Signs the given `EthTransaction[]` and submits them via the given client. 
-If wallet is an `EthWallet`, the transactions will be submitted sequentially, each of which may pass or fail. If the wallet is a `WaaSToWalletAdapter`, the transactions will be batched together into a single transaction that is submitted all at once and either passes or fails as a whole.
-Similarly, if a wallet is an `EthWallet` the `string[]` (transaction hashes) you receive will be equal in length to the `EthTransaction[]` you submitted. While, if the wallet is a `WaaSToWalletAdapter`, you will only receive one transaction hash (`string[]` of length 1)
+If wallet is an `EOAWallet`, the transactions will be submitted sequentially, each of which may pass or fail. If the wallet is a `SequenceWalletToEOAWalletAdapter`, the transactions will be batched together into a single transaction that is submitted all at once and either passes or fails as a whole.
+Similarly, if a wallet is an `EOAWallet` the `string[]` (transaction hashes) you receive will be equal in length to the `EthTransaction[]` you submitted. While, if the wallet is a `SequenceWalletToEOAWalletAdapter`, you will only receive one transaction hash (`string[]` of length 1)
 ```
 string[] transactionHashes = await wallet.SendTransactionBatch(client, transactions);
 ```
@@ -58,8 +58,8 @@ string[] transactionHashes = await wallet.SendTransactionBatch(client, transacti
 ### SendTransactionBatchAndWaitForReceipts
 
 Signs the given `EthTransaction[]` and submits them via the given client then waits for the `TransactionReceipt[]`. 
-If wallet is an `EthWallet`, the transactions will be submitted sequentially, each of which may pass or fail. If the wallet is a `WaaSToWalletAdapter`, the transactions will be batched together into a single transaction that is submitted all at once and either passes or fails as a whole.
-Similarly, if a wallet is an `EthWallet` the `TransactionReceipt[]` you receive will be equal in length to the `EthTransaction[]` you submitted. While, if the wallet is a `WaaSToWalletAdapter`, you will only receive one transaction receipt (`TransactionReceipt[]` of length 1)
+If wallet is an `EOAWallet`, the transactions will be submitted sequentially, each of which may pass or fail. If the wallet is a `SequenceWalletToEOAWalletAdapter`, the transactions will be batched together into a single transaction that is submitted all at once and either passes or fails as a whole.
+Similarly, if a wallet is an `EOAWallet` the `TransactionReceipt[]` you receive will be equal in length to the `EthTransaction[]` you submitted. While, if the wallet is a `SequenceWalletToEOAWalletAdapter`, you will only receive one transaction receipt (`TransactionReceipt[]` of length 1)
 ```
 TransactionReceipt[] receipts = await wallet.SendTransactionAndWaitForReceipt(client, transactions);
 ```

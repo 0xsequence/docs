@@ -1,9 +1,9 @@
 # Contract Deployment
 While, in general, we would recommend deploying your smart contracts via the [Builder](https://sequence.build/), we recognize that there are some use cases where deploying a smart contract from Unity (or a Made-With-Unity application) is useful.
 
-Contract deployment involves sending a transaction, which is done via an [asynchronous Task](https://medium.com/@sonusprocks/async-await-in-c-unity-explained-in-easy-words-571ebb6a9369). You can use `await` when calling `WaaSWallet.DeployContract` from within an async Task if you wish to obtain the `ContractDeploymentReturn` object directly. Or, you can take the recommended approach which is to setup handler functions for the `WaaSWallet.OnDeployContractComplete` and `WaaSWallet.OnDeployContractFailed` events and call the `WaaSWallet.DeployContract` method from anywhere (without await).
+Contract deployment involves sending a transaction, which is done via an [asynchronous Task](https://medium.com/@sonusprocks/async-await-in-c-unity-explained-in-easy-words-571ebb6a9369). You can use `await` when calling `SequenceWallet.DeployContract` from within an async Task if you wish to obtain the `ContractDeploymentReturn` object directly. Or, you can take the recommended approach which is to setup handler functions for the `SequenceWallet.OnDeployContractComplete` and `SequenceWallet.OnDeployContractFailed` events and call the `SequenceWallet.DeployContract` method from anywhere (without await).
 
-`WaaSWallet.DeployContract` is essentially a wrapper for a very special `WaaSWallet.SendTransaction` call and therefore, you can expect to still receive the `WaaSWallet.OnSendTransactionComplete` or `WaaSWallet.OnSendTransactionFailed` events in addition.
+`SequenceWallet.DeployContract` is essentially a wrapper for a very special `SequenceWallet.SendTransaction` call and therefore, you can expect to still receive the `SequenceWallet.OnSendTransactionComplete` or `SequenceWallet.OnSendTransactionFailed` events in addition.
 
 ```
 public void OnDeployContractCompleteHandler(SuccessfulContractDeploymentReturn result) {
@@ -16,7 +16,7 @@ public void OnDeployContractFailedHandler(FailedContractDeploymentReturn result)
     // Do something
 }
 
-public void OnWaaSWalletCreatedHander(WaaSWallet wallet) {
+public void OnWalletCreatedHander(SequenceWallet wallet) {
     wallet.OnDeployContractComplete += OnDeployContractCompleteHandler;
     wallet.OnDeployContractFailed += OnDeployContractFailedHandler;
 }
