@@ -11,17 +11,18 @@ In this guide, we will walk you through installing Sequence Kit, triggering the 
 
 ## Installing Sequence Kit Packages
 
-Sequence Kit is modular, allowing you to install only the necessary packages. To get started, install the `kit` core package, the `connectors` package for interfacing with various wallet providers. Additionally, install other dependencies such as wagmi, viem, and 0xsequence.
+Sequence Kit is modular, allowing you to install only the necessary packages. To get started, install the `@0xsequence/kit` core package, as well as install other dependencies such as `wagmi`, `viem`, and `0xsequence`.
 
 ```bash
-npm install @0xsequence/kit @0xsequence/kit-connectors wagmi ethers@5.7.2 viem 0xsequence @tanstack/react-query
+npm install @0xsequence/kit wagmi ethers@5.7.2 viem 0xsequence @tanstack/react-query
 # or
-pnpm install @0xsequence/kit @0xsequence/kit-connectors wagmi ethers@5.7.2 viem 0xsequence @tanstack/react-query
+pnpm install @0xsequence/kit wagmi ethers@5.7.2 viem 0xsequence @tanstack/react-query
 # or
-yarn add @0xsequence/kit @0xsequence/kit-connectors wagmi ethers@5.7.2 viem 0xsequence @tanstack/react-query
+yarn add @0xsequence/kit wagmi ethers@5.7.2 viem 0xsequence @tanstack/react-query
 ```
 
-# Setting Up the Kit Wrapper Provider
+# Setting Up your Dapp
+
 To utilize the core kit wrapper for connecting web3 wallets to your application, follow these steps:
 
 <Callout type='info'>
@@ -30,175 +31,163 @@ To utilize the core kit wrapper for connecting web3 wallets to your application,
 
 ::::steps
 
+## Create a React Project with Vite
+
+We will start by creating a [React](https://react.dev/) project with [vite](https://vitejs.dev/):
+
+```sh
+npm create vite
+# or
+pnpm create vite
+# or
+yarn create vite
+```
+
 ## Integrate a Project Access Key
 
-Using the following variable in your code, direct yourself to [sequence.build](https://sequence.build), create a project, and claim a Public Project Access Key, using [this walkthrough](/solutions/builder/getting-started).
+Start by creating a `config.ts` file within the `/src` directory.
 
-```
-const projectAccessKey = '<access-key>'
-```
+Then, you can obtain a project access key from [sequence.build](https://sequence.build) using [this walkthrough](/solutions/builder/getting-started), and create a variable in the `config.ts` file:
 
-## Create a Query Client
-
-Using `QueryClient` which is a dependency of `wagmi` that makes fetching, caching, synchronizing and updating server state in your web applications a easy.
-
-```
-import { QueryClient } from '@tanstack/react-query'
-...
-const queryClient = new QueryClient() 
+```typescript [config.ts]
+export const projectAccessKey = '<access-key>'
 ```
 
 ## Create Wagmi Chains Array
 
-Import the required networks you're using for your application, to later be used in creating your Wagmi config.
+Instantiate the `chains` and `transports` variables to be used to create a config in a later step:
 
-```
-import { mainnet, polygon, Chain } from 'wagmi/chains'
+```typescript [config.ts]
+import { getDefaultChains } from '@0xsequence/kit'
 import { http } from 'wagmi'
-...
-const chains = [mainnet, polygon] as [Chain, ...Chain[]]
 
-const transports: any = {}
-
-chains.forEach(chain => {
-  transports[chain.id] = http()
-})
+const chains = getDefaultChains() // optionally, supply an array of chain ID's getDefaultChains([1,137])
+const transports = Object.fromEntries(chains.map(chain => [chain.id, http()]))
 ```
 
-## Create Default Connector
-Import the `getDefaultConnectors` function from the `@0xsequence/kit-connectors` package, and include a Wallet Connect ID obtained from [here](https://cloud.walletconnect.com/app), a default chain ID, app name, and `projectAccessKey`.
+## Create Wallet Connectors
 
-```
-import { getDefaultConnectors } from '@0xsequence/kit-connectors'
+A connector is an interface bridge between a wallet and the `wagmi` library for social and externally owned account (EOA) wallets.
+
+Sequence Kit can be configured with a:
+- [Universal Wallet](/solutions/wallets/sequence-kit/getting-started#create-universal-default-connectors) 
+- [Embedded Wallet](/solutions/wallets/sequence-kit/getting-started#create-embedded-wallet-default-connectors) 
+
+We offer helper functions for preparing the connectors with `getDefaultConnectors` or `getDefaultWaasConnectors`.
+
+### Create Universal Default Connectors
+Import the `getDefaultConnectors` function from the `@0xsequence/kit` package, and include a Wallet Connect ID obtained from [here](https://cloud.walletconnect.com/app), a default chain ID, app name, and the `projectAccessKey` from one of the above steps.
+
+```typescript [config.ts]
+import { getDefaultConnectors } from '@0xsequence/kit'
 ...
 const connectors = getDefaultConnectors({
   walletConnectProjectId: 'wallet-connect-id',
-  defaultChainId: 137,
+  defaultChainId: 1,
   appName: 'demo app',
   projectAccessKey
 })
 ```
 
-## (Optional) Create an Embedded Wallet Connector
+### Create Embedded Wallet Default Connectors
+<Callout type="info">
+  Compared to the [Universal default approach](/solutions/wallets/sequence-kit/getting-started#create-universal-default-connectors) the Embedded Wallet adds a few more WaaS Authentication config options
+</Callout>
 
-If you would like to integrate the Embedded Wallet solution into your application, use the following augmented code, that has a few extra variables.
+If you would like to integrate the Embedded Wallet solution into your application, first obtain a WaaS Config Key from the Sequence Builder, which is explained [here](/solutions/builder/embedded-wallet) as well as other Login Provider configuration.
 
-```
+Then, use the following code to create a `wagmi` connectors variable:
 
+```typescript [config.ts]
+import { getDefaultWaasConnectors } from '@0xsequence/kit'
+...
+const connectors = getDefaultWaasConnectors({
+  walletConnectProjectId: 'wallet-connect-id',
+  defaultChainId: 1,
+  appName: 'demo app',
+  projectAccessKey,
+  waasConfigKey
+  googleClientId,
+  appleClientId,
+  appleRedirectURI,
+})
 ```
 
 ## Create Wagmi Config
 
 Now integrate all 3 variables from the prior steps
-```
-//@ts-ignore
-const config = createConfig({
+```typescript [config.ts]
+export const config = createConfig({
   transports,
   connectors,
   chains
 })
 ```
 
-## Export Configurations variables
+#### Full configuration
 
-Finally, export to be included in your `main.tsx`
-
-```
-export {
-  projectAccessKey,
-  config,
-  queryClient
-}
-```
-
-## Setup Wrapper Elements
-
-```
-import MyPage from './components/MyPage'
-import { WagmiConfig } from 'wagmi'
-import { QueryClientProvider } from '@tanstack/react-query'
-import { KitProvider } from '@0xsequence/kit'
-import { projectAccessKey, config, queryClient } from './config'
-
-function App() {
-  return (
-    <WagmiConfig config={config}>
-      <QueryClientProvider client={queryClient}> 
-        <KitProvider config={{projectAccessKey: projectAccessKey}}>
-          <MyPage />
-        </KitProvider>
-      </QueryClientProvider>
-    </WagmiConfig>
-  );
-}
-```
-
-## Full Code
-
-### config.ts
-
-```jsx
-import { QueryClient } from '@tanstack/react-query'
-import { mainnet, polygon, Chain } from 'wagmi/chains'
-import { getDefaultConnectors } from '@0xsequence/kit-connectors'
+```jsx [config.ts]
+import { getDefaultChains, getDefaultConnectors } from '@0xsequence/kit'
 import { createConfig, http } from 'wagmi'
 
-const queryClient = new QueryClient() 
+export const projectAccessKey = '<access-key>'
 
-const chains = [mainnet, polygon] as [Chain, ...Chain[]]
-
-const transports: any = {}
-
-chains.forEach(chain => {
-  transports[chain.id] = http()
-})
-  
-const projectAccessKey = '<access-key>'
+const chains = getDefaultChains() // optionally, supply an array of chain ID's getDefaultChains([1,137])
+const transports = Object.fromEntries(chains.map(chain => [chain.id, http()]))
 
 const connectors = getDefaultConnectors({
   walletConnectProjectId: 'wallet-connect-id',
-  defaultChainId: 137,
+  defaultChainId: 1,
   appName: 'demo app',
   projectAccessKey
 })
 
-//@ts-ignore
-const config = createConfig({
+export const config = createConfig({
   transports,
   connectors,
   chains
 })
-
-export {
-  projectAccessKey,
-  config,
-  queryClient
-}
 ```
 
-### main.tsx
+## Setup Provider Components
 
-```jsx
-import MyPage from './components/MyPage'
-import { WagmiConfig } from 'wagmi'
-import { QueryClientProvider } from '@tanstack/react-query'
+The configuration we created above needs to be passed into the providers below in the `main.tsx`:
+
+```typescript [main.tsx]
+import React from 'react'
+import ReactDOM from 'react-dom/client'
+
+import App from './App'
+import { WagmiProvider } from 'wagmi'
+import { QueryClientProvider, QueryClient } from '@tanstack/react-query'
 import { KitProvider } from '@0xsequence/kit'
-import { projectAccessKey, config, queryClient } from './config'
+import { projectAccessKey, config } from './config'
 
-function App() {
+/*
+Using `QueryClient` which is a dependency of `wagmi` that makes 
+fetching, caching, synchronizing and updating server state in 
+your web applications easy.
+*/
+const queryClient = new QueryClient() 
+
+function Dapp() {
   return (
-    <WagmiConfig config={config}>
+    <WagmiProvider config={config}>
       <QueryClientProvider client={queryClient}> 
-        <KitProvider config={{defaultTheme: 'light', projectAccessKey: projectAccessKey}}>
-          <MyPage />
+        <KitProvider config={{projectAccessKey: projectAccessKey}}>
+          <App />
         </KitProvider>
       </QueryClientProvider>
-    </WagmiConfig>
+    </WagmiProvider>
   );
 }
-```
-Please note: it is best to have the provider configuration variables in a file imported into your `main.tsx`, and to definitely not include the provider configurations in any React components, as this will break the app.
 
+ReactDOM.createRoot(document.getElementById('root')!).render(
+  <React.StrictMode>
+    <Dapp />
+  </React.StrictMode>,
+)
+```
 ::::
 
 For web3 interactions, wagmi exposes a set of React hooks that make it convenient for common functions like sending transactions. Please check out our [embedded wallet template with Sequence Kit](https://github.com/0xsequence/kit/blob/master/examples/react-waas/src/App.tsx) for more examples of interactions.
@@ -211,17 +200,17 @@ import { KitWalletProvider } from '@0xsequence/kit-wallet'
 
 // ...
 
-const App = () => {
+const Dapp = () => {
   return (
-    <WagmiConfig config={config}>
+    <WagmiProvider config={config}>
       <QueryClientProvider client={queryClient}> 
         <KitProvider config={kitConfig}>
           <KitWalletProvider> // <-- Added code
-            <Page />
+            <App />
           </KitWalletProvider>
         </KitProvider>
       </QueryClientProvider>
-    </WagmiConfig>
+    </WagmiProvider>
   )
 }
 ```
@@ -238,21 +227,23 @@ Invoke the connect modal using the `useOpenConnectModal` hook.
 import { useOpenConnectModal } from '@0xsequence/kit'
 import { useDisconnect, useAccount } from 'wagmi'
 
-
-const MyReactComponent = () => {
+export const App = () => {
   const { setOpenConnectModal } = useOpenConnectModal()
 
   const { isConnected } = useAccount()
-
-  const onClick = () => {
-    setOpenConnectModal(true)
-  }
+  const { disconnect } = useDisconnect()
 
   return (
     <>
       {!isConnected && (
-        <button onClick={onClick}>
+        <button onClick={() => setOpenConnectModal(true)}>
           Sign in
+        </button>
+      )}
+
+      {isConnected && (
+        <button onClick={() => disconnect()}>
+          sign out
         </button>
       )}
     </>
