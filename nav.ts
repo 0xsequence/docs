@@ -124,12 +124,12 @@ export const sidebar = {
               collapsed: true,
               items: [
                 {
-                  text: 'Manage Sessions',
-                  link: '/solutions/wallets/embedded-wallet/examples/manage-sessions',
-                },
-                {
                   text: 'Use Wallets',
                   link: '/solutions/wallets/embedded-wallet/examples/use-wallets',
+                },
+                {
+                  text: 'Manage Sessions',
+                  link: '/solutions/wallets/embedded-wallet/examples/manage-sessions',
                 },
                 { text: 'On-ramp', link: '/solutions/wallets/embedded-wallet/examples/on-ramp' },
                 {
@@ -180,6 +180,7 @@ export const sidebar = {
                 },
               ],
             },
+            { text: 'FAQ', link: '/solutions/wallets/embedded-wallet/faq' },
           ],
         },
         {
@@ -333,8 +334,8 @@ export const sidebar = {
           ],
         },
         {
-          text: 'Transactions Manager',
-          link: '/solutions/transactions-api/overview',
+          text: 'Transaction Manager',
+          link: '/solutions/transaction-manager/overview',
         },
         {
           text: 'Analytics',
@@ -593,18 +594,12 @@ export const sidebar = {
             { text: 'Upgrading', link: '/sdk/unreal/upgrading' },
             { text: 'Setup', link: '/sdk/unreal/setup' },
             { text: 'Authentication', link: '/sdk/unreal/authentication' },
-            {
-              text: 'API',
-              collapsed: true,
-              match: '/sdk/unreal/api',
-              items: [
-                { text: 'Sequence API', link: '/sdk/unreal/api' },
-                { text: 'Managing Session', link: '/sdk/unreal/managing-session' },
-                { text: 'Read from Blockchain', link: '/sdk/unreal/read-from-blockchain' },
-                { text: 'Write to Blockchain', link: '/sdk/unreal/write-to-blockchain' },
-                { text: 'Advanced', link: '/sdk/unreal/advanced' },
-              ],
-            },
+            { text: 'Sequence Wallet', link: '/sdk/unreal/api' },
+            { text: 'Managing Session', link: '/sdk/unreal/managing-session' },
+            { text: 'Read from Blockchain', link: '/sdk/unreal/read-from-blockchain' },
+            { text: 'Write to Blockchain', link: '/sdk/unreal/write-to-blockchain' },
+            { text: 'On-Ramp Funds via Credit Card', link: '/sdk/unreal/onboard-user-funds' },
+            { text: 'Advanced Blockchain Intereactions', link: '/sdk/unreal/advanced' },
             { text: 'Packaging', link: '/sdk/unreal/packaging' },
           ],
         },

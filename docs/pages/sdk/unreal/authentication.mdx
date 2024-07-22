@@ -15,6 +15,8 @@ Some additional setup of the GameMode will need to be done prior to any UI showi
 
 Lastly in Project Settings you'll need to set this GameMode as the default GameMode. Specifically in `ProjectSettings -> Maps & Modes`
 
+*Note: Unreal's web browser plugin uses the Chromium embedded browser. If your device does not support it, you can instead use Unreal's `Launch URL` function.*
+
 :::tip
 Try running your project now! You should be able to log in using your social credentials if you've set everything up correctly so far!
 :::
@@ -23,7 +25,7 @@ Try running your project now! You should be able to log in using your social cre
 
 In the folder located at *SequencePlugin Content/Core/Style* you'll find a struct `F_SequenceUIStyle`. In the default values section of this struct you'll be able to update the colours and images displayed throughout the UI. Currently we only read from `Sequence_Style_Dark_Mode`
 
-## Custom UI Integration
+## Custom UI
 
 In a C++ **UObject** with a series of pass through `[UFUNCTIONS]` setup similarly to `[SequenceBackendManager.h/.cpp]`. Each of these calls are implemented in `[UAuthenticator]` you just need to pass through the data with **YOUR** UAuthenticator UObject
 
@@ -112,9 +114,7 @@ Finally `[AuthSuccess]` will fire with a `Credentials_BE` struct as a parameter.
 
 ## Social Signin based Authentication on Desktop With CustomUI
 
-To start **SSO based authentication** with desktop you can either use your own implementation to get the necessary id_token or you can make use of Unreal's web browser plugin.
-
-*Note: Unreal's web browser plugin uses the Chromium embedded browser.*
+To start **SSO based authentication** with desktop you will need to navigate to a browser in order to get the necessary id_token.
 
 To get the URL to navigate to you can use the UAuthenticator supplied call `[FString GetSigninURL(const ESocialSigninType& Type)]` where Type is the social login type you wish to use
 
