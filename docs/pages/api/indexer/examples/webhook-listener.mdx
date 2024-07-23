@@ -67,7 +67,12 @@ One of `contractAddresses` or `accounts` must be provided in the filter.
 :::code-group
 
 ```bash [cURL]
-curl -X POST -H "Content-Type: application/json" -H "X-Access-Key: <project_access_key>" -H "Authorization: BEARER <secret_API_key>", "filters": {"contractAddresses":["0x631998e91476DA5B870D741192fc5Cbc55F5a52E"]}}'
+curl -X POST \
+  -H "Content-Type: application/json" \
+  -H "X-Access-Key: <project_access_key>" \
+  -H "Authorization: BEARER <secret_API_key>" \
+  -d '{"url": "<URL>","filters": {"contractAddresses":["0x631998e91476DA5B870D741192fc5Cbc55F5a52E"]}}' \
+  https://polygon-indexer.sequence.app/rpc/Indexer/AddWebhookListener
 ```
 
 ```typescript [TypeScript]
@@ -141,7 +146,12 @@ In the following examples you'll need to update the `id` of the webhook listener
 :::code-group
 
 ```bash [cURL]
-curl -X POST -H "Content-Type: application/json" -H "X-Access-Key: <project_access_key>" -H "Authorization: BEARER <secret_API_key>" https://polygon-indexer.sequence.app/rpc/Indexer/RemoveWebhookListener -d '{ "id": <listener_id>, "projectId": 25906}'
+curl -X POST \
+  -H "Content-Type: application/json" \
+  -H "X-Access-Key: <project_access_key>" \
+  -H "Authorization: BEARER <secret_API_key>" \
+  -d '{ "id": <listener_id>, "projectId": <project_id> }' \
+  https://polygon-indexer.sequence.app/rpc/Indexer/RemoveWebhookListener
 ```
 
 ```typescript [TypeScript]
@@ -221,7 +231,12 @@ If you want to get all mints and transfers of a contract
 :::code-group
 
 ```bash [cURL]
-curl -X POST -H "Content-Type: application/json" -H "X-Access-Key: <project_access_key>" -H "Authorization: BEARER <secret_API_key>", "filters": {"contractAddresses":["0x9bec34c1f7098e278afd48fedcf13355b854364a"]}}'
+curl -X POST \
+  -H "Content-Type: application/json" \
+  -H "X-Access-Key: <project_access_key>" \
+  -H "Authorization: BEARER <secret_API_key>" \
+  -d '{"url": "<URL>", "filters": {"contractAddresses":["0x9bec34c1f7098e278afd48fedcf13355b854364a"]}}' \
+  https://polygon-indexer.sequence.app/rpc/Indexer/AddWebhookListener
 ```
 
 ```typescript [TypeScript]
@@ -257,7 +272,18 @@ If you want to get all mints of a specific token ID for an ERC1155
 :::code-group
 
 ```bash [cURL]
-curl -X POST -H "Content-Type: application/json" -H "X-Access-Key: <project_access_key>" -H "Authorization: BEARER <secret_API_key>", "filters": {"contractAddresses":["0x9bec34c1f7098e278afd48fedcf13355b854364a"], tokenIDs: ['1237']}}'
+curl -X POST \
+  -H "Content-Type: application/json" \
+  -H "X-Access-Key: <project_access_key>" \
+  -H "Authorization: BEARER <secret_API_key>" \
+  -d '{
+		"url": "<URL>",
+        "filters": {
+          "contractAddresses": ["0x9bec34c1f7098e278afd48fedcf13355b854364a"],
+          "tokenIDs": ["1237"]
+        }
+      }' \
+  https://polygon-indexer.sequence.app/rpc/Indexer/AddWebhookListener
 ```
 
 ```typescript [TypeScript]
