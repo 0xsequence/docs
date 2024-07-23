@@ -180,6 +180,10 @@ export const sidebar = {
                 },
               ],
             },
+            {
+              text: 'Migrating to Sequence',
+              link: '/solutions/wallets/embedded-wallet/migration',
+            },
             { text: 'FAQ', link: '/solutions/wallets/embedded-wallet/faq' },
           ],
         },
