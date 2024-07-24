@@ -211,10 +211,10 @@ Upon webhook listener response, an object is returned in the following structure
 	- `contractType` (string) -- the type of contract (e.g. `ERC20`, `ERC721`, `ERC1155`, etc.)
 	- `txnHash` (string) -- the transaction hash of the event
 	- `txnIndex` (i32) -- the index of the transaction in the blockchain block
-	- `txnData` (object) -- the transaction data of who sent to who
-		- `value` (string) -- the value of the transaction 
-		- `from` (string) -- the originator of the transaction, if there is a value
-		- `to` (string) -- the destination address of the transaction, if there is a value
+	- `txnLogIndex` (string) -- the log index in the transaction
+	- `logDataType` (string) -- the type of log event (e.g. `TOKEN_TRANSFER`)
+	- `ts` (date) -- an ISO 8601 formatted date and time of the event
+	- `event` ([event]()) -- the event data of the on-chain data
 	- `txnLogIndex` (string) -- the log index in the transaction
 	- `logDataType` (string) -- the type of log event (e.g. `TOKEN_TRANSFER`)
 	- `log` (object) -- the emitted event data
@@ -295,6 +295,15 @@ console.log('ok', ok)
 - URI(string value, uint256 indexed id)
 
 ### Custom Return Data Types Glossary
+
+##### event (object)
+| Field    | Type 	 | Description |
+| -------- | ------- | ------- 	   |
+|  topicHash 	| string    | a hash of the event being listened to (e.g. ethers.utils.id("Transfer(address indexed from, address indexed to, uint256 amount)")) |
+|  eventSig 		| string    | the event signature of the on-chain event (e.g. "Transfer(address indexed from, address indexed to, uint256 amount)") |
+|  types 			| []string    | an array of argument types from the event |
+|  names 	| []string    	| an array of event argument names in plain text (note: if names are not included in initial webhook creation, will appear as: arg1, arg2, arg3, etc.) |
+|  values 		| []string    	| an array of hex values corresponding to the argument names |
 
 ##### transferEvent (object)
 | Field    | Type 	 | Description |
