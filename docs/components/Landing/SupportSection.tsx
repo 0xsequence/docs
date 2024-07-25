@@ -5,7 +5,8 @@ export const SupportSection = () => (
     <div className="flex flex-col gap-1 py-5">
       <h3 className="text-3xl text-themed-primary font-bold">Support</h3>
       <p className="text-md leading-6 font-medium max-w-xl dark:text-white-80 text-black-80 mr-8">
-        Get help with our stellar support team, community and knowledge base. Please feel free to reach out with any specific questions.
+        Get help with our stellar support team, community and knowledge base. Please feel free to
+        reach out with any specific questions.
       </p>
     </div>
     <div className="flex flex-wrap gap-x-10 gap-y-5 md:flex-row flex-col">
@@ -78,7 +79,6 @@ const ChatItem = ({
     </SmartLink>
   </div>
 )
-
 
 const ChangeLogItem = ({
   title,
