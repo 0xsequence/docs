@@ -1,6 +1,6 @@
 ---
 title: Sequence - Web3 Gaming Platform - Unreal SDK Sequence API
-description: Documentation for Unreal SDK API for the Sequence infrastructure stack for web3 gaming.
+description: Documentation for Unreal SDK API for writing to the blockchain with the Sequence infrastructure stack for web3 gaming.
 ---
 
 # Write to Blockchain
@@ -42,7 +42,7 @@ const FFailureCallback OnFailure = [this](const FSequenceError& Error)
 // Create the Transaction object list
 TArray<TUnion<FRawTransaction,FERC20Transaction,FERC721Transaction,FERC1155Transaction>> Txn;
 ```
-###ERC20 Transaction
+### ERC20 Transaction
 
 ```cpp
 // Create the ERC20 transaction
@@ -55,7 +55,10 @@ T20.value = "1000";
 Txn.Push(TUnion<FRawTransaction,FERC20Transaction,FERC721Transaction,FERC1155Transaction>(T20));
 ```
 
-###ERC721 Transaction
+*Note: To send the correct value for the transaction of the ERC20 you will need to make a conversion of the expected transfer value to the expected input value, to make up for the different decimals a contract might have. The formula to do so is as follows: **Transfer Value = Input Value /(10 ^ Contract Decimals) **.
+(i.e: To transfer 1 USDC -> Input Value = 1 × 10^6)*
+
+### ERC721 Transaction
 
 ```cpp
 // Create the ERC721 transaction
@@ -69,7 +72,7 @@ T721.tokenAddress = "0xa9a6A3626993D487d2Dbda3173cf58cA1a9D9e9f";
 Txn.Push(TUnion<FRawTransaction,FERC20Transaction,FERC721Transaction,FERC1155Transaction>(T721));
 ```
 
-###ERC1155 Transaction
+### ERC1155 Transaction
 
 ```cpp
 // Create the ERC1155 transaction
@@ -86,7 +89,7 @@ T1155.vals.Add(Val);
 Txn.Push(TUnion<FRawTransaction,FERC20Transaction,FERC721Transaction,FERC1155Transaction>(T1155));
 ```
 
-###Raw Transaction (Example Contract Call)
+### Raw Transaction (Example Contract Call)
 
 *Note: if you want call contracts with the Raw type you'll want include the header #include "ABI/ABI.h" in order to use the ABI to encode the data for a contract call.*
 
@@ -108,7 +111,7 @@ T.value = "0";
 Txn.Push(TUnion<FRawTransaction,FERC20Transaction,FERC721Transaction,FERC1155Transaction>(T));
 ```
 
-###Sending the Transaction
+### Sending the Transaction
 
 ```cpp
 // Now send the transaction

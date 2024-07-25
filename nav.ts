@@ -180,6 +180,10 @@ export const sidebar = {
                 },
               ],
             },
+            {
+              text: 'Migrating to Sequence',
+              link: '/solutions/wallets/embedded-wallet/migration',
+            },
             { text: 'FAQ', link: '/solutions/wallets/embedded-wallet/faq' },
           ],
         },
@@ -609,6 +613,7 @@ export const sidebar = {
             { text: 'Managing Session', link: '/sdk/unreal/managing-session' },
             { text: 'Read from Blockchain', link: '/sdk/unreal/read-from-blockchain' },
             { text: 'Write to Blockchain', link: '/sdk/unreal/write-to-blockchain' },
+            { text: 'On-Ramp Funds via Credit Card', link: '/sdk/unreal/onboard-user-funds' },
             { text: 'Advanced Blockchain Intereactions', link: '/sdk/unreal/advanced' },
             { text: 'Packaging', link: '/sdk/unreal/packaging' },
           ],

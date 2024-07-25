@@ -26,7 +26,7 @@ export const GuidesSection = () => (
         link="/guides/treasure-chest-guide"
       />
       <GuideCard
-        title="Orderbook Marketplace"
+        title="Sequence Market"
         body="Build an API-driven marketplace where players can mint, then sell or buy items using a custom web-based interface leveraging Sequence Orderbook APIs."
         link="/guides/custom-marketplace"
       />

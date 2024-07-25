@@ -1,0 +1,67 @@
+# OnRamp
+
+If you wish for your users to be able to pay for things in your game using cryptocurrencies, you'll find our Transak integration to be very helpful.
+Transak allows users to purchase a variety of cryptocurrencies on a variety of blockchains using their credit card using a user friendly web interface. Learn more about Transak [here](https://transak.com/).
+
+## On-Ramp User Funds via Credit Card
+
+To generate a link for your user's Transak on-ramping:
+
+```cpp
+UTransakOnRamp* Transak = UTransakOnRamp::Init("UserWalletAddress");
+FString OnRampLink = Transak->GetTransakLink("USD", "100", "BTC", "network1,network2", false);
+// You can tailor the user experience by providing different default values for the parameters.
+```
+
+From here, you can open the OnRampLink using `FPlatformProcess::LaunchURL`. Alternatively, you can use:
+
+```cpp
+UTransakOnRamp* Transak = UTransakOnRamp::Init("UserWalletAddress");
+Transak->OpenTransakLink("USD", "100", "BTC", "network1,network2", false);
+// This will automatically open the generated Transak On-Ramp link in the default web browser.
+```
+
+## Check Supported Countries
+To check the countries supported by Transak and learn about how they are supported, use the `GetSupportedCountries` method.
+
+```cpp
+Transak->GetSupportedCountries(
+    [](TArray<FSupportedCountry> SupportedCountries) {
+        // Handle the supported countries, e.g., log their names
+        for (const FSupportedCountry& Country : SupportedCountries) {
+            UE_LOG(LogTemp, Log, TEXT("Country: %s"), *Country.CountryName);
+        }
+    },
+    [](FSequenceError Error) {
+        // Handle any errors that occur
+        UE_LOG(LogTemp, Error, TEXT("Encountered error fetching supported countries from Transak: %s"), *Error.ErrorMessage);
+    }
+);
+```
+
+## Using Transak from USequenceWallet
+
+You can also access the Transak functionalities straight from `USequenceWallet`:
+
+```cpp
+const FCredentials_BE Credentials; // Replace this var with your own credentials however you choose to get them
+const TOptional<USequenceWallet*> WalletOptional = USequenceWallet::Get(Credentials);
+if (WalletOptional.IsSet() && WalletOptional.GetValue())
+{
+	USequenceWallet* Wallet = WalletOptional.GetValue();
+    Wallet->GetSupportedTransakCountries(
+    [](TArray<FSupportedCountry> SupportedCountries) {
+        // Handle the supported countries, e.g., log their names
+        for (const FSupportedCountry& Country : SupportedCountries) {
+            UE_LOG(LogTemp, Log, TEXT("Country: %s"), *Country.CountryName);
+        }
+    },
+    [](FSequenceError Error) {
+        // Handle any errors that occur
+        UE_LOG(LogTemp, Error, TEXT("Encountered error fetching supported countries from Transak: %s"), *Error.ErrorMessage);
+    }
+    );
+}
+// Open the Transak link in the default browser
+Wallet->OpenTransakLink("USD", "100", "BTC", "network1,network2", false);
+```

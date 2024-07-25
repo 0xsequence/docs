@@ -1,3 +1,8 @@
+---
+title: Managing Webhooks in Sequence Builder
+description: The content discusses the use of webhooks in Sequence Builder for game builders to listen to events on multiple blockchains.
+---
+
 import Video from "../../../components/Video";
 import {Callout} from 'vocs/components'
 
@@ -6,7 +11,7 @@ import {Callout} from 'vocs/components'
 Sequence Builder equips game builders with an indexer that listens to events across the many blockchains that we offer by providing an https callback
 
 <Callout type='warning'>
-	If you prefer a programmatic way to add webhooks that uses cURL, TypeScript or Go, check out [this walkthrough](/api/indexer/examples/webhook-listener)
+	If you prefer a programmatic way to add webhooks that uses cURL, TypeScript or Go, check out [this walkthrough](/api/indexer/examples/webhook-listener).
 </Callout>
 
 #### What data can I listen to for my game?
@@ -38,7 +43,15 @@ In the dropdown beneath the webhooks tab, select the network you're looking to c
 ![indexer webhooks add new webhook](/img/builder/builder_indexer_webhooks_add_new_webhook.png)
  
 ### Complete Webhook Details
-Complete the required details like webhook `URL` and `Contract Address(es)` and select `Add Webhook`
+Complete the required details like webhook `URL`, `Contract Address(es)`, and 'Events'. 
+
+For the Events field, we are able to parse any arbitrary contract event, however you must input the event exactly as written in your smart contract. For example, for detecting transfer events you would input: `Transfer(address indexed from, address indexed to, uint256 amount)` with the `indexed` keyword. You can find an example of general event types [here](/api/indexer/examples/webhook-listener#on-chain-token-event-types) for common use cases along with Sequence specific ones.
+
+ 
+ 
+Once your desired fields are input, select `Add Webhook`. 
+
+
 
 <Callout type="info">
     If you require a webhook endpoint you can use [webhook.site](https://webhook.site/)
@@ -46,7 +59,6 @@ Complete the required details like webhook `URL` and `Contract Address(es)` and 
     Or, you can use template code with one of the following:
 
     [Nodejs TypeScript Webhook](https://github.com/0xsequence-demos/template-nodejs-webhook-server) (combined with [ngrok](https://ngrok.com/))
-    [Cloud Worker Webhook](https://github.com/0xsequence-demos/template-cloudflare-worker-webhook)
 </Callout>
 
 ![add a webhook with details](/img/builder/builder_indexer_webhooks_add_webhook.png)
