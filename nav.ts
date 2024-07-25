@@ -571,6 +571,7 @@ export const sidebar = {
                 { text: 'OIDC - Social Sign In', link: '/sdk/unity/authentication/oidc' },
                 { text: 'PlayFab', link: '/sdk/unity/authentication/playfab' },
                 { text: 'Guest', link: '/sdk/unity/authentication/guest' },
+                { text: 'FederatedAccounts', link: '/sdk/unity/authentication/federated-accounts' },
               ]
             },
             { text: 'Write to blockchain', link: '/sdk/unity/write-to-blockchain' },
