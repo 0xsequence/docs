@@ -562,7 +562,7 @@ export const sidebar = {
             { text: 'Overview', link: '/sdk/unity/overview' },
             { text: 'Installation', link: '/sdk/unity/installation' },
             { text: 'Setup', link: '/sdk/unity/setup' },
-            { 
+            {
               text: 'Authentication',
               collapsed: false,
               items: [
@@ -572,7 +572,7 @@ export const sidebar = {
                 { text: 'PlayFab', link: '/sdk/unity/authentication/playfab' },
                 { text: 'Guest', link: '/sdk/unity/authentication/guest' },
                 { text: 'FederatedAccounts', link: '/sdk/unity/authentication/federated-accounts' },
-              ]
+              ],
             },
             { text: 'Write to blockchain', link: '/sdk/unity/write-to-blockchain' },
             { text: 'Read from Blockchain', link: '/sdk/unity/read-from-blockchain' },
