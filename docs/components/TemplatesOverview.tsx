@@ -103,7 +103,7 @@ export const TemplatesOverview = () => (
       <TemplateCard
         title="Sequence Market Protocol Template using Sequence Kit"
         body="Example template for your web application to allow users to sign in with Sequence Kit and place orders on the Sequence Market Protocol contracts."
-        link="https://github.com/0xsequence-demos/template-simple-marketplace"
+        link="https://github.com/0xsequence-demos/simple-marketplace-boilerplate"
       />
     </div>
 
