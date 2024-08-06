@@ -1,0 +1,69 @@
+---
+title: Sequence Embedded Wallet Account Linking
+description: The content provides detailed information on implementing the ability to link single or multiple wallets to a main embedded wallet session, describing best practices when combined with ephemeral guest wallets to be converted to permanent on-chain embedded wallets.
+---
+
+import { Callout } from "vocs/components";
+
+# Embedded Wallet Account Linking
+
+Sequence WaaS offers the ability to link multiple social accounts to a single wallet address. This enables experiences to have a singular on-chain experience, while allowing access for a user to use the wallet through multiple points of identity authentication which can be beneficial when constructing ecosystem based experiences across interfaces and devices.
+
+## Wallet Aggregating Provider Effect
+
+An important feature of WaaS Account Linking is that these wallets will aggregate based on the first signed-in login provider, whether authenticated via a social means or a guest wallet. So the wallet address is based on the first signed-in wallet and subsequent link to that wallet. 
+
+When a linked account has been connected to a main account, logging out and individually using that previously linked account will yield the same address into the future. 
+
+More on common practices when [beginning with a `Guest Wallet`](/solutions/wallets/embedded-wallet/examples/account-linking#guest-wallet-common-practice).
+
+## Default Social Provider Link Account
+
+The following allows a developer to initiate an authentication using `initAuth` using the [same parameters as the first signed-in session](/solutions/wallets/embedded-wallet/examples/use-wallets#initialize-sdk) with an additional social provider, where the provider `challenge` is returned and passed to the `linkAccount` function:
+
+```ts
+const challenge = await waas.initAuth({/* same params as for signIn function */})
+const linkResponse = await waas.linkAccount(challenge)
+```
+
+## Email One-Time Password Link Acccount
+
+Using the Email approach requires the One-time password to be passed into the challenge, and called via the `linkAccount` function:
+
+```ts
+const challenge = await waas.initAuth({ email })
+
+// if the linking account is email then you need to provide the answer (code)
+const linkResponse = await waas.linkAccount(challenge.withAnswer(code))
+```
+
+## List Accounts
+
+Calling `listAccounts` will return an object with the following: an array of `accounts` object(s) (with `id`, `type`, and `issuer`), as well as the `currentAccountId`, for example: `"Guest:0x0104...`:
+
+```ts
+import { SequenceWaaS } from "@0xsequence/waas";
+
+const sequence = new SequenceWaaS(
+  {
+    projectAccessKey: `${process.env.VITE_PROJECT_ACCESS_KEY}`,
+    waasConfigKey: `${process.env.VITE_WAAS_CONFIG_KEY}`,
+    network: "arbitrum-nova",
+  }
+)
+
+const response = await sequence.listAccounts()
+
+console.log(response.accounts)
+console.log(response.currentAccountId)
+```
+
+## Wallet Use
+
+Since multiple social accounts are aggregated via a single on-chain wallet, the use is no different than the normal WaaS wallet. More on Embedded wallet use can be found [here](/solutions/wallets/embedded-wallet/examples/use-wallets#wallets-and-transactions).
+
+## Guest Wallet Common Practice
+
+It is common practice to enable a user to sign-in within the background of an application with a [guest wallet](/solutions/wallets/embedded-wallet/examples/use-wallets#guest-embedded-wallet), have that wallet stored in cache by the SDK, then later prompt the user for a social login provider to link to the first initial wallet. 
+
+Therefore, if assets have been accumulated in the wallet, transactions on-chain, or signatures have been saved, there can be continuity.
