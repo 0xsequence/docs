@@ -7,11 +7,11 @@ import { Callout } from "vocs/components";
 
 # Embedded Wallet Account Linking
 
-Sequence WaaS offers the ability to link multiple social accounts to a single wallet address. This enables experiences to have a singular on-chain experience, while allowing access for a user to use the wallet through multiple points of identity authentication which can be beneficial when constructing ecosystem based experiences across interfaces and devices.
+Sequence Embedded Wallet offers the ability to link multiple social accounts to a single wallet address. This enables experiences to have a singular on-chain experience, while allowing access for a user to use the wallet through multiple points of identity authentication which can be beneficial when constructing ecosystem based experiences across interfaces and devices.
 
 ## Wallet Aggregating Provider Effect
 
-An important feature of WaaS Account Linking is that these wallets will aggregate based on the first signed-in login provider, whether authenticated via a social means or a guest wallet. So the wallet address is based on the first signed-in wallet and subsequent link to that wallet. 
+An important feature of Embedded Wallet Account Linking is that these wallets will aggregate based on the first signed-in login provider, whether authenticated via a social means or a guest wallet. So the wallet address is based on the first signed-in wallet and subsequent sign-in's will link to that wallet. 
 
 When a linked account has been connected to a main account, logging out and individually using that previously linked account will yield the same address into the future. 
 
@@ -19,16 +19,16 @@ More on common practices when [beginning with a `Guest Wallet`](/solutions/walle
 
 ## Default Social Provider Link Account
 
-The following allows a developer to initiate an authentication using `initAuth` using the [same parameters as the first signed-in session](/solutions/wallets/embedded-wallet/examples/use-wallets#initialize-sdk) with an additional social provider, where the provider `challenge` is returned and passed to the `linkAccount` function:
+The following allows a developer to initiate an authentication using `initAuth` using the [same parameters as the first signed-in session on the `waas` object](/solutions/wallets/embedded-wallet/examples/use-wallets#initialize-sdk) with an additional guest or social provider, where the provider `challenge` is returned and passed to the `linkAccount` function:
 
 ```ts
-const challenge = await waas.initAuth({/* same params as for signIn function */})
+const challenge = await waas.initAuth({/* same params as signIn function */})
 const linkResponse = await waas.linkAccount(challenge)
 ```
 
-## Email One-Time Password Link Acccount
+## Email One-Time Password Link Account
 
-Using the Email approach requires the One-time password to be passed into the challenge, and called via the `linkAccount` function:
+Using the one-time password email approach to authenticate requires the password sent to the users' email to be passed into the challenge, and called via the `linkAccount` function:
 
 ```ts
 const challenge = await waas.initAuth({ email })
@@ -52,6 +52,8 @@ const sequence = new SequenceWaaS(
   }
 )
 
+... // authentication
+
 const response = await sequence.listAccounts()
 
 console.log(response.accounts)
@@ -60,10 +62,12 @@ console.log(response.currentAccountId)
 
 ## Wallet Use
 
-Since multiple social accounts are aggregated via a single on-chain wallet, the use is no different than the normal WaaS wallet. More on Embedded wallet use can be found [here](/solutions/wallets/embedded-wallet/examples/use-wallets#wallets-and-transactions).
+Since multiple social accounts are aggregated via a single on-chain wallet, the use is no different than the typical Embedded wallet. More on Embedded wallet use can be found [here](/solutions/wallets/embedded-wallet/examples/use-wallets#wallets-and-transactions).
 
 ## Guest Wallet Common Practice
 
-It is common practice to enable a user to sign-in within the background of an application with a [guest wallet](/solutions/wallets/embedded-wallet/examples/use-wallets#guest-embedded-wallet), have that wallet stored in cache by the SDK, then later prompt the user for a social login provider to link to the first initial wallet. 
+It is common practice to enable a user to sign-in within the background of an application with a [guest wallet](/solutions/wallets/embedded-wallet/examples/use-wallets#guest-embedded-wallet), have that wallet stored in the cache by the SDK, then later prompt the user for a social login provider to link to the first initial wallet using one of the [previously explained approaches](/solutions/wallets/embedded-wallet/examples/account-linking#embedded-wallet-account-linking). 
 
-Therefore, if assets have been accumulated in the wallet, transactions on-chain, or signatures have been saved, there can be continuity.
+Therefore, if assets have been accumulated in the wallet, transactions performed on-chain, or signatures that have been saved, the wallet can have continuity.
+
+Using a guest wallet first approach can enable a user to try a game or experience invisibly, before authenticating for the long term and requiring a few extra user interface interactions.
