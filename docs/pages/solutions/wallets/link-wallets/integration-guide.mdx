@@ -7,34 +7,33 @@ import { Callout } from "vocs/components";
 
 # Wallet Linking Integration Guide
 
-In this guide, we will showcase how to sign into an Embedded Wallet using traditional authentication like email or social login. A verifiable link is generated from the session which redirects a user to separate application to sign into an external wallet via [Sequence Kit](/solutions/wallets/sequence-kit/overview). We will then showcase how to create a link via a backend to server storage with the Embedded Wallet account from the authorized frontend web session.
+**Time to complete: 20-30 minutes**
+
+In this guide, we will showcase how to sign into an [Embedded Wallet](/solutions/wallets/embedded-wallet/overview) using traditional web2 authentication like email or social login. Then, a verifiable link is generated from the session which redirects a user to separate application that verifies the embedded wallet session and enables a user to sign into an external wallet via [Sequence Kit](/solutions/wallets/sequence-kit/overview).
 
 This feature is very useful for when users are being onboarded with Embedded Wallets, with prior history and assets in external wallets. This architecture enables read-access of multiple linked wallets to perform querying of inventory, leaving assets in respective wallets untouched as well as enhancing the ability from liquidity or funds to flow from external wallets to wallets associated with a game.
 
 <Callout type="info">
- The full templated code can be found in the respective repositories if you would like to start integration right away:
-  - [Template WaaS Auth](https://github.com/0xsequence/demo-waas-auth/blob/master/src/components/views/EOALinkView.tsx) - Logic associated with the embedded wallet for generating verifiable a link.
-  - [Template WaaS Wallet Link](https://github.com/0xsequence-demos/demo-waas-wallet-link) - Application user is redirected to link their external account and view assets in their wallets.
-  - The end to end example can be tested from this [Wallet Linking Demo](https://0xsequence.github.io/demo-waas-auth/) where at the bottom of the screen, select the card titled "EOA Link".
+ The full boilerplate code can be found in the respective repositories if you would like to start integration right away:
+  - [WaaS Auth Initiator Boilerplate](https://github.com/0xsequence-demos/demo-waas-wallet-link-initiator) - Logic associated with the embedded wallet for generating a verifiable link.
+  - [WaaS Wallet Link Boilerplate](https://github.com/0xsequence-demos/demo-waas-wallet-link) - Application user is redirected to link their external account and view assets in their wallets.
+  - The end to end example can be tested from this [Wallet Linking Demo](https://demo-waas-wallet-link-initiator.pages.dev/) by signing in and clicking the `Open Auth URL` button.
 </Callout>
 
 The Sequence tools in this guide will enable you to perform:
 
 1. [Sequence Builder Console Signup & Project Creation](/solutions/wallets/link-wallets/integration-guide#1-sequence-builder-console-signup--project-creation): Create a project with the Sequence Builder
-2. [Access Key Management](/solutions/wallets/link-wallets/integration-guide#2-access-key-management): Claim a public access key, and WaaS config key to interact with the Sequence stack
+2. [Access Key Management](/solutions/wallets/link-wallets/integration-guide#2-access-key-management): Obtain a public access key, and WaaS config key to interact with the Sequence stack
 3. [Embedded Wallet Integration](/solutions/wallets/link-wallets/integration-guide#3-embedded-wallet-integration): Integrate an Embedded Wallet into the application
-4. [Deploy a Cloudflare Worker with KV Storage](/solutions/wallets/link-wallets/integration-guide#4-deploy-a-cloudflare-worker-with-kv-storage): Leverage a serverless Cloudflare worker to hold state on wallet linking and wallet signature verification
-5. [Nonce Generation](/solutions/wallets/link-wallets/integration-guide#5-nonce-generation): Generate a signature directly from a signed in Embedded Wallet and generate and store a unique nonce 
-6. [Embedded Wallet Verification](/solutions/wallets/link-wallets/integration-guide#6-embedded-wallet-verification): Reconstruct a message to be verified by the Sequence API to check the validity of an authenticated user session
-7. [Embedded Wallet Signature ](/solutions/wallets/link-wallets/integration-guide#7-embedded-wallet-signature): Use Sequence Kit connector to sign a user in with their EOA wallet
-8. [Sequence Kit Login for EOA Authentication](/solutions/wallets/link-wallets/integration-guide#8-sequence-kit-login-for-eoa-authentication): Use Sequence Kit connector to sign a user in with their EOA wallet
-9. [(Optional) Query Balances in Singular Interface](/solutions/wallets/link-wallets/integration-guide#9-optional-query-balances-in-singular-interface): Use the Sequence Indexer to query multiple wallets to aggregate tokens into a singular interface
-
-**Time to complete: 30-40 minutes**
+4. [Nonce Generation](/solutions/wallets/link-wallets/integration-guide#4-nonce-generation): Generate and store a unique nonce
+5. [Embedded Wallet Signature](/solutions/wallets/link-wallets/integration-guide#5-embedded-wallet-signature): Generate a signature to be used to verify with 
+6. [Sequence Kit Sign In Wallet Linking Dapp](/solutions/wallets/link-wallets/integration-guide#6-sequence-kit-sign-in-dapp): Use Sequence Kit to sign a user in with their EOA wallet
+7. [Embedded Wallet Session Wallet Verification](/solutions/wallets/link-wallets/integration-guide#7-embedded-wallet-session-wallet-verification): Verify a signature and session with the Sequence API to check the validity of an authenticated user session 
+8. [(Optional) Query Balances in Singular Interface](/solutions/wallets/link-wallets/integration-guide#8-query-balances-in-singular-interface): Use the Sequence Indexer to query multiple wallets to aggregate tokens into a singular interface
 
 ## Wallet Linking Diagram Flow
 
-![wallet linking guide sequence diagram](/img/guides/wallet-linking/wallet-linking-diagram.png)
+![wallet linking guide sequence diagram](/img/guides/wallet-linking/wallet_linking_diagram.png)
 
 ## 1. Sequence Builder Console Signup & Project Creation
 
@@ -314,205 +313,33 @@ pnpm run dev
 In order to allow for a custom sign in page without the Web2 widgets, you'll need to actually hide the standard sign-in buttons from the recommended npm packages. It is best to just copy and paste the whole `App.css` [found here](https://github.com/0xsequence-demos/template-embedded-wallet-web2-auth/blob/master/src/App.css) and include it in your code that has the correct css classes.
 </Callout>
 
-## 4. Deploy a Cloudflare Worker with KV Storage
+## 4. Nonce Generation
 
-In order to create the Cloudflare worker project from scratch, first create a project with `mkdir`, `cd` into the project, and run `pnpm init` to create a `package.json`.
+Conveniently, Sequence has an available service that enables users to pass in a wallet address to an HTTPS call and produce a nonce that is later retrievable and useable to be verified with.
 
-Next, make sure wrangler cli is installed in your project and set the `wrangler` keyword as an alias in your local bash session.
+### GenerateWaaSVerificationURL
+* Request: POST https://dev-api.sequence.app/rpc/API/GenerateWaaSVerificationURL
+* Content-Type: application/json
+* Body (in JSON):
+	* `walletAddress` (string) -- the wallet account address
+* Response (in JSON):
+  * `nonce` (string) -- the generated and Sequence stored nonce for the wallet
+  * `verificationURL` -- returns ''
 
-```shell
-pnpm install wrangler --save-dev
-alias wrangler='./node_modules/.bin/wrangler'
-```
-
-Create an account on the [Cloudflare site](https://cloudflare.com/) and perform a login step to login to your Cloudflare dashboard to connect the Cloudflare platform to your local development environment.
-
-```shell
-wrangler login
-```
-
-Once logged in, initialize the project in the directory by accepting one of the randomly generated project folder names provided that you like, and follow the prompts to initialize your git tracked typescript `"Hello World" Worker` application.
-
-```shell
-wrangler init
-```
-
-To complete this step, you should press enter 4 times after `wrangler init` with the last 2 steps answered as `No` to decline git versioning and deployment.
-
-This will clone down a starter repository that can be used to deploy code to the cloud.
-
-<Callout type='info'>
-Local API Testing <br/>
-At any point in the guide, you can use the `wrangler dev` command in the project folder for local testing
-</Callout>
-
-#### Deploy Test
-
-Next, `cd` into the randomly generated project folder, and perform a `wrangler deploy` command.
-
-This should print a URL, which you can enter in the browser the URL `https://<app>.<account>.workers.dev` to view the `Hello World!` result.
-
-#### Add a Key-Value Storage Environment Object
-
-For this guide, we will enable the system to store data in a Key-Value (KV) storage environment object. To start we will create a single variable that stores just a single nonce based on new requests.
-
-Add the following to the top of your `index.ts` file:
-
-```typescript
-export interface Env {
-    waas_wallet_link_db: KVNamespace;
-}
-```
-
-Then in the rest of your code include the following testing code to generate a valid nonce that is stored.
-
-First, install ethers with the following command:
-
-```shell
-pnpm install ethers@5.7.2
-```
-
-Then use the following code:
-
-```typescript
-import { ethers } from 'ethers'
-
-...
-
-async function handleRequest(request: Request, env: Env, ctx: ExecutionContext) {
-    if (request.method === "OPTIONS") {
-            return new Response(null, {
-                headers: {
-                    // Allow requests from any origin - adjust this as necessary
-                    "Access-Control-Allow-Origin": "*",
-                    
-                    // Allow POST method - add any other methods you need to support
-                    "Access-Control-Allow-Methods": "GET",
-                    
-                    // Optional: allow credentials
-                    "Access-Control-Allow-Credentials": "true",
-                    
-                    // Preflight cache period
-                    "Access-Control-Max-Age": "86400", // 24 hours
-                }
-            });
-    }
-
-    const nonce = ethers.utils.hexlify(ethers.utils.randomBytes(32))
-	await env.waas_wallet_link_db.put('NONCE', String(nonce))
-    
-    return new Response(JSON.stringify({nonce: await env.waas_wallet_link_db.get('NONCE')}), {
-        status: 200,
-    });
-}
-
-export default {
-    async fetch(request: Request, env: Env, ctx: ExecutionContext) {
-        // Process the request and create a response
-        const response = await handleRequest(request, env, ctx);
-
-        // Set CORS headers
-        response.headers.set("Access-Control-Allow-Origin", "*");
-        response.headers.set("Access-Control-Allow-Methods", "POST, GET, OPTIONS");
-        response.headers.set("Access-Control-Allow-Headers", "Content-Type");
-
-        // return response
-        return response;
-    }
-}
-```
-Then, you'll need to create a namespace for your variable, which can be done with the following cli command:
-
-```shell
-wrangler kv:namespace create waas_wallet_link_db
-```
-
-Then, you'll need to add the generated namespace id to your `wrangler.toml`
-
-For example:
-
-```shell
-kv_namespaces = [
-    { binding = "waas_wallet_link_db", id = "<YOUR_GENERATED_ID>" }
-]
-```
-
-Finally, deploy your worker with `wrangler deploy` and enter in the browser the URL `https://<app>.<account>.workers.dev` to view the nonce stored.
-
-## 5. Nonce Generation
-
-Now that we have an application that can log in a user and a Cloudflare worker that can receive requests to generate a simple nonce, let's create the structure of the worker to both generate a nonce for a wallet address, store it, and later verify the nonce using the Sequence API.
-
-To generate a nonce, use the following code that handles a POST with the `walletAddress` passed in the body:
-
-```typescript
-
-export interface Env {
-    ...
-    VERIFICATION_URL: string;
-    ...
-}
-
-...
-
-async function handleRequest(request: Request, env: Env, ctx: ExecutionContext) {
-    ...
-    let url = new URL(request.url)
-
-    if (url.pathname === "/generateNonce") {
-        const payload = await request.json()
-        const { walletAddress }: any = payload
-
-        if (!walletAddress) {
-            return new Response(null, {
-                status: 400,
-                statusText: "Bad Request",
-            });
-        }
-
-        // generate a random nonce
-        const nonce = ethers.utils.hexlify(ethers.utils.randomBytes(32))
-
-        // store the nonce
-        await env.waas_wallet_link_db.put(nonce, walletAddress)
-
-        return new Response(JSON.stringify({
-            nonce: nonce,
-            verificationUrl: env.VERIFICATION_URL
-        }), {
-            headers: {
-                "Content-Type": "application/json",
-            },
-        });
-    }
-}
-```
-
-And for this demo, set the `VERIFICATION_URL` in your `wrangler.toml`, which will be used to reference your app. 
-
-```shell
-VERIFICATION_URL = '<SECOND_APP_URL>' # e.g. http://localhost:5174
-```
-
-In the future, for maximal optionality this `VERIFICATION_URL` can always be changed on the fly to redirect your user to a different location with "behind-the-scenes" redeployments of your Cloudflare Worker.
-
-To run a test, redploy with `wrangler deploy`, and call the function with:
-
-```shell
-curl -X POST https://<app>.<account>.workers.dev -d '{"walletAddress": "<wallet_address>"}'
-```
-
-After a successful response, integrate into the frontend with the following code attached to a button click handler:
+To generate a nonce, use the following code that calls an HTTPS POST with the `walletAddress` passed in the body:
 
 ```typescript
 const generateNonce = async () => {
-    const response = await fetch(`${SERVER_URL}/generateNonce`, {
+    const response = await fetch(`https://dev-api.sequence.app/rpc/API/GenerateWaaSVerificationURL`, {
         method: "POST",
         headers: {
             "Content-Type": "application/json"
         },
         body: JSON.stringify({ walletAddress })
     });
+
+    const data = await response.json()
+    console.log(data.nonce)
 }
 ...
 <button onClick={() => generateNonce()}>
@@ -520,106 +347,9 @@ const generateNonce = async () => {
 
 You'll need to store the returned nonce response in the frontend to be able to be used in a subsequent request to verify.
 
-## 6. Embedded Wallet Verification
+## 5. Embedded Wallet Signature
 
-Returning to the Cloudflare Worker, create a statement block with the following code to handle the path of `/verifyNonce` that checks that all variables are passed correctly:
-
-```typescript
-async function handleRequest(request: Request, env: Env, ctx: ExecutionContext) {
-    ...
-    if (url.pathname === "/verifyNonce") {
-        const payload = await request.json()
-        const { nonce, signature, sessionId, chainId }: any = payload
-
-        if (!nonce || !signature || !sessionId || !chainId) {
-            return new Response(null, {
-                status: 400,
-                statusText: "Bad Request",
-            });
-        }
-        ...
-    }
-    ...
-}
-```
-
-Then, get the `walletAddress` stored from before using the `nonce`:
-
-```typescript
-  if (url.pathname === "/verifyNonce") {
-    ...
-    let walletAddress = await env.waas_wallet_link_db.get(nonce)
-
-    if (!walletAddress) {
-        return new Response(null, {
-            status: 404,
-            statusText: "Not Found",
-        });
-    }
-    ...
-  }
-```
-
-Reconstruct the `authProof` with the following string:
-
-```typescript
-const authProof = `SessionAuthProof ${sessionId} ${walletAddress} ${nonce}`
-```
-
-And verify the `authProof` using the sequence API (installed with `pnpm install 0xsequence`), handling the case where the signature is not valid, and returning the `walletAddress` when the signature is valid:
-
-```typescript
-import { sequence } from "0xsequence"
-
-export interface Env {
-    ...
-    PROJECT_ACCESS_KEY: string;
-    ...
-}
-...
-
-let api = new sequence.api.SequenceAPIClient(
-    "https://api.sequence.app",
-    env.PROJECT_ACCESS_KEY
-)
-
-let isValid = await api.isValidMessageSignature({
-    walletAddress: walletAddress,
-    message: authProof,
-    signature: signature,
-    chainId: chainId
-})
-
-if (!isValid) {
-    return new Response(null, {
-        status: 401,
-        statusText: "Unauthorized",
-    });
-} else {
-    return new Response(JSON.stringify({
-        walletAddress
-    }), {
-        status: 200,
-        statusText: "OK",
-    });
-}
-
-```
-
-And, with the `wrangler.toml` updated with the project access key, the `node_compat` variable set to `true`, and the `compatibility_flags` variable removed:
-
-```shell
-node_compat = true
-...
-PROJECT_ACCESS_KEY = '<PROJECT_ACCESS_KEY_FROM_BUILDER>'
-...
-```
-
-Great, the backend Cloudflare worker is complete. Deploy again with `wrangler deploy` and now it's time to create an Embedded Wallet Signature from the frontend to test verification works.
-
-## 7. Embedded Wallet Signature
-
-In your frontend code, you'll need to generate a signature, which can be done with the following code passing in the nonce generated from before and the network name chain handle:
+In your frontend code, you'll need to generate a signature, which can be done with the following code that passes in the nonce generated from before and the network name chain handle:
 
 <Callout type="info"> 
 The `network` value is the network name in plain text e.g. `mainnet`, `avalanche`, `base`, etc. sourced from the [Sequence Networks Status Page](https://status.sequence.info/) for the network you chose in the Sequence Builder.
@@ -641,54 +371,96 @@ Where the `sequence` variable is the Embedded Wallet authorized object imported 
 
 Once you have the variables required to verify a session, the variables are passed in a URL to redirect your users to the Wallet Linking app, which will be parsed to verify a session so that an EOA can be used to sign in.
 
-To construct the URL, use the base `VERIFICATION_URL` from [step 5](/solutions/wallets/link-wallets/integration-guide#5-nonce-generation) link as the domain, and append the necessary variables using URL query params using the following code:
-
 ```typescript
 const externalNonce = nonce
 const authProofSignature = signature
 const authProofSessionId = sessionId
 const chainId = 'arbitrum-nova'
-const verificationLink = `${verificationUrl}?nonce=${externalNonce}&signature=${authProofSignature}&sessionId=${authProofSessionId}&chainId=${chainId}`
+const verificationLink = `${verificationAppUrl}?nonce=${externalNonce}&signature=${authProofSignature}&sessionId=${authProofSessionId}&chainId=${chainId}`
 ```
 
-And prompt the verification link to the user to redirect using something like an `a` Anchor HTML element:
+And prompt the verification link to the user to redirect the user using something like a `window.open(<URL>)`:
 
-```html
-<a href={verificationLink} target="_blank" rel="noopener noreferrer">
-    Authorized Session App
-</a>
+```ts
+window.open(verificationLink)
 ```
 
-## 8. Sequence Kit Login for External Wallet Authentication
+## 6. Sequence Kit Sign In Dapp 
 
-In the second dapp, follow the provided walkthrough [here](/solutions/wallets/sequence-kit/getting-started#getting-started-with-sequence-kit) to create an application that enables users to sign in with an Externally-Owned Account (EOA) using Metamask, or, a Coinbase wallet, where the `VERIFICATION_URL` from [step 5](/solutions/wallets/link-wallets/integration-guide#5-nonce-generation) links to for this 2nd app.
+In the second dapp, follow the provided walkthrough [here](/solutions/wallets/sequence-kit/getting-started#setting-up-your-dapp) to create an application that enables users to sign in with an Externally-Owned Account (EOA) using Metamask, or, a Coinbase wallet, where the `verificationLink` from [step 5](/solutions/wallets/link-wallets/integration-guide#produce-verification-link-for-wallet-linking-app) links to this 2nd application.
 
-### verifyNonce
+## 7. Embedded Wallet Session Wallet Verification
 
-Once the app with Sequence Kit is set up, and the URL has all the verification parameters passed in, parse the URL and call the `/verifyNonce` endpoint and pass with the variables of the `nonce` we generated prior, `sessionId` from the Embedded Wallet hook, `signature`, and `chainId` to your Cloudflare Worker, where the `chainId` is the number for the network you're dealing with:
+After creating the URL that is provided to the user and opened in a new tab, the URL in the second application should be parsed, where `verifyEmbeddedWallet` is called in the Wallet Linking app, with the parameters from the URL passed into the `ValidateWaaSVerificationNonce` to see if a `walletAddress` is returned. Subsequently the frontend should be updated to allow for an EOA to be signed into:
 
-```typescript
-const nonce: string | null = urlParams.get("nonce");
-const signature: string | null = urlParams.get("signature");
-const sessionId: string | null = urlParams.get("sessionId");
-const chainId: string | null = urlParams.get("chainId");
+### ValidateWaaSVerificationNonce
+
+* Request: POST https://dev-api.sequence.app/rpc/API/ValidateWaaSVerificationNonce
+* Content-Type: application/json
+* Body (in JSON):
+	* `nonce` (string) -- the generated and Sequence stored nonce for the wallet
+	* `signature` (string) -- the [ERC6492](https://eips.ethereum.org/EIPS/eip-6492) generated signature
+	* `sessionId` (string) -- the `sessionId` for the Embedded Wallet
+	* `chainId` (string) -- the `chainId` of the wallet
+* Response (in JSON):
+  * `walletAddress` (string) -- the validated wallet address
+
+```ts
+const verifyEmbeddedWallet = async () => {
+
+    setInProgress(true) // for aesthetics
+
+    const nonce: string | null = urlParams.get("nonce");
+    const signature: string | null = urlParams.get("signature");
+    const sessionId: string | null = urlParams.get("sessionId");
+
+    console.log("nonce", nonce);
+    console.log("signature", signature);
+    console.log("chainId", chainId);
+    console.log("sessionId", sessionId);
+
+    if (!nonce || !signature || !chainId || !sessionId) {
+      console.log("Missing parameters for embedded wallet verification");
+      return;
+    }
+
+    const apiUrl = 'https://dev-api.sequence.app/rpc/API/ValidateWaaSVerificationNonce';
+      
+    const headers = {
+        'Content-Type': 'application/json'
+    };
+
+    const bodyData = {nonce, signature, chainId, sessionId}
+
+    const response = await fetch(apiUrl, {
+        method: 'POST',
+        headers: headers,
+        body: JSON.stringify(bodyData)
+    })
+
+    const data = await response.json();
+
+    if (data.walletAddress) {
+      console.log("Wallet is verified");
+      setVerifiedWaaSAddress(data.walletAddress);
+    } else {
+      console.log("Wallet is not verified");
+    }
+
+    setInProgress(false) // for aesthetics
+  };
+
 ```
 
-Then, make a call to the Cloudflare Worker performed as:
+Then `verifyEmbeddedWallet` called in a react `useEffect` to verify a session on page load
 
-```typescript
-const response = await fetch(`${SERVER_URL}/verifyNonce`, {
-    method: "POST",
-    headers: {
-        "Content-Type": "application/json"
-    },
-    body: JSON.stringify({nonce, signature, chainId, sessionId})
-});
+```ts
+useEffect(() => {
+  verifyEmbeddedWallet();
+}, []);
 ```
 
-The Embedded Wallet from the first application should be returned successfully. After this, change the UI to accomodate the additional flow for signing in a user with an external wallet.
-
-## 9. Query Balances across Wallets
+## 8. Query Balances in Singular Interface
 
 Once you have an application with at least 2 signed in wallet addresses, you can use the Sequence Indexer to query multiple balances and aggregate balances based on the `contractAddress` returned from the Indexer. 
 
@@ -735,6 +507,6 @@ const query = async () => {
 
 ### Conclusion
 
-To sum up, we've created an application to authenticate a user, instantiate a non-custodial embedded wallet, and create a cryptographically verifiable URL. This verifiable URL links to another application that validates the previous embedded wallet session and enables a user to connect any external wallet. This relationship is stored in a backend of your choosing, in this case, Cloudflare to retrieve or query at a later time.
+To sum up, we've created an application to authenticate a user, instantiate a non-custodial embedded wallet, and create a cryptographically verifiable URL. This verifiable URL links to another application that validates the previous embedded wallet session and enables a user to connect any external wallet.
 
 While we utilized web technologies for the embedded wallet application, this same logic can be easily extended to Unity, Unreal, or any other framework to create the same verifiable link from nearly any platform.
