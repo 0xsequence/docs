@@ -117,6 +117,10 @@ export const sidebar = {
                   text: 'Apple Setup',
                   link: '/solutions/builder/embedded-wallet/apple-configuration',
                 },
+                {
+                  text: 'Playfab Setup',
+                  link: '/solutions/builder/embedded-wallet/playfab-configuration',
+                },
               ],
             },
             {
