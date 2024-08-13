@@ -11,26 +11,32 @@ export const PowerOverview = () => (
           {
             icon: 'SequenceIcon',
             title: 'ERC20',
-            body: 'Get started with the Sequence platform by following this quick guide to create your first project and get access to all the features available to build your next game or app.',
-            link: '/solutions/builder/getting-started',
+            body: 'Standard, audited smart contract for deploying an ERC20 fungible token through Sequence Builder.',
+            link: '/solutions/collectibles/contracts/deploy-ERC20-currency',
           },
           {
             icon: 'CollectiblesIcon',
-            title: 'ERC721 & 1155',
-            body: 'Try out our embedded wallet in a browser with Sequence Kit. Fully customizable, brandable, and available in your favorite game engine or framework.',
+            title: 'ERC721',
+            body: 'Deploy standard, audited non-fungible (ERC721) tokens through Sequence Builder',
             link: '/solutions/collectibles/contracts/deploy-an-item-collection',
           },
           {
-            icon: 'CartIcon',
-            title: 'Primary Sales',
-            body: 'Introducing Jelly Forest: a blockchain-enabled 2D runner game with social sign in, an in-game store, a backend transaction manager and more - all built in Unity using the Sequence platform.',
-            link: '/guides/unity-guide',
+            icon: 'CollectiblesIcon',
+            title: 'ERC1155',
+            body: 'Deploy standard, audited semi-fungible (ERC1155) which we helped coauthor through Sequence Builder',
+            link: '/solutions/collectibles/contracts/deploy-an-item-collection',
           },
+          // {
+          //   icon: 'CartIcon',
+          //   title: 'Primary Sales',
+          //   body: 'Introducing Jelly Forest: a blockchain-enabled 2D runner game with social sign in, an in-game store, a backend transaction manager and more - all built in Unity using the Sequence platform.',
+          //   link: '/guides/unity-guide',
+          // },
           {
             icon: 'MinterIcon',
             title: 'Link any contracts',
-            body: 'Join our Discord for onboarding, support, share your project, and more!',
-            link: 'https://discord.com/invite/sequence',
+            body: 'Upload any custom contract by providing the ABI and manage from Sequence Builder.',
+            link: '/solutions/builder/contracts',
           },
         ]}
       />
@@ -41,14 +47,14 @@ export const PowerOverview = () => (
           {
             icon: 'AnalyticsIcon',
             title: 'Analytics',
-            body: 'Track every aspect of web3 activity within your games.',
+            body: 'Track every aspect of activity, retention, and more within your games.',
             link: '/solutions/builder/analytics',
           },
           {
             icon: 'CollectiblesIcon',
             title: 'Metadata Management',
-            body: 'Update your collections metadata via a UI or at scale using the metadata API',
-            link: '/solutions/wallets/universal-wallet/overview',
+            body: 'Update your collections metadata via a UI or at scale using the metadata API.',
+            link: '/solutions/builder/collections',
           },
           {
             icon: 'IndexerIcon',
@@ -60,36 +66,38 @@ export const PowerOverview = () => (
             icon: 'AirdropperIcon',
             title: 'Webhooks',
             body: 'Deploy webhooks that listen to any arbitrary event across blockchains by providing an https callback',
-            link: '/solutions/wallets/link-wallets/overview',
-          }
+            link: '/solutions/builder/webhooks',
+          },
         ]}
       />
     </div>
     <div className="flex md:flex-row flex-col gap-4">
-      <SolutionsGroup
-        theme="green"
-        heading="Blockchain Utilities"
-        items={[
-          {
-            icon: 'MarketplaceIcon',
-            title: 'Gas Sponsorship',
-            body: 'Launch an in-game collectibles marketplace within minutes.',
-            link: '/solutions/marketplaces/white-label-marketplace',
-          },
-          {
-            icon: 'NodeGatewayIcon',
-            title: 'Node Gateway',
-            body: 'Integrate custom in-game marketplaces with our APIs.',
-            link: '/solutions/marketplaces/orderbook/overview',
-          },
-          {
-            icon: 'WalletIcon',
-            title: 'Transaction Manager',
-            body: 'Scalable transactions with batching, access-control, parallelization, automatic reorg management with our transactions API.',
-            link: '/solutions/transactions-api/overview',
-          },
-        ]}
-      />
+      <div className="md:w-1/2">
+        <SolutionsGroup
+          theme="green"
+          heading="Blockchain Utilities"
+          items={[
+            {
+              icon: 'MarketplaceIcon',
+              title: 'Gas Sponsorship',
+              body: 'Utilize our gas sponsorship service in order to cover transactions fees for your endusers so they never have to think about the blockchain.',
+              link: '/solutions/builder/gas-tank',
+            },
+            {
+              icon: 'NodeGatewayIcon',
+              title: 'Node Gateway',
+              body: 'Leverage our autoscaling node service, automatically load balanced for your application.',
+              link: '/solutions/builder/node-gateway',
+            },
+            {
+              icon: 'WalletIcon',
+              title: 'Transaction Manager',
+              body: 'Scalable transactions with batching, access-control, parallelization, automatic reorg management with our transactions API.',
+              link: '/solutions/transaction-manager/overview',
+            },
+          ]}
+        />
+      </div>
     </div>
   </section>
 )
