@@ -30,7 +30,7 @@ yarn add @0xsequence/waas
 
 ## Initialize SDK
 
-The Embedded Wallet can be initialized using a Social Authentication `OAuth` token (or PlayFab `ticket`) for web2 authentication and web3 features, or, as a `Guest Wallet` for ephemeral wallet functions, still with being web3 on-chain.
+The Embedded Wallet can be initialized using a Social Authentication `OAuth` token (or PlayFab `ticket`) for web2 authentication and web3 features or as a `Guest Wallet` which is ephemeral.
 
 Before you can use the Sequence WaaS SDK, you need to obtain the following configuration keys from the Sequence Builder:
 
@@ -70,7 +70,9 @@ Alternatively, you can use an [email one-time-password approach](/solutions/wall
 
 ### Guest Embedded Wallet
 
-Simply, with a boolean passed in with `guest` key set to `true`, an ephemeral wallet will be created for use in the application with all Embedded Wallet functions possible.
+The Guest wallet allows you to create an ephemeral wallet and authenticate a user without requiring them to login with a social provider or email, however is not retrievable if associated app data is deleted.
+
+To create a guest wallet, pass in a boolean `guest` key set to `true`, which will create an ephemeral wallet for use in the application with all Embedded Wallet functions possible.
 
 ```typescript [App.tsx]
 await sequence.signIn({ guest: true }, "Session name");
@@ -78,7 +80,7 @@ await sequence.signIn({ guest: true }, "Session name");
 <Callout type="danger">
 Assets stored in the guest wallet after a browser cache has been cleared - or if the user has uninstalled the app - will not be accessible by the user. 
 
-We generally recommend after any value has been transferred or is available for the user to claim, that you prompt the user to sign in with a social provider to ensure asset continuity. 
+In order to protect your users ensure that after any value has been transferred or is available for the user to claim, that you prompt the user to sign in with a social provider to ensure asset continuity. 
 
 Read more on [Embedded Wallet linking here](/solutions/wallets/embedded-wallet/examples/account-federation#embedded-wallet-account-federation).
 </Callout>
