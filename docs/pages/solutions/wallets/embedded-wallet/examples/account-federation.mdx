@@ -1,0 +1,66 @@
+---
+title: Sequence Embedded Wallet Account Federation
+description: The content provides detailed information on implementing the ability to federate and link single or multiple wallets to a main embedded wallet session, describing best practices when combined with ephemeral guest wallets to be converted to permanent on-chain embedded wallets.
+---
+
+import { Callout } from "vocs/components";
+
+# Embedded Wallet Account Federation
+
+Sequence Embedded Wallets offered via the [Sequence Builder](https://sequence.build/), enable the ability to federate multiple social accounts to a single wallet address. This enables experiences to have a singular on-chain experience, while allowing users to access the wallet through multiple points of identity authentication.
+
+An important feature of Embedded Wallet Account Federation is that these wallets will aggregate based on the first signed-in login provider, whether authenticated via social, email, or a guest wallet. This means the wallet address is based on the first signed-in wallet and subsequent sign-in's will link to that initial wallet. 
+
+When a federated account has been connected to a main account, logging out and individually using that previously linked account will yield the same address into the future. 
+
+## Default Social Provider Account Federation
+
+The following allows a developer to initiate an authentication using `initAuth` using the [same parameters as the first signed-in session on the `WaaS` object](/solutions/wallets/embedded-wallet/examples/use-wallets#authenticated-embedded-wallet) with an additional guest or social provider, where the provider `challenge` is returned and passed to the `linkAccount` function:
+
+```ts
+const challenge = await waas.initAuth({/* same params as signIn function */})
+const linkResponse = await waas.linkAccount(challenge)
+```
+
+## Email One-Time Password Account Federation
+
+Using the one-time password email approach to authenticate requires the password sent to the users' email to be passed into the challenge, and called via the `linkAccount` function:
+
+```ts
+const challenge = await waas.initAuth({ email })
+
+// if the linking account is email then you need to provide the answer (code)
+const linkResponse = await waas.linkAccount(challenge.withAnswer(code))
+```
+
+## List Accounts
+
+Calling `listAccounts` will return an object with the following: an array of `accounts` object(s) (with `id`, `type`, and `issuer`), as well as the `currentAccountId`, for example: `"Guest:0x0104...`:
+
+```ts
+import { SequenceWaaS } from "@0xsequence/waas";
+
+const sequence = new SequenceWaaS(
+  {
+    projectAccessKey: `${process.env.VITE_PROJECT_ACCESS_KEY}`,
+    waasConfigKey: `${process.env.VITE_WAAS_CONFIG_KEY}`,
+    network: "arbitrum-nova",
+  }
+)
+
+... // authentication
+
+const response = await sequence.listAccounts()
+
+console.log(response.accounts)
+console.log(response.currentAccountId)
+```
+
+## Account Federation with Guest Wallets
+
+It is common practice for games to enable a user to sign-in within the background of an application with a [guest wallet](/solutions/wallets/embedded-wallet/examples/use-wallets#guest-embedded-wallet), 
+have that wallet stored in the cache by the SDK, then later prompt the user for a social login provider to link to the first initial wallet using one of the [previously explained approaches](/solutions/wallets/embedded-wallet/examples/account-federation#embedded-wallet-account-federation). 
+
+Therefore, if assets have been accumulated in the wallet, transactions performed on-chain, or signatures have been saved, the wallet can have continuity.
+
+Using a guest wallet first approach can enable a user to try a game or experience invisibly, before authenticating for the long term and smoothing the onboarding process.
