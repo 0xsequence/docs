@@ -7,7 +7,7 @@ import { Callout } from "vocs/components";
 
 # Wallets and Transactions
 
-- [**Initialize SDK & Perform Authentication**](/solutions/wallets/embedded-wallet/examples/use-wallets#initialize-sdk--perform-authentication): Ensure the SDK is initialized and the user is authenticated via one of our offered social options to begin using WaaS functions.
+- [**Initialize SDK**](/solutions/wallets/embedded-wallet/examples/use-wallets#initialize-sdk--perform-authentication): Ensure the SDK is initialized with either a social authenticated session or guest wallet via one of our offered sign-in options to begin using WaaS functions.
 - [**Wallet Access**](/solutions/wallets/embedded-wallet/examples/use-wallets#wallet-access): Access the wallet linked to the user's authenticated account. This wallet serves as the gateway to all account functions.
 - [**Social Identifiers**](/solutions/wallets/embedded-wallet/examples/use-wallets#social-identifiers): Access the email linked to the user's authenticated account. This email is only available upon authenticating a session.
 - [**Send Transactions**](/solutions/wallets/embedded-wallet/examples/use-wallets#send-transactions): After a user has been authenticated, use the WaaS SDK to send transactions using crafted EVM calldata.
@@ -28,29 +28,62 @@ yarn add @0xsequence/waas
 ```
 :::
 
+## Initialize SDK
 
-## Initialize SDK & Perform Authentication
+The Embedded Wallet can be initialized using a Social Authentication `OAuth` token (or PlayFab `ticket`) for web2 authentication and web3 features or as a `Guest Wallet` which is ephemeral.
 
-Before you can use the Sequence WaaS SDK, you need to acquire the following configuration keys from the Sequence Builder:
+Before you can use the Sequence WaaS SDK, you need to obtain the following configuration keys from the Sequence Builder:
 
 - `WaaSConfigKey`: This key can be learned about [here](/solutions/builder/embedded-wallet)
 - `ProjectAccessKey`: This key can be learned about [here](/solutions/builder/getting-started#claim-an-api-access-key)
 
-Then, you'll need to input the [JWT](https://jwt.io/introduction) `idToken` from the social auth method, usually looking in the form of `eyJh...`:
+And initialize the SDK in the following way, which is best in a `config.ts` file:
 
-```typescript
+```ts [config.ts]
 import { SequenceWaaS } from "@0xsequence/waas";
 
-const sequence = new SequenceWaaS(
+export const sequence = new SequenceWaaS(
   {
     projectAccessKey: `${process.env.VITE_PROJECT_ACCESS_KEY}`,
     waasConfigKey: `${process.env.VITE_WAAS_CONFIG_KEY}`,
     network: "arbitrum-nova",
   }
 );
+```
+Then, choose your approach to implement an Embedded Wallet:
+- [Authenticated Embedded Wallet](/solutions/wallets/embedded-wallet/examples/use-wallets#authenticated-embedded-wallet)
+- [Guest Embedded Wallet](/solutions/wallets/embedded-wallet/examples/use-wallets#guest-embedded-wallet)
 
+### Authenticated Embedded Wallet
+
+You'll need to pass the [JWT](https://jwt.io/introduction) `idToken` (or PlayFab ticket) from the social auth method, usually looking in the form of `eyJh...` if it's an `OAuth` token:
+
+```typescript [App.tsx]
 await sequence.signIn({ idToken }, "Session name");
 ```
+
+<Callout type="info">
+You can view an example project for implementing an OAuth flow with web2 authentication [here](https://github.com/0xsequence/kit-embedded-wallet-react-boilerplate.git)
+</Callout>
+
+Alternatively, you can use an [email one-time-password approach](/solutions/wallets/embedded-wallet/examples/manage-sessions#email-sign-in--sign-up) without an OAuth token.
+
+### Guest Embedded Wallet
+
+The Guest wallet allows you to create an ephemeral wallet and authenticate a user without requiring them to login with a social provider or email, however is not retrievable if associated app data is deleted.
+
+To create a guest wallet, pass in a boolean `guest` key set to `true`, which will create an ephemeral wallet for use in the application with all Embedded Wallet functions possible.
+
+```typescript [App.tsx]
+await sequence.signIn({ guest: true }, "Session name");
+```
+<Callout type="danger">
+Assets stored in the guest wallet after a browser cache has been cleared - or if the user has uninstalled the app - will not be accessible by the user. 
+
+In order to protect your users ensure that after any value has been transferred or is available for the user to claim, that you prompt the user to sign in with a social provider to ensure asset continuity. 
+
+Read more on [Embedded Wallet linking here](/solutions/wallets/embedded-wallet/examples/account-federation#embedded-wallet-account-federation).
+</Callout>
 
 ## Wallet Access
 

@@ -52,7 +52,7 @@ export const GuidesOverview = () => (
         body="Build an API-driven marketplace where players can mint, then sell or buy items using a custom web-based interface leveraging Sequence Orderbook APIs."
         link="/guides/custom-marketplace"
         image="/img/guides/overview/marketplace.png"
-        demoLink="https://template-aviator-custom-marketplace-ez9y.vercel.app/"
+        demoLink="https://template-aviator-custom-marketplace.pages.dev/"
       />
       <GuideCard
         title="Sequence Analytics API in Dune"

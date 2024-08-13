@@ -3,9 +3,11 @@ title: Seamless Session Management with Auth + Embedded Wallet
 description: The Session Management feature in Auth + Embedded Wallet simplifies account management, authentication, and session control for your application.
 ---
 
+import { Callout } from 'vocs/components'
+
 # Session Management
 
-Sequence Auth + Embedded Wallet handles the following aspects of your application:
+Sequence Auth and Embedded Wallet handles the following aspects of your application:
 
 - [Account Management](/solutions/wallets/embedded-wallet/examples/manage-sessions#account-management): Manage blockchain accounts to sign up or sign in users.
 - [Authenticating Accounts](/solutions/wallets/embedded-wallet/examples/manage-sessions#authenticating-accounts): Authentication sessions to return important details to be consumed by your application to enhance the experience of games and applications.
@@ -58,12 +60,11 @@ See [Email validation](/solutions/wallets/embedded-wallet/examples/validation).
 
 ### Email Sign In / Sign Up
 
-**Validate Email and Initiate Session** 
+The Embedded Wallet SDK can enable developers to accept any @domain email and initiate an Embedded Wallet session based on the successful answer of a One-Time Password. The feature enables:
 
-- **Direct Support**: The SDK supports email sign-in when the key is generated with email scope.
-- **Process**: Provide the user's email. The Embedded Wallet Nitro API sends a One-Time Password (OTP) to this email.
-- **Authentication**: Enter the OTP into the SDK to obtain an idToken.
-- **Session Start**: Use the idToken to open the session as usual.
+- **Direct Email Support**: The SDK supports email sign-in when the key is generated with email scope.
+- **Secure User Flow**: After providing a user email, the Embedded Wallet Nitro API sends a One-Time Password (OTP) to this email.
+- **Authentication**: Enter the One-Time Password into the SDK to obtain an user wallet.
 
 ```ts
 import { SequenceWaaS } from '@0xsequence/waas'
@@ -74,15 +75,20 @@ const sequence = new SequenceWaaS({
   network: 'arbitrum-nova'
 })
 
-// Send validation email to the user with an OTP code
-const { instance } = await sequence.email.initiateAuth({ email })
-const sessionHash = await sequence.getSessionHash()
+sequence.onEmailAuthCodeRequired(async (respondWithCode: any) => {
+  // you can now store the `respondWithCode` callback somewhere and call it when user submits the code from email
+  // it may return error and be retried for maximum 3 times, while this is happening the promise returned from `signIn` is still pending
+  await respondWithCode(otpCode)
+})
 
-// Obtain OTP code from user and pass to finalizeAuth for validation
-const { idToken } = await sequence.email.finalizeAuth({ instance, answer, email, sessionHash })
-
-// Log in using the idToken, as usual
-await waas.signIn({ idToken })
+const emailResponse = await sequence.signIn({ email })
+```
+```json
+{
+  "sessionId": "0x63A21cCa14ed7454B9cF6466af422B5c597c6b57",
+  "wallet": "0xd6043fe6f06d90ec2cB36cA5CD1B193A8515f350",
+  "email": "email@domain"
+}
 ```
 
 ### Google / Apple Auth
@@ -193,7 +199,7 @@ function Login() {
 
   return (
     {!!sessionHash && (<>
-      <GoogleLogin key={sessionHash} onSuccess={handleGoogleLogin} shape="circle" width={230} nonce={sessionHash} />
+      <GoogleLogin onSuccess={handleGoogleLogin} shape="circle" width={230} />
     </>)}
  )
 }

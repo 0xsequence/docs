@@ -131,6 +131,10 @@ export const sidebar = {
                   text: 'Manage Sessions',
                   link: '/solutions/wallets/embedded-wallet/examples/manage-sessions',
                 },
+                {
+                  text: 'Account Federation',
+                  link: '/solutions/wallets/embedded-wallet/examples/account-federation',
+                },
                 { text: 'On-ramp', link: '/solutions/wallets/embedded-wallet/examples/on-ramp' },
                 {
                   text: 'Fee Options',
@@ -578,14 +582,15 @@ export const sidebar = {
             { text: 'Read from Blockchain', link: '/sdk/unity/read-from-blockchain' },
             { text: 'Sign Messages', link: '/sdk/unity/sign-messages' },
             { text: 'Recovering Sessions', link: '/sdk/unity/recovering-sessions' },
-            { text: 'Deploy Contracts', link: '/sdk/unity/deploy-contracts' },
             { text: 'On-Ramp Funds via Credit Card', link: '/sdk/unity/onboard-user-funds' },
+            { text: 'Marketplace', link: '/sdk/unity/marketplace' },
             {
               text: 'Connect with External Wallets',
               link: '/sdk/unity/connecting-external-wallets',
             },
             { text: 'Upgrading from v2 to v3', link: '/sdk/unity/v2-to-v3-upgrade-guide' },
             { text: 'Wallet UI', link: '/sdk/unity/wallet-ui' },
+            { text: 'Deploy Contracts', link: '/sdk/unity/deploy-contracts' },
             {
               text: 'Advanced Blockchain Interactions',
               collapsed: true,
