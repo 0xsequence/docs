@@ -5,15 +5,14 @@ export const TemplatesOverview = () => (
     <div className="flex flex-col gap-1 py-5">
       <h3 className="text-3xl text-themed-primary font-bold">Templates</h3>
       <p className="text-md leading-6 font-medium dark:text-white-80 text-black-80 mr-8">
-        Kickstart your Sequence integration with our open source code demos, examples, and boilerplates to accelerate your
-        time to market.
+        Kickstart your Sequence integration with our open source code demos, examples, and
+        boilerplates to accelerate your time to market.
       </p>
     </div>
     <div className="flex flex-wrap gap-4 md:flex-row flex-col">
       <h4 className="text-2xl text-themed-primary font-bold pt-5">Onboarding</h4>
     </div>
     <div className="flex flex-wrap gap-4 md:flex-row flex-col">
-
       <TemplateCard
         title="Sequence Kit w/ Embedded Wallet for React Boilerplate"
         body="Example boilerplate showcasing embedded wallet integrated with Sequence Kit in a simple React application."
@@ -31,20 +30,20 @@ export const TemplatesOverview = () => (
         title="Embedded Wallet Boilerplate for Wallet Verification on a backend."
         body="Example for your web application to verify the ownership of an Embedded Wallet by passing a JWT and validating against the Sequence API."
         link="https://github.com/0xsequence-demos/embedded-wallet-verify-session"
-      />    
+      />
 
       <TemplateCard
-      title="End to End playground for Sequence Kit"
-      body="Example implementation in React & NextJS showcasing various common patterns using Sequence Kit such as signingv messages, sending transactions, displaying inventory, or minting an NFT."
-      link="https://github.com/0xsequence/kit/tree/master/examples"
-      demolink="https://0xsequence.github.io/kit/"
-    />
-    <TemplateCard
-      title="Embedded Wallet Demo using Wallet Linking"
-      body="Example application to allow players to link other EOA wallets they own for transferring assets or for verification purposes. The demo can be used by clicking EOA Link via the demo button below to see the flow."
-      link="https://github.com/0xsequence-demos/demo-waas-wallet-link"
-      demolink="https://0xsequence.github.io/demo-waas-auth/"
-    />
+        title="End to End playground for Sequence Kit"
+        body="Example implementation in React & NextJS showcasing various common patterns using Sequence Kit such as signingv messages, sending transactions, displaying inventory, or minting an NFT."
+        link="https://github.com/0xsequence/kit/tree/master/examples"
+        demolink="https://0xsequence.github.io/kit/"
+      />
+      <TemplateCard
+        title="Embedded Wallet Demo using Wallet Linking"
+        body="Example application to allow players to link other EOA wallets they own for transferring assets or for verification purposes. The demo can be used by clicking EOA Link via the demo button below to see the flow."
+        link="https://github.com/0xsequence-demos/demo-waas-wallet-link"
+        demolink="https://0xsequence.github.io/demo-waas-auth/"
+      />
     </div>
     <div className="flex flex-wrap gap-4 md:flex-row flex-col">
       <h4 className="text-2xl text-themed-primary font-bold">Monetization</h4>
