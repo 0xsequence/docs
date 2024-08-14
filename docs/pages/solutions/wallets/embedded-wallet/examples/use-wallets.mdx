@@ -9,8 +9,8 @@ import { Callout } from "vocs/components";
 Once the user has been authenticated, you can now utilize common web3 functions to interact with the blockchain - completely seamlessly.
 
 - [**Initialize SDK**](/solutions/wallets/embedded-wallet/examples/use-wallets#initialize-sdk--perform-authentication): Ensure the SDK is initialized with either a social authenticated session or guest wallet via one of our offered sign-in options to begin using WaaS functions.
-- [**Wallet Access**](/solutions/wallets/embedded-wallet/examples/use-wallets#wallet-access): Access the wallet linked to the user's authenticated account. This wallet serves as the gateway to all account functions.
-- [**Social Identifiers**](/solutions/wallets/embedded-wallet/examples/use-wallets#social-identifiers): Access the email linked to the user's authenticated account. This email is only available upon authenticating a session.
+- [**Get Wallet Address**](/solutions/wallets/embedded-wallet/examples/use-wallets#wallet-access): Access the wallet linked to the user's authenticated account. This wallet serves as the gateway to all account functions.
+- [**Sign Messages**](/solutions/wallets/embedded-wallet/examples/use-wallets#sign-messages): Signing a message using the embedded wallet.
 - [**Send Transactions**](/solutions/wallets/embedded-wallet/examples/use-wallets#send-transactions): After a user has been authenticated, use the WaaS SDK to send transactions using crafted EVM calldata.
 
 ## Install SDK
@@ -92,38 +92,12 @@ console.log(signature);
 }
 ```
 
-## Social Identifiers
-
-### Authenticated Email Address
-
-When the WaaS object is called upon to sign in a user using an `idToken`, the email address of the user authenticated is returned in an `email` property of the returned object:
-
-```typescript
-import { SequenceWaaS } from "@0xsequence/waas";
-
-const sequence = new SequenceWaaS(
-  {
-    projectAccessKey: `${process.env.PROJECT_ACCESS_KEY}`,
-    waasConfigKey: `${process.env.WAAS_CONFIG_KEY}`,
-    network: "arbitrum-nova",
-  }
-);
-
-await sequence.signIn({ idToken }, "Session name");
-
-const { email } = await sequence.signIn({ idToken }, "Session name")
-```
-
-```
-email@horizon.io
-```
-
 ## Send Transactions
 
 All wallets can send transactions right after creation. No extra steps are required to create the wallet, as all users have a wallet by default.
 
 <Callout type="info">
-At any point when sending a transaction that requires a fee on a network, you can follow the Fee Options walkthrough for how to send a fee object alongside your transaction to cover your gas fees [found here](/solutions/wallets/embedded-wallet/examples/fee-options).
+At any point when sending a transaction that requires a fee on a network, you can follow the Fee Options walkthrough for how to send a fee object alongside your transaction or cover gas fees for your users [found here](/solutions/wallets/embedded-wallet/examples/fee-options).
 </Callout>
 
 
