@@ -1,62 +1,75 @@
 ---
-title: Seamless Session Management with Auth + Embedded Wallet
-description: The Session Management feature in Auth + Embedded Wallet simplifies account management, authentication, and session control for your application.
+title: Authentication with Sequence Embedded Wallet
+description: The Authentication feature in Embedded Wallets simplifies account management, authentication, and session control for your application.
 ---
 
 import { Callout } from 'vocs/components'
 
-# Session Management
+# Initialization and Authentication
 
-Sequence Auth and Embedded Wallet handles the following aspects of your application:
+- [**Initialize SDK**](/solutions/wallets/embedded-wallet/examples/authentication#initialize-sdk): Initialize the SDK with your project access key and Embedded Wallet Tenant key.
+- [**Authenticating Users**](/solutions/wallets/embedded-wallet/examples/authentication#authentication-methods): Ensure the SDK is initialized with a social, email or guest wallet via one of our offered sign-in options to begin using WaaS functions.
+- [**Retrieve User information from Social**](/solutions/wallets/embedded-wallet/examples/authentication#retrieve-user-information-from-social-providers): Retrieve user data from social provider authentication methods.
 
-- [Account Management](/solutions/wallets/embedded-wallet/examples/manage-sessions#account-management): Manage blockchain accounts to sign up or sign in users.
-- [Authenticating Accounts](/solutions/wallets/embedded-wallet/examples/manage-sessions#authenticating-accounts): Authentication sessions to return important details to be consumed by your application to enhance the experience of games and applications.
-- [Session Management](/solutions/wallets/embedded-wallet/examples/manage-sessions#managing-sessions): Manage the listing and dropping of sessions handled by the WaaS stack.
+## Install SDK
 
-This means you don't need to implement an account system yourself; instead, you interact with the Auth + WaaS SDK whenever you need to authenticate a user.
-
-## Account Management
-
-### Sign Up / Sign In
-
-Signing in and signing up are the same operation; the account is automatically created if it doesn't already exist.
-
-```ts
-import { SequenceWaaS } from '@0xsequence/waas'
-
-const sequence = new SequenceWaaS({
-  projectAccessKey: `${process.env.VITE_PROJECT_ACCESS_KEY}`,
-  waasConfigKey: `${process.env.VITE_WAAS_CONFIG_KEY}`,
-  network: 'arbitrum-nova'
-})
-
-// Get an idToken using the social auth provider of your choice
-// (Google, Facebook, Twitter, etc.)
-
-// Then sign in with Sequence WaaS
-const res = await sequence.signIn({ idToken }, "MacBook Pro - Chrome")
-
-console.log(res)
+:::code-group
+```bash [pnpm]
+pnpm install @0xsequence/waas
 ```
 
-```json
-{
-  "sessionId": "0x63A21cCa14ed7454B9cF6466af422B5c597c6b57",
-  "wallet": "0xd6043fe6f06d90ec2cB36cA5CD1B193A8515f350",
-}
+```bash [npm]
+npm install @0xsequence/waas
 ```
 
-:::note
-Sessions opened with some providers might require a second step in order to be usable for sending transactions.
-
-See [Email validation](/solutions/wallets/embedded-wallet/examples/validation).
+```bash [yarn]
+yarn add @0xsequence/waas
+```
 :::
 
-## Authenticating Accounts
+## Initialize SDK
 
-### Email Sign In / Sign Up
+The Embedded Wallet can be initialized using a Social Authentication `OAuth` token (or [PlayFab `ticket`](/solutions/builder/embedded-wallet/playfab-configuration)), email, or as an ephemeral `Guest Wallet` for providing wallet functions.
 
-The Embedded Wallet SDK can enable developers to accept any @domain email and initiate an Embedded Wallet session based on the successful answer of a One-Time Password. The feature enables:
+Before you can use the Sequence WaaS SDK, you need to obtain the following configuration keys from the Sequence Builder:
+
+- `WaaSConfigKey`: This key can be learned about [here](/solutions/builder/embedded-wallet)
+- `ProjectAccessKey`: This key can be learned about [here](/solutions/builder/getting-started#claim-an-api-access-key)
+
+And initialize the SDK in the following way, which we recommend in a `config.ts` file:
+
+```ts [config.ts]
+import { SequenceWaaS } from "@0xsequence/waas";
+
+export const sequence = new SequenceWaaS(
+  {
+    projectAccessKey: `${process.env.VITE_PROJECT_ACCESS_KEY}`,
+    waasConfigKey: `${process.env.VITE_WAAS_CONFIG_KEY}`,
+    network: "arbitrum-nova",
+  }
+);
+```
+Then, choose your approach to authenticate your users:
+- [Authentication with Social Provider](/solutions/wallets/embedded-wallet/examples/use-wallets#authenticated-embedded-wallet)
+- [Authentication via Email](/solutions/wallets/embedded-wallet/examples/use-wallets#guest-embedded-wallet)
+- [Authentication as a Guest](/solutions/wallets/embedded-wallet/examples/use-wallets#guest-embedded-wallet)
+
+## Authentication Methods
+Signing in and signing up are the same operation; the account is automatically created if it doesn't already exist which will also instantiate a web3 wallet for the user automatically.
+
+### Social Provider Authentication
+In order to authenticate your users with a social provider, you can simply retrieve the [JWT](https://jwt.io/introduction) `idToken` (or PlayFab ticket) from the social auth method, usually looking in the form of `eyJh...` if it's an `OAuth` token and pass to it the `signIn` function:
+
+```typescript [App.tsx]
+await sequence.signIn({ idToken }, "Session name");
+```
+
+For more examples on authenticating with specific providers, please ensure your embedded wallet [configuration](/solutions/builder/embedded-wallet) is setup with the corresponding auth provider. Then reference the example implementation:
+- [Authentication with Google Login](/solutions/wallets/embedded-wallet/examples/authentication#authenticating-with-google-login)
+
+### Email Authentication
+
+The Embedded Wallet SDK can enable developers to pass an email and initiate an Embedded Wallet session based on the successful answer of a One-Time Password. The feature enables:
 
 - **Direct Email Support**: The SDK supports email sign-in when the key is generated with email scope.
 - **Secure User Flow**: After providing a user email, the Embedded Wallet Nitro API sends a One-Time Password (OTP) to this email.
@@ -87,12 +100,39 @@ const emailResponse = await sequence.signIn({ email })
 }
 ```
 
-### Google / Apple Auth
-**Integrate Google and Apple Authentication:**
+### Guest Embedded Wallet
 
-- **Support Authentication**: The SDK directly supports Google and Apple authentication.
-- **Open Sessions**: Open sessions using idTokens obtained from the social auth providers.
-- **Explore Examples**: Start with a main.tsx file to set up the WaaS SDK, router, and Google OAuth provider. For more details, view the repository and functional [demo-waas-auth](https://github.com/0xsequence/demo-waas-auth).
+The Guest wallet allows you to create an ephemeral wallet and authenticate a user without requiring them to login with a social provider or email, however is not retrievable if associated app data is deleted.
+
+To create a guest wallet, pass in a boolean `guest` key set to `true`, which will create an ephemeral wallet for use in the application with all Embedded Wallet functions possible.
+
+```typescript [App.tsx]
+await sequence.signIn({ guest: true }, "Session name");
+```
+<Callout type="danger">
+Assets stored in the guest wallet after a browser cache has been cleared - or if the user has uninstalled the app - will not be accessible by the user. 
+
+In order to protect your users ensure that after any value has been transferred or is available for the user to claim, that you prompt the user to sign in with a social provider to ensure asset continuity. 
+
+</Callout>
+
+### Account Federation
+If a user tries to authenticate with the same credentials across different providers, for example the same address for email and Google, you will receive a notification that the account already exists. In this case, we recommend linking the user's accounts through [Account Federation](/solutions/wallets/embedded-wallet/examples/account-federation#embedded-wallet-account-federation) which ensures a single address across multiple providers.
+
+### Check if a User is Signed-In
+
+A user session can be checked to see if they are logged in with the following function call:
+
+```ts
+if (await sequence.isSignedIn()){
+  ... // logged in
+} else {
+  ... // not logged in
+}
+```
+
+#### Authenticating with Google Login
+For example, with Google Login and leveraging the `@react-oauth/google` package:
 
 Begin with a simple `main.tsx` file that sets up the WaaS SDK, the router, and the Google OAuth provider.
 
@@ -127,45 +167,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
 )
 ```
 
-**Manage Session Security with Hooks:**
-- **Use `useSessionHash` Hook**: Implement this hook to obtain a session hash, enhancing security by preventing replay attacks.
-- **Retrieve Session Hash**: Utilize **`sequence.getSessionHash`** to acquire the current session hash.
-- **Handle State Changes**: Apply **`sequence.onSessionStateChanged`** to update the session hash whenever the session state changes.
-
-```ts
-import { sequence } from './main'
-import { useEffect, useState } from "react";
-
-export function useSessionHash() {
-    const [sessionHash, setSessionHash] = useState("")
-    const [error, setError] = useState<any>(undefined)
-
-    useEffect(() => {
-        const handler = async () => {
-            try {
-                setSessionHash(await sequence.getSessionHash())
-            } catch (error) {
-                console.error(error)
-                setError(error)
-            }
-        }
-        handler()
-        return sequence.onSessionStateChanged(handler)
-    }, [setSessionHash, setError])
-
-    return {
-        sessionHash,
-        error,
-        loading: !!sessionHash,
-    }
-}
-```
-
-**Implement Google Login:**
-- **Integrate GoogleLogin Component**: Use the **`GoogleLogin`** component from the **`@react-oauth/google`** package for Google authentication.
-- **Login Event Handling**: Trigger the **`handleGoogleLogin`** function when a user successfully logs into Google.
-
-Make sure to re-render the component whenever `sessionHash` changes to avoid hard-to-track discrepancy errors. For example, you can use the `key` attribute to force the re-render.
+Then we use the **`GoogleLogin`** component from the **`@react-oauth/google`** package for Google authentication. Once authenticated we trigger the **`handleGoogleLogin`** function when a user successfully logs into Google.
 
 ```ts
 import { router, sequence } from './main'
@@ -192,7 +194,7 @@ function Login() {
   }
 
   return (
-    {!!sessionHash && (<>
+    {(<>
       <GoogleLogin onSuccess={handleGoogleLogin} shape="circle" width={230} />
     </>)}
  )
@@ -201,19 +203,9 @@ function Login() {
 export default Login
 ```
 
-### Check if a User is Signed-In
 
-A user session can be checked to see if they are logged in with the following function call:
 
-```ts
-if (await sequence.isSignedIn()){
-  ... // logged in
-} else {
-  ... // not logged in
-}
-```
-
-### `idToken` JWT Parsing
+## Retrieve User information from Social Providers
 
 Based on the way that your application is configured from perspective of the Authentication Providers, you have the option to parse user details that can be shared with applications to be integrated in some way. 
 
@@ -286,75 +278,4 @@ if (jwtDetails) {
     console.log('Picture:', jwtDetails.picture);
     // Access other fields similarly
 }
-```
-
-## Managing Sessions
-
-### List Sessions
-
-This function returns a list of sessions for the current user and only includes sessions that are still valid.
-
-```ts
-import { SequenceWaaS } from '@0xsequence/waas'
-
-const sequence = new SequenceWaaS({
-  projectAccessKey: `${process.env.VITE_PROJECT_ACCESS_KEY}`,
-  waasConfigKey: `${process.env.VITE_WAAS_CONFIG_KEY}`,
-  network: 'arbitrum-nova'
-})
-
-await sequence.signIn({ idToken }, "MacBook Pro - Chrome")
-
-const sessions = await sequence.listSessions()
-console.log(sessions)
-```
-
-```json
-[
-  {
-    "id": "0x574372ff1A0Eede68B5358Cce7bbb93155A9dfe0",
-    "address": "0x574372ff1a0eede68b5358cce7bbb93155a9dfe0",
-    "userId": "42#https://accounts.google.com#109234880945084120673",
-    "projectId": 42,
-    "issuer": "https://accounts.google.com",
-    "subject": "109234880945084120673",
-    "friendlyName": "Pixel 3 - Brave",
-    "createdAt": "2023-11-02T18:22:03.102950917Z",
-    "refreshedAt": "2023-11-02T18:22:03.109787921Z",
-    "expiresAt": "2123-10-09T18:22:03.102951017Z",
-    "isThis": false
-  },
-  {
-    "id": "0x3C4E11E4dbF23B87C14bd75d0Da9C75707392D21",
-    "address": "0x3c4e11e4dbf23b87c14bd75d0da9c75707392d21",
-    "userId": "42#https://accounts.google.com#109234880945084120673",
-    "projectId": 42,
-    "issuer": "https://accounts.google.com",
-    "subject": "109234880945084120673",
-    "friendlyName": "MacBook Pro - Chrome",
-    "createdAt": "2023-11-02T18:50:32.815189174Z",
-    "refreshedAt": "2023-11-02T18:50:32.819722082Z",
-    "expiresAt": "2123-10-09T18:50:32.815189234Z",
-    "isThis": true
-  }
-]
-```
-
-### Close Session
-
-A session can be closed using the `id` of the session. Any session can be closed from any device with an active session.
-
-```ts
-import { SequenceWaaS } from '@0xsequence/waas'
-
-const sequence = new SequenceWaaS({
-  projectAccessKey: `${process.env.VITE_PROJECT_ACCESS_KEY}`,
-  waasConfigKey: `${process.env.VITE_WAAS_CONFIG_KEY}`,
-  network: 'arbitrum-nova'
-})
-
-await sequence.signIn({ idToken }, "MacBook Pro - Chrome")
-
-const sessions = await sequence.listSessions()
-await sequence.dropSession({ sessionId: sessions[0].id })
 ```

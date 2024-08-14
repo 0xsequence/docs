@@ -128,6 +128,10 @@ export const sidebar = {
               collapsed: true,
               items: [
                 {
+                  text: 'Authentication',
+                  link: '/solutions/wallets/embedded-wallet/examples/authentication',
+                },
+                {
                   text: 'Use Wallets',
                   link: '/solutions/wallets/embedded-wallet/examples/use-wallets',
                 },
