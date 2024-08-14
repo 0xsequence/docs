@@ -136,21 +136,17 @@ export const sidebar = {
                   link: '/solutions/wallets/embedded-wallet/examples/use-wallets',
                 },
                 {
-                  text: 'Manage Sessions',
-                  link: '/solutions/wallets/embedded-wallet/examples/manage-sessions',
-                },
-                {
                   text: 'Account Federation',
                   link: '/solutions/wallets/embedded-wallet/examples/account-federation',
+                },
+                {
+                  text: 'Manage Sessions',
+                  link: '/solutions/wallets/embedded-wallet/examples/manage-sessions',
                 },
                 { text: 'On-ramp', link: '/solutions/wallets/embedded-wallet/examples/on-ramp' },
                 {
                   text: 'Fee Options',
                   link: '/solutions/wallets/embedded-wallet/examples/fee-options',
-                },
-                {
-                  text: 'Validation',
-                  link: '/solutions/wallets/embedded-wallet/examples/validation',
                 },
                 {
                   text: 'Verification',

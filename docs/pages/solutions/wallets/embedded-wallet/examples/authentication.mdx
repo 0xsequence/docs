@@ -116,9 +116,6 @@ In order to protect your users ensure that after any value has been transferred 
 
 </Callout>
 
-### Account Federation
-If a user tries to authenticate with the same credentials across different providers, for example the same address for email and Google, you will receive a notification that the account already exists. In this case, we recommend linking the user's accounts through [Account Federation](/solutions/wallets/embedded-wallet/examples/account-federation#embedded-wallet-account-federation) which ensures a single address across multiple providers.
-
 ### Check if a User is Signed-In
 
 A user session can be checked to see if they are logged in with the following function call:
@@ -143,9 +140,13 @@ const { email } = await sequence.signIn({ idToken }, "Session name")
 email@horizon.io
 ```
 
+### Account Federation
+If a user tries to authenticate with the same credentials across different providers, for example the same address for email and Google, you will receive a notification that the account already exists. In this case, we recommend linking the user's accounts through [Account Federation](/solutions/wallets/embedded-wallet/examples/account-federation#embedded-wallet-account-federation) which ensures a single address across multiple providers.
 
-#### Authenticating with Google Login
-For example, with Google Login and leveraging the `@react-oauth/google` package:
+## Authenticating with Specific Social Providers
+
+### Authenticating with Google
+Here we leverage the `@react-oauth/google` package in order to generate an `idToken` and pass it to Sequence:
 
 Begin with a simple `main.tsx` file that sets up the WaaS SDK, the router, and the Google OAuth provider.
 
@@ -216,7 +217,34 @@ function Login() {
 export default Login
 ```
 
+### Authenticating with Playfab
+In order to leverage Playfab for authentication, you must first retrieve a Playfab Ticket. This can be done by calling the API directly or leveraging a Playfab client SDK. Then simply pass your configured titleId as well as a unique user identifier as a `CustomId`. For example, the an example call is below:
 
+```ts
+const playfabResponse = PlayFabClient.LoginWithCustomID({
+  TitleId: titleId,
+  CustomId: "<CUSTOM_ID>",
+  CreateAccount: true,
+})
+```
+
+Once you have retrieved a valid session ticket from Playfab, simply pass this to the sequence `signIn` function as a parameter to authenticate the user and create a valid session:
+
+```ts
+const response = await sequence.signIn(
+  {
+    playFabTitleId: import.meta.env.VITE_PLAYFAB_TITLE_ID,
+    playFabSessionTicket: playfabResponse.data.SessionTicket
+  },
+  'playfab session'
+)
+```
+
+It is important to ensure that the title ID that is configured in builder matches the title ID that is passed to PlayFab, otherwise you will receive an `Invalid Verifier` error.
+
+<Callout type="info">
+You can use a variety of unique user information as a parameter to pass to Playfab to retrieve the session ticket such as a user's accessToken from Google or a custom username.
+</Callout>
 
 ## Retrieve User information from Social Providers
 
