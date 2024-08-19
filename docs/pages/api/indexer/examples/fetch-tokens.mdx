@@ -2,6 +2,11 @@
 title: Sequence Indexer API - Fetch ERC20, ERC721, and ERC1155 Tokens and Metadata
 description: The Tokens API allows users to fetch a list of ERC20, ERC721, and ERC1155 tokens along with metadata in any wallet.
 ---
+import { retrieveProjectAccessKey } from '../../../../components/retrieveProjectAccessKey';
+import Example from '../../../../components/Example';
+export const PROJECT_ACCESS_KEY = retrieveProjectAccessKey();
+
+
 
 # Tokens API
 
@@ -28,13 +33,19 @@ This code requires an API Access Key from [Sequence Builder](https://sequence.bu
 
 :::code-group
 
-```shell [Curl]
-curl -X POST -H "Content-Type: application/json" -H "X-Access-Key: AQAAAAAAAF_JvPALhBthL7VGn6jV0YDqaFY" https://polygon-indexer.sequence.app/rpc/Indexer/GetTokenBalances -d '{ "accountAddress": "0x8e3E38fe7367dd3b52D1e281E4e8400447C8d8B9", "includeMetadata": true }'
+```shell [Curl] 
+curl -X POST -H "Content-Type: application/json" -H "X-Access-Key: PROJECT_ACCESS_KEY" https://polygon-indexer.sequence.app/rpc/Indexer/GetTokenBalances -d '{ "accountAddress": "0x8e3E38fe7367dd3b52D1e281E4e8400447C8d8B9", "includeMetadata": true }'
 ```
 
-```ts [Typescript]
+
+```ts [Typescript] {!projectAccessKey=PROJECT_ACCESS_KEY}
+PROJECT_ACCESS_KEY
+console.log('Hello !{projectAccessKey}') 
+
 // Works in both a Webapp (browser) or Node.js:
 import { SequenceIndexer } from '@0xsequence/indexer'
+
+retrieveProjectAccessKey()
 
 const indexer = new SequenceIndexer('https://polygon-indexer.sequence.app', 'AQAAAAAAAF_JvPALhBthL7VGn6jV0YDqaFY')
 
@@ -107,7 +118,7 @@ See section below for more information.
 :::code-group
 
 ```bash [Curl]
-curl -X POST -H "Content-Type: application/json" -H "X-Access-Key: AQAAAAAAAF_JvPALhBthL7VGn6jV0YDqaFY" https://polygon-indexer.sequence.app/rpc/Indexer/GetTokenBalances -d '{ "contractAddress": "0x631998e91476DA5B870D741192fc5Cbc55F5a52E", "accountAddress": "0x8e3E38fe7367dd3b52D1e281E4e8400447C8d8B9", "includeMetadata": true }'
+curl -X POST -H "Content-Type: application/json" -H "X-Access-Key: PROJECT_ACCESS_KEY" https://polygon-indexer.sequence.app/rpc/Indexer/GetTokenBalances -d '{ "contractAddress": "0x631998e91476DA5B870D741192fc5Cbc55F5a52E", "accountAddress": "0x8e3E38fe7367dd3b52D1e281E4e8400447C8d8B9", "includeMetadata": true }'
 ```
 
 

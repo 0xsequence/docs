@@ -1,0 +1,110 @@
+.button {
+  --time: 0.5s;
+  --time2: 1s;
+  --ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+
+  position: relative;
+  display: inline-block;
+
+  padding-left: var(--seq-space-5);
+  padding-right: var(--seq-space-5);
+
+  color: var(--seq-colors-white, #ffffff);
+  background: var(--button-glow-bg);
+  background-size: 500% 100%;
+  background-position: left bottom;
+  transition: background-position var(--time2) var(--ease);
+  font-size: var(--seq-font-sizes-normal, 0.875rem);
+  line-height: var(--seq-line-heights-normal, 1.25rem);
+  letter-spacing: var(--seq-letter-spacings-normal, 0.01em);
+  font-weight: var(--seq-font-weights-bold, 700);
+  cursor: pointer;
+
+  /* size - md (default) */
+  height: 44px;
+
+  /* shape - circle (default) */
+  border-radius: var(--seq-radii-circle, 9999px);
+
+  /* variant - primary (default) */
+  /* TODO */
+}
+
+/* size - xs | sm | md | lg */
+.button--xs {
+  height: 28px;
+}
+.button--sm {
+  height: 36px;
+}
+.button--lg {
+  height: 52px;
+}
+
+/* shape - circle | square */
+.button--square {
+  border-radius: var(--seq-radii-sm, 0.25rem);
+}
+
+.button--with-icon {
+  display: flex;
+  align-items: center;
+  gap: var(--seq-space-2);
+}
+
+.button::before {
+  content: '';
+  --padding: 0.75rem;
+  position: absolute;
+  top: calc(var(--padding) * -1);
+  left: calc(var(--padding) * -1);
+  width: calc(100% + var(--padding) * 2);
+  height: calc(100% + var(--padding) * 2);
+  background: var(--button-glow-bg);
+  background-size: 500% 100%;
+  background-position: left bottom;
+  border-radius: var(--radii-circle, 9999px);
+
+  filter: blur(1rem);
+  opacity: 0;
+  transition:
+    opacity var(--time) var(--ease),
+    background-position var(--time2) var(--ease);
+  z-index: -1;
+}
+
+.button:hover,
+.button:focus {
+  background-position: right bottom;
+  & .label span {
+    transform: translateY(-100%);
+  }
+  &::before {
+    background-position: right bottom;
+    opacity: 0.5;
+  }
+}
+
+.label {
+  overflow: hidden;
+}
+
+.label span {
+  position: relative;
+  display: block;
+  transition: transform var(--time) var(--ease);
+  transform: translateY(0);
+}
+
+.label span::before {
+  display: block;
+  content: attr(data-label);
+  position: absolute;
+  top: var(--seq-line-heights-normal, 1.25rem);
+  left: 0;
+}
+
+.icon {
+  width: 20px;
+  height: 20px;
+}
