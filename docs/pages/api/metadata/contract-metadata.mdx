@@ -7,6 +7,7 @@ description: The content provides guidelines on querying contract-level metadata
 
 * [Learn how to query contract-level metadata directly for any contract](/api/metadata/token-metadata#fetch-token-metadata-for-any-erc721-or-erc1155-contract)
 * [Learn about contract-level metadata for ERC20, ERC721 and ERC1155 tokens](/api/metadata/token-metadata#token-metadata-standards)
+* [Learn about querying contract-level info metadata extensions for ERC20, ERC721 and ERC1155 tokens](/api/metadata/contract-metadata#search-contract-metadata)
 
 :::info[PRO TIP: Sequence Indexer also returns token metadata]
 When using the [Sequence Indexer](/api/indexer/overview), pass `"includeMetadata": true` to your request to
@@ -73,15 +74,90 @@ contractInfo, err := seqMetadata.GetContractInfo(context.Background(), "polygon"
 ```
 
 ```shell [Other]
-Please [contact our team](/support) for assistance with integrations to another target.
+Please contact our team for assistance with integrations to another target.
 ```
 
 :::
 
 <br />
 
-
 ## Contract-level Metadata Standards
 
 Additionally, OpenSea added something called `contractURI` (https://docs.opensea.io/docs/contract-level-metadata).
 
+# Search Contract Metadata
+
+## Fetch contract-level info metadata for any ERC20, ERC721 or ERC1155 contract address based on a search criteria
+
+*Sequence Metadata `SearchContracts` Method:*
+
+* Request: POST /rpc/Metadata/SearchContracts
+* Content-Type: application/json
+* Body (in JSON):
+  * `chainID` **optional**  (string) -- the chain id, as a number (ie. "1" for "mainnet", "137" for "polygon", etc.)
+  * `chainIDs` **optional** (string) -- a list of chain ids, as a number (ie. "1" for "mainnet", "137" for "polygon", etc.)
+  * `q` (string) -- either a search parameter to search contarct info, or, plainly a contract address to search for
+
+<br />
+
+**Example: `SearchContracts` of some queries / a contract on Polygon using an `AQAAAAAAAF_JvPALhBthL7VGn6jV0YDqaFY`**
+
+:::info
+This code requires an API Access Key from [Sequence Builder](https://sequence.build).
+:::
+
+:::code-group
+
+```shell [cURL]
+curl -X POST -H "Content-Type: application/json" -H "X-Access-Key: AQAAAAAAAF_JvPALhBthL7VGn6jV0YDqaFY" https://metadata.sequence.app/rpc/Metadata/SearchContracts -d '{ "q": "skyweaver"}'
+```
+
+```ts [Typescript]
+// Works in both a Webapp (browser) or Node.js:
+import { SequenceMetadata } from '@0xsequence/metadata'
+
+const metadataClient = new SequenceMetadata('https://metadata.sequence.app', 'AQAAAAAAAF_JvPALhBthL7VGn6jV0YDqaFY')
+    
+const contractAddressSearchMetadata = await metadataClient.searchContracts({
+    chainIDs: ['137'],
+    q: '0x631998e91476DA5B870D741192fc5Cbc55F5a52E',
+})
+
+console.log('Contract info metadata for above address:', contractAddressSearchMetadata)
+
+const contractQuerySearchMetadata = await metadataClient.searchContracts({
+    chainIDs: ['137'],
+    q: 'skyweaver',
+})
+
+console.log('Contract info metadata for query:', contractQuerySearchMetadata)
+```
+
+```go [Go]
+
+package main
+
+import (
+	"context"
+	"fmt"
+	"log"
+	"github.com/0xsequence/go-sequence/metadata"
+)
+
+func main() {
+	seqMetadata := metadata.NewMetadata("AQAAAAAAAF_JvPALhBthL7VGn6jV0YDqaFY")
+	chainID := "137"
+
+	contractInfo, _, err := seqMetadata.SearchContracts(context.Background(), "0x631998e91476DA5B870D741192fc5Cbc55F5a52E", &chainID, nil, nil)
+	
+	if err != nil {
+		log.Fatalf("Failed to get contract info: %v", err)
+	}
+
+	fmt.Printf("Contract Info: %+v\n", contractInfo)
+}
+```
+
+```shell [Other]
+Please contact our team for assistance with integrations to another target.
+```
