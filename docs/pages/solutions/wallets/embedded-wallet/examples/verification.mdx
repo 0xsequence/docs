@@ -99,16 +99,14 @@ function App(){
 
 Send the `walletAddress` to the server, generate a random nonce, store it in a database, and return the nonce to the client when needed.
 
-Example code in Typescript using `ethers@5.7.2`
+Example code in Typescript using `ethers`
 
 ```typescript
 import { ethers } from 'ethers'
 
 ... recieve walletAddress
 
-const nonce = ethers.BigNumber.from(
-  ethers.utils.hexlify(ethers.utils.randomBytes(20))
-)
+const nonce = BigInt(ethers.hexlify(ethers.randomBytes(20)))
 
 ... store nonce in a database with walletAddress
 ... send nonce to front end

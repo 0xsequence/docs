@@ -380,6 +380,10 @@ export const sidebar = {
           link: '/solutions/technical-references/wallet-contracts/why',
         },
         {
+          text: 'Ethers v6 Support',
+          link: '/solutions/technical-references/ethers-v6-migration'
+        },
+        {
           text: 'Contract Internals',
           collapsed: true,
           items: [

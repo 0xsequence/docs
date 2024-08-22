@@ -1,0 +1,49 @@
+---
+title: Sequence Support for Ethers v6 
+description: Support for ethers v6 and migration guides for moving code from ethers v5 to v6
+---
+
+import {Callout} from 'vocs/components'
+
+# Ethers v6 Migration Guide
+
+Sequence requires at a minimum the Ethers version `ethers@6.13.0`.
+
+If you've been developing with `ethers@^5.0.0` in the past, outlined below are the common ways using Ethers will change for you:
+
+## Big Number Support
+If you're using big numbers to generate randomly spaced token ID's, nonces, or some other application of large string based numbers, ethers now supports built-in ES2020 BigInt offered by modern JavaScript environments.
+
+```typescript [bigNumber.ts]
+// v5
+value = BigNumber.from("1000")
+
+// v6 
+// Notice the suffix n (using literal notation).
+value = 1000n
+
+// v6 
+// Using the BigInt function for strings
+value = BigInt("1000")
+```
+
+## Utility Hash Value Packing
+
+If you're using ethers utilities to perform signature creation then using `ecrecover` on-chain, signature creation is now slightly different:
+
+```typescript [signature_creation.ts]
+// v5
+const hash = ethers.utils.solidityKeccak256(['uint', 'uint'], [value1, blockNumber])
+const arr = ethers.utils.arrayify(hash)
+const signature = await wallet.signMessage(arr)
+
+// v6
+const hash = ethers.solidityPackedKeccak256(['uint', 'uint'], [value1, blockNumber])
+const arr = ethers.getBytes(hash)
+const signature = await wallet.signMessage(arr)
+```
+<hr/>
+
+<Callout type='info'>
+For complete information on the differences of Ethers `v5` to `v6` you can read more [here](https://docs.ethers.org/v6/migrating/) in the official docs.
+</Callout>
