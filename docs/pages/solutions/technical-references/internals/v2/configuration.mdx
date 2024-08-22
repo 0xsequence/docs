@@ -105,14 +105,14 @@ The `hashTree` function is a recursive function that hashes the tree into a sing
 ```typescript
 export function hashTree(node: Node | Leaf): string {
   if (isSignerLeaf(node)) {
-    return ethers.utils.solidityPack(
+    return ethers.solidityPackedKeccak256(
       ['uint96', 'address'],
       [node.weight, node.address]
     )
   }
 
   if (isSubdigestLeaf(node)) {
-    return ethers.utils.solidityKeccak256(
+    return ethers.solidityPackedKeccak256(
       ['string', 'bytes32'],
       ['Sequence static digest:\n', node.subdigest]
     )
@@ -120,13 +120,13 @@ export function hashTree(node: Node | Leaf): string {
 
   if (isNestedLeaf(node)) {
     const nested = hashTree(node.tree)
-    return ethers.utils.solidityKeccak256(
+    return ethers.solidityPackedKeccak256(
       ['string', 'bytes32', 'uint256', 'uint256'],
       ['Sequence nested config:\n', nested, node.threshold, node.weight]
     )
   }
 
-  return ethers.utils.solidityKeccak256(
+  return ethers.solidityPackedKeccak256(
     ['bytes32', 'bytes32'],
     [hashTree(node.left), hashTree(node.right)]
   )

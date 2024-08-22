@@ -76,11 +76,11 @@ Wallets that never have been updated don't store the `imageHash` directly, inste
 ```
 
 ```js twoslash [TypeScript]
-  let tmp = ethers.utils.solidityPack(['uint256'], [configuration.threshold])
+  let tmp = ethers.solidityPackedKeccak256(['uint256'], [configuration.threshold])
 
   for (const signer of configuration.signers) {
-    tmp = ethers.utils.keccak256(
-      ethers.utils.defaultAbiCoder.encode(
+    tmp = ethers.solidityPackedKeccak256(
+      AbiCoder.defaultAbiCoder().encode(
         ['bytes32', 'uint8', 'address'],
         [tmp, signer.weight, signer.address]
       )
@@ -113,20 +113,20 @@ const mainModule = "0xd01F11855bCcb95f88D7A48492F66410d4637313";
 // Append the `mainModule` to the `WalletProxyBytecode`
 // this completed the creation code of the proxy contract
 // used for computing the wallet address as defined by the CREATE2 opcode
-const codeHash = ethers.utils.keccak256(
-ethers.utils.solidityPack(
+const codeHash = ethers.solidityPackedKeccak256(
+ethers.solidityPackedKeccak256(
 ["bytes", "bytes32"],
-[WalletContractBytecode, ethers.utils.hexZeroPad(mainModule, 32)]
+[WalletContractBytecode, ethers.hexZeroPad(mainModule, 32)]
 )
 );
 
 // Compute the wallet address
-const hash = ethers.utils.keccak256(
-ethers.utils.solidityPack(
+const hash = ethers.solidityPackedKeccak256(
+ethers.solidityPackedKeccak256(
 ["bytes1", "address", "bytes32", "bytes32"],
 ["0xff", factory, salt, codeHash]
 )
 );
 
-const address = ethers.utils.getAddress(ethers.utils.hexDataSlice(hash, 12));
+const address = ethers.getAddress(ethers.dataSlice(hash, 12));
 ````

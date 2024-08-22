@@ -27,6 +27,23 @@ value = 1000n
 value = BigInt("1000")
 ```
 
+## Removal of Utilities
+Using Ethers you will notice there is no longer a `ethers.utils` path. Therefore, all paths should be updated without the `utils`
+
+```typescript [contract_parameters.ts]
+// v5
+const amountBigNumber = ethers.utils.parseUnits(String(price), 18); // currency price based on correct decimals for token contract
+const erc20Interface = new ethers.utils.Interface([
+          "function approve(address spender, uint256 amount) external returns (bool)"
+        ]);
+        
+// v6
+const amountBigNumber = ethers.parseUnits(String(price), 18); // currency price based on correct decimals for token contract
+const erc20Interface = new ethers.Interface([
+          "function approve(address spender, uint256 amount) external returns (bool)"
+        ]);
+```
+
 ## Utility Hash Value Packing
 
 If you're using ethers utilities to perform signature creation then using `ecrecover` on-chain, signature creation is now slightly different:

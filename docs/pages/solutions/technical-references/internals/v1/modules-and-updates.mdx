@@ -42,16 +42,16 @@ This method has the `onlySelf` modifier, which means that it can only be called 
 The wallet implementation is stored on the contract storage slot defined by the address of the wallet itself. Given that every wallet has a unique address, the implementation slot varies from wallet to wallet.
 
 ```js
-import "ethers"
+import {AbiCoder} "ethers"
 
 const address = "0x596af90cecdbf9a768886e771178fd5561dd27ab"
 const provider = new ethers.providers.JsonRpcProvider("http://localhost:8545")
 
 // Read storage slot address(address)
-const slot = await provider.getStorageAt(address, ethers.utils.defaultAbiCoder.encode(['address'], [address]))
+const slot = await provider.getStorageAt(address, AbiCoder.defaultAbiCoder().encode(['address'], [address]))
 
 // Decode bytes32 as address value
-const implementation = ethers.utils.defaultAbiCoder.decode(['address'], slot)[0]
+const implementation = AbiCoder.defaultAbiCoder().decode(['address'], slot)[0]
 
 console.log(implementation)
 ```

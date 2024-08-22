@@ -52,15 +52,15 @@ Using a universal wallet, this would look something like this:
 const wallet = sequence.getWallet();
 const signer = wallet.getSigner(421614); // on arbitrum-sepolia
 
-const sequenceMarketInterface = new ethers.utils.Interface(
+const sequenceMarketInterface = new ethers.Interface(
   "function createRequest(tuple(bool isListing, bool isERC1155, address tokenContract, uint256 tokenId, uint256 quantity, uint96 expiry, address currency, uint256 pricePerToken)) external nonReentrant returns (uint256 requestId)"
 );
 
-const erc1155Interface = new ethers.utils.Interface([
+const erc1155Interface = new ethers.Interface([
   "function setApprovalForAll(address operator, bool approved) external",
 ]);
 
-const amountBigNumber = ethers.utils.parseUnits(String(price), 18); // currency price based on correct decimals for token contract
+const amountBigNumber = ethers.parseUnits(String(price), 18); // currency price based on correct decimals for token contract
 
 const request = {
   creator: await wallet.getAddress(),
@@ -123,15 +123,15 @@ Using a universal wallet, this would look something like this:
 const wallet = sequence.getWallet();
 const signer = wallet.getSigner(421614); // on arbitrum-sepolia
 
-const erc20Interface = new ethers.utils.Interface([
+const erc20Interface = new ethers.Interface([
   "function approve(address spender, uint256 amount) public returns (bool)",
 ]);
 
-const sequenceMarketInterface = new ethers.utils.Interface([
+const sequenceMarketInterface = new ethers.Interface([
   "function acceptRequest(uint256 requestId, uint256 quantity, address recipient, uint256[] calldata additionalFees, address[] calldata additionalFeeRecipients)",
 ]);
 
-const amountBigNumber = ethers.utils.parseUnits(String(price), 18); // currency price based on correct decimals for token contract
+const amountBigNumber = ethers.parseUnits(String(price), 18); // currency price based on correct decimals for token contract
 
 const dataApprove = erc20Interface.encodeFunctionData("approve", [
   "0xB537a160472183f2150d42EB1c3DD6684A55f74c", // sequence market contract (same address on all offered networks)
