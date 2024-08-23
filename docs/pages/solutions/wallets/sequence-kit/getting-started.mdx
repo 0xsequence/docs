@@ -20,11 +20,11 @@ Otherwise, we will walk you through the process of installing Sequence Kit, trig
 Sequence Kit is modular, allowing you to install only the necessary packages. To get started, install the `@0xsequence/kit` core package, as well as install other dependencies such as `wagmi`, `viem`, and `0xsequence`.
 
 ```bash
-npm install @0xsequence/kit wagmi ethers@5.7.2 viem 0xsequence @tanstack/react-query
+npm install @0xsequence/kit @0xsequence/waas wagmi ethers@5.7.2 viem 0xsequence @0xsequence/design-system framer-motion @tanstack/react-query
 # or
-pnpm install @0xsequence/kit wagmi ethers@5.7.2 viem 0xsequence @tanstack/react-query
+pnpm install @0xsequence/kit @0xsequence/waas wagmi ethers@5.7.2 viem 0xsequence @0xsequence/design-system framer-motion @tanstack/react-query
 # or
-yarn add @0xsequence/kit wagmi ethers@5.7.2 viem 0xsequence @tanstack/react-query
+yarn add @0xsequence/kit @0xsequence/waas wagmi ethers@5.7.2 viem 0xsequence @0xsequence/design-system framer-motion @tanstack/react-query
 ```
 
 # Setting Up your Dapp
@@ -91,7 +91,7 @@ const connectors = getDefaultWaasConnectors({
   defaultChainId: 1,
   appName: 'demo app',
   projectAccessKey,
-  waasConfigKey
+  waasConfigKey,
   googleClientId,
   appleClientId,
   appleRedirectURI,
@@ -133,7 +133,7 @@ const connectors = getDefaultWaasConnectors({
   defaultChainId: 1,
   appName: 'demo app',
   projectAccessKey,
-  waasConfigKey
+  waasConfigKey,
   googleClientId,
   appleClientId,
   appleRedirectURI,
@@ -148,7 +148,7 @@ export const config = createConfig({
 
 ## Setup Provider Components
 
-The configuration we created above needs to be passed into the providers below in the `main.tsx`:
+The configuration we created above needs to be passed into the providers below in the `main.tsx`, as well as the inclusion of the Sequence Design System `styles.css` stylesheet:
 
 ```typescript [main.tsx]
 import React from 'react'
@@ -159,6 +159,7 @@ import { WagmiProvider } from 'wagmi'
 import { QueryClientProvider, QueryClient } from '@tanstack/react-query'
 import { KitProvider } from '@0xsequence/kit'
 import { projectAccessKey, config } from './config'
+import '@0xsequence/design-system/styles.css'
 
 /*
 Using `QueryClient` which is a dependency of `wagmi` that makes 
