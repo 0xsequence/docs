@@ -1,0 +1,58 @@
+---
+title: Deploying a Primary Sales Contract in Sequence Builder
+description: This guide provides a detailed walkthrough on setting up and deploying a Primary Sales Contract in Builder. It discusses the differences between ERC721 and ERC1155 contracts, walks through the steps of deploying a contract.
+---
+
+import { Callout } from "vocs/components";
+
+# How to Deploy an Item Collection Contract in Sequence Builder
+
+This guide walks through how to setup and deploy the contracts for launching a primary sale - suitable for an NFT Drop, In-game Store, and more.
+
+<Callout type="warning">
+Prerequisite: Create a Project
+This guide assumes that you have already [signed up for Builder and created a Project](/solutions/builder/getting-started).
+</Callout>
+
+## Step 1: Navigate to contracts
+
+Start by selecting your `project` in the top left and corner for what you want to create the collectible for, and head to the `contracts` section and select 
+
+![select project and new contract](/img/collectibles/deploy_new_contract.png)
+
+## Step 2: Deploy your chosen Collectible contract
+
+Follow the [guide](/solutions/collectibles/contracts/deploy-an-item-collection) in order to deploy a collectible contract as well as upload the collection metadata that you wish to create a sale for.
+
+![select game item](/img/collectibles/select_web3_game_item.png)
+
+## Step 3: Deploy your Primary Sales contract
+
+Once successfully deployed, return to the contracts page and select `+ Deploy new contract` again, selecting the appropriate sale that corresopnds (ERC721 or ERC1155) contract for the previous collectible contract you deployed in step 2.
+
+![Deploy Sale Contract](/img/collectibles/primary-sales/docs_deploy_sale.png)
+
+
+## Step 4: Set your mint details on the Primary Sales contract.
+
+Navigate to the mint details tab for your primary sales contract. Fill out your corresponding mint details with your desired sale parameters
+
+![Mint Access](/img/collectibles/primary-sales/docs_mint_access.png)
+
+<Callout type="tip">
+If the current time is within the date range provided, this will activate the sale.
+Consider setting the date range to the future or performing this step after completing the rest of the configuration.
+</Callout>
+
+## Add MinterRole for Sales Contract to Collection Contract
+
+Navigate to the previously deployed Items contract, select the Write Contract tab, and call the `grantRole` function to grant the Sale contract the `MINTER_ROLE`.
+
+You will want to pass in:
+
+- `0x9f2df0fed2c77648de5860a4cc508cd0818c85b8b8a1ab4ceeef8d981c8956a6` for the role field, which is the keccak256 hash of the string `MINTER_ROLE`.
+- Address of the Sale Contract you previously deployed.
+
+Then click 
+![Grant Minter Role](/img/collectibles/primary-sales/docs_minter_role.png)
+

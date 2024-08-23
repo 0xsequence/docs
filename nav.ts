@@ -331,6 +331,10 @@ export const sidebar = {
               text: 'Deploy an In-Game Currency (ERC20)',
               link: '/solutions/collectibles/contracts/deploy-ERC20-currency',
             },
+            {
+              text: 'Deploy a Primary Sales Contract',
+              link: '/solutions/collectibles/contracts/deploy-primary-sales-contract',
+            },
           ],
         },
         {
