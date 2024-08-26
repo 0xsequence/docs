@@ -6,11 +6,11 @@ import { remarkProjectAccessKey} from './docs/components/remarkProjectAccessKey'
 export default defineConfig({
   title: 'Sequence',
 
-  markdown: { 
-    remarkPlugins: [ 
-      remarkProjectAccessKey 
-    ] 
-  }, 
+  /* markdown: {
+    remarkPlugins: [
+      remarkProjectAccessKey
+    ]
+  },  */
 
 
 
