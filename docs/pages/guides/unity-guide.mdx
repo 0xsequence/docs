@@ -44,7 +44,7 @@ For our game loop, we purchased the [Infinite Runner Engine](https://assetstore.
 1. Create a basic scene where you will have your players login.
    - In our case, we [created a new scene](https://docs.unity3d.com/Manual/scenes-working-with.html#creating-a-new-scene) and added a background image to it
 2. Create a `Canvas`, attach a `Canvas Scaler` component and use the "Scale with Screen Size" UI Scale Mode. This will make it so that the LoginPanel (and any other UI elements under this Canvas) are scaled automatically when switching between build targets.
-3. Drag the `LoginPanel` prefab into your Scene Hierarchy under the Canvas. This can be found in the Project window under `Packages > Sequence WaaS SDK > SequenceExamples > Prefabs`.
+3. Drag the `LoginPanel` prefab into your Scene Hierarchy under the Canvas. This can be found in the Project window under `Packages > Sequence Embedded Wallet SDK > SequenceFrontend > Prefabs`.
 4. Create a UI manager to call `Open` on the `LoginPanel`. See [our implementation](https://github.com/0xsequence/sequence-unity-demo/blob/JellyForest/Scripts/UI/LoginScreenUIManager.cs) below:
 
 ```
@@ -65,37 +65,37 @@ private void Start()
    3. `Prefab > Unpack Completely`
 6. Customize the LoginPanel to fit your game's theme
 
-The LoginPanel will handle all of the social sign in logic for you. If you're curious how it's implemented, you can checkout the [LoginPage](https://github.com/0xsequence/sequence-unity/blob/master/Assets/SequenceExamples/Scripts/UI/LoginPage.cs) and [OpenIdAuthenticator](https://github.com/0xsequence/sequence-unity/blob/master/Assets/SequenceSDK/Authentication/OpenIdAuthenticator.cs) implementations.
+The LoginPanel will handle all of the social sign in logic for you. If you're curious how it's implemented, you can checkout the `LoginPage` and `OpenIdAuthenticator` implementations.
 The authentication works via the [Open ID Connect Implicit Flow](https://auth0.com/docs/authenticate/login/oidc-conformant-authentication/oidc-adoption-implicit-flow).
 
 ### Registering a Session with the Sequence API
 
 Once social sign in is complete, you will automatically make a register session request with the Sequence WaaS (Wallet as a Service) APIs. Here's how it works:
 
-When social sign in is complete, the [OpenIdAuthenticator.SignedIn](https://github.com/0xsequence/sequence-unity/blob/master/Assets/Sequence/SequenceSDK/Authentication/OpenIdAuthenticator.cs#L16) event is fired. This initiates the authorization process in [WaaSLogin.ConnectToWaaS](https://github.com/0xsequence/sequence-unity/blob/master/Assets/Sequence/SequenceSDK/WaaS/WaaSLogin.cs#L224).
+When social sign in is complete, the `OpenIdAuthenticator.SignedIn` event is fired. This initiates the authorization process in `SequenceLogin.ConnectToWaaS`.
 
 ### Retrieving the User's Wallet
 
-In order to retrieve the wallet, you'll need to subscribe to the `WaaSWallet.OnWaaSWalletCreated` event.
+In order to retrieve the wallet, you'll need to subscribe to the `SequenceWallet.OnWalletCreated` event.
 
 ```
-WaaSWallet.OnWaaSWalletCreated += OnWaaSWalletCreatedHandler;
-public void OnWaaSWalletCreatedHandler(WaaSWallet wallet) {
+SequenceWallet.OnWalletCreated += OnWalletCreatedHandler;
+public void OnWalletCreatedHandler(SequenceWallet wallet) {
   // Do something
 }
 ```
 
-We highly recommend you import `SequenceConnector` via the "Useful Scripts" under Samples in the Package Manager page for the "Sequence WaaS SDK".[ By default, it contains a lot of helpful starting code](https://github.com/0xsequence/sequence-unity/blob/master/Assets/Samples~/Scripts/SequenceConnector.cs) and acts as a useful interface to communicate with the SDK. We used it quite heavily [in our integration with JellyForest](https://github.com/0xsequence/sequence-unity-demo/blob/JellyForest/Scripts/SequenceConnector.cs).
+We highly recommend you import `SequenceConnector` via the "Useful Scripts" under Samples in the Package Manager page for the "Sequence Embedded Wallet SDK". [By default, it contains a lot of helpful starting code](https://github.com/0xsequence/sequence-unity/blob/master/Packages/Sequence-Unity/Sequence/Samples~/Scripts/SequenceConnector.cs) and acts as a useful interface to communicate with the SDK. We used it quite heavily [in our integration with JellyForest](https://github.com/0xsequence/sequence-unity-demo/blob/JellyForest/Scripts/SequenceConnector.cs).
 
-In JellyForest, we also created a [LevelLoader](https://github.com/0xsequence/sequence-unity-demo/blob/JellyForest/Scripts/LevelLoader.cs) MonoBehaviour that loads the next scene when the `WaaSWallet.OnWaaSWalletCreated` event is fired.
+In JellyForest, we also created a [LevelLoader](https://github.com/0xsequence/sequence-unity-demo/blob/JellyForest/Scripts/LevelLoader.cs) MonoBehaviour that loads the next scene when the `SequenceWallet.OnWalletCreated` event is fired.
 
 ```
 private void Awake()
 {
-    WaaSWallet.OnWaaSWalletCreated += OnWaaSWalletCreated;
+    SequenceWallet.OnWalletCreated += OnWalletCreated;
 }
 
-private void OnWaaSWalletCreated(WaaSWallet wallet)
+private void OnWalletCreated(SequenceWallet wallet)
 {
     SceneManager.LoadScene("MenuScene");
 }
@@ -164,11 +164,11 @@ wrangler login
     5. Under `account` paste the minter's wallet address
 13. `wrangler deploy` - this will deploy the code to a [Cloudflare Worker](https://developers.cloudflare.com/workers/) and give you a minting URL
 
-Great! Now, when we send a POST request to our server with a body [defined in C#](https://github.com/0xsequence/sequence-unity/blob/master/Assets/Sequence/SequenceSDK/Relayer/PermissionedMinter.cs#L93), where the `proof` is generated by the client sending the minting request. In the Unity SDK this is implemented by the [MintingRequestProver](https://github.com/0xsequence/sequence-unity/blob/master/Assets/Sequence/SequenceSDK/Relayer/MintingRequestProver.cs#L27).
+Great! Now, when we send a POST request to our server with a body [defined in C#](https://github.com/0xsequence/sequence-unity/blob/master/Packages/Sequence-Unity/Sequence/SequenceSDK/Relayer/MintingRequestProver.cs#L103), where the `proof` is generated by the client sending the minting request. In the Unity SDK this is implemented by the [MintingRequestProver](https://github.com/0xsequence/sequence-unity/blob/master/Packages/Sequence-Unity/Sequence/SequenceSDK/Relayer/MintingRequestProver.cs#L27).
 
 ## 5. Mint In-game Tokens to the Player's Inventory
 
-Now that we have our permissioned minter server setup, we need to get the client side (the Made With Unity app) hooked up so that we can start giving our players tokens through gameplay. We can send a request to the permissioned minter using the Unity SDK by calling the [PermissionedMinter.MintToken](https://github.com/0xsequence/sequence-unity/blob/master/Assets/Sequence/SequenceSDK/Relayer/PermissionedMinter.cs#L44) method.
+Now that we have our permissioned minter server setup, we need to get the client side (the Made With Unity app) hooked up so that we can start giving our players tokens through gameplay. We can send a request to the permissioned minter using the Unity SDK by calling the `PermissionedMinter.MintToken` method.
 
 In Jelly Forest, as the player runs through the level they collect a lot of coins, these are all ERC1155 tokens. There are still a few challenges we need to solve for in order to provide our players with a great UX.
 
@@ -209,10 +209,10 @@ private async Task GetTokenBalances(Page page = null)
 
 Since blockchain transactions are not instant but we want to provide our user with instant feedback, we'll make use of a simple in-memory cache.
 
-When we first receive our `WaaSWallet` in Jelly Forest, [SequenceConnector](https://github.com/0xsequence/sequence-unity-demo/blob/JellyForest/Scripts/SequenceConnector.cs), which we used as our primary interface for communicating with the Sequence SDK in our game, creates an `Inventory`.
+When we first receive our `SequenceWallet` in Jelly Forest, [SequenceConnector](https://github.com/0xsequence/sequence-unity-demo/blob/JellyForest/Scripts/SequenceConnector.cs), which we used as our primary interface for communicating with the Sequence SDK in our game, creates an `Inventory`.
 
 ```
-private void OnWaaSWalletCreated(WaaSWallet wallet)
+private void OnWalletCreated(SequenceWallet wallet)
 {
     Wallet = wallet;
     Wallet.OnSendTransactionComplete += OnSendTransactionCompleteHandler;
@@ -236,9 +236,9 @@ Read the full `Inventory` [implementation here](https://github.com/0xsequence/se
 
 ### 3. Using a Transaction Queue
 
-Sequence's Unity SDK provides a very flexible [transaction queueing system](https://github.com/0xsequence/sequence-unity/blob/master/Assets/Sequence/SequenceSDK/Relayer/TransactionQueuer.cs).
+Sequence's Unity SDK provides a very flexible [transaction queueing system](https://github.com/0xsequence/sequence-unity/blob/master/Packages/Sequence-Unity/Sequence/SequenceSDK/Relayer/TransactionQueuer.cs).
 
-In Jelly Forest, we attached a [PermissionedMinterTransactionQueuer](https://github.com/0xsequence/sequence-unity/blob/master/Assets/Sequence/SequenceSDK/Relayer/PermissionedMinterTransactionQueuer.cs) MonoBehaviour to our `SequenceConnector` GameObject and [grab a reference to it in Awake](https://github.com/0xsequence/sequence-unity-demo/blob/JellyForest/Scripts/SequenceConnector.cs#L59).
+In Jelly Forest, we attached a [PermissionedMinterTransactionQueuer](https://github.com/0xsequence/sequence-unity/blob/master/Packages/Sequence-Unity/Sequence/SequenceSDK/Relayer/PermissionedMinterTransactionQueuer.cs) MonoBehaviour to our `SequenceConnector` GameObject and [grab a reference to it in Awake](https://github.com/0xsequence/sequence-unity-demo/blob/JellyForest/Scripts/SequenceConnector.cs#L59).
 
 ![PermissionedMinterTransactionQueuer](/img/guides/making-of-jelly-forest/TransactionQueuer.png)
 
@@ -334,7 +334,7 @@ We've given this contract minting permissions for our game contract in the Build
 Warning: the `BurnToMint` smart contract shared above has not been audited by a third party. Re-use with caution!
 :::
 
-When a user purchases an upgrade or cosmetic from the shop, we send a transaction to the `BurnToMint` smart contract by adding a [PurchaseShopItemQueueableTransaction](https://github.com/0xsequence/sequence-unity-demo/blob/JellyForest/Scripts/Items/ShopItem.cs#L109) to our [WaaSTransactionQueuer](https://github.com/0xsequence/sequence-unity/blob/master/Assets/Sequence/SequenceSDK/Relayer/WaaSTransactionQueuer.cs) in our `SequenceConnector`.
+When a user purchases an upgrade or cosmetic from the shop, we send a transaction to the `BurnToMint` smart contract by adding a [PurchaseShopItemQueueableTransaction](https://github.com/0xsequence/sequence-unity-demo/blob/JellyForest/Scripts/Items/ShopItem.cs#L109) to our [SequenceWalletTransactionQueuer](https://github.com/0xsequence/sequence-unity/blob/master/Packages/Sequence-Unity/Sequence/SequenceSDK/Relayer/SequenceWalletTransactionQueuer.cs) in our `SequenceConnector`.
 
 ```
 SequenceConnector.Instance.AddToTransactionQueue(new PurchaseShopItemQueueableTransaction(this));
