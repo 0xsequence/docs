@@ -149,7 +149,7 @@ export const sidebar = {
                   link: '/solutions/wallets/embedded-wallet/examples/fee-options',
                 },
                 {
-                  text: 'Verification',
+                  text: 'Token Verification',
                   link: '/solutions/wallets/embedded-wallet/examples/verification',
                 },
                 {
