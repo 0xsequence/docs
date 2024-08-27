@@ -1,37 +1,42 @@
 import { SmartLink } from './Landing/SmartLink'
 import { useState } from 'react'
 
-
-
 const CodeSnippet = ({ code }: { code: string }) => (
   <div>
-  <p className="py-2 font-bold text-themed-secondary text-md font-medium leading-6">
-        Run with Sequence-CLI:
-  </p>
-<div className="vocs_CodeBlock">
-    <div className="vocs_Pre_wrapper">
-      <pre tabIndex={0} className="shiki shiki-themes github-light github-dark-dimmed vocs_Pre" style={{
-        backgroundColor: 'rgb(255, 255, 255)',
-        '--shiki-dark-bg': '#22272e',
-        color: 'rgb(36, 41, 46)',
-        '--shiki-dark': '#adbac7'
-      }}>
-        <code className="vocs_Code">
-          <span className="line vocs_Span">
-            <span className="vocs_Span" style={{
-              color: 'rgb(3, 47, 98)',
-              '--shiki-dark': '#96D0FF'
-            }}>{code}</span>
-          </span>
-        </code>
-      </pre>
+    <p className="py-2 font-bold text-themed-secondary text-md font-medium leading-6">
+      Run with Sequence-CLI:
+    </p>
+    <div className="vocs_CodeBlock">
+      <div className="vocs_Pre_wrapper">
+        <pre
+          className="shiki shiki-themes github-light github-dark-dimmed vocs_Pre"
+          style={{
+            backgroundColor: 'rgb(255, 255, 255)',
+            '--shiki-dark-bg': '#22272e',
+            color: 'rgb(36, 41, 46)',
+            '--shiki-dark': '#adbac7',
+          }}
+        >
+          <code className="vocs_Code">
+            <span className="line vocs_Span">
+              <span
+                className="vocs_Span"
+                style={{
+                  color: 'rgb(3, 47, 98)',
+                  '--shiki-dark': '#96D0FF',
+                }}
+              >
+                {code}
+              </span>
+            </span>
+          </code>
+        </pre>
+      </div>
     </div>
-  </div>
   </div>
 )
 
 export const TemplatesOverview = () => (
-
   <section className="flex flex-col gap-5 border-t dark:border-white-10 border-black-10">
     <div className="flex flex-col gap-1 py-5">
       <h3 className="text-3xl text-themed-primary font-bold">Templates</h3>
@@ -56,6 +61,7 @@ export const TemplatesOverview = () => (
         body="Example boilerplate showcasing embedded wallet integrated with Sequence Kit in a simple NextJS application."
         link="https://github.com/0xsequence/kit-embedded-wallet-nextjs-boilerplate"
         demolink="https://kit-embedded-wallet-nextjs-boilerplate.pages.dev/"
+        oneliner="npx sequence-cli boilerplates create-kit-embedded-wallet-nextjs-starter"
       />
       <TemplateCard
         title="Embedded Wallet Boilerplate for Wallet Verification on a backend."
@@ -107,7 +113,7 @@ const TemplateCard = ({
   deployLink,
   image,
   demolink,
-  oneliner
+  oneliner,
 }: {
   title: string
   body: string
