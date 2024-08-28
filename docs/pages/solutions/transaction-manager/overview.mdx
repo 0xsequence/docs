@@ -9,26 +9,32 @@ import {Callout} from 'vocs/components'
 
 The Sequence Transaction Manager offers a simple interface for dispatching transactions on Ethereum-compatible networks to service your game or app and scale to millions of users that brings an enormous amount of [benefits](/api/transactions/overview#benefits).
 
-One of the most popular is a minting service for creating and minting NFTs to your players, which massively reduces user friction. Below is a setup guide to deploy this code as a minter service to infrastructure called Railway to which hosts the instance as a microservice - callable from your own infrastructure.
+One of the most popular is a minting service for creating and minting NFTs to your players, which massively reduces user friction. Below is a setup guide to run this code locally as a minter service, which can be deployable to any infrastructure callable from your own application.
 
 The only difference with respect to deployed EVM contracts: transactions with a Sequence Transaction Manager will have the `msg.sender` as one of the Sequence Relayer addresses, which can be seen in any one of the status pages: for example [here on mainnet](https://mainnet-relayer.sequence.app/status) with the `senders` array.
 
+
 ## Quickstart
 
-### Try your own Deployable Template 
-
 ::::steps
-#### Access Railway Template
 
-Try out the Transaction Manager with [your own deployed template](https://railway.app/template/EzeuAo)
+#### Run on your own Local Server 
+
+To spin up a quick boilerplate that leverages the Transaction Manager code, you can run the following command from your terminal to install the Sequence-CLI and create a nodejs app, listening on port `3001`:
+
+```shell
+npx sequence-cli boilerplates create-tx-manager
+```
+
+Follow the prompts, with the included variables and steps below.
 
 #### Sequence Builder Project Management
 
 Create a project using this [walkthrough](/solutions/builder/getting-started).
 
-What network you assign to the project should be used for `CHAIN_HANDLE`. 
+What network you choose should be passed into the HTTP call for `chainHandle`. 
 
-See [Chain Support](/solutions/technical-references/chain-support). 
+See [Chain Support](/solutions/technical-references/chain-support) for available networks.
 
 #### Access Key Management
 
@@ -36,35 +42,34 @@ Obtain a Project Access Key using this [walkthrough](/solutions/builder/getting-
 
 This should be used for `PROJECT_ACCESS_KEY`.
 
+#### Generate Private Key for Transactions API
+
+Generate an Ethereum private key as an Externally Owned Account (EOA) passed into a Relayer Wallet. For demo purposes you can obtain a private key from [here](https://sequence-ethauthproof-viewer.vercel.app/).
+
 #### Deploy an ERC1155 or ERC721 Collectible Contract
 
 Deploy a collectible contract by following this [walkthrough](/solutions/collectibles/contracts/deploy-an-item-collection).
 
-This contract should be used for `COLLECTIBLE_CONTRACT_ADDRESS`.
+This contract should be used for `contractAddress` in the `cURL` call below, noting to include a `tokenID` if it's an `ERC1155`.
 
-#### Complete Railway Template Variables
-Use all the values from the previous steps to complete and deploy the online template with the `Deploy` button.
+#### Set a `Minter Role` on the Contract
 
-#### Update Exposed Port in Interface
-Access settings for your deployment and update the exposed port to `3000`:
+Navigate to the `Contracts` page in the Sequence Builder and under `Write Contract` tab expand the `grantRole` method. Complete with the following details:
 
-##### Generate Domain
-![update exposed port](/img/payments/transaction_manager_service_deployed_generate_domain.png)
+* bytes32 role: `0x9f2df0fed2c77648de5860a4cc508cd0818c85b8b8a1ab4ceeef8d981c8956a6`
+* address account: `<Generated Wallet Address from Step 4>`
 
-##### Set Port
-![update exposed port](/img/payments/transaction_manager_deployed_set_port_generate_domain.png)
-
-#### Perform a Mint Transaction
+#### Perform Mint Transaction
 
 Using a command line interface, call using cURL to mint to a wallet address:
 
 ```shell
-curl -X POST https://<DEPLOYED_RAILWAY_URL>/mint \
+curl -X POST http://localhost:3001/mint \
 -H "Content-Type: application/json" \
--d '{"evmAddress": "<EVM_WALLET_ADDRESS>", "tokenID": "<TOKEN_ID>", "contractAddress":"<COLLECTIBLE_CONTRACT_ADDRESS>", "isERC1155": "<true_OR_false>", "amount":<AMOUNT> }'
+-d '{"evmAddress": "<EVM_WALLET_ADDRESS>", "chainHandle":"<CHAIN_HANDLE>","tokenID": "<TOKEN_ID_IF_ERC1155>", "contractAddress":"<COLLECTIBLE_CONTRACT_ADDRESS>", "isERC1155": <true_OR_false>, "amount":<AMOUNT> }'
 ```
 
-Input an `EVM wallet address`, `token ID`, `collectible contract address` (either a Sequence Builder ERC721 or ERC1155), `true` or `false` for `isERC1155`, and the `amount` of tokens to transfer into the above request and mint!
+Input an `EVM wallet address`, `token ID`, `chain handle`, `collectible contract address` (either a Sequence Builder ERC721 or ERC1155), `true` or `false` for `isERC1155`, and the `amount` of tokens to transfer into the above request and mint!
 
 You should recieve a response with a `txHash`:
 
@@ -73,18 +78,18 @@ You should recieve a response with a `txHash`:
 ```
 
 <Callout type='info'>
-The Transaction Manager template will accept requests from all origins.
+The Transaction Manager boilerplate will accept requests from all origins.
 </Callout>
 ::::
 
-## Template Source Code
+## Boilerplate Source Code
 
 Want to further customize and take your code to production? There's a single step to make this production ready for Web applications:
 
 ### Restrict Origin from a Frontend Code
 
-Update the following line of code from `*` to include the `requesting origin domain` of the deployed application in the following [line of code.](https://github.com/0xsequence-demos/tx-manager/blob/master/server/server.ts#L44)
+Update the following line of code from `*` to include the `requesting origin domain` of the deployed application in the following [line of code.](https://github.com/0xsequence-demos/tx-manager-boilerplate/blob/master/server/server.ts#L44)
 
 :::info
-Get started quickly with the source code of the [template](https://github.com/0xsequence-demos/tx-manager) using the Transactions API.
+Get started quickly with the source code of the [boilerplate](https://github.com/0xsequence-demos/tx-manager-boilerplate) using the Transactions API by extending the codebase. For example: to incorporate batch transactions, offer ERC20 airdrops, and more.
 :::
