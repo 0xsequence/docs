@@ -5,49 +5,51 @@ description: This guide provides a detailed walkthrough on setting up and deploy
 
 import { Callout } from "vocs/components";
 
-# How to Deploy an Item Collection Contract in Sequence Builder
 
-This guide walks through how to setup and deploy the contracts for launching a primary sale - suitable for an NFT Drop, In-game Store, and more.
+### How to Deploy a Primary Sales Contract in Sequence Builder
+
+This guide walks through how to setup and deploy the contracts for launching a primary sale - suitable for an NFT Drop, in-game store, and more.
 
 <Callout type="warning">
-Prerequisite: Create a Project
-This guide assumes that you have already [signed up for Builder and created a Project](/solutions/builder/getting-started).
+Prerequisite:
+this guide assumes that you have already [signed up for Builder and created a Project](/solutions/builder/getting-started).
 </Callout>
 
-## Step 1: Navigate to contracts
+::::steps
+### Step 1: Navigate to contracts
 
-Start by selecting your `project` in the top left and corner for what you want to create the collectible for, and head to the `contracts` section and select 
+Start by selecting your desired `project` you would like to create a sale for and head to `Contracts > Deploy`.
 
-![select project and new contract](/img/collectibles/deploy_new_contract.png)
+### Step 2: Deploy your chosen collectible contract
 
-## Step 2: Deploy your chosen Collectible contract
-
-Follow the [guide](/solutions/collectibles/contracts/deploy-an-item-collection) in order to deploy a collectible contract as well as upload the collection metadata that you wish to create a sale for.
+Follow this [guide](/solutions/collectibles/contracts/deploy-an-item-collection) in order to deploy a collectible contract as well as upload the collection metadata that you wish to create a sale for.
 
 ![select game item](/img/collectibles/select_web3_game_item.png)
 
-## Step 3: Deploy your Primary Sales contract
+### Step 3: Deploy your Primary Sales contract
 
-Once successfully deployed, return to the contracts page and select `+ Deploy new contract` again, selecting the appropriate sale that corresopnds (ERC721 or ERC1155) contract for the previous collectible contract you deployed in step 2.
+Once successfully deployed, return to the contracts page and select `+ Deploy new contract` again. Then select the appropriate ERC721 or ERC1155 sale contract that corresponds to your previously deployed collectible contract in step 2 and click Deploy sale contract.
 
 ![Deploy Sale Contract](/img/collectibles/primary-sales/docs_deploy_sale.png)
 
+### Step 4: Set your mint details on the Primary Sales contract.
 
-## Step 4: Set your mint details on the Primary Sales contract.
-
-Navigate to the mint details tab for your primary sales contract. Fill out your corresponding mint details with your desired sale parameters
+Navigate to the mint details tab for your primary sales contract. Fill out the mint details with your desired sale parameters. 
 
 ![Mint Access](/img/collectibles/primary-sales/docs_mint_access.png)
 
-<Callout type="tip">
-If the current time is within the date range provided, this will activate the sale.
-Consider setting the date range to the future or performing this step after completing the rest of the configuration.
-</Callout>
 
+- `Supply Cap`: This is the amount of supply of tokens that users can mint via the Sale contract
+- `Cost`: Is the cost amount in GWEI of minting a single token. In this example, we set it to 0 to easily mint from Builder, but when deploying in production this should match what you wish to charge your users.
+- `Start and End Time`: Start and end time of the sale. If the current time is within the date range provided, this will activate the sale. Consider setting the date range to the future if desired.
+- `Payment Token`: You can select the native token on the chain or a custom currency as well that the sale is in.
+- `Sale Type`: You can also opt to choose between a Public or Private mint.  When selecting a private mint, you can also choose a list of allowlisted participants that is uploaded using our [Audience](https://sequence.build/project/default/audience/) feature. Important to note, that for a private mint you will need to pass in a merkle proof that corresponds to the merkle root added in the sale details in order to mint. Not to worry though, we provide this logic in our boilerplates by default.
 
-## Step 5: Add MinterRole for Sales Contract to Collection Contract
+For this walkthrough, we will assume you are creating a public mint.
 
-Navigate to the previously deployed Items contract, select the Write Contract tab, and call the `grantRole` function to grant the Sale contract the `MINTER_ROLE`.
+### Step 5: Add MinterRole for Sales Contract to Collection Contract
+
+Navigate to the previously deployed Collectibles contract, select the Write Contract tab, and call the `grantRole` function to grant the Sale contract the `MINTER_ROLE`.
 
 You will want to pass in:
 
@@ -57,8 +59,21 @@ You will want to pass in:
 Then click 
 ![Grant Minter Role](/img/collectibles/primary-sales/docs_minter_role.png)
 
-## Step 6: 
+### Step 6: 
+Now that you've got your contracts configured, let's try to do a test mint! 
 
-Now that you've got your contracts configured, you can simply fork one of our boilerplates and plug in your variables to get started. Here's some examples:
+Return to your deployed Sale contract and select `Write contract`. We will then click on the `mint()` function and pass in a few parameters:
 
-- [Primary NFT Drop](https://github.com/0xsequence/primary-drop-sale-boilerplate)
+- `to`: this is the address that the NFT is being minted to. Generally this would be the user who paid, but we can simply pass in our Builder address located in the top-right hand corner.
+- `amount`: The amount of NFTs to mint, we will simply mint 1.
+- `paymentToken`: For a custom currency, you would pass in that currency's address. However for native tokens it will be `0x0000000000000000000000000000000000000000`.
+- `maxTotal`: The maximum amount of the given currency that can be paid.
+- `proof`: For a public mint, you can simply leave this field blank. In a private mint, this would be the generated proof that corresponds to the user's address & previously provided merkle root.
+
+Once all that information is filled out, go ahead and click Write and submit the transaction to mint the token!
+::::
+
+What's next? You can now utilize the sale contracts publicly on your website for an NFT drop or use these contracts for your in-game store to sell game items to your players. We also recommend taking a look at our boilerplates that leverage your sale contracts for various use cases such as Fiat payments or ability to pay in any currency for your sale.
+
+- [Purchase an NFT via the Sales contract with a Credit Card](https://github.com/0xsequence/demo-nft-checkout/tree/master)
+- [Leverage currency abstraction to pay in any currency for your sale](https://github.com/0xsequence/currency-abstraction-demo)
