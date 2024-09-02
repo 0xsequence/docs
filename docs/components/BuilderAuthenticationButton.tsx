@@ -62,12 +62,12 @@ export const connect = async (appName: string) => {
     const projectAccessKey = await getDefaultAccessKey(firstProjectId)
     
     
-    localStorage.setItem('sequenceProjectAccessKey', projectAccessKey);
+    localStorage.setItem('sequenceProjectAccessKey', projectAccessKey['accessKey']['accessKey']);
 
-    console.log(projectAccessKey)
-    // setAuthState(walletAddress, true, sessionType)
+    console.log(projectAccessKey['accessKey']['accessKey'])
 
     isConnected = true
+    window.location.reload();
   } catch (err) {
     // TODO: handle errors
     console.error(err)

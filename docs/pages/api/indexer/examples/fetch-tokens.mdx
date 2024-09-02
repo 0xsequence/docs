@@ -4,9 +4,55 @@ description: The Tokens API allows users to fetch a list of ERC20, ERC721, and E
 ---
 import { retrieveProjectAccessKey } from '../../../../components/retrieveProjectAccessKey';
 import Example from '../../../../components/Example';
+import CodeTabs from '../../../../components/CodeTabs/index.tsx'
 export const PROJECT_ACCESS_KEY = retrieveProjectAccessKey();
 
+<CodeTabs tabs={[
+  {
+    label: 'shell',
+    content: `curl -X POST -H "Content-Type: application/json" -H "X-Access-Key: ${PROJECT_ACCESS_KEY}" https://polygon-indexer.sequence.app/rpc/Indexer/GetTokenBalances -d '{ "accountAddress": "0x8e3E38fe7367dd3b52D1e281E4e8400447C8d8B9", "includeMetadata": true }'`
+  },
+  {
+    label: 'typescript',
+    content: `const indexer = new SequenceIndexer('https://polygon-indexer.sequence.app', '${PROJECT_ACCESS_KEY}');
 
+// Works in both a Webapp (browser) or Node.js:
+import { SequenceIndexer } from '@0xsequence/indexer'
+
+// try any account address you'd like :)
+const accountAddress = '0xabc...'
+
+// query Sequence Indexer for all token balances of the account on Polygon
+const tokenBalances = await indexer.getTokenBalances({
+	accountAddress: accountAddress,
+	includeMetadata: true
+})
+console.log('tokens in your account:', tokenBalances)`
+  },
+  {
+    label: 'go',
+    content: `import (
+	"context"
+	"fmt"
+	"log"
+	"net/http"
+
+	"github.com/0xsequence/go-sequence/indexer"
+)
+
+func GetTokenBalances(accountAddress string) {
+	seqIndexer := indexer.NewIndexer("https://polygon-indexer.sequence.app", ${PROJECT_ACCESS_KEY})
+
+	includeMetadata := true
+
+	tokenBalances, _, err := seqIndexer.GetTokenBalances(context.Background(), &accountAddress, nil, &includeMetadata, nil, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println("tokenBalances:", tokenBalances)
+}`
+  }
+]} />
 
 # Tokens API
 
@@ -27,6 +73,9 @@ export const PROJECT_ACCESS_KEY = retrieveProjectAccessKey();
 
 **Example: `GetTokenBalances` of a wallet account address on Polygon using an `API_Access_Key`**
 
+
+
+
 :::info
 This code requires an API Access Key from [Sequence Builder](https://sequence.build).
 :::
@@ -34,13 +83,11 @@ This code requires an API Access Key from [Sequence Builder](https://sequence.bu
 :::code-group
 
 ```shell [Curl] 
-curl -X POST -H "Content-Type: application/json" -H "X-Access-Key: PROJECT_ACCESS_KEY" https://polygon-indexer.sequence.app/rpc/Indexer/GetTokenBalances -d '{ "accountAddress": "0x8e3E38fe7367dd3b52D1e281E4e8400447C8d8B9", "includeMetadata": true }'
+curl -X POST -H "Content-Type: application/json" -H "X-Access-Key: ${PROJECT_ACCESS_KEY}" https://polygon-indexer.sequence.app/rpc/Indexer/GetTokenBalances -d '{ "accountAddress": "0x8e3E38fe7367dd3b52D1e281E4e8400447C8d8B9", "includeMetadata": true }'
 ```
 
 
-```ts [Typescript] {!projectAccessKey=PROJECT_ACCESS_KEY}
-PROJECT_ACCESS_KEY
-console.log('Hello !{projectAccessKey}') 
+```ts [Typescript]
 
 // Works in both a Webapp (browser) or Node.js:
 import { SequenceIndexer } from '@0xsequence/indexer'
@@ -49,7 +96,7 @@ retrieveProjectAccessKey()
 
 const indexer = new SequenceIndexer('https://polygon-indexer.sequence.app', 'AQAAAAAAAF_JvPALhBthL7VGn6jV0YDqaFY')
 
-// try any account address you'd like :)
+// try any account address you'd like
 const accountAddress = '0xabc...'
 
 // query Sequence Indexer for all token balances of the account on Polygon

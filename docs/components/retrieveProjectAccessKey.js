@@ -6,17 +6,16 @@
 export function retrieveProjectAccessKey() {
     const defaultAccessKey = 'AQAAAAAAADVH8R2AGuQhwQ1y8NaEf1T7PJM';
   
-    // if (typeof window !== 'undefined' && window.localStorage) {
-    //   let accessKey = localStorage.getItem('sequenceProjectAccessKey');
+    if (typeof window !== 'undefined' && window.localStorage) {
+      let accessKey = localStorage.getItem('sequenceProjectAccessKey');
+      console.log(accessKey)
       
-    //   if (accessKey === null) {
-    //     localStorage.setItem('sequenceProjectAccessKey', defaultAccessKey);
-    //     accessKey = defaultAccessKey;
-    //   }
-    //   console.log(accessKey)
-    //   return accessKey;
-    // }
-    
+      if (accessKey === null) {
+        localStorage.setItem('sequenceProjectAccessKey', defaultAccessKey);
+        accessKey = defaultAccessKey;
+      }
+      console.log(accessKey)
+      return accessKey;
+    }
     return defaultAccessKey;
-
 }

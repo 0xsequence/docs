@@ -1,4 +1,8 @@
 import { useState } from "react";
+// import SyntaxHighlighter from 'react-syntax-highlighter';
+import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
+import { vscDarkPlus } from 'react-syntax-highlighter/dist/cjs/styles/prism';
+// import { gruvbox-dark } from 'react-syntax-highlighter/dist/cjs/styles/hljs';
 
 type CodeTabsProps = {
   tabs: {
@@ -45,9 +49,10 @@ const CodeTabs: React.FC<CodeTabsProps> = ({ tabs }) => {
           {copied ? "Copied" : "Copy"}
         </button>
       </div>
-      <div className="code-tabs__code-content">
-        <pre>
-          <code>{tabs[activeTab].content}</code>
+      <div className="code-tabs__">
+        <pre id="code-content">
+        <SyntaxHighlighter className="code-content" language={tabs[activeTab].label} style={vscDarkPlus}>
+        {tabs[activeTab].content}</SyntaxHighlighter>
         </pre>
       </div>
     </div>

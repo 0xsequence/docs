@@ -18,7 +18,7 @@ const Layout = ({ children }: { children: ReactElement | string }) => {
   return (
     <div>
       <BuilderAuthenticationButton />
-z``      {children}
+      {children}
     </div>
   )
 }
