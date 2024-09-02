@@ -3,8 +3,7 @@
 
 import type { Root } from 'mdast'
 import { visit } from 'unist-util-visit'
-import { retrieveProjectAccessKey } from './retrieveProjectAccessKey';
-
+import { retrieveProjectAccessKey } from './retrieveProjectAccessKey'
 
 export function remarkProjectAccessKey() {
   return (tree: Root) => {

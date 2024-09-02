@@ -8,7 +8,7 @@ const TopNavButton = (): ReactElement => {
         window.open('https://sequence.build/', '_blank')
       }}
     >
-      Start building
+      Create Account
     </button>
   )
 }

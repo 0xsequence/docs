@@ -1,6 +1,6 @@
 import { useToast } from '@0xsequence/design-system'
 import { t } from '@lingui/macro'
-import { PropsWithChildren, createContext, useContext, useState } from 'react'
+import { type PropsWithChildren, createContext, useContext, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 
 import { BASE_ROUTE } from '~/utils/routes'
@@ -30,19 +30,16 @@ const AuthProvider = ({ children }: PropsWithChildren) => {
     setIsLoggingIn(true)
 
     try {
-      const isConnected = await connect({  app: "Sequence Docs",
-        authorize: true
-      })
+      const isConnected = await connect({ app: 'Sequence Docs', authorize: true })
 
       if (isConnected) {
-      
-          handleAfterLogin()
-        }
+        handleAfterLogin()
+      }
     } catch (err) {
       toast({
         variant: 'error',
         title: t`Failed to connect wallet`,
-        description: "Failed to connect",
+        description: 'Failed to connect',
       })
     } finally {
       setIsLoggingIn(false)

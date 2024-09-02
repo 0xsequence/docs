@@ -1,8 +1,8 @@
-import { Button } from '@0xsequence/design-system'
+import type { Button } from '@0xsequence/design-system'
 import { t } from '@lingui/macro'
-import { ComponentProps } from 'react'
+import type { ComponentProps } from 'react'
 
-import { AuthContextValue, useAuth } from '../AuthProvider'
+import { type AuthContextValue, useAuth } from '../AuthProvider'
 
 import { ButtonWithGlow } from '../ButtonWithGlow/ButtonWithGlow'
 

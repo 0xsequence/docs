@@ -17,6 +17,7 @@ const Layout = ({ children }: { children: ReactElement | string }) => {
 
   return (
     <div>
+      <TopNavButton/>
       <BuilderAuthenticationButton />
       {children}
     </div>

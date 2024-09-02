@@ -1,6 +1,6 @@
-import { Button } from '@0xsequence/design-system'
+import type { Button } from '@0xsequence/design-system'
 import { clsx } from 'clsx'
-import { ComponentProps } from 'react'
+import type { ComponentProps } from 'react'
 
 import styles from './ButtonWithGlow.module.css'
 
@@ -31,7 +31,7 @@ export function ButtonWithGlow(props: Props) {
         size && styles[`button--${size}`],
         variant && styles[`button--${variant}`],
         leftIcon && styles['button--with-icon'],
-        className
+        className,
       )}
       aria-label={label}
       {...restProps}
