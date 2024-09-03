@@ -34,3 +34,34 @@ login.Login(email);
 login.FederateAccountEmail(email, code, walletAddress); 
 ```
 where walletAddress is the address of the `SequenceWallet` you retrieved after authenticating the user.
+
+### Re-using the Default LoginPanel
+
+To allow a user to federate/link their accounts manually using the default LoginPanel, simply call `SetConnectedWalletAddress` on your `SequenceLogin` instance or call `SequenceLogin.GetInstanceToFederateAuth` with the currently authenticated wallet address provided.
+
+```
+SequenceLogin login = SequenceLogin.GetInstance();
+login.SetConnectedWalletAddress(authenticatedSequenceWalletAddress);
+
+// or
+
+SequenceLogin.GetInstanceToFederateAuth(authenticatedSequenceWalletAddress);
+```
+
+This will configure your SequenceLogin instance to federate the accounts instead of creating a new session.
+
+:::tip
+Once the user has logged out, don't forget to call `SetConnectedWalletAddress(null)` to re-configure SequenceLogin to create new sessions again.
+
+e.g.
+
+```
+private void OnDropSessionCompleteHandler(string sessionId) {
+    if (sessionId == Wallet.SessionId)
+    {
+        SequenceLogin.GetInstance().SetConnectedWalletAddress(null);
+        SceneManager.LoadScene("LoginScene"); // Re-open your scene or UI to allow the user to log back in and create a new session here
+    }
+}
+```
+:::
