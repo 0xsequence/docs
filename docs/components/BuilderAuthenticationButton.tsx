@@ -1,22 +1,95 @@
-import type { ReactElement } from 'react'
+import { useState, ReactElement } from 'react'
 import { sequence } from '0xsequence'
+import clsx from 'clsx'
+import { Button, Box, Card } from '@0xsequence/design-system'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "./Dialog/dialog"
 
 const builderURL = 'http://localhost:8080/https://dev-api.sequence.build'
 
 const BuilderAuthenticationButton = (): ReactElement => {
+  const [isConnected, setIsConnected] = useState(false)
+  const [showModal, setShowModal] = useState(false)
+  const [projects, setProjects] = useState<any[]>([])
+  
+  const handleConnect = async () => {
+    try {
+      const connected = await connect('Sequence Docs', setProjects)
+      if (connected) {
+        setIsConnected(true)
+        setShowModal(true) // Open the dialog here
+      }
+    } catch (error) {
+      console.error('Connection failed:', error)
+    }
+  }
+
+  const handleProjectSelection = async (projectId: string) => {
+    try {
+      const projectAccessKey = await getDefaultAccessKey(projectId)
+      localStorage.setItem('sequenceProjectAccessKey', projectAccessKey.accessKey.accessKey)
+      console.log(projectAccessKey.accessKey.accessKey)
+      setShowModal(false)
+      window.location.reload()
+    } catch (error) {
+      console.error('Error getting project access key:', error)
+    }
+  }
+
   return (
-    <button
-      className="hover-fade font-bold text-white max-w-max h-min text-center rounded-full bg-gradient-to-r from-[#4411E1] to-[#7537F9] px-[16px] py-[8px] text-[14px] leading-[20px] ml-[8px] top-nav-button_position"
-      onClick={() => {
-        connect('Sequence Docs')
-      }}
-    >
-      Start building
-    </button>
+    <>
+      <button
+        className="hover-fade font-bold text-white max-w-max h-min text-center rounded-full bg-gradient-to-r from-[#4411E1] to-[#7537F9] px-[20px] py-[8px] text-[12px] top-auth-button_position"
+        onClick={handleConnect}
+      >
+        Login
+      </button>
+      <Dialog open={showModal} onOpenChange={setShowModal}>
+        <DialogContent className="sm:max-w-[600px] bg-black text-white border-gray-800">
+          <DialogHeader>
+            <DialogTitle className="text-2xl font-bold text-white">Select a Project</DialogTitle>
+            <DialogDescription className="text-gray-400">
+              Choose a project from the list below.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="flex-1 h-fit shrink-0 rounded-xl dark:bg-white-10 bg-white overflow-hidden">
+            <div className="flex flex-col gap-3 p-4 relative">
+              <div
+                className={clsx('absolute inset-0 opacity-20 z-0 pointer-events-none', {
+                  'dark:bg-gradient-to-b from-[#000000] to-transparent': true,
+                })}/>
+              {projects.map((project, index) => (
+
+                <a
+                  key={index}
+                  onClick={() => handleProjectSelection(project.id)}
+                  className="hover-fade p-4 rounded-md z-10 dark:bg-white-10 bg-black-7"
+                >
+
+                  <div className="flex gap-2">
+                    <p className="flex items-start gap-2 text-xl leading-7 font-bold text-themed-primary">
+                      {project.name}
+                    </p>
+                  </div>
+                  <p className="text-themed-secondary text-sm font-medium">Project ID: {project.id}</p>
+                </a>
+              ))}
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </>
   )
 }
 
-export const connect = async (appName: string) => {
+export const connect = async (appName: string, setProjects: (projects: any[]) => void) => {
   let isConnected = false
   // dev
   const projectAccessKey = 'AQAAAAAAAAPVHubZNR7qmEKAb97mjypt5SM'
@@ -33,7 +106,6 @@ export const connect = async (appName: string) => {
     })
 
     if (!connectDetails.proof) {
-      // logout()
       wallet.disconnect()
       window.location.href = '/'
       throw new Error('No proof')
@@ -51,22 +123,15 @@ export const connect = async (appName: string) => {
     console.log(walletAddress)
 
     const projectsResponse = await listProjects()
-    const firstProjectId = projectsResponse.projects[0].id
-
-    const projectAccessKey = await getDefaultAccessKey(firstProjectId)
-
-    localStorage.setItem('sequenceProjectAccessKey', projectAccessKey.accessKey.accessKey)
-
-    console.log(projectAccessKey.accessKey.accessKey)
+    setProjects(projectsResponse.projects)
+    console.log(projectsResponse)
 
     isConnected = true
-    window.location.reload()
+    return isConnected
   } catch (err) {
-    // TODO: handle errors
     console.error(err)
+    return false
   }
-
-  return isConnected
 }
 
 export async function authenticate(proof: any, email: any) {

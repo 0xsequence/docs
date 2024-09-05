@@ -1,10 +1,10 @@
 import { useState } from 'react'
 // import SyntaxHighlighter from 'react-syntax-highlighter';
+
+import { CopyIcon } from '../Landing/icons' // Import CopyIcon
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter'
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/cjs/styles/prism'
-import {ThemeProvider, Box, HelpIcon, Tooltip } from '@0xsequence/design-system'
-
-
+import { ThemeProvider, Tooltip } from '@0xsequence/design-system'
 
 type CodeTabsProps = {
   tabs: {
@@ -16,7 +16,6 @@ type CodeTabsProps = {
 const CodeTabs: React.FC<CodeTabsProps> = ({ tabs }) => {
   const [activeTab, setActiveTab] = useState(0)
   const [copied, setCopied] = useState(false)
-  const [tooltipVisible, setTooltipVisible] = useState(false)
 
   const handleCopy = () => {
     const code = tabs[activeTab].content
@@ -41,25 +40,58 @@ const CodeTabs: React.FC<CodeTabsProps> = ({ tabs }) => {
             onClick={() => setActiveTab(index)}
           >
             {tab.label}
-            
           </button>
         ))}
         <ThemeProvider>
-        <Tooltip vOffset={-2}
-              side="top" message={<>We use a sample access key in order to authenticate your requests. <br /> Please create an account and login with your wallet in order to use your own project credentials</>}>
-               
-<span className="code-tabs__access-key"><p className="code-tabs__accessKeyText">Using Sample Access Key</p></span>
-              </Tooltip>
-            </ThemeProvider>
-        <button className={`code-tabs__copy-button ${copied ? 'copied' : ''}`} onClick={handleCopy}>
-          {copied ? 'Copied' : 'Copy'}
-        </button>
+          <Tooltip
+            vOffset={-2}
+            side="top"
+            message={
+              localStorage.getItem('sequenceProjectAccessKey') === 'AQAAAAAAADVH8R2AGuQhwQ1y8NaEf1T7PJM' ? (
+                <>
+                We use a sample access key in order to authenticate your requests. <br /> Please
+                create an account on Sequence Builder and login with your wallet in order to use your own project
+                credentials.
+              </>
+              ) : (
+                <>
+                Injecting your own project access key into the code below.
+                </>
+              )
+
+            }
+          >
+            <span className="code-tabs__access-key">
+              { localStorage.getItem('sequenceProjectAccessKey') === 'AQAAAAAAADVH8R2AGuQhwQ1y8NaEf1T7PJM' ? (
+                <div>
+                <p className="code-tabs__accessKeyText">Using Sample Access Key</p>
+
+                </div>
+              ) : (
+                <div>
+                        <p className="code-tabs__accessKeyText">Using Your Own Access Key</p>
+                </div>
+              )}
+            </span>
+          </Tooltip>
+        </ThemeProvider>
+        <button
+      onClick={handleCopy}
+      className={`copy-button ${copied ? 'copied' : ''}`}
+      aria-label={copied ? 'Copied!' : 'Copy to clipboard'}
+    >
+      {copied ? (
+        '✓'
+      ) : (
+        <CopyIcon />
+      )}
+    </button>
       </div>
       <div className="code-tabs__">
-        <pre id="code-content" tabIndex={0}>
+        <pre id="code-content" >
           <SyntaxHighlighter
             className="code-content"
-            language={tabs[activeTab].label}
+            language={tabs[activeTab].label.toLowerCase()}
             style={vscDarkPlus}
           >
             {tabs[activeTab].content}
