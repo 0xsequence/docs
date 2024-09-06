@@ -1,15 +1,13 @@
-import { useState, ReactElement } from 'react'
+import { useState, type ReactElement } from 'react'
 import { sequence } from '0xsequence'
 import clsx from 'clsx'
-import { Button, Box, Card } from '@0xsequence/design-system'
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
-} from "./Dialog/dialog"
+} from './Dialog/dialog'
 
 const builderURL = 'http://localhost:8080/https://dev-api.sequence.build'
 
@@ -17,7 +15,7 @@ const BuilderAuthenticationButton = (): ReactElement => {
   const [isConnected, setIsConnected] = useState(false)
   const [showModal, setShowModal] = useState(false)
   const [projects, setProjects] = useState<any[]>([])
-  
+
   const handleConnect = async () => {
     try {
       const connected = await connect('Sequence Docs', setProjects)
@@ -45,7 +43,7 @@ const BuilderAuthenticationButton = (): ReactElement => {
   return (
     <>
       <button
-        className="hover-fade font-bold text-white max-w-max h-min text-center rounded-full bg-gradient-to-r from-[#4411E1] to-[#7537F9] px-[20px] py-[8px] text-[12px] top-auth-button_position"
+        className="hover-fade font-bold text-white max-w-max h-min text-center rounded-full bg-gradient-to-r from-[#4411E1] to-[#7537F9] px-[20px] py-[4px] text-[12px] top-auth-button_position"
         onClick={handleConnect}
       >
         Login
@@ -64,21 +62,22 @@ const BuilderAuthenticationButton = (): ReactElement => {
               <div
                 className={clsx('absolute inset-0 opacity-20 z-0 pointer-events-none', {
                   'dark:bg-gradient-to-b from-[#000000] to-transparent': true,
-                })}/>
+                })}
+              />
               {projects.map((project, index) => (
-
                 <a
                   key={index}
                   onClick={() => handleProjectSelection(project.id)}
                   className="hover-fade p-4 rounded-md z-10 dark:bg-white-10 bg-black-7"
                 >
-
                   <div className="flex gap-2">
                     <p className="flex items-start gap-2 text-xl leading-7 font-bold text-themed-primary">
                       {project.name}
                     </p>
                   </div>
-                  <p className="text-themed-secondary text-sm font-medium">Project ID: {project.id}</p>
+                  <p className="text-themed-secondary text-sm font-medium">
+                    Project ID: {project.id}
+                  </p>
                 </a>
               ))}
             </div>
