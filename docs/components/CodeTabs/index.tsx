@@ -65,7 +65,11 @@ const CodeTabs: React.FC<CodeTabsProps> = ({ tabs }) => {
                 'AQAAAAAAADVH8R2AGuQhwQ1y8NaEf1T7PJM' ? (
                   <>
                     We use a sample access key in order to authenticate your requests. <br /> Please
-                    create an account on <a className="font-bold underline" href="https://sequence.build">Sequence Builder</a> and login with your wallet
+                    create an account on{' '}
+                    <a className="font-bold underline" href="https://sequence.build">
+                      Sequence Builder
+                    </a>{' '}
+                    and login with your wallet
                     <br />
                     in order to use your own project credentials.
                   </>
