@@ -4,12 +4,7 @@ import { useState } from 'react'
 import { CopyIcon } from '../Landing/icons' // Import CopyIcon
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter'
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/cjs/styles/prism'
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger
-} from "../Tooltip/Tooltip"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../Tooltip/Tooltip'
 
 type CodeTabsProps = {
   tabs: {
@@ -48,41 +43,39 @@ const CodeTabs: React.FC<CodeTabsProps> = ({ tabs }) => {
           </button>
         ))}
 
-          <TooltipProvider >
-            <Tooltip>
-              <TooltipTrigger className="code-tabs__access-key">  
-                
-                <span className="pt-5">
-              {localStorage.getItem('sequenceProjectAccessKey') ===
-              'AQAAAAAAADVH8R2AGuQhwQ1y8NaEf1T7PJM' ? (
-                <div>
-                  <p className="code-tabs__accessKeyText">Using Sample Access Key</p>
-                </div>
-              ) : (
-                <div>
-                  <p className="code-tabs__accessKeyText">Using Your Own Access Key</p>
-                </div>
-              )}
-            </span></TooltipTrigger>
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger className="code-tabs__access-key">
+              <span className="pt-5">
+                {localStorage.getItem('sequenceProjectAccessKey') ===
+                'AQAAAAAAADVH8R2AGuQhwQ1y8NaEf1T7PJM' ? (
+                  <div>
+                    <p className="code-tabs__accessKeyText">Using Sample Access Key</p>
+                  </div>
+                ) : (
+                  <div>
+                    <p className="code-tabs__accessKeyText">Using Your Own Access Key</p>
+                  </div>
+                )}
+              </span>
+            </TooltipTrigger>
             <TooltipContent style={{ backgroundColor: '#111111' }}>
-            <p>{
-              localStorage.getItem('sequenceProjectAccessKey') ===
-              'AQAAAAAAADVH8R2AGuQhwQ1y8NaEf1T7PJM' ? (
-                <>
-                  We use a sample access key in order to authenticate your requests. <br /> Please
-                  create an account on Sequence Builder and login with your wallet
-                  <br />
-                   in order to use
-                  your own project credentials.
-                </>
-              ) : (
-                <>Injecting your own project access key into the code below.</>
-              )
-            }</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-
+              <p>
+                {localStorage.getItem('sequenceProjectAccessKey') ===
+                'AQAAAAAAADVH8R2AGuQhwQ1y8NaEf1T7PJM' ? (
+                  <>
+                    We use a sample access key in order to authenticate your requests. <br /> Please
+                    create an account on <a className="font-bold underline" href="https://sequence.build">Sequence Builder</a> and login with your wallet
+                    <br />
+                    in order to use your own project credentials.
+                  </>
+                ) : (
+                  <>Injecting your own project access key into the code below.</>
+                )}
+              </p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
 
         {/* <ThemeProvider>
           <Tooltip

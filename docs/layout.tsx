@@ -20,9 +20,9 @@ const Layout = ({ children }: { children: ReactElement | string }) => {
     <div>
       {/* <TopNavButton/> */}
 
-        <TopNavButton />
-        <BuilderAuthenticationButton />
-        {children}
+      <TopNavButton />
+      <BuilderAuthenticationButton />
+      {children}
     </div>
   )
 }

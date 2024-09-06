@@ -112,18 +112,10 @@ export const connect = async (appName: string, setProjects: (projects: any[]) =>
 
     const userEmail = connectDetails.email || undefined
 
-    console.log(userEmail)
-
     const jwtToken = await authenticate(connectDetails.proof.proofString, userEmail)
-
-    const walletAddress = wallet.getAddress()
-
-    console.log(jwtToken)
-    console.log(walletAddress)
 
     const projectsResponse = await listProjects()
     setProjects(projectsResponse.projects)
-    console.log(projectsResponse)
 
     isConnected = true
     return isConnected
