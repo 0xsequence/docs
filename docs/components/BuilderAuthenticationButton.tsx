@@ -57,10 +57,10 @@ const BuilderAuthenticationButton = (): ReactElement => {
             </DialogDescription>
           </DialogHeader>
 
-          <div className="flex-1 h-fit shrink-0 rounded-xl dark:bg-white-10 bg-white overflow-hidden">
+          <div className="flex-1 h-fit shrink-0 rounded-xl dark:bg-white-10 bg-white overflow-hidden"> 
             <div className="flex flex-col gap-3 p-4 relative">
               <div
-                className={clsx('absolute inset-0 opacity-20 z-0 pointer-events-none', {
+                className={clsx('absolute inset-0 opacity-20 z-0 pointer', {
                   'dark:bg-gradient-to-b from-[#000000] to-transparent': true,
                 })}
               />
@@ -68,7 +68,7 @@ const BuilderAuthenticationButton = (): ReactElement => {
                 <a
                   key={index}
                   onClick={() => handleProjectSelection(project.id)}
-                  className="hover-fade p-4 rounded-md z-10 dark:bg-white-10 bg-black-7"
+                  className="hover-fade p-4 rounded-md z-10 dark:bg-white-10 bg-black-7 cursor-pointer"
                 >
                   <div className="flex gap-2">
                     <p className="flex items-start gap-2 text-xl leading-7 font-bold text-themed-primary">

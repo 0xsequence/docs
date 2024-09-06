@@ -1,7 +1,7 @@
 import { useState } from 'react'
 // import SyntaxHighlighter from 'react-syntax-highlighter';
 
-import { CopyIcon } from '../Landing/icons' // Import CopyIcon
+import { CopyIcon } from '../Landing/icons'
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter'
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/cjs/styles/prism'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../Tooltip/Tooltip'
@@ -44,7 +44,7 @@ const CodeTabs: React.FC<CodeTabsProps> = ({ tabs }) => {
         ))}
 
         <TooltipProvider>
-          <Tooltip>
+          <Tooltip delayDuration={0}>
             <TooltipTrigger className="code-tabs__access-key">
               <span className="pt-5">
                 {localStorage.getItem('sequenceProjectAccessKey') ===
