@@ -211,16 +211,10 @@ Upon webhook listener response, an object is returned in the following structure
 	- `txnIndex` (i32) -- the index of the transaction in the blockchain block
 	- `txnLogIndex` (string) -- the log index in the transaction
 	- `ts` (date) -- an ISO 8601 formatted date and time of the event
-	- `event` ([event]()) -- the event data of the on-chain data
+	- `event` ([event](/api/indexer/examples/webhook-listener#event-object)) -- the event data of the on-chain data
 	- `txnLogIndex` (string) -- the log index in the transaction
 	- `logDataType` (string) -- the type of log event (e.g. `TOKEN_TRANSFER`)
-	- `log` (object) -- the emitted event data
-		- `raw` ([raw](/api/indexer/examples/webhook-listener#raw-object)) -- the raw transaction object
-		- `contractType` (string) -- the type of contract (e.g. `ERC20`, `ERC721`, `ERC1155`, etc.)
-		- `transferEvent` ([TransferEvent](/api/indexer/examples/webhook-listener#transferevent-object))
-		- `OrderCreated` ([OrderbookRequestCreated](/api/indexer/examples/webhook-listener#orderbookrequestcreated-object))
-		- `OrderAccepted` ([OrderbookRequestAccepted](/api/indexer/examples/webhook-listener#orderbookrequestaccepted-object))
-		- `OrderCancelled` ([OrderbookRequestCancelled](/api/indexer/examples/webhook-listener#orderbookrequestcancelled-object))
+	- `rawLog` ([raw](/api/indexer/examples/webhook-listener#rawlog-object)) -- the raw transaction object
 
 ## Example
 
@@ -302,53 +296,8 @@ console.log('ok', ok)
 |  names 	| []string    	| an array of event argument names in plain text (note: if names are not included in initial webhook creation, will appear as: arg1, arg2, arg3, etc.) |
 |  values 		| []string    	| an array of hex values corresponding to the argument names |
 
-##### transferEvent (object)
-| Field    | Type 	 | Description |
-| -------- | ------- | ------- 	   |
-|  operator 	| string    | the address of the operator |
-|  from 		| string    | the address of who the transaction came from |
-|  to 			| string    | the address of who the transaction is for |
-|  tokenIDs 	| []i32    	| an array of the token IDs transferred |
-|  amounts 		| []i32    	| an array of the amounts of tokens transferred |
-
-##### raw (object)
+##### rawLog (object)
 | Field    | Type | Description |
 | -------- | ------- | ------- |
-|  address 		| string    | the address from which the event came from |
+|  data			| string 		| data |
 |  topics 		| []string    | the topic event hashes emitted in the logs |
-|  data 		| []string    | data |
-|  blockNumber 	| i64    | the hex of the block number |
-|  txHash 		| string    | the transaction hash from the blockchain |
-|  txIndex 		| i32    | the index of the transaction in the blockchain block in hex |
-|  blockHash 	| string    | the hash of the block for the transaction |
-|  index 		| i32    | the log index in the transaction |
-|  removed 		| boolean    | if the log of the event has been removed based on reorganizations |
-
-##### OrderbookRequestCreated (object)
-| Field    | Type 	 | Description |
-| -------- | ------- | ------- 	   |
-|  requestId 		| i32    | the request id as an incremented value of the order|
-|  creator 			| string    | the user address who created the order |
-|  tokenContract 	| string    | the token contract of that the order is for |
-|  tokenId 			| i32    | the token identifier |
-|  isListing 		| boolean    | whether the order is to list (true) or offer orders (false) |
-|  quantity 		| i32    | the number of tokens the order is for | 
-|  currency 		| string    | the currency address of the order |
-|  pricePerToken 	| i32    | the price per token for the order |
-|  expiry 			| i32    | the expiry of when the order is no longer valid |
-
-##### OrderbookRequestAccepted (object)
-| Field    | Type 	 | Description |
-| -------- | ------- | ------- 	   |
-|  requestId 		| i32    | the request id as an incremented value of the order|
-|  buyer 			| string    | the user address for who purchased the order |
-|  tokenContract 	| string    | the token contract of that the order is for |
-|  receiver 		| string    | the user address for who who recieves the token |
-|  quantity 		| i32    | the number of tokens |
-|  quantityRemaining| i32    | the remaining number of tokens left in the order |
-
-##### OrderbookRequestCancelled (object)
-| Field    | Type | Description |
-| -------- | ------- | ------- |
-|  requestId 		| i32    | the request id as an incremented value of the order|
-|  tokenContract 	| string    | the token contract of that the order is for | 
