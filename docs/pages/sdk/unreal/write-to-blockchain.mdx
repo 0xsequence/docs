@@ -10,7 +10,7 @@ description: Documentation for Unreal SDK API for writing to the blockchain with
 Used to Sign a message
 
 ```cpp
-const TSuccessCallback<FSignedMessage> OnResponse = [this] (const FSignedMessage& Response)
+const TSuccessCallback<FSeqSignMessageResponse_Response> OnResponse = [this] (const FSeqSignMessageResponse_Response& Response)
 {
 	//Response is the signed message
 };
@@ -18,8 +18,7 @@ const FFailureCallback OnFailure = [this](const FSequenceError& Error)
 {
 	UE_LOG(LogTemp,Display,TEXT("Error Message: %s"),*Error.Message);
 };
-const FCredentials_BE Credentials;//Replace this var with your own credentials however you choose to get them
-const TOptional<USequenceWallet*> WalletOptional = USequenceWallet::Get(Credentials);
+const TOptional<USequenceWallet*> WalletOptional = USequenceWallet::Get();
 if (WalletOptional.IsSet() && WalletOptional.GetValue())
 {
    USequenceWallet* Wallet = WalletOptional.GetValue();
@@ -115,8 +114,7 @@ Txn.Push(TUnion<FRawTransaction, FERC20Transaction, FERC721Transaction, FERC1155
 
 ```cpp
 // Now send the transaction
-const FCredentials_BE Credentials; // Replace this var with your own credentials however you choose to get them
-const TOptional<USequenceWallet*> WalletOptional = USequenceWallet::Get(Credentials);
+const TOptional<USequenceWallet*> WalletOptional = USequenceWallet::Get();
 if (WalletOptional.IsSet() && WalletOptional.GetValue())
 {
 	USequenceWallet* Wallet = WalletOptional.GetValue();
