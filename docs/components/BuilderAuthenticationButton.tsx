@@ -57,7 +57,7 @@ const BuilderAuthenticationButton = (): ReactElement => {
             </DialogDescription>
           </DialogHeader>
 
-          <div className="flex-1 h-fit shrink-0 rounded-xl dark:bg-white-10 bg-white overflow-hidden"> 
+          <div className="flex-1 h-fit shrink-0 rounded-xl dark:bg-white-10 bg-white overflow-hidden">
             <div className="flex flex-col gap-3 p-4 relative">
               <div
                 className={clsx('absolute inset-0 opacity-20 z-0 pointer', {

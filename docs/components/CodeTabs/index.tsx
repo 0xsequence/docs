@@ -80,42 +80,6 @@ const CodeTabs: React.FC<CodeTabsProps> = ({ tabs }) => {
             </TooltipContent>
           </Tooltip>
         </TooltipProvider>
-
-        {/* <ThemeProvider>
-          <Tooltip
-                      className="border border-gray-300 shadow-md bg-white z-20" // Added border and shadow
-
-            vOffset={-2}
-            side="top"
-            message={
-              localStorage.getItem('sequenceProjectAccessKey') ===
-              'AQAAAAAAADVH8R2AGuQhwQ1y8NaEf1T7PJM' ? (
-                <>
-                  We use a sample access key in order to authenticate your requests. <br /> Please
-                  create an account on Sequence Builder and login with your wallet
-                  <br />
-                   in order to use
-                  your own project credentials.
-                </>
-              ) : (
-                <>Injecting your own project access key into the code below.</>
-              )
-            }
-          >
-            <span className="code-tabs__access-key">
-              {localStorage.getItem('sequenceProjectAccessKey') ===
-              'AQAAAAAAADVH8R2AGuQhwQ1y8NaEf1T7PJM' ? (
-                <div>
-                  <p className="code-tabs__accessKeyText">Using Sample Access Key</p>
-                </div>
-              ) : (
-                <div>
-                  <p className="code-tabs__accessKeyText">Using Your Own Access Key</p>
-                </div>
-              )}
-            </span>
-          </Tooltip>
-        </ThemeProvider> */}
         <button
           onClick={handleCopy}
           className={`copy-button ${copied ? 'copied' : ''}`}
