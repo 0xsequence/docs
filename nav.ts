@@ -385,7 +385,7 @@ export const sidebar = {
         },
         {
           text: 'Ethers v6 Support',
-          link: '/solutions/technical-references/ethers-v6-migration'
+          link: '/solutions/technical-references/ethers-v6-migration',
         },
         {
           text: 'Contract Internals',
@@ -587,7 +587,10 @@ export const sidebar = {
                 { text: 'OIDC - Social Sign In', link: '/sdk/unity/authentication/oidc' },
                 { text: 'PlayFab', link: '/sdk/unity/authentication/playfab' },
                 { text: 'Guest', link: '/sdk/unity/authentication/guest' },
-                { text: 'Federated Accounts', link: '/sdk/unity/authentication/federated-accounts' },
+                {
+                  text: 'Federated Accounts',
+                  link: '/sdk/unity/authentication/federated-accounts',
+                },
               ],
             },
             { text: 'Write to blockchain', link: '/sdk/unity/write-to-blockchain' },
