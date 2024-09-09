@@ -300,7 +300,7 @@ export const sidebar = {
               collapsed: true,
               items: [
                 { text: 'Overview', link: '/solutions/marketplaces/orderbook/overview' },
-                { text: 'Quickstart', link: '/solutions/marketplaces/orderbook/quickstart' },
+                { text: 'Starter', link: '/solutions/marketplaces/orderbook/starter' },
               ],
             },
           ],
