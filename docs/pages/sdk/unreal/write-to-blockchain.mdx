@@ -22,16 +22,16 @@ const FCredentials_BE Credentials;//Replace this var with your own credentials h
 const TOptional<USequenceWallet*> WalletOptional = USequenceWallet::Get(Credentials);
 if (WalletOptional.IsSet() && WalletOptional.GetValue())
 {
-   USequenceWallet * Api = WalletOptional.GetValue();
+   USequenceWallet* Wallet = WalletOptional.GetValue();
    const FString Message = "Hi";
-   Api->SignMessage(Message,OnResponse,OnFailure);
+   Wallet->SignMessage(Message, OnResponse, OnFailure);
 }
 ```
 ## Example SendTransaction
 
 Used to send a transaction / perform contract calls.
 
-To send transactions, first create each desired transaction individually and append it to a `TArray<TUnion<FRawTransaction,FERC20Transaction,FERC721Transaction,FERC1155Transaction>>` object. This allows you to send multiple transactions in a single request. 
+To send transactions, first create each desired transaction individually and append it to a `TArray<TUnion<FRawTransaction, FERC20Transaction, FERC721Transaction, FERC1155Transaction, FDelayedTransaction>>` object. This allows you to send multiple transactions in a single request.
 
 ```cpp
 const FFailureCallback OnFailure = [this](const FSequenceError& Error)
@@ -40,7 +40,7 @@ const FFailureCallback OnFailure = [this](const FSequenceError& Error)
 };
 
 // Create the Transaction object list
-TArray<TUnion<FRawTransaction,FERC20Transaction,FERC721Transaction,FERC1155Transaction>> Txn;
+TArray<TUnion<FRawTransaction, FERC20Transaction, FERC721Transaction, FERC1155Transaction, FDelayedTransaction>> Txn;
 ```
 ### ERC20 Transaction
 
@@ -52,7 +52,7 @@ T20.tokenAddress = "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174";
 T20.value = "1000";
 
 // Append the ERC20 transaction to the Txn object
-Txn.Push(TUnion<FRawTransaction,FERC20Transaction,FERC721Transaction,FERC1155Transaction>(T20));
+Txn.Push(TUnion<FRawTransaction, FERC20Transaction, FERC721Transaction, FERC1155Transaction, FDelayedTransaction>(T20));
 ```
 
 *Note: To send the correct value for the transaction of the ERC20 you will need to make a conversion of the expected transfer value to the expected input value, to make up for the different decimals a contract might have. The formula to do so is as follows: **Transfer Value = Input Value /(10 ^ Contract Decimals) **.
@@ -69,7 +69,7 @@ T721.to = "0x0E0f9d1c4BeF9f0B8a2D9D4c09529F260C7758A2";
 T721.tokenAddress = "0xa9a6A3626993D487d2Dbda3173cf58cA1a9D9e9f";
 
 // Append the ERC721 transaction to the Txn object
-Txn.Push(TUnion<FRawTransaction,FERC20Transaction,FERC721Transaction,FERC1155Transaction>(T721));
+Txn.Push(TUnion<FRawTransaction, FERC20Transaction, FERC721Transaction, FERC1155Transaction, FDelayedTransaction>(T721));
 ```
 
 ### ERC1155 Transaction
@@ -86,7 +86,7 @@ Val.id = "66635";
 T1155.vals.Add(Val);
 
 // Append the ERC1155 transaction to the Txn object
-Txn.Push(TUnion<FRawTransaction,FERC20Transaction,FERC721Transaction,FERC1155Transaction>(T1155));
+Txn.Push(TUnion<FRawTransaction, FERC20Transaction, FERC721Transaction, FERC1155Transaction, FDelayedTransaction>(T1155));
 ```
 
 ### Raw Transaction (Example Contract Call)
@@ -108,7 +108,7 @@ T.to = "0x64d9f9d527abe2a1c1ce3fada98601c4ac5bfdd2";
 T.value = "0";
 
 // Append the Raw transaction to the Txn object
-Txn.Push(TUnion<FRawTransaction,FERC20Transaction,FERC721Transaction,FERC1155Transaction>(T));
+Txn.Push(TUnion<FRawTransaction, FERC20Transaction, FERC721Transaction, FERC1155Transaction, FDelayedTransaction>(T));
 ```
 
 ### Sending the Transaction
@@ -119,17 +119,17 @@ const FCredentials_BE Credentials; // Replace this var with your own credentials
 const TOptional<USequenceWallet*> WalletOptional = USequenceWallet::Get(Credentials);
 if (WalletOptional.IsSet() && WalletOptional.GetValue())
 {
-	USequenceWallet* Api = WalletOptional.GetValue();
-	Api->SendTransaction(Txn, [this](const FTransactionResponse& Transaction)
+	USequenceWallet* Wallet = WalletOptional.GetValue();
+	Wallet->SendTransaction(Txn, [this](const FSeqTransactionResponse_Data& Transaction)
 	{
-		TSharedPtr<FJsonObject> Json = Transaction.Json;
-		TSharedPtr<FJsonObject> Receipt = Transaction.Receipt;
-		TSharedPtr<FJsonObject> NativeReceipt = Transaction.NativeReceipt;
-		TSharedPtr<FJsonObject> Request = Transaction.Request;
-		TArray<TSharedPtr<FJsonValue>> Simulations = Transaction.Simulations;
-		FString TxHash = Transaction.TxHash;
-		FString IdentifyingCode = Transaction.IdentifyingCode;
-		FString MetaTxHash = Transaction.MetaTxHash;
+        TSharedPtr<FJsonObject> Json = Transaction.Json;
+        FSeqTransactionResponse_Receipt Receipt = Transaction.Receipt;
+        FSeqTransactionResponse_NativeReceipt NativeReceipt = Transaction.NativeReceipt;
+        FSeqTransactionResponse_Request Request = Transaction.Request;
+        TArray<FSeqTxnSimulation> Simulations = Transaction.Simulations;
+        FString TxHash = Transaction.TxHash;
+        FString IdentifyingCode = Transaction.IdentifyingCode;
+        FString MetaTxHash = Transaction.MetaTxHash;
 	}, OnFailure);
 }
 ```
@@ -156,8 +156,8 @@ const TFunction<void(TArray<FFeeOption>)> OnFeeResponse = [Transactions, OnSucce
       const TOptional<USequenceWallet*> WalletOptional = USequenceWallet::Get(Auth->GetStoredCredentials().GetCredentials());
       if (WalletOptional.IsSet() && WalletOptional.GetValue())
       {
-         USequenceWallet* Api = WalletOptional.GetValue();
-         Api->SendTransactionWithFeeOption(Transactions, SelectedFeeOption, [=](const FTransactionResponse& Transaction)
+         USequenceWallet* Wallet = WalletOptional.GetValue();
+         Wallet->SendTransactionWithFeeOption(Transactions, SelectedFeeOption, [=](const FSeqTransactionResponse_Data& Transaction)
          {
             FString OutputString;
             const TSharedRef<TJsonWriter<>> Writer = TJsonWriterFactory<>::Create(&OutputString);
@@ -183,8 +183,8 @@ const UAuthenticator* Auth = NewObject<UAuthenticator>();
 const TOptional<USequenceWallet*> WalletOptional = USequenceWallet::Get(Auth->GetStoredCredentials().GetCredentials());
 if (WalletOptional.IsSet() && WalletOptional.GetValue())
 {
-   USequenceWallet* Api = WalletOptional.GetValue();
-   Api->GetFeeOptions(Transactions, OnFeeResponse, OnFeeFailure);
+   USequenceWallet* Wallet = WalletOptional.GetValue();
+   Wallet->GetFeeOptions(Transactions, OnFeeResponse, OnFeeFailure);
 }
 ```
 

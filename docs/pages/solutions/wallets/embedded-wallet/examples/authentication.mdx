@@ -136,12 +136,25 @@ When the WaaS object is called upon to sign in a user using an `idToken`, the em
 const { email } = await sequence.signIn({ idToken }, "Session name")
 ```
 
-```
-email@horizon.io
+### Account Federation
+If a user tries to authenticate with the same credentials across different providers, for example the same address for email and Google, you will receive a conflict as a callback `sequence.onEmailConflict` that the account already exists to handle for your application. In this case, you may choose how you would like to address this:
+
+1. Inform the user the account already exists and prompt them to login with the previous authentication method. Users can then link their accounts through [Account Federation](/solutions/wallets/embedded-wallet/examples/account-federation#embedded-wallet-account-federation) to utilize different authentication providers. This ensures a single address across multiple providers.
+2. Alternatively, you can also run the async `forceCreate` function in the callback. The warning that an account already exists will be ignored and a second, separate wallet address will be created for the user that affiliated with the different login provider.
+
+Utilizing the `onEmailConflict` callback with `forceCreate` to create a second wallet for the user:
+```typescript
+  const forceCreateFuncRef = useRef<(() => Promise<void>) | null>(null);
+
+  sequence.onEmailConflict(async (info, forceCreate) => {
+    forceCreateFuncRef.current = forceCreate; // Optionally choose to force create a second wallet for the user
+
+    setEmailConflictInfo(info); // Set the conflict info to inform the user
+    setIsEmailConflictModalOpen(true); // Display a modal to inform the user what to do that an account exists
+  });
 ```
 
-### Account Federation
-If a user tries to authenticate with the same credentials across different providers, for example the same address for email and Google, you will receive a notification that the account already exists. In this case, we recommend linking the user's accounts through [Account Federation](/solutions/wallets/embedded-wallet/examples/account-federation#embedded-wallet-account-federation) which ensures a single address across multiple providers.
+
 
 ## Authenticating with Specific Social Providers
 
