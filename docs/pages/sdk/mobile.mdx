@@ -13,12 +13,10 @@ You can see a full example of how to use the SDK or download the template in the
 
 ## Video Preview
 
-
 <Video
   videoPreviewSrc={"/img/sdk/Sequence_Mobile_SDK.jpg"}
   videoSrc={"/video/sdk/SequenceMobileSDK.mp4"}
 />
-
 
 ## Setting up with your own credentials/keys
 
@@ -41,24 +39,55 @@ Manually, you can set the intent-filter in the AndroidManifest.xml file for Goog
 ## Integration details
 
 ::::steps
+
 ### Setup shims for ethers and other crypto related packages
 
-Firstly, make sure to do this step as early in your apps lifecycle as possible. In this demo these are imported and set at the top in [App.tsx](https://github.com/0xsequence/demo-waas-react-native/blob/main/App.tsx).
+First, let's check contents of [cryptoSetup.ts](https://github.com/0xsequence/demo-waas-react-native/blob/main/cryptoSetup.ts) for the set up of the shims and registering `pbkdf2` for `ethers` from `react-native-quick-crypto` below:
 
 ```ts
 import { install } from "react-native-quick-crypto";
 install();
 
-import "@ethersproject/shims";
-
 import "react-native-url-polyfill/auto";
 import { ReadableStream } from "web-streams-polyfill";
 globalThis.ReadableStream = ReadableStream;
+
+import crypto from "react-native-quick-crypto";
+global.getRandomValues = crypto.getRandomValues;
+
+export * from "@ethersproject/shims";
+
+import * as ethers from "ethers";
+
+ethers.pbkdf2.register(
+  (
+    password: Uint8Array,
+    salt: Uint8Array,
+    iterations: number,
+    keylen: number,
+    algo: "sha256" | "sha512"
+  ) => {
+    console.info("Using react-native-quick-crypto for pbkdf2");
+    return ethers.hexlify(
+      new Uint8Array(
+        crypto.pbkdf2Sync(
+          password,
+          salt,
+          iterations,
+          keylen,
+          algo === "sha256" ? "SHA-256" : "SHA-512"
+        )
+      )
+    );
+  }
+);
+
+export * from "ethers";
 ```
 
-Secondly, we need to set aliases for the shims, in `babel.config.js` with help of the dev dependency `babel-plugin-module-resolver`, and also we need to make sure to use `pbkdf2` from `react-native-quick-crypto`. This helps us speed up the random value generation. See [babel.config.js](https://github.com/0xsequence/demo-waas-react-native/blob/main/babel.config.js) for the code snippet to update the aliases.
+Then make sure to import `cryptoSetup.ts` as early in the app lifecycle as you can. In this demo these are imported and set at the top in [App.tsx](https://github.com/0xsequence/demo-waas-react-native/blob/main/App.tsx).
 
-(See https://github.com/ethers-io/ethers.js/issues/2250#issuecomment-1321134111 for more details on react-native-quick-crypto alias setup)
+Secondly, we need to set aliases for some shims, in `babel.config.js` with help of the `babel-plugin-module-resolver` dev dependency. See [babel.config.js](https://github.com/0xsequence/demo-waas-react-native/blob/main//babel.config.js) for the code snippet to update the aliases.
 
 ### Initialize Sequence WaaS
 
@@ -82,7 +111,6 @@ export const sequenceWaas = new SequenceWaaS(
 Once you have an initialized Sequence WaaS instance, you can use it to sign in with email, Google or Apple. See the google code snippet below for an example, and check the [App.tsx](https://github.com/0xsequence/demo-waas-react-native/blob/main/App.tsx) file for more details.
 
 ```ts
-
 const redirectUri = `${iosRedirectUri}:/oauthredirect`;
 
 const scopes = ["openid", "profile", "email"];
@@ -161,8 +189,14 @@ const txn = await sequenceWaas.sendTransaction({
   ],
 });
 ```
-::::
 
+## Migration notes for Ethers v6 update
+
+- `react-native-quick-crypto-ethers-patch.js` and related configuration is no longer needed since ethers v6 allows us to register the pbkdf2 function directly from the `react-native-quick-crypto` package. (See [cryptoSetup.ts](https://github.com/0xsequence/demo-waas-react-native/blob/main//cryptoSetup.ts) for the related code.)
+
+- You can follow [ethers migration guide](https://docs.ethers.org/v6/migrating/) to migrate your codebase to ethers v6.
+
+::::
 
 ## Dependencies
 
@@ -194,5 +228,3 @@ const txn = await sequenceWaas.sendTransaction({
 
 - react-native-url-polyfill
 - web-streams-polyfill
-
-
