@@ -18,6 +18,7 @@ function hideInactiveTabs(document: Document, activeTab: number): void {
   });
 }
 
+// To use this component and have it work correctly, you must encapsulate the content you want to hide and show in divs with the class "tabbed-content__content" in the order in which you send the labels.
 const TabbedContent = ({ labels }: TabbedContentProps) => {
   const [activeTab, setActiveTab] = useState<number>(0);
 
