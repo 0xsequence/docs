@@ -21,7 +21,7 @@ A Sequence wallet is instantiated with a signer that can be any account such as 
 The only difference with respect to deployed EVM contracts: transactions with a Sequence Transaction Manager will have the `msg.sender` as one of the Sequence Relayer addresses, which can be seen in any one of the status pages: for example [here on mainnet](https://mainnet-relayer.sequence.app/status) with the `senders` array.
 
 ## NFT Minter Quickstart
-One of the most popular implementations is a minting service for creating and minting NFTs to your players from your backend, which massively reduces user friction. Below is a setup guide to run this code locally as a minter service, which can be deployable to any infrastructure callable from your own application. 
+One of the most popular implementations is a minting service for creating and minting NFTs to your players from your backend, which massively reduces user friction. Below is a setup guide to run this code locally as a minter service with example contracts, which can be deployable to any infrastructure callable from your own application. 
 
 
 ::::steps
@@ -41,14 +41,10 @@ curl -X POST http://localhost:3001/mint \
 ::::
 
 
-
-
 ## Run on your own local server 
 
-To run your own transaction manager instance and setup, you can run the following command from your terminal to install the Sequence-CLI and create a nodejs app, listening on port `3001`:
+To run your own transaction manager with your contract address and wallet, you can walk through the steps below to launches an express application, listening on port `3001`:
 
-
-Follow the prompts, with the included variables and steps below.
 ::::steps
 
 #### Sequence Builder Project Management
@@ -61,30 +57,34 @@ See [Chain Support](/solutions/technical-references/chain-support) for available
 
 Obtain a Project Access Key using this [walkthrough](/solutions/builder/getting-started#claim-an-api-access-key).
 
-This should be used for `PROJECT_ACCESS_KEY`.
-
 #### Generate Private Key for Transactions API
 
-Generate an Ethereum private key as an Externally Owned Account (EOA) passed into a Relayer Wallet. For demo purposes you can obtain a private key from [here](https://sequence-ethauthproof-viewer.vercel.app/).
+Generate an Ethereum private key as an Externally Owned Account (EOA) that is passed as a Single Signer to a Sequence Wallet to relay transactions. For demo purposes you can obtain a private key from [here](https://sequence-ethauthproof-viewer.vercel.app/).
 
-#### Deploy an ERC1155 or ERC721 Collectible Contract
+#### Deploy an ERC1155 Contract
 
 Deploy a collectible contract by following this [walkthrough](/solutions/collectibles/contracts/deploy-an-item-collection).
 
-This contract should be used for `contractAddress` in the `cURL` call below, noting to include a `tokenID` if it's an `ERC1155`.
+This contract address can be replaced in the following code.
 
 #### Set a `Minter Role` on the Contract
 
-Navigate to the `Contracts` page in the Sequence Builder and under `Write Contract` tab expand the `grantRole` method. Complete with the following details:
+Go to the Contracts page and select your deployed contract, then click the settings button to adjust permissions.
+![contract settings](/img/builder/builder_contract_specific_settings.png)
 
-* bytes32 role: `0x9f2df0fed2c77648de5860a4cc508cd0818c85b8b8a1ab4ceeef8d981c8956a6`
-* address account: `<Generated Wallet Address from Step 4>`
+Once you have the modal open, select the `Permissions` tab and you can `Edit`, or, `+ Add Collaborator`.
+
+![add collaborator](/img/builder/builder_contract_specific_permissions.png)
+
+Then input your created address to add as a collaborator and select the dropdown to assign the `Minter` role.
 
 #### Clone and run the boilerplate
-This will prompt you to add the requested variables to add them to the environment
+Clone the boilerplate by running the below command from your terminal and input your EVM private key for the address above as well as your `PROJECT_ACCESS_KEY` when prompted.
 ```shell
 npx sequence-cli boilerplates create-server-side-transactions
 ```
+
+Lastly, update the `contractAddress` constant in the `index.ts` file with your deployed contract address and run the repository via `pnpm start`.
 
 #### Perform Mint Transaction
 
@@ -113,4 +113,4 @@ The Transaction Manager boilerplate will accept requests from all origins.
 You can view the source code of the [boilerplate](https://github.com/0xsequence-demos/server-side-transactions-boilerplate) using the Transactions API by extending the codebase. For example: to incorporate batch transactions, offer ERC20 airdrops, and more.
 
 ## Gas Sponsorship
-On testnet, we sponsor all the transactions. However, on mainnet - you will want to ensure that you sponsor the transactions in order to ensure that they process correctly. You can take a deeper look at our [Gas Sponsorship](/solutions/builder/gas-tank) solution to do this.
+On testnet, we sponsor all the transactions. However, on mainnet - you will want to ensure that you sponsor the transactions in order to ensure that they process correctly by sponsoring the contract itself. You can take a deeper look at our [Gas Sponsorship](/solutions/builder/gas-tank) solution to learn how to do this.
