@@ -136,7 +136,7 @@ export const OverviewSection = () => (
   </section>
 )
 
-const SolutionsGroup = ({
+export const SolutionsGroup = ({
   heading,
   items,
   theme,

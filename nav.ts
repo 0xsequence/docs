@@ -300,7 +300,7 @@ export const sidebar = {
               collapsed: true,
               items: [
                 { text: 'Overview', link: '/solutions/marketplaces/orderbook/overview' },
-                { text: 'Quickstart', link: '/solutions/marketplaces/orderbook/quickstart' },
+                { text: 'Starter', link: '/solutions/marketplaces/orderbook/starter' },
               ],
             },
           ],
@@ -546,6 +546,11 @@ export const sidebar = {
           //   { text: 'Order Accepting', link: '/guides/custom-marketplace#6-order-accepting' },
           //   { text: '(Optional) Enable Embedded Wallet', link: '/guides/custom-marketplace#7-optional-integrate-embedded-wallet-into-sequence-kit' },
           // ]
+        },
+        {
+          text: 'How to install, run and manage Primary Sales',
+          collapsed: true,
+          link: '/guides/primary-sales',
         },
       ],
     },

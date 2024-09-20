@@ -68,7 +68,11 @@ export const TemplatesOverview = () => (
         body="Example for your web application to verify the ownership of an Embedded Wallet by passing a JWT and validating against the Sequence API."
         link="https://github.com/0xsequence-demos/embedded-wallet-verify-session"
       />
-
+        <TemplateCard
+            title="Embedded Wallet Boilerplate for Unreal Engine"
+            body="Example application made with our Unreal SDK, showcasing embedded wallet integrated to sign messages and send ERC20 transactions."
+            link="https://github.com/0xsequence/unreal-embedded-wallet-boilerplate"
+        />
       <TemplateCard
         title="End to End playground for Sequence Kit"
         body="Example implementation in React & NextJS showcasing various common patterns using Sequence Kit such as signingv messages, sending transactions, displaying inventory, or minting an NFT."

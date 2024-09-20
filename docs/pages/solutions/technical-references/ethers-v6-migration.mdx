@@ -15,6 +15,26 @@ If you are unable to upgrade to ethers v6, then you can use v1.10.5 of @0xsequen
 
 If you've been developing with `ethers@^5.0.0` in the past, outlined below are the common ways using Ethers with Sequence will change for you:
 
+## Static and Default RPC Provider
+To use ethers to connect and make [RPC](https://en.wikipedia.org/wiki/Remote_procedure_call) calls to a blockchain node in order to query information, doing so in a static or default way both have differences:
+
+```typescript [provider.ts]
+// v5
+const provider = new ethers.providers.StaticJsonRpcProvider(chainConfig.rpcUrl);
+
+// v6: If you know the network ahead of time and wish
+// to avoid even a single eth_chainId call
+const provider = new ethers.JsonRpcProvider(chainConfig.rpcUrl, undefined, {
+	staticNetwork: new ethers.Network('<CHAIN_HANDLE>', <CHAIN_ID>)
+});
+
+// v6: If you want the network automatically detected,
+// this will query eth_chainId only once
+const provider = new ethers.JsonRpcProvider(chainConfig.rpcUrl, undefined, {
+  staticNetwork: true
+});
+```
+
 ## Big Number Support
 If you're using big numbers to generate randomly spaced token ID's, nonces, or some other application of large string based numbers, ethers now supports built-in ES2020 BigInt offered by modern JavaScript environments.
 
