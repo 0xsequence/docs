@@ -548,7 +548,7 @@ export const sidebar = {
           // ]
         },
         {
-          text: 'How to install, run and manage Primary Sales',
+          text: 'Manage Primary Sales',
           collapsed: true,
           link: '/guides/primary-sales',
         },
