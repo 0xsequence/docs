@@ -86,7 +86,7 @@ export const GuidesOverview = () => (
         image="/img/guides/confirmation-free-signatures/people-playing-paper-rock-scissors.jpg"
       />
       <GuideCard
-        title="Launch Primary Sales (ERC1155)"
+        title="Sell your Game Items"
         body="Follow a step-by-step guide to run your own Primary Sales with pre-minted ERC1155 NFTs using Sequence Kit and Embedded Wallet."
         link="/guides/primary-sales"
         image="/img/guides/overview/primary-sales.png"
