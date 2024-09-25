@@ -35,6 +35,13 @@ export const GuidesOverview = () => (
         image="/img/aviator.png"
         demoLink="https://0xsequence.github.io/aviator-demo/"
       />
+            <GuideCard
+        title="Sell Game Items via a Web Shop"
+        body="Accelerate your game growth by selling items directly to your players. In this guide, we will go over the steps how to deploy a Primary Sale contract using any custom or existing currency for a webshop that utilizes game items from a ERC1155 contract."
+        link="/guides/primary-sales"
+        image="/img/guides/overview/primary-sales.png"
+        demoLink="https://primary-drop-sale-1155-boilerplate.pages.dev/"
+      />
     </div>
 
     <div className="flex flex-wrap gap-4 md:flex-row flex-col">
@@ -84,13 +91,6 @@ export const GuidesOverview = () => (
         body="This code demonstrates how to create a simple Rock Paper Scissors game using the Sequence Wallet and session keys for streamlined user interactions."
         link="/solutions/wallets/universal-wallet/examples/session-keys"
         image="/img/guides/confirmation-free-signatures/people-playing-paper-rock-scissors.jpg"
-      />
-      <GuideCard
-        title="Sell your Game Items"
-        body="Follow a step-by-step guide to run your own Primary Sales with pre-minted ERC1155 NFTs using Sequence Kit and Embedded Wallet."
-        link="/guides/primary-sales"
-        image="/img/guides/overview/primary-sales.png"
-        demoLink="https://primary-drop-sale-boilerplate.pages.dev"
       />
     </div>
   </section>

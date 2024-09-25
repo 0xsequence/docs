@@ -6,19 +6,14 @@ description: This guide covers the creation of a Primary Sales of Sequence. It i
 import { Callout } from "vocs/components";
 import TabbedContent from "../../components/TabbedContent";
 
-# Sell your Game Items
+# Sell your Game Items via a Web Shop
 
-In this guide, we will go through the process of creating a Primary Sales project using a few simple tools from the Sequence stack.
+Accelerate your game growth by selling items directly to your players. In this guide, we will go over the steps how to deploy a Primary Sale contract using any custom or existing currency for a webshop that utilizes game items from a ERC1155 contract. We will use the following technologies from the Sequence platform:
 
+1. [Primary Sales Contract](/solutions/collectibles/contracts/deploy-primary-sales-contract/): How to set up and deploy contracts for launching a primary sale — suitable for an Web Shop, NFT Drop, and more.
+2. [Embedded Wallet](/solutions/wallets/embedded-wallet/overview): Use Sequence Kit and Sequence Embedded Wallet to authenticate a user.
 
-1. [Primary Sales Contract](/solutions/collectibles/contracts/deploy-primary-sales-contract/): How to set up and deploy contracts for launching a primary sale — suitable for an NFT drop, in-game store, and more.
-2. [Embedded Wallet](/solutions/wallets/embedded-wallet/overview): Use Sequence Kit and Sequence WaaS to authenticate a user.
-
-<Callout type="info">
-  Currently, the boilerplate is compatible with ERC1155 contracts. Compatibility with ERC721 will be added soon.
-</Callout>
-
-## Clone the Primary Sales repository
+## Clone the Primary Sales for Game Items boilerplate
 
 <TabbedContent labels={["Sequence CLI", "Github", "Github Template"]}/>
 
@@ -36,7 +31,7 @@ npx sequence-cli boilerplates create-primary-drop-sale-starter
 #### You can clone Primary Sales Repository from Github
 
 ```shell
-git clone https://github.com/0xsequence/primary-drop-sale-boilerplate/
+git clone https://github.com/0xsequence/primary-drop-sale-1155-boilerplate.git
 ```
 
 <br/>
@@ -62,7 +57,7 @@ When you're ready, replace the contents of `.env` with your project's informatio
 
 #### You can use the Primary Sales Repository Template from Github
 
-Go to https://github.com/0xsequence/primary-drop-sale-boilerplate and click "Use this Template" in the top right corner.
+Go to https://github.com/0xsequence/primary-drop-sale-1155-boilerplate and click "Use this Template" in the top right corner.
 <br/>
 
 Clone your newly made repo.
@@ -88,28 +83,29 @@ When you're ready, replace the contents of `.env` with your project's informatio
 </div>
 
 
-## Set up your own Primary Sales Contracts in the project
+## Configure your own Primary Sales Contracts in the repository
 
-Once you have the project installed and running you can use your own Primary Sales Contracts there following the next steps
+We provide a few example contracts and variables in order to get you started. However, you will likely wnat to use your own contracts. In order to configure this simply following the steps below:
 
 ::::steps
-### Step 1: Deploy a Primary Sales Contract in Sequence Builder
+### Deploy a Primary Sales Contract in Sequence Builder.
 
-To do that follow this [guide](/solutions/collectibles/contracts/deploy-primary-sales-contract)
+We first need a Primary Sales Contract along with an ERC1155 contract that will contain our game items we want to sell. To do that, please follow the [guide](/solutions/collectibles/contracts/deploy-primary-sales-contract) here.
 
-### Step 2: Set the Sales Configurations for the project
+### Set the Sales Configurations for the project.
 
-To set your own sales configuration, go to `src/utils/primarySells/constants.ts` and modify the salesConfigurations variable by adding each contract sale in an array for your project. Example:
+Once we have our sales contract deployed, we'll simply update the sales configuration on the boilerplate. Go to `src/utils/primarySells/constants.ts` and modify the salesConfigurations variable by adding each contract sale in an array for your project with the networks you want to support. Example:
 
 ```ts
 export const salesConfigurations = [
   {
+    // add the name of your network
     networkName: "amoy",
-    // NFT Contract address linked to your primary sales contract
+    // 1155 Contract address linked to your primary sales contract
     nftTokenAddress: "0x888a322db4b8033bac3ff84412738c096f87f9d0",
     // Primary Sales Contract Address
     salesContractAddress: "0x0327b2f274e04d292e74a06809bcd687c63a4ba4",
-    // Chain ID of the contracts
+    // Chain ID of the contracts, retrieve from https://chainlist.org/
     chainId: 80002,
     // Modify here to show different items
     itemsForSale: [
@@ -123,11 +119,11 @@ export const salesConfigurations = [
   },
   {
     networkName: "arbitrum sepolia",
-    // NFT Contract address linked to your primary sales contract
+    // 1155 Contract address linked to your primary sales contract
     nftTokenAddress: "0xd4bb59d0ba1f7b2beea4c6d9b9f151ee1da02665",
     // Primary Sales Contract Address
     salesContractAddress: "0x326d2fbe4808dd2a3e205aecc5e25a6322ad0a81",
-    // Chain ID of the contracts
+    // Chain ID where your contracts are deployed, retrieve from https://chainlist.org/
     chainId: 421614,
     // Modify here to show different items
     itemsForSale: [
@@ -140,19 +136,19 @@ export const salesConfigurations = [
 ```
 
 <Callout type="info">
-  You can see all the available chains. Please <a href="/solutions/technical-references/chain-support" target="_blank" rel="noopener noreferrer" style={{ fontWeight: 700 }}>Click here</a>
+  You can see all the available chains currently supported by sequence <a href="/solutions/technical-references/chain-support" target="_blank" rel="noopener noreferrer" style={{ fontWeight: 700 }}>here</a>.
 </Callout>
 
-### Step 3: Set a default chain id for the project
+### Set a default chainId for the project.
 
-To set your own sales configuration, go to `src/utils/primarySells/constants.ts` and modify the `defaultChainId` variable with the default `chainId` you want to display in the project. It must match a `chainId` present in your `salesConfigurations` variable. Example:
+To set your own sales configuration, go to `src/utils/primarySells/constants.ts` and modify the `defaultChainId` variable with the default `chainId` you want to display in the project. It must match a `chainId` present in your `salesConfigurations` variable. For example:
 
 ```ts
 // In this case, the chosen `defaultChainId` is 80002 (amoy), which is present in the previously declared `salesConfigurations` variable.
 export const defaultChainId = 80002;
 ```
 
-### Final step
+### Done!
 
-Your primary sales should now appear and function correctly from this point onward.
+Your primary sales should now appear and function correctly from this point onward. In order to make a purchase, ensure you have the corresponding token that you set as a currency for the sale in your wallet, increment the amount, and click purchase!
 ::::

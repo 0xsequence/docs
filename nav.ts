@@ -548,7 +548,7 @@ export const sidebar = {
           // ]
         },
         {
-          text: 'Sell your Game Items',
+          text: 'Sell your Game Items via a Web Shop',
           collapsed: true,
           link: '/guides/primary-sales',
         },
