@@ -35,7 +35,7 @@ export const GuidesOverview = () => (
         image="/img/aviator.png"
         demoLink="https://0xsequence.github.io/aviator-demo/"
       />
-            <GuideCard
+      <GuideCard
         title="Sell Game Items via a Web Shop"
         body="Accelerate your game growth by selling items directly to your players. In this guide, we will go over the steps how to deploy a Primary Sale contract using any custom or existing currency for a webshop that utilizes game items from a ERC1155 contract."
         link="/guides/primary-sales"
