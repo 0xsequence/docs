@@ -1,26 +1,39 @@
 ---
 title: Sequence Wallet Linking Integration - Embedded Wallet Authentication & External Wallet Sign-in
-description: This guide demonstrates how to integrate an Embedded Wallet with traditional authentication methods. It covers creating a verifiable link to sign into an external wallet, storing the session securely, and verifying the authentication.
+description: This guide demonstrates how to integrate a parent Embedded Wallet with web2 authentication methods for wallet linking purposes. It covers signing into a social login provider and linking using signatures from an external wallet signed in via Sequence Kit stored privately and securely.
 ---
 
 import { Callout } from "vocs/components";
 
 # Wallet Linking Integration Guide
 
+Time to complete: 25-35 minutes
+
 In this guide, we will showcase how to sign into an [Embedded Wallet](/solutions/wallets/embedded-wallet/overview) using traditional web2 authentication like email or social login. Then, in order to link an external wallet address using [Sequence Kit](/solutions/wallets/sequence-kit/overview) to your parent Embedded Wallet, sign a message that will always be required which creates the generated linking of addresses for a single user profile stored off-chain privately. Finally, other features will be delved into, like listing total wallets linked and removal of the state of linked wallets, both using signatures for privacy preserving means.
 
 1. [Sequence Builder Console Signup & Project Creation](/solutions/wallets/link-wallets/integration-guide#1-sequence-builder-console-signup--project-creation)
 2. [Access Key Management](/solutions/wallets/link-wallets/integration-guide#2-access-key-management)
-3. [Integrate an Embedded Wallet](/solutions/wallets/link-wallets/integration-guide#3-integrate-an-embedded-wallet)
-4. [Sign In with Sequence Kit](/solutions/wallets/link-wallets/integration-guide#4-sign-in-with-sequence-kit)
+3. [Integrate Sequence Kit with an Embedded Wallet](/solutions/wallets/link-wallets/integration-guide#3-integrate-sequence-kit-with-an-embedded-wallet)
+4. [Sign In with Sequence WaaS NPM Package](/solutions/wallets/link-wallets/integration-guide#4-sequence-waas-npm-package)
 5. [Integrate API Interface File](/solutions/wallets/link-wallets/integration-guide#5-integrate-api-interface-file)
 6. [Link Sequence Kit Signed in Wallet](/solutions/wallets/link-wallets/integration-guide#6-link-sequence-kit-signed-in-wallet)
 7. [Retrieve Linked Wallets](/solutions/wallets/link-wallets/integration-guide#7-retrieve-linked-wallets)
 8. [Remove Linked Wallet](/solutions/wallets/link-wallets/integration-guide#8-remove-linked-wallet)
 
-<Callout>
-Give a [try of an example demo](https://demo-waas-wallet-link.pages.dev/)
+# Demo 
+<Callout type='info'>
+Give a [try of an example demo](https://demo-waas-wallet-link.pages.dev/) or [view the full source code](https://github.com/0xsequence-demos/demo-embedded-wallet-linking).
 </Callout>
+
+# Quickstart 
+
+Try a quickstart application with a CLI command in your terminal to run locally:
+
+```shell
+npx sequence-cli boilerplates create-embedded-wallet-linking-starter
+```
+
+# Implementation
 
 ## 1. Sequence Builder Console Signup & Project Creation
 
@@ -29,30 +42,34 @@ First start by following [this walkthrough](/support/builder/project-management)
 ## 2. Access Key Management
 
 Now that you have a project, you'll need to obtain 2 different Access Keys for your project in order to authenticate your application with the Sequence Stack:
-1. `Waas Config Key` used for the Embedded Wallet, which can be learned about [here](/solutions/builder/embedded-wallet).
-2. `Project Access Key` used for the Embedded Wallet, Sequence Kit, & Sequence Indexer, which can be done [here](/solutions/builder/getting-started#claim-an-api-access-key).
+1. `Waas Config Key` [used for the Embedded Wallet](/solutions/builder/embedded-wallet).
+2. `Project Access Key` [used for the Embedded Wallet](/solutions/builder/getting-started#claim-an-api-access-key).
 
-## 3. Integrate an Embedded Wallet
+## 3. Integrate Sequence Kit with an Embedded Wallet
 
-Quickstart yourself with an Embedded Wallet React based application using the Sequence CLI, using the following command in your terminal:
+Quickstart yourself with an Sequence Kit React based application using the Sequence CLI, using the following command in your terminal:
 
 ```shell
 npx sequence-cli boilerplates create-embedded-wallet-react-starter
 ```
 
-This command inputted in your terminal will present options to input the `Waas Config Key` and `Access Keys` you received in [step 2](/solutions/wallets/link-wallets/integration-guide#2-access-key-management), after, you'll need to set up your `Client IDs` (if using social) for the Login Providers.
+This command inputted in your terminal will present options to input the `Waas Config Key` and `Project Access Key` you received in [step 2](/solutions/wallets/link-wallets/integration-guide#2-access-key-management), after, you'll need to set up your `Client IDs` (if using social) for the Login Providers.
 
-Choose your way to authenticate a user from the various Login provider types: [Email](/solutions/wallets/embedded-wallet/examples/authentication#email-authentication), [Google](/solutions/builder/embedded-wallet/google-configuration/), [Apple](/solutions/builder/embedded-wallet/apple-configuration/), or [PlayFab](/solutions/builder/embedded-wallet/playfab-configuration/).
+<Callout type='warning'>
+You will need to comment out the WaaS Connector that corresponds to the parent wallet you're using for the Embedded Wallet sign in type in the next step in `App.tsx` to not create a wallet linking loop.
+</Callout>
 
-## 4. Sign In with Sequence Kit
+## 4. Sequence Waas NPM Package
 
-Next, follow the [following quickstart guide](/solutions/wallets/sequence-kit/getting-started#setting-up-your-dapp) in order to create a way to sign in a linked wallet using Sequence Kit, and ensure that you can read a wallet address using a React hook.
+Next, integrate the `@0xsequence/waas` package into your application using the [following guide](/solutions/wallets/embedded-wallet/examples/use-wallets#get-wallet-address) and use a corresponding React package to sign a user in to obtain a `JWT Id Token`, and name the variable `sequenceWaas` used in the following steps. 
+
+Here is an example project for [Google & Apple](https://github.com/0xsequence-demos/template-embedded-wallet-web2-auth) and [Email that uses a One-Time Password code](https://github.com/0xsequence/email-embedded-wallet-react-boilerplate).
 
 ## 5. Integrate API Interface File
 
 In order to begin using the API, an interface file will need to be integrated manually into your application, so that the interface in the file can be instantiated and called upon.
 
-The [source code for the interface can be found here](https://github.com/0xsequence-demos/demo-waas-wallet-link/blob/ddfba3f59ee97e9bc2b67bc751db3fb2becc5946/src/api/api.gen.ts) which then is instantiated with the existing Sequence server like such:
+The [source code for the interface can be found here](https://github.com/0xsequence-demos/demo-embedded-wallet-linking/blob/master/src/api/api.gen.ts) which then is instantiated with the existing Sequence server like such:
 
 ```typescript
 import { 
@@ -63,14 +80,14 @@ import {
 const api = new API("https://dev-api.sequence.app", fetch);
 ```
 
-### API Functions Used for this Guide
+### API Functions used for this Guide
 1. [`linkWallet(...)`](/solutions/wallets/link-wallets/integration-guide#6-link-sequence-kit-signed-in-wallet)
 2. [`getLinkedWallets(...)`](/solutions/wallets/link-wallets/integration-guide#7-retrieve-linked-wallets)
 3. [`removeLinkedWallet(...)`](/solutions/wallets/link-wallets/integration-guide#8-remove-linked-wallet)
 
 ## 6. Link Sequence Kit Signed in Wallet
 
-In order to link a Sequence Kit signed in wallet (e.g. EOA, Universal Wallet, etc.) to an Embedded Wallet, begin with the following API function `linkWallet`, the typed arguments and return types (negating the optional values):
+In order to link a Sequence Kit signed in wallet (e.g. EOA, Sequence Universal Wallet, etc.) to an Embedded Wallet, begin with the following API function `linkWallet`, the typed arguments and return types (negating the optional values) assuming you already have a Seqeunce kit enabled application:
 
 ```typescript
 interface LinkWalletArgs {
@@ -101,7 +118,8 @@ There are two signatures required: one for the Embedded Wallet signing the Seque
 ```typescript
 import {
   ...
-  useSignMessage
+  useSignMessage,
+  useAccount,
   ...
 } from "wagmi";
 
@@ -109,15 +127,15 @@ function App() {
 
     const { signMessageAsync } = useSignMessage();
     const { address: kitWalletAddress } = useAccount();
-
-    const getSignaturesForLinking = () => {
+    
+    const getSignaturesForLinking = async () => {
         const parentWalletMessage = "linked wallet with address "
         const linkedWalletMessage = "parent wallet with address "
         const parentMessage = parentWalletMessage + kitWalletAddress
         const parentWalletAddress = await sequenceWaas.getAddress()
         const linkingMessage = "Link to " + linkedWalletMessage + parentWalletAddress
 
-        const response = await signMessageAsync({
+        const response: any = await signMessageAsync({
             message: linkingMessage,
         })
 
@@ -126,7 +144,7 @@ function App() {
         })
 
         const parentSignature = parentSignatureRes.data.signature
-        const linkedSignature = response.result
+        const linkedSignature = response
         const linkedWalletAddress = kitWalletAddress
 
         return { parentWalletAddress, linkedWalletAddress, parentMessage, linkingMessage, parentSignature, linkedSignature }
@@ -139,17 +157,20 @@ Call the previous `getSignaturesForLinking` function and unpack the response to 
 
 ```typescript
 function App(){
+    const connections = useConnections();
     ...
-    const linkWallet = () => {
+    const linkWallet = async () => {
         const signaturesResult = await getSignaturesForLinking()
-        const { parentWalletAddress, linkedWalletAddress, parentMessage, linkingMessage, parentSignature, linkedSignature } = signatureResult
+        const { parentWalletAddress, linkedWalletAddress, parentMessage, linkingMessage, parentSignature, linkedSignature } = signaturesResult
+        const connectorName = connections[0]?.connector.name;
 
         const response = await api.linkWallet({
             signatureChainId: "137", // network chosen for both embedded wallet and sequence kit
+            linkedWalletType: connectorName,
             parentWalletAddress,
             parentWalletMessage: parentMessage,
             parentWalletSignature: parentSignature,
-            linkedWalletAddress: linkedWalletAddress,
+            linkedWalletAddress: linkedWalletAddress!,
             linkedWalletMessage: linkingMessage,
             linkedWalletSignature: linkedSignature,
         })
@@ -184,7 +205,8 @@ interface GetLinkedWalletsReturn {
 And this can be accomplished in the following way, by passing in a message, getting a signature from the parent Embedded Wallet, checking to see the signature is readable, then passing the variables: `parentWalletAddress`,`parentWalletMessage`,`parentWalletSignature` and `signatureChainId` to the API:
 
 ```typescript
-const getLinkedWallets = () => {
+const getLinkedWallets = async () => {
+    const parentWalletAddress = await sequenceWaas.getAddress()
     const message = "parent wallet with address " + parentWalletAddress
     const signature = await sequenceWaas.signMessage({
         message: message,
@@ -226,12 +248,13 @@ function App() {
     const { address: kitWalletAddress } = useAccount();
     const { signMessageAsync } = useSignMessage();
 
-    const getSignaturesForUnlinking = () => {
+    const getSignaturesForUnlinking = async () => {
+        const parentWalletMessage = "linked wallet with address "
         const linkedWalletMessage = "parent wallet with address "
         const parentWalletAddress = await sequenceWaas.getAddress()
         const linkingMessage = "Unlink from " + linkedWalletMessage + parentWalletAddress
 
-        const response = await signMessageAsync({
+        const response: any = await signMessageAsync({
             message: linkingMessage,
         })
 
@@ -240,7 +263,7 @@ function App() {
         })
 
         const parentSignature = parentSignatureRes.data.signature
-        const linkedSignature = response.result
+        const linkedSignature = response
         const linkedWalletAddress = kitWalletAddress
 
         return { parentWalletAddress, linkedWalletAddress, parentMessage, linkingMessage, parentSignature, linkedSignature }
@@ -252,16 +275,16 @@ function App() {
 ```typescript
 function App(){
     ...
-    const linkWallet = () => {
+    const unLinkWallet = async () => {
         const signaturesResult = await getSignaturesForUnlinking()
-        const { parentWalletAddress, linkedWalletAddress, parentMessage, linkingMessage, parentSignature, linkedSignature } = signatureResult;
+        const { parentWalletAddress, linkedWalletAddress, parentMessage, linkingMessage, parentSignature, linkedSignature } = signaturesResult;
 
         const response = await api.removeLinkedWallet({
             signatureChainId: "137", // network chosen for both Embedded Wallet and Sequence Kit
             parentWalletAddress,
             parentWalletMessage: parentMessage,
             parentWalletSignature: parentSignature,
-            linkedWalletAddress: linkedWalletAddress,
+            linkedWalletAddress: linkedWalletAddress!,
             linkedWalletMessage: linkingMessage,
             linkedWalletSignature: linkedSignature,
         });
@@ -274,4 +297,4 @@ function App(){
 
 ## Conclusion
 
-We've successfully cloned down from github a boilerplate repository and setup a Login Provider to connect an Embedded Wallet with the application. Then, we enabled the signing in of a Sequence Kit external wallet. Finally, we signed messages and created an authenticated way to add addresses to a parent wallet address in order to link a users' provably owned wallets together in a user friendly signature interface.
+We've successfully cloned down from Github a boilerplate repository and setup a Login Provider to connect an Embedded Wallet with the application. Then, we enabled the signing in of a Sequence Kit external wallet. Finally, we signed messages and created an authenticated way to add addresses to a parent wallet address in order to link a users' provably owned wallets together in a user friendly signature interface.
