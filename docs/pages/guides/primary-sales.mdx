@@ -94,45 +94,25 @@ We first need a Primary Sales Contract along with an ERC1155 contract that will 
 
 ### Set the Sales Configurations for the project.
 
-Once we have our sales contract deployed, we'll simply update the sales configuration on the boilerplate. Go to `src/utils/primarySells/constants.ts` and modify the salesConfigurations variable by adding each contract sale in an array for your project with the networks you want to support. Example:
+Once we have our sales contract deployed, we'll simply update the sales configuration on the boilerplate. Go to `src/salesConfigs.ts` and modify the salesConfigs variable by adding each contract sale in an array for your project with the networks you want to support. Example:
 
 ```ts
-export const salesConfigurations = [
+export const salesConfigs: SaleConfiguration[] = [
   {
-    // add the name of your network
-    networkName: "amoy",
-    // 1155 Contract address linked to your primary sales contract
     nftTokenAddress: "0x888a322db4b8033bac3ff84412738c096f87f9d0",
-    // Primary Sales Contract Address
     salesContractAddress: "0x0327b2f274e04d292e74a06809bcd687c63a4ba4",
-    // Chain ID of the contracts, retrieve from https://chainlist.org/
-    chainId: 80002,
+    chainId: 80002, //polygonAmoy
     // Modify here to show different items
-    itemsForSale: [
-      {
-        tokenId: "0", 
-      },
-      {
-        tokenId: "1",
-      },
-    ],
+    itemsForSale: ["0", "1"],
   },
   {
-    networkName: "arbitrum sepolia",
-    // 1155 Contract address linked to your primary sales contract
     nftTokenAddress: "0xd4bb59d0ba1f7b2beea4c6d9b9f151ee1da02665",
-    // Primary Sales Contract Address
     salesContractAddress: "0x326d2fbe4808dd2a3e205aecc5e25a6322ad0a81",
-    // Chain ID where your contracts are deployed, retrieve from https://chainlist.org/
-    chainId: 421614,
+    chainId: 421614, //arbitrumSepolia,
     // Modify here to show different items
-    itemsForSale: [
-      {
-        tokenId: "0",
-      },
-    ],
+    itemsForSale: ["0"],
   },
-] as SaleConfigurationProps[];
+];
 ```
 
 <Callout type="info">
@@ -141,10 +121,10 @@ export const salesConfigurations = [
 
 ### Set a default chainId for the project.
 
-To set your own sales configuration, go to `src/utils/primarySells/constants.ts` and modify the `defaultChainId` variable with the default `chainId` you want to display in the project. It must match a `chainId` present in your `salesConfigurations` variable. For example:
+To set the default chainId, go to `src/salesConfigs.ts` and modify the defaultChainId variable with the chainId you want to display by default in the project. It must match a chainId present in your salesConfigs variable. For example:
 
 ```ts
-// In this case, the chosen `defaultChainId` is 80002 (amoy), which is present in the previously declared `salesConfigurations` variable.
+// In this case, the chosen `defaultChainId` is 80002 (amoy), which is present in the previously declared `salesConfigs` variable.
 export const defaultChainId = 80002;
 ```
 
