@@ -279,3 +279,64 @@ private async Task WaitForFeeOptionsAndSubmitFirstAvailable(Address toAddress, s
     Debug.LogError("The user does not have enough of the valid FeeOptions in their wallet");
 }
 ```
+
+## Transaction Queuers
+
+When working with the blockchain, it is important to [batch transactions](/sdk/unity/write-to-blockchain#batch-transactions) in order to minimize gas fees. In order to make this easier to do, we've provided a flexible `TransactionQueuer` with the SDK that can be configured or extended to suit your needs. To learn more about Building Transaction Heavy Games in Unity and what to consider, please checkout [our guide on the topic](/guides/building-transaction-heavy-games-with-unity).
+
+When you add a `TransactionQueuer` MonoBehaviour to your scene, there are a few config variables you can set.
+
+- `AutoSubmitTransactions`: defaulting to false, enabling this will configure your `TransactionQueuer` to automatically submit any queued transactions whenever `ThresholdTimeBetweenTransactionsAddedBeforeSubmittedInSeconds` has passed without adding a new transaction to the queue
+- `ThresholdTimeBetweenTransactionsAddedBeforeSubmittedInSeconds`: if `AutoSubmitTransactions == true`, automatically submit queued transactions if none is added in the past `ThresholdTimeBetweenTransactionsAddedBeforeSubmittedInSeconds` seconds
+- `MinimumTimeBetweenTransactionSubmissionsInSeconds`: a minimum time between submitting queued transactions. With this, you can call `TransactionQueuer.SubmitTransactions()` as often as you want in your code and transactions will not be submitted unless `MinimumTimeBetweenTransactionSubmissionsInSeconds` seconds have passed since the last transaction was pushed. Note: if `TransactionQueuer.SubmitTransactions(overrideWait: true)` is called with the optional `overrideWait` bool flag set to true, the `TransactionQueuer` will submit queued transactions regardless of whether or not the `MinimumTimeBetweenTransactionSubmissionsInSeconds` has passed.
+
+The `TransactionQueuer` exposes a few methods to you:
+
+- Setup: before calling other methods on a `TransactionQueuer`, please call `Setup` on it; this will create and cache the required dependancies
+- Enqueue: add a transaction to the queue
+- SubmitTransactions(bool overrideWait = false, bool waitForReceipt = true): submit the queued transactions if `MinimumTimeBetweenTransactionSubmissionsInSeconds` has passed between last transaction submission by the `TransactionQueuer`. If `overrideWait = true`, submit any queued transactions immediately. If `waitForReceipt = false`, return the `TransactionReturn` as soon as we get a response from the WaaS API (note: this is only relevant if the WaaS API times out while waiting for a transaction receipt; if `waitForReceipt = true`, we will continually ping a node for a transaction receipt before returning)
+- ToString(): an override for the typical ToString() function, providing you with better logging support
+
+:::warning
+Don't forget to call `Setup` on your `TransactionQueuer`!
+:::
+
+Currently, the SDK exposes two different inheritors of the `TransactionQueuer` class.
+
+### SequenceWalletTransactionQueuer
+
+The `SequenceWalletTransactionQueuer` allows you to queue up transactions for your user's Sequence Embedded Wallet. 
+
+The `SequenceWalletTransactionQueuer` expects you to enqueue `IQueueableTransaction`s. This interface is implemented by the `QueuedTokenTransaction` class. Please feel free to create other classes implementing the `IQueueableTransaction` interface as needed.
+
+### PermissionedMinterTransactionQueuer
+
+The `PermissionedMinterTransactionQueuer` is meant to be used for queueing up transactions that are being submitted by your backend server when receiving a signed message from the player's embedded wallet. It is useful for minting tokens to the player's wallet when interacting with contracts that require permissions for minting (most token contracts).
+
+The `PermissionedMinterTransactionQueuer` expects you to enqueue a `PermissionedMintTransaction`, a basic data transfer object specifying the TokenId and Amount to be minted, and optionally an IMinter. If not provided, the `PermissionedMinterTransactionQueuer` will default to using the `PermissionedMinter` class. The `PermissionedMinter` class will be useful for most use cases; it sends a payload in the following format:
+
+```
+ProofPayload: 
+{
+    "app": "Made with Sequence Unity SDK App",
+    "iat": (uint)DateTimeOffset.UtcNow.ToUnixTimeSeconds(), // issued at time 
+    "exp": (uint)DateTimeOffset.UtcNow.ToUnixTimeSeconds() + 300, // expiry time 
+    "ogn": "Sequence Unity SDK",
+    "payload": {
+        "contractAddress": "0xabc123...",
+        "tokenId": "11",
+        "amount": 5
+    }
+}
+
+This JSON get stringified and included in the MintingRequestProof:
+{
+    "Proof": "{\"app\": \"Made with Sequence Unity SDK App\", \"iat\": ...}",
+    "SignedProof": "0x123def...", // proof signed by the player's embedded wallet
+    "SigningAddress": "0xa1b2c3..." // the player's embedded wallet address
+}
+```
+
+You can then validate this payload on your server and mint the token to the user's address. For an example implementation and setup, please see [this part of our Jelly Forest guide](/guide/jelly-forest-unity-game#4-deploy-a-remote-minter).
+
+For other use cases, you may want to provide your own implementation of the IMinter class. This allows you to modify the format and information provided in the payload to your server as needed.
