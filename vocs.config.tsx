@@ -23,6 +23,7 @@ export default defineConfig({
   topNav,
   sidebar,
 
+
   // NOTE: taking up valuable space, will move those
   // to footer and other sections
   // socials: [
