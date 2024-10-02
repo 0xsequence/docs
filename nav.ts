@@ -121,6 +121,14 @@ export const sidebar = {
                   text: 'PlayFab Setup',
                   link: '/solutions/builder/embedded-wallet/playfab-configuration',
                 },
+                {
+                  text: 'Stytch Setup',
+                  link: '/solutions/builder/embedded-wallet/stytch-configuration',
+                },
+                {
+                  text: 'Guest Wallet Setup',
+                  link: '/solutions/builder/embedded-wallet/guest-wallet-configuration',
+                },
               ],
             },
             {

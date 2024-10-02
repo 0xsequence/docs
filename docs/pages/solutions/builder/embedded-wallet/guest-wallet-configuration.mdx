@@ -1,0 +1,43 @@
+---
+title: Configuring Guest Wallet for Embedded Wallet Integration
+description: Learn how to configure a Guest wallet for your Embedded Wallet instance.
+---
+
+import { Callout } from "vocs/components";
+
+# Guest Wallet Configuration for Embedded Wallet
+
+Guest Wallets are a feature in the Sequence Stack that allow for ephemeral creation of an authentication idenity that lasts till the user clears their browser cache, or, sign's in again.
+
+This strategy for onboarding can be useful for providing ways to freely access your game or experience, while leaving avenues open for future Social Login Provider integration and wallet linking.
+
+To configure the Embedded Wallet for Guest Wallet, this can be accomplished with the following steps:
+
+::::steps
+## Early Access Page
+
+You can enable Guest Wallets by directing yourself to [the Early Access Page](https://sequence.build/earlyaccess) and enable it via the toggle.
+
+## Builder Configuration
+
+Next, enable a Guest Wallet in the Sequence Builder by accessing your Project, the Embedded Wallet Configuration section, then adding a Login Provider:
+
+![add login provider](/img/builder/builder_guest_wallet_add_provider.png)
+
+Finally, selecting `Guest Wallet` dropdown.
+
+![select guest wallet](/img/builder/builder_guess_wallet_select_provider.png)
+
+And selecting the purple `Update configuration` to input your password to update the Configuration.
+
+## Implementation
+
+Once configured, you can implement a Guest Wallet with the following code and use it like any other Embedded Wallet:
+
+```typescript [App.tsx]
+await sequence.signIn({ guest: true }, "Session name");
+```
+<Callout type="danger">
+Guest Wallets cannot be used in a server side process
+</Callout>
+::::
