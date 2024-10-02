@@ -7,7 +7,7 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from './Dialog/dialog'
+} from './Dialog/Dialog'
 
 const builderURL = import.meta.env.DEV
   ? 'http://localhost:8080/https://api.sequence.build' // Routing with a cors-anywhere proxy
