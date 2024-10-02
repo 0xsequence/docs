@@ -784,6 +784,7 @@ export const sidebar = {
       items: [
         { text: 'Overview', link: '/api/indexer/overview' },
         { text: 'Installation', link: '/api/indexer/installation' },
+        { text: 'Endpoints', link: '/api/indexer/endpoints' },
         {
           text: 'Examples',
           collapsed: false,
