@@ -1,0 +1,21 @@
+# Email + OTP
+
+Email sign in provides the user with a One-Time-Password (OTP) challenge - a 6 digit code emailed to the entered address for the user to enter on the next page.
+
+First, you'll want to [enable email sign in for your project in the builder](/solutions/builder/embedded-wallet/index).
+
+## Built-in UI
+
+If you are using the built-in UI, email + OTP sign in is enabled by default. The user can enter their email and click "Continue" on the built-in UI to trigger this flow.
+
+## Custom UI Integration 
+
+To start email based authentication you'll start it with this call `[EmailLogin(const FString& EmailIn)]`, supplying an email you've collected from the User in your GUI.
+
+Next `[AuthRequiresCode]` will fire when the `[UAuthenticator]` is ready to receive the Code from your UI. Collect this code from your GUI and send it to the authenticator using `[EmailCode(CodeIn)]`.
+
+Finally `[AuthSuccess]` will fire with a `Credentials_BE` struct as a parameter. You are done Email Based Auth.
+
+:::tip
+Don't forget to [bind to the delegates](/sdk/unreal/authentication/intro#binding-to-the-delegates) for **[AuthSuccess]**, **[AuthFailure]**, **[AuthRequiresCode]** prior to making any signin calls!
+:::

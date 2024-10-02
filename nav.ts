@@ -635,7 +635,21 @@ export const sidebar = {
             { text: 'Installation', link: '/sdk/unreal/installation' },
             { text: 'Upgrading', link: '/sdk/unreal/upgrading' },
             { text: 'Setup', link: '/sdk/unreal/setup' },
-            { text: 'Authentication', link: '/sdk/unreal/authentication' },
+            {
+              text: 'Authentication',
+              collapsed: false,
+              items: [
+                { text: 'Introduction', link: '/sdk/unreal/authentication/intro' },
+                { text: 'Email + OTP', link: '/sdk/unreal/authentication/email' },
+                { text: 'OIDC - Social Sign In', link: '/sdk/unreal/authentication/oidc' },
+                { text: 'PlayFab', link: '/sdk/unreal/authentication/playfab' },
+                { text: 'Guest', link: '/sdk/unreal/authentication/guest' },
+                {
+                  text: 'Federated Accounts',
+                  link: '/sdk/unreal/authentication/federated-accounts',
+                },
+              ],
+            },
             { text: 'Sequence Wallet', link: '/sdk/unreal/api' },
             { text: 'Managing Session', link: '/sdk/unreal/managing-session' },
             { text: 'Read from Blockchain', link: '/sdk/unreal/read-from-blockchain' },
