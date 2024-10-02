@@ -72,7 +72,7 @@ export const topNav = [
     text: 'Support',
     items: [
       { text: 'Support', link: '/support' },
-      { text: 'Changelog', link: 'https://0xsequence.canny.io/changelog' },
+      { text: 'Changelog', link: 'https://0xsequence.featurebase.app/' },
       { text: 'Restricted Regions', link: '/support/restricted-regions' },
       { text: 'Token Directory', link: '/support/token-directory' },
       { text: 'FAQ', link: 'https://support.sequence.xyz' },
@@ -841,7 +841,7 @@ export const sidebar = {
       text: 'Support',
       items: [
         { text: 'Support', link: '/support' },
-        { text: 'Changelog', link: 'https://0xsequence.canny.io/changelog' },
+        { text: 'Changelog', link: 'https://0xsequence.featurebase.app/' },
         { text: 'Restricted Regions', link: '/support/restricted-regions' },
         { text: 'FAQ', link: 'https://support.sequence.xyz' },
         { text: 'Token Directory', link: '/support/token-directory' },
