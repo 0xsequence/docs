@@ -9,7 +9,9 @@ import {
   DialogTitle,
 } from './Dialog/dialog'
 
-const builderURL = 'http://localhost:8080/https://dev-api.sequence.build'
+const builderURL = import.meta.env.DEV 
+  ? 'http://localhost:8080/https://api.sequence.build' // Routing with a cors-anywhere proxy
+  : 'https://api.sequence.build' // Production URL
 
 const BuilderAuthenticationButton = (): ReactElement => {
   const [isConnected, setIsConnected] = useState(false)
@@ -91,7 +93,7 @@ const BuilderAuthenticationButton = (): ReactElement => {
 export const connect = async (appName: string, setProjects: (projects: any[]) => void) => {
   let isConnected = false
   // dev
-  const projectAccessKey = 'AQAAAAAAAAPVHubZNR7qmEKAb97mjypt5SM'
+  const projectAccessKey = 'AQAAAAAAABL7m8Y6sdKRhOU2etUqkwJ3uHE'
   // prod
   // const projectAccessKey = "AQAAAAAAABL7m8Y6sdKRhOU2etUqkwJ3uHE"
 
