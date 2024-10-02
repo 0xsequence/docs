@@ -2,6 +2,9 @@
 title: Sequence Indexer API - Fetch ERC20, ERC721, and ERC1155 Tokens and Metadata
 description: The Tokens API allows users to fetch a list of ERC20, ERC721, and ERC1155 tokens along with metadata in any wallet.
 ---
+import { retrieveProjectAccessKey } from '../../../../components/retrieveProjectAccessKey';
+import CodeTabs from '../../../../components/CodeTabs/index.tsx'
+export const PROJECT_ACCESS_KEY = retrieveProjectAccessKey();
 
 # Tokens API
 
@@ -18,39 +21,32 @@ description: The Tokens API allows users to fetch a list of ERC20, ERC721, and E
 		- `verifiedOnly` (boolean - optional) -- return only contracts which are 'verified' to help reduce spam
 		- `includeContracts` ([]string - optional) -- list of specific contract addresses to always be included, even if verifiedOnly is enabled.
     * `includeCollectionTokens` (boolean - optional - default: true) -- toggle to represent ERC721 / ERC1155 tokens as a single summary item in the response
-<br />
 
-**Example: `GetTokenBalances` of a wallet account address on Polygon using an `API_Access_Key`**
+<CodeTabs tabs={[
+  {
+    label: 'Shell',
+    content: `curl -X POST -H "Content-Type: application/json" -H "X-Access-Key: ${PROJECT_ACCESS_KEY}" https://polygon-indexer.sequence.app/rpc/Indexer/GetTokenBalances -d '{ "accountAddress": "0x8e3E38fe7367dd3b52D1e281E4e8400447C8d8B9", "includeMetadata": true }'`
+  },
+  {
+    label: 'Typescript',
+    content: `const indexer = new SequenceIndexer('https://polygon-indexer.sequence.app', '${PROJECT_ACCESS_KEY}');
 
-:::info
-This code requires an API Access Key from [Sequence Builder](https://sequence.build).
-:::
-
-:::code-group
-
-```shell [Curl]
-curl -X POST -H "Content-Type: application/json" -H "X-Access-Key: AQAAAAAAAF_JvPALhBthL7VGn6jV0YDqaFY" https://polygon-indexer.sequence.app/rpc/Indexer/GetTokenBalances -d '{ "accountAddress": "0x8e3E38fe7367dd3b52D1e281E4e8400447C8d8B9", "includeMetadata": true }'
-```
-
-```ts [Typescript]
 // Works in both a Webapp (browser) or Node.js:
 import { SequenceIndexer } from '@0xsequence/indexer'
 
-const indexer = new SequenceIndexer('https://polygon-indexer.sequence.app', 'AQAAAAAAAF_JvPALhBthL7VGn6jV0YDqaFY')
-
 // try any account address you'd like :)
-const accountAddress = '0xabc...'
+const accountAddress = '0xE3f350a1ab7e6fC2Da7CCa7F567a77968B607d3b'
 
 // query Sequence Indexer for all token balances of the account on Polygon
 const tokenBalances = await indexer.getTokenBalances({
 	accountAddress: accountAddress,
 	includeMetadata: true
 })
-console.log('tokens in your account:', tokenBalances)
-```
-
-```go [Go]
-import (
+console.log('tokens in your account:', tokenBalances)`
+  },
+  {
+    label: 'Go',
+    content: `import (
 	"context"
 	"fmt"
 	"log"
@@ -60,7 +56,7 @@ import (
 )
 
 func GetTokenBalances(accountAddress string) {
-	seqIndexer := indexer.NewIndexer("https://polygon-indexer.sequence.app", "AQAAAAAAAF_JvPALhBthL7VGn6jV0YDqaFY")
+	seqIndexer := indexer.NewIndexer("https://polygon-indexer.sequence.app", "${PROJECT_ACCESS_KEY}")
 
 	includeMetadata := true
 
@@ -69,14 +65,9 @@ func GetTokenBalances(accountAddress string) {
 		log.Fatal(err)
 	}
 	fmt.Println("tokenBalances:", tokenBalances)
-}
-```
-
-```shell [Other]
-Please [contact our team](/support) for assistance with integrations to another target.
-```
-
-:::
+}`
+  }
+]} />
 
 <br />
 
@@ -107,7 +98,7 @@ See section below for more information.
 :::code-group
 
 ```bash [Curl]
-curl -X POST -H "Content-Type: application/json" -H "X-Access-Key: AQAAAAAAAF_JvPALhBthL7VGn6jV0YDqaFY" https://polygon-indexer.sequence.app/rpc/Indexer/GetTokenBalances -d '{ "contractAddress": "0x631998e91476DA5B870D741192fc5Cbc55F5a52E", "accountAddress": "0x8e3E38fe7367dd3b52D1e281E4e8400447C8d8B9", "includeMetadata": true }'
+curl -X POST -H "Content-Type: application/json" -H "X-Access-Key: PROJECT_ACCESS_KEY" https://polygon-indexer.sequence.app/rpc/Indexer/GetTokenBalances -d '{ "contractAddress": "0x631998e91476DA5B870D741192fc5Cbc55F5a52E", "accountAddress": "0x8e3E38fe7367dd3b52D1e281E4e8400447C8d8B9", "includeMetadata": true }'
 ```
 
 

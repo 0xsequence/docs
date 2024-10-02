@@ -1,8 +1,15 @@
 import { defineConfig } from 'vocs'
 import { sidebar, topNav } from './nav'
+import { remarkProjectAccessKey } from './docs/components/remarkProjectAccessKey'
 
 export default defineConfig({
   title: 'Sequence',
+
+  /* markdown: {
+    remarkPlugins: [
+      remarkProjectAccessKey
+    ]
+  },  */
 
   // ogImageUrl: {
   //   '/': '/og-image.png',
