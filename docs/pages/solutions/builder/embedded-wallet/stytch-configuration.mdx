@@ -59,37 +59,6 @@ Finally, selecting `Stytch` in the dropdown.
 
 Then inputting your `Stytch Project ID`, selecting `Save changes` and selecting the purple `Update configuration` to input your password to update the Configuration.
 
-## Implementation
-
-### Sequence Boilerplate
-
-Once configured, implement a Sequence boilerplate using the Sequence CLI by inputting the command in your terminal and following the prompts to input the `Project Access Key`, `WaaS Config Key`, and `Stytch Public Token`, or, use select the prompt for the test keys:
-
-```shell
-npx sequence-cli boilerplates stytch-embedded-wallet-react-boilerplate
-```
-
-### Custom Implementation
-
-Or, use the typical approach to `JWT` authentication with an inputted `JWT` `idToken` into the Embedded Wallet SDK.
-
-In order to retrieve the `JWT` for the signed in session for web using `@stytch/react`, use the following package `browser-cookies` to retrieve the `JWT` from the cookies after the callback for the redirect URI has been completed:
-
-And implement like such:
-
-```typescript
-import { SequenceWaaS } from '@0xsequence/waas'
-import cookies from 'browser-cookies'
-...
-export const sequence = new SequenceWaaS({
-  projectAccessKey: `${process.env.VITE_PROJECT_ACCESS_KEY}`,
-  waasConfigKey: `${process.env.VITE_WAAS_CONFIG_KEY}`,
-  network: "arbitrum-nova",
-});
-
-const idToken = cookies.get('stytch_session_jwt')
-await sequence.signIn({ idToken }, "Stytch Session name");
-```
 ::::
 
 

@@ -268,13 +268,37 @@ export default Login
 
 ### Authenticating with Stytch
 
+<Callout type='info'>
+View the [complete configuration details and screenshots page](/solutions/builder/embedded-wallet/stytch-configuration) for more information.
+<Callout>
+
 Get started with our starter boilerplate using the [Sequence CLI](https://github.com/0xsequence/sequence-cli/) and follow the prompts with either your own Stytch configuration keys [setup in their dashboard](https://stytch.com/dashboard/start-now) or default configuration keys and tokens for testing:
 
 ```shell
 npx sequence-cli boilerplates stytch-embedded-wallet-react-boilerplate
 ```
 
-View the [complete configuration details and screenshots page](/solutions/builder/embedded-wallet/stytch-configuration) for more information.
+### Custom Implementation
+
+Or, use the typical approach to `JWT` authentication with an inputted `JWT` `idToken` into the Embedded Wallet SDK.
+
+In order to retrieve the `JWT` for the signed in session for web using `@stytch/react`, use the following package `browser-cookies` to retrieve the `JWT` from the cookies after the callback for the redirect URI has been completed:
+
+And implement like such:
+
+```typescript
+import { SequenceWaaS } from '@0xsequence/waas'
+import cookies from 'browser-cookies'
+...
+export const sequence = new SequenceWaaS({
+  projectAccessKey: `${process.env.VITE_PROJECT_ACCESS_KEY}`,
+  waasConfigKey: `${process.env.VITE_WAAS_CONFIG_KEY}`,
+  network: "arbitrum-nova",
+});
+
+const idToken = cookies.get('stytch_session_jwt')
+await sequence.signIn({ idToken }, "Stytch Session name");
+```
 
 ## Retrieve User information from Social Providers
 
