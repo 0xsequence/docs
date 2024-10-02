@@ -6,3 +6,90 @@ description: Learn how to configure a Stytch client for your Embedded Wallet ins
 import { Callout } from "vocs/components";
 
 # Stytch Configuration for Embedded Wallet
+
+In order to have Stytch auth integrated into your Embedded Wallet instance, you have to configure a Stytch application in the [Stytch Dashboard](https://stytch.com/dashboard) and configure an Embedded Wallet in [Sequence Builder](https://sequence.build/). Begin, by starting with the following below steps:
+
+::::steps
+
+## Sign Up / Sign In
+
+First access the [sign in page](https://stytch.com/dashboard):
+
+## Create a Project
+
+From the dropdown of projects once signed in, select `Create new project`:
+
+![Create a Project](/img/builder/stytch_create_new_project.png)
+
+Then select `CONSUMER AUTHENTICATION`:
+
+![Create new Project](/img/builder/stytch_create_project.png)
+
+And finally select `Create project`
+
+## Obtain a Stytch Project ID & Stytch Public Token
+
+From the bottom of the first screen of `Home` copy and save somewhere safe the `Stytch Project ID` & `Stych Public Token`:
+
+![Obtain a Project ID](/img/builder/stytch_obtain_keys.png)
+
+## Update the Redirect URL
+
+For local development use `http://localhost:4444/authenticate`
+
+![Obtain a Project ID](/img/builder/stytch_create_new_redirect_uri.png)
+
+Enable `Login` and `Register`, select `Set as default` and select `Confirm`:
+
+![Obtain a Project ID](/img/builder/stytch_create_new_redirect_uri_confirm.png)
+
+## Enable Early Access in Sequence Builder
+
+You can enable Stytch Wallets by directing yourself to [the Early Access Page](https://sequence.build/earlyaccess) and enable it via the toggle.
+
+## Builder Configuration
+
+Next, enable Stytch authentication in the Sequence Builder by accessing your Project, the Embedded Wallet Configuration section, then adding a Login Provider:
+
+![add login provider](/img/builder/builder_stytch_add_provider.png)
+
+Finally, selecting `Stytch` in the dropdown.
+
+![select stytch](/img/builder/builder_stytch_select_provider.png)
+
+Then inputting your `Stytch Project ID`, selecting `Save changes` and selecting the purple `Update configuration` to input your password to update the Configuration.
+
+## Implementation
+
+### Sequence Boilerplate
+
+Once configured, implement a Sequence boilerplate using the Sequence CLI by inputting the command in your terminal and following the prompts to input the `Project Access Key`, `WaaS Config Key`, and `Stytch Public Token`, or, use select the prompt for the test keys:
+
+```shell
+npx sequence-cli boilerplates stytch-embedded-wallet-react-boilerplate
+```
+
+### Custom Implementation
+
+Or, use the typical approach to `JWT` authentication with an inputted `JWT` `idToken` into the Embedded Wallet SDK.
+
+In order to retrieve the `JWT` for the signed in session for web using `@stytch/react`, use the following package `browser-cookies` to retrieve the `JWT` from the cookies after the callback for the redirect URI has been completed:
+
+And implement like such:
+
+```typescript
+import { SequenceWaaS } from '@0xsequence/waas'
+import cookies from 'browser-cookies'
+...
+export const sequence = new SequenceWaaS({
+  projectAccessKey: `${process.env.VITE_PROJECT_ACCESS_KEY}`,
+  waasConfigKey: `${process.env.VITE_WAAS_CONFIG_KEY}`,
+  network: "arbitrum-nova",
+});
+
+const idToken = cookies.get('stytch_session_jwt')
+await sequence.signIn({ idToken }, "Stytch Session name");
+```
+::::
+
+
