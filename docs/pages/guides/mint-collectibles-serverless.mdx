@@ -126,7 +126,7 @@ Complete with the following details:
 
 <img src="/img/relayer/grant_role.png" alt="Grant a role for the relayer" />
 
-Where the `role` string inputted is the result of `keccak256("MINTER_ROLE")` in solidity or `ethers.utils.keccak256(ethers.utils.toUtf8Bytes("MINTER_ROLE"))` in javascript
+Where the `role` string inputted is the result of `keccak256("MINTER_ROLE")` in solidity or `ethers.keccak256(ethers.toUtf8Bytes("MINTER_ROLE"))` in javascript
 
 This makes it so that only your specific address can mint from the contract, it will error otherwise.
 
@@ -386,7 +386,7 @@ curl -X POST https://your-worker.your-subdomain.workers.dev \
 Finally, to deploy and mint a collectible from the sponsored contract address, we install the following packages
 
 ```shell
-pnpm install @0xsequence/auth ethers@5.7.2
+pnpm install @0xsequence/auth ethers
 ```
 
 and implement the `callContract` and `getBlockNumber` methods previously mocked out as follows:
@@ -439,7 +439,7 @@ const callContract = async (request: Request, env: Env, address: string, tokenId
 	const signer = session.account.getSigner(findSupportedNetwork(env.CHAIN_HANDLE)!.chainId)
 
 	// create interface from partial abi
-	const collectibleInterface = new ethers.utils.Interface([
+	const collectibleInterface = new ethers.Interface([
 		'function mint(address to, uint256 tokenId, uint256 amount, bytes data)'
 	])
 

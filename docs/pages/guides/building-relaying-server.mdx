@@ -138,7 +138,7 @@ const callContract = async (address: string, tokenID: number): Promise<ethers.pr
 	const signer = session.account.getSigner(chainConfig.chainId)
 	
 	// Standard interface for ERC1155 contract deployed via Sequence Builder
-	const collectibleInterface = new ethers.utils.Interface([
+	const collectibleInterface = new ethers.Interface([
 		'function mint(address to, uint256 tokenId, uint256 amount, bytes data)'
 	])
 		
@@ -185,7 +185,7 @@ Complete with the following details:
 
 <img src="/img/relayer/grant_role.png" alt="Grant a role for the relayer" />
 
-Where the `role` string inputted is the result of `keccak256("MINTER_ROLE")` in solidity or `ethers.utils.keccak256(ethers.utils.toUtf8Bytes("MINTER_ROLE"))` in javascript
+Where the `role` string inputted is the result of `keccak256("MINTER_ROLE")` in solidity or `ethers.solidityPackedKeccak256(ethers.toUtf8Bytes("MINTER_ROLE"))` in javascript
 
 This makes it so that only your specific address can mint from the contract, it will error otherwise.
 
@@ -274,10 +274,10 @@ Here is an example of how to do that:
 ```js
 // Generate random nonce spaces with ~0% probability of collision
 const randomNonceSpace1 = ethers.BigNumber.from(
-  ethers.utils.hexlify(ethers.utils.randomBytes(20))
+  ethers.hexlify(ethers.randomBytes(20))
 );
 const randomNonceSpace2 = ethers.BigNumber.from(
-  ethers.utils.hexlify(ethers.utils.randomBytes(20))
+  ethers.hexlify(ethers.randomBytes(20))
 );
 
 // Create signers for each nonce space

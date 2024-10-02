@@ -31,8 +31,8 @@ const userAddress = signer.getAddress()
 Create a new ephemeral private key, store it in local storage, and derive the associated address:
 
 ```javascript
-const sessionPrivateKey = ethers.utils.randomBytes(32)
-localStorage.setItem('sessionPrivateKey', ethers.utils.hexlify(sessionPrivateKey))
+const sessionPrivateKey = ethers.randomBytes(32)
+localStorage.setItem('sessionPrivateKey', ethers.hexlify(sessionPrivateKey))
 const sessionWallet = new ethers.Wallet(sessionPrivateKey)
 const sessionAddress = await sessionWallet.getAddress()
 ```
@@ -79,7 +79,7 @@ const sessionSignature = await sessionWallet.signMessage(message)
 Verify the session signature on the server or client side:
 
 ```javascript
-const recoveredSessionAddress = ethers.utils.verifyMessage(message, sessionSignature)
+const recoveredSessionAddress = ethers.verifyMessage(message, sessionSignature)
 if (recoveredSessionAddress === sessionAddress) {
   console.log('Session signature valid')
 } else {

@@ -1,4 +1,40 @@
 import { SmartLink } from './Landing/SmartLink'
+import { useState } from 'react'
+
+const CodeSnippet = ({ code }: { code: string }) => (
+  <div>
+    <p className="py-2 font-bold text-themed-secondary text-md font-medium leading-6">
+      Run with Sequence-CLI:
+    </p>
+    <div className="vocs_CodeBlock">
+      <div className="vocs_Pre_wrapper">
+        <pre
+          className="shiki shiki-themes github-light github-dark-dimmed vocs_Pre"
+          style={{
+            backgroundColor: 'rgb(255, 255, 255)',
+            '--shiki-dark-bg': '#22272e',
+            color: 'rgb(36, 41, 46)',
+            '--shiki-dark': '#adbac7',
+          }}
+        >
+          <code className="vocs_Code">
+            <span className="line vocs_Span">
+              <span
+                className="vocs_Span"
+                style={{
+                  color: 'rgb(3, 47, 98)',
+                  '--shiki-dark': '#96D0FF',
+                }}
+              >
+                {code}
+              </span>
+            </span>
+          </code>
+        </pre>
+      </div>
+    </div>
+  </div>
+)
 
 export const TemplatesOverview = () => (
   <section className="flex flex-col gap-5 border-t dark:border-white-10 border-black-10">
@@ -18,20 +54,25 @@ export const TemplatesOverview = () => (
         body="Example boilerplate showcasing embedded wallet integrated with Sequence Kit in a simple React application."
         link="https://github.com/0xsequence/kit-embedded-wallet-react-boilerplate"
         demolink="https://kit-embedded-wallet-react-boilerplate.pages.dev/"
+        oneliner="npx sequence-cli boilerplates create-embedded-wallet-react-starter"
       />
-
       <TemplateCard
         title="Sequence Kit w/ Embedded Wallet for NextJS Boilerplate"
         body="Example boilerplate showcasing embedded wallet integrated with Sequence Kit in a simple NextJS application."
         link="https://github.com/0xsequence/kit-embedded-wallet-nextjs-boilerplate"
         demolink="https://kit-embedded-wallet-nextjs-boilerplate.pages.dev/"
+        oneliner="npx sequence-cli boilerplates create-kit-embedded-wallet-nextjs-starter"
       />
       <TemplateCard
         title="Embedded Wallet Boilerplate for Wallet Verification on a backend."
         body="Example for your web application to verify the ownership of an Embedded Wallet by passing a JWT and validating against the Sequence API."
         link="https://github.com/0xsequence-demos/embedded-wallet-verify-session"
       />
-
+      <TemplateCard
+        title="Embedded Wallet Boilerplate for Unreal Engine"
+        body="Example application made with our Unreal SDK, showcasing embedded wallet integrated to sign messages and send ERC20 transactions."
+        link="https://github.com/0xsequence/unreal-embedded-wallet-boilerplate"
+      />
       <TemplateCard
         title="End to End playground for Sequence Kit"
         body="Example implementation in React & NextJS showcasing various common patterns using Sequence Kit such as signingv messages, sending transactions, displaying inventory, or minting an NFT."
@@ -76,6 +117,7 @@ const TemplateCard = ({
   deployLink,
   image,
   demolink,
+  oneliner,
 }: {
   title: string
   body: string
@@ -83,6 +125,7 @@ const TemplateCard = ({
   deployLink?: string
   image?: string
   demolink?: string
+  oneliner?: string
 }) => {
   return (
     <div className="flex flex-col gap-4 p-4 dark:bg-white-10 bg-white rounded-xl md:w-[calc(50%-8px)]">
@@ -93,6 +136,7 @@ const TemplateCard = ({
       )}
       <p className="text-xl leading-7 text-themed-primary font-bold">{title}</p>
       <p className="text-themed-secondary text-md font-medium leading-6">{body}</p>
+      {oneliner && <CodeSnippet code={oneliner} />}
       <div className="flex gap-4">
         <SmartLink
           href={link}

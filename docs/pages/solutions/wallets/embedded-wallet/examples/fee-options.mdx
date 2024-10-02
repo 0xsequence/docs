@@ -38,7 +38,7 @@ You can either transfer tokens to your wallet, or, use the [on-ramp feature](/so
 And ensure that the following packages are installed:
 
 ```shell
-pnpm install @0xsequence/waas ethers@5.7.2
+pnpm install @0xsequence/waas ethers
 ```
 
 ::::steps
@@ -82,7 +82,7 @@ const response = await checkTransactionFeeOptions({
     transactions: [erc20({
         token: customTokenAddress,
         to: destinationAddress,
-        value: ethers.utils.parseUnits(amount, decimals).toString()
+        value: ethers.parseUnits(amount, decimals).toString()
     })],
     network: 'arbitrum-nova' // i.e. network or chainID e.g. 42170 
 })
@@ -90,7 +90,7 @@ const response = await checkTransactionFeeOptions({
 const tx = await sequence.sendERC20({
     token: customTokenAddress,
     to: destinationAddress,
-    value: ethers.utils.parseUnits(amount, decimals),
+    value: ethers.parseUnits(amount, decimals),
     network: 'arbitrum-nova',
     transactionsFeeOption: response.feeOptions,
     transactionsFeeQuote: response.feeQuote
@@ -113,7 +113,7 @@ const response = await checkTransactionFeeOptions({
         to: destinationAddress,
         values: [{
           id: tokenID,
-          amount: ethers.utils.parseUnits(amount, 0)
+          amount: ethers.parseUnits(amount, 0)
         }]
     })],
     network: 'arbitrum-nova' // i.e. network or chainID e.g. 42170 
@@ -124,7 +124,7 @@ const tx = await sequence.sendERC1155({
     to: destinationAddress,
     values: [{
         id: tokenID,
-        amount: ethers.utils.parseUnits(amount, 0)
+        amount: ethers.parseUnits(amount, 0)
     }],
     network: 'arbitrum-nova',
     transactionsFeeOption: response.feeOptions,
@@ -141,14 +141,14 @@ const to = '0x...'
 
 const response = await checkTransactionFeeOptions({
     transactions: [{
-        to, value: ethers.utils.parseEther(amount),
+        to, value: ethers.parseEther(amount),
     }],
     network: 'arbitrum-nova'
 })
 
 const tx = await sequence.sendTransaction({
     transactions: [{
-        to, value: ethers.utils.parseEther(amount),
+        to, value: ethers.parseEther(amount),
     }],
     network: 'arbitrum-nova',
     transactionsFeeOption: feeOption,

@@ -149,7 +149,7 @@ export const sidebar = {
                   link: '/solutions/wallets/embedded-wallet/examples/fee-options',
                 },
                 {
-                  text: 'Verification',
+                  text: 'Token Verification',
                   link: '/solutions/wallets/embedded-wallet/examples/verification',
                 },
                 {
@@ -300,7 +300,7 @@ export const sidebar = {
               collapsed: true,
               items: [
                 { text: 'Overview', link: '/solutions/marketplaces/orderbook/overview' },
-                { text: 'Quickstart', link: '/solutions/marketplaces/orderbook/quickstart' },
+                { text: 'Starter', link: '/solutions/marketplaces/orderbook/starter' },
               ],
             },
           ],
@@ -330,6 +330,10 @@ export const sidebar = {
             {
               text: 'Deploy an In-Game Currency (ERC20)',
               link: '/solutions/collectibles/contracts/deploy-ERC20-currency',
+            },
+            {
+              text: 'Deploy a Primary Sales Contract',
+              link: '/solutions/collectibles/contracts/deploy-primary-sales-contract',
             },
           ],
         },
@@ -378,6 +382,10 @@ export const sidebar = {
         {
           text: 'Why Smart Contract Wallets?',
           link: '/solutions/technical-references/wallet-contracts/why',
+        },
+        {
+          text: 'Ethers v6 Support',
+          link: '/solutions/technical-references/ethers-v6-migration',
         },
         {
           text: 'Contract Internals',
@@ -539,6 +547,11 @@ export const sidebar = {
           //   { text: '(Optional) Enable Embedded Wallet', link: '/guides/custom-marketplace#7-optional-integrate-embedded-wallet-into-sequence-kit' },
           // ]
         },
+        {
+          text: 'Sell your Game Items via a Web Shop',
+          collapsed: true,
+          link: '/guides/primary-sales',
+        },
       ],
     },
     // {
@@ -579,13 +592,17 @@ export const sidebar = {
                 { text: 'OIDC - Social Sign In', link: '/sdk/unity/authentication/oidc' },
                 { text: 'PlayFab', link: '/sdk/unity/authentication/playfab' },
                 { text: 'Guest', link: '/sdk/unity/authentication/guest' },
-                { text: 'FederatedAccounts', link: '/sdk/unity/authentication/federated-accounts' },
+                {
+                  text: 'Federated Accounts',
+                  link: '/sdk/unity/authentication/federated-accounts',
+                },
               ],
             },
             { text: 'Write to blockchain', link: '/sdk/unity/write-to-blockchain' },
             { text: 'Read from Blockchain', link: '/sdk/unity/read-from-blockchain' },
             { text: 'Sign Messages', link: '/sdk/unity/sign-messages' },
             { text: 'Recovering Sessions', link: '/sdk/unity/recovering-sessions' },
+            { text: 'Session Management', link: '/sdk/unity/session-management' },
             { text: 'On-Ramp Funds via Credit Card', link: '/sdk/unity/onboard-user-funds' },
             { text: 'Marketplace', link: '/sdk/unity/marketplace' },
             {

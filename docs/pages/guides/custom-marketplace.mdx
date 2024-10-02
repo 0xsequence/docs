@@ -51,7 +51,7 @@ npx create-react-app . --template=typescript
 Then, begin by installing the required packages in the `<project_name> folder`
 
 ```
-pnpm install @0xsequence/kit @0xsequence/kit-connectors wagmi ethers@5.7.2 viem 0xsequence @tanstack/react-query
+pnpm install @0xsequence/kit @0xsequence/kit-connectors wagmi ethers viem 0xsequence @tanstack/react-query
 ```
 
 Then in `src` next to `index.tsx` in the folder, create a `config.ts` file with the following contents:
@@ -324,11 +324,11 @@ Next, we'll need to craft the transaction with the correct ABI to generate the e
 const [requestData, setRequestData] = useState<any>(null);
 
 const createRequest = async () => {
-  const sequenceMarketInterface = new ethers.utils.Interface([
+  const sequenceMarketInterface = new ethers.Interface([
     "function createRequest(tuple(bool isListing, bool isERC1155, address tokenContract, uint256 tokenId, uint256 quantity, uint96 expiry, address currency, uint256 pricePerToken)) external nonReentrant returns (uint256 requestId)",
   ]);
 
-  const amountBigNumber = ethers.utils.parseUnits(String("0.01"), 6); // ensure to use the proper decimals
+  const amountBigNumber = ethers.parseUnits(String("0.01"), 6); // ensure to use the proper decimals
 
   const request = {
     isListing: true,
@@ -358,7 +358,7 @@ const createRequest = async () => {
   } else {
     // is not approved, so requires multiple transactions
 
-    const erc1155Interface = new ethers.utils.Interface([
+    const erc1155Interface = new ethers.Interface([
       "function setApprovalForAll(address _operator, bool _approved) returns ()",
     ]);
 
@@ -604,7 +604,7 @@ We begin with the same flow as before, accounting for sending multi-batch transa
     const topOrder: any = await getTopOrder('1')
     const requiredAmount = topOrder.pricePerToken
 
-    const sequenceMarketInterface = new ethers.utils.Interface([
+    const sequenceMarketInterface = new ethers.Interface([
       "function acceptRequest(uint256 requestId, uint256 quantity, address recipient, uint256[] calldata additionalFees, address[] calldata additionalFeeRecipients)",
     ]);
 
@@ -630,7 +630,7 @@ We begin with the same flow as before, accounting for sending multi-batch transa
         })
       } else {
         ...
-        const erc20Interface = new ethers.utils.Interface([
+        const erc20Interface = new ethers.Interface([
           "function approve(address spender, uint256 amount) external returns (bool)"
         ]);
 
