@@ -10,7 +10,7 @@ The blockchain can be thought of as a general-purpose, publically viewable and v
 Typically, creating a blockchain transaction is rather complex, but Embedded Wallet handles that complexity for you and exposes 5 types of `Transactions`.
 
 Sending a transaction is an [asynchronous Task](https://medium.com/@sonusprocks/async-await-in-c-unity-explained-in-easy-words-571ebb6a9369). You can use `await` when calling `SequenceWallet.SendTransaction` if you wish to obtain the `TransactionReturn` object directly. Or, you can take the recommended approach which is to setup handler functions for the `SequenceWallet.OnSendTransactionComplete` and `SequenceWallet.OnSendTransactionFailed` events and call the `SequenceWallet.SendTransaction` method from anywhere (without await). For example:
-```
+```csharp
 public void OnSendTransactionCompleteHandler(SuccessfulTransactionReturn result) {
     // Do something
 }
@@ -30,7 +30,7 @@ If you're unfamiliar with working with events in Unity, check out this great [Re
 The most basic form of a `Transaction`, a raw transaction, is very useful to send ETH or the gas currency of the network you are interacting with to an `Address`.
 
 For example, to send one MATIC to `0x9766bf76b2E3e7BCB8c61410A3fC873f1e89b43f` you can use this snippet:
-```
+```csharp
 _wallet.SendTransaction(
     Chain.Polygon,
     new Sequence.EmbeddedWallet.Transaction[]
@@ -48,7 +48,7 @@ Additionally, you can include data with a raw transaction in hexadecimal format 
 An [ERC20](https://docs.openzeppelin.com/contracts/4.x/erc20) token is the fungible token standard. You can easily deploy an ERC20 contract and mint tokens using our [Builder](https://sequence.build/). Learn how in our [Builder documentation](/solutions/builder/contracts).
 
 To send an ERC20 token transaction, you can use this code snippet:
-```
+```csharp
 _wallet.SendTransaction(Chain.Polygon, new Sequence.EmbeddedWallet.Transaction[]
     {
         new SendERC20(
@@ -65,13 +65,13 @@ For interactions with ERC20 tokens outside of basic transfers, you'll want to us
 
 First, you'll need to create an `ERC20` object by providing a contract address and optionally, an [ABI](https://docs.soliditylang.org/en/latest/abi-spec.html#json) string, if you are using a custom variation of the ERC20 standard (not recommended).
 
-```
+```csharp
 ERC20 myToken = new ERC20(myTokenAddress);
 ```
 
 with this reference, you'll have access to all of the methods implemented by the ERC20 class. Any method that returns a `CallContractFunction`, e.g. `Mint`, can be used when creating a RawTransaction with Embedded Wallets. For example:
 
-```
+```csharp
 ERC20 myToken = new ERC20(myTokenAddress);
 _wallet.SendTransaction(Chain.Polygon, new Sequence.EmbeddedWallet.Transaction[]
     {
@@ -83,7 +83,7 @@ _wallet.SendTransaction(Chain.Polygon, new Sequence.EmbeddedWallet.Transaction[]
 An [ERC721](https://docs.openzeppelin.com/contracts/4.x/erc721) token is the non-fungible standard, you've probably heard of them as NFTs. You can easily deploy an ERC721 contract and mint tokens using our [Builder](https://sequence.build/). Learn how in our [Builder documentation](/solutions/builder/contracts).
 
 To send an ERC721 token transaction, you can use this code snippet:
-```
+```csharp
 _wallet.SendTransaction(Chain.Polygon, new Sequence.EmbeddedWallet.Transaction[]
     {
         new SendERC721(
@@ -98,13 +98,13 @@ For interactions with ERC721 tokens outside of basic transfers, you'll want to u
 
 First, you'll need to create an `ERC721` object by providing a contract address and optionally, an [ABI](https://docs.soliditylang.org/en/latest/abi-spec.html#json) string, if you are using a custom variation of the ERC721 standard (not recommended).
 
-```
+```csharp
 ERC721 myToken = new ERC721(myTokenAddress);
 ```
 
 with this reference, you'll have access to all of the methods implemented by the ERC721 class. Any method that returns a `CallContractFunction`, e.g. `SafeMint`, can be used when creating a RawTransaction with Embedded Wallets. For example:
 
-```
+```csharp
 ERC721 myToken = new ERC721(myTokenAddress);
 _wallet.SendTransaction(Chain.Polygon, new Sequence.EmbeddedWallet.Transaction[]
     {
@@ -116,7 +116,7 @@ _wallet.SendTransaction(Chain.Polygon, new Sequence.EmbeddedWallet.Transaction[]
 An [ERC1155](https://docs.openzeppelin.com/contracts/4.x/api/token/erc1155) token is the multi token standard, often referred to as SFTs (semi-fungible tokens). As [co-creators of the ERC1155 standard](https://eips.ethereum.org/EIPS/eip-1155) we are firm believers in its unparalleled usefulness for games. You can easily deploy an ERC1155 contract and mint tokens using our [Builder](https://sequence.build/). Learn how in our [Builder documentation](/solutions/builder/contracts).
 
 To send an ERC1155 token transaction, you can use this code snippet:
-```
+```csharp
 _wallet.SendTransaction(Chain.Polygon, new Sequence.EmbeddedWallet.Transaction[]
     {
         new SendERC1155(
@@ -137,13 +137,13 @@ For interactions with ERC1155 tokens outside of basic transfers, you'll want to 
 
 First, you'll need to create an `ERC1155` object by providing a contract address and optionally, an [ABI](https://docs.soliditylang.org/en/latest/abi-spec.html#json) string, if you are using a custom variation of the ERC1155 standard (not recommended).
 
-```
+```csharp
 ERC1155 myToken = new ERC1155(myTokenAddress);
 ```
 
 with this reference, you'll have access to all of the methods implemented by the ERC1155 class. Any method that returns a `CallContractFunction`, e.g. `Mint`, can be used when creating a RawTransaction with Embedded Wallets. For example:
 
-```
+```csharp
 ERC1155 myToken = new ERC1155(myTokenAddress);
 _wallet.SendTransaction(Chain.Polygon, new Sequence.EmbeddedWallet.Transaction[]
     {
@@ -157,7 +157,7 @@ When calling a smart contract on an EVM-based network, the client goes through a
 A DelayedEncode transaction allows you to call any method on an arbitrary smart contract, allowing us to handle the complicated ABI encoding process server-side.
 
 To send a DelayedEncode transaction, you can use this code snippet:
-```
+```csharp
 _wallet.SendTransaction(Chain.Polygon, new Sequence.EmbeddedWallet.Transaction[]
     {
         new DelayedEncode(ContractAddress, ValueAsString, new DelayedEncodeData(
@@ -177,7 +177,7 @@ ParametersAsObjectArray: The parameters you want to provide to the method you wi
 FunctionNameAsString: The name of the function you want to call as it appears in the ABI (or source code). Exclude parentheses and parameters.
 
 Putting this together, an example of using delayed encode to call the "mint" function on an ERC20 would look like this:
-```
+```csharp
 _wallet.SendTransaction(Chain.Polygon, new Sequence.EmbeddedWallet.Transaction[]
     {
         new DelayedEncode(ContractAddress, "0", new DelayedEncodeData(
@@ -196,7 +196,7 @@ Using the magic of the Sequence Smart Contract wallet, our SDK allows you to see
 Sending a batch transaction is easy! Simply include multiple transactions, of any type, in your transaction array when making the `SendTransaction` request.
 
 For example - sending a transaction of each type in a batch:
-```
+```csharp
 _wallet.SendTransaction(
     Chain.Polygon,
     new Sequence.EmbeddedWallet.Transaction[]
@@ -237,7 +237,7 @@ Transaction sponsoring is only available for Developer tier and above. For more 
 
 First, you'll need to assemble the transaction(s) you wish to submit in a batch. Then, you need to request the FeeOptions.
 
-```
+```csharp
 Transaction[] transactions = new Transaction[]
 {
     // Create your transactions here
@@ -251,13 +251,13 @@ From here, you can display a UI to the user to allow them to select how they wou
 
 Once the user has selected how they'd like to pay their fee, you may submit the transactions, including the selected FeeOption and the FeeQuote string.
 
-```
+```csharp
 _wallet.SendTransactionWithFeeOptions(chain, transactions, response.FeeOptions[selectionIndex].FeeOption, response.FeeQuote);
 ```
 
 In the `Demo Scene` that can be imported via `Package Manager > Samples`, you can see a barebones example usage of FeeOptions. Here, we do not provide a UI and instead opt to use the first available FeeOption in the user's wallet. We do not recommend using this approach in a real game, but it serves as a useful example for your own integration. See our sample code below:
 
-```
+```csharp
 private async Task WaitForFeeOptionsAndSubmitFirstAvailable(Address toAddress, string amount)
 {
     Transaction[] transactions = new Transaction[]
