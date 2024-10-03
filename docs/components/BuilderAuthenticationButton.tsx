@@ -9,7 +9,6 @@ import {
   DialogTitle,
 } from './Dialog/Dialog'
 
-
 const builderURL = import.meta.env.DEV
   ? 'http://localhost:8080/https://api.sequence.build' // Routing with a cors-anywhere proxy
   : 'https://api.sequence.build' // Production URL
@@ -36,9 +35,9 @@ function BuilderAuthenticationButton(): ReactElement {
 
   const handleConnected = async () => {
     try {
-        const projectsResponse = await listProjects()
-        setProjects(projectsResponse.projects)
-        setShowModal(true) // Open the dialog here
+      const projectsResponse = await listProjects()
+      setProjects(projectsResponse.projects)
+      setShowModal(true) // Open the dialog here
     } catch (error) {
       console.error('Connection failed:', error)
     }
