@@ -53,18 +53,19 @@ yarn create vite
 
 Next, a configuration variable for Sequence Kit will need to be created as either a `waas` (meaning an [Embedded Wallet](http://localhost:5173/solutions/wallets/embedded-wallet/overview)) or `universal` (meaning a [Universal Wallet](http://localhost:5173/solutions/wallets/embedded-wallet/overview)) wallet type.
 
-For `waas`, first obtain a [WaaS Config Key from the Sequence Builder](/solutions/builder/embedded-wallet/) and setup other [Login Provider configuration](/solutions/builder/embedded-wallet/#login-providers). For both wallet type options, [obtain and use a project access key](/solutions/builder/getting-started).
+For `waas`, first obtain a [WaaS Config Key from the Sequence Builder](/solutions/builder/embedded-wallet/), [Wallet Connect ID](https://cloud.reown.com/sign-in), and setup other [Login Provider configuration](/solutions/builder/embedded-wallet/#login-providers). For both wallet type options, [obtain and use a project access key](/solutions/builder/getting-started).
 
 ```typescript [config.ts]
-import { KitConfig, createConfig } from '@0xsequence/kit'
+import { createConfig } from '@0xsequence/kit'
 
-export const config: KitConfig = createConfig('waas' /*or, 'universal'*/, {
+export const config: any = createConfig('waas' /*or, 'universal'*/, {
   projectAccessKey: '<your-project-access-key>',
-  chainIds: [1, 137]
-  defaultChainId: 1
+  chainIds: [1, 137],
+  defaultChainId: 1,
   appName: 'Demo Dapp',
   waasConfigKey: '<your-waas-config-key>', // for waas
-  googleClientId: '<your-google-client-id>' // for waas
+  googleClientId: '<your-google-client-id>', // for waas
+  walletConnectId: '<your-wallet-connect-id>'
 })
 ```
 
