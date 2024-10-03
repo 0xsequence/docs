@@ -72,7 +72,7 @@ export const topNav = [
     text: 'Support',
     items: [
       { text: 'Support', link: '/support' },
-      { text: 'Changelog', link: 'https://0xsequence.canny.io/changelog' },
+      { text: 'Changelog', link: 'https://0xsequence.featurebase.app/' },
       { text: 'Restricted Regions', link: '/support/restricted-regions' },
       { text: 'Token Directory', link: '/support/token-directory' },
       { text: 'FAQ', link: 'https://support.sequence.xyz' },
@@ -120,6 +120,14 @@ export const sidebar = {
                 {
                   text: 'PlayFab Setup',
                   link: '/solutions/builder/embedded-wallet/playfab-configuration',
+                },
+                {
+                  text: 'Stytch Setup',
+                  link: '/solutions/builder/embedded-wallet/stytch-configuration',
+                },
+                {
+                  text: 'Guest Wallet Setup',
+                  link: '/solutions/builder/embedded-wallet/guest-wallet-configuration',
                 },
               ],
             },
@@ -460,18 +468,23 @@ export const sidebar = {
         {
           text: 'Build a Unity Game',
           collapsed: true,
-          link: '/guides/unity-guide',
+          link: '/guides/jelly-forest-unity-guide',
           // items: [
-          //   { text: 'Introduction', link: '/guides/unity-guide#intro-to-jelly-forest' },
-          //   { text: 'Build a Game Loop', link: '/guides/unity-guide#build-a-game-loop' },
-          //   { text: 'Integrate Embedded Wallets', link: '/guides/unity-guide#integrate-social-sign-in-and-sequences-embedded-wallet-solution' },
-          //   { text: 'Deploy Collectibles', link: '/guides/unity-guide#deploy-a-collectibles-contract' },
-          //   { text: 'Deploy Remote Minter', link: '/guides/unity-guide#deploy-a-remote-minter'},
-          //   { text: 'Minting Tokens to Inventory', link: '/guides/unity-guide#mint-in-game-tokens-to-the-players-inventory' },
-          //   { text: 'Purchase Collectibles with ERC20 Tokens', link: '/guides/unity-guide#burn-in-game-tokens-in-exchange-for-others' },
-          //   { text: 'Building an In-game Shop', link: '/guides/unity-guide#building-the-shop-pages-and-setting-the-minting-requirements' },
-          //   { text: 'Leverage Purchased Items In-game', link: '/guides/unity-guide#leverage-purchased-items-in-game' },
+          //   { text: 'Introduction', link: '/guides/jelly-forest-unity-guidee#intro-to-jelly-forest' },
+          //   { text: 'Build a Game Loop', link: '/guides/jelly-forest-unity-guide#build-a-game-loop' },
+          //   { text: 'Integrate Embedded Wallets', link: '/guides/jelly-forest-unity-guide#integrate-social-sign-in-and-sequences-embedded-wallet-solution' },
+          //   { text: 'Deploy Collectibles', link: '/guides/jelly-forest-unity-guide#deploy-a-collectibles-contract' },
+          //   { text: 'Deploy Remote Minter', link: '/guides/jelly-forest-unity-guide#deploy-a-remote-minter'},
+          //   { text: 'Minting Tokens to Inventory', link: '/guides/jelly-forest-unity-guide#mint-in-game-tokens-to-the-players-inventory' },
+          //   { text: 'Purchase Collectibles with ERC20 Tokens', link: '/guides/jelly-forest-unity-guide#burn-in-game-tokens-in-exchange-for-others' },
+          //   { text: 'Building an In-game Shop', link: '/guides/jelly-forest-unity-guide#building-the-shop-pages-and-setting-the-minting-requirements' },
+          //   { text: 'Leverage Purchased Items In-game', link: '/guides/jelly-forest-unity-guide#leverage-purchased-items-in-game' },
           // ]
+        },
+        {
+          text: 'Building Transaction Heavy Games with Unity',
+          collapsed: true,
+          link: '/guides/building-transaction-heavy-games-with-unity',
         },
         {
           text: 'Build a Collectible Minting Service',
@@ -855,7 +868,7 @@ export const sidebar = {
       text: 'Support',
       items: [
         { text: 'Support', link: '/support' },
-        { text: 'Changelog', link: 'https://0xsequence.canny.io/changelog' },
+        { text: 'Changelog', link: 'https://0xsequence.featurebase.app/' },
         { text: 'Restricted Regions', link: '/support/restricted-regions' },
         { text: 'FAQ', link: 'https://support.sequence.xyz' },
         { text: 'Token Directory', link: '/support/token-directory' },
