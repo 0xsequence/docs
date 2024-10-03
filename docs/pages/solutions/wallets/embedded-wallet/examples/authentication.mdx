@@ -269,22 +269,16 @@ export default Login
 ### Authenticating with Stytch
 
 <Callout type='info'>
-View the [complete configuration details and screenshots page](/solutions/builder/embedded-wallet/stytch-configuration) for more information.
-<Callout>
+Ensure you [complete the configuration details](/solutions/builder/embedded-wallet/stytch-configuration) for Stytch prior.
+</Callout>
 
-Get started with our starter boilerplate using the [Sequence CLI](https://github.com/0xsequence/sequence-cli/) and follow the prompts with either your own Stytch configuration keys [setup in their dashboard](https://stytch.com/dashboard/start-now) or default configuration keys and tokens for testing:
+You can see an example application in react with stytch [here](https://github.com/0xsequence/stytch-embedded-wallet-react-boilerplate/tree/master) with example keys for testing.
 
-```shell
-npx sequence-cli boilerplates stytch-embedded-wallet-react-boilerplate
-```
+### Implementation
 
-### Custom Implementation
+We will simply retrieve an `idToken` and pass that into the Embedded Wallet SDK.
 
-Or, use the typical approach to `JWT` authentication with an inputted `JWT` `idToken` into the Embedded Wallet SDK.
-
-In order to retrieve the `JWT` for the signed in session for web using `@stytch/react`, use the following package `browser-cookies` to retrieve the `JWT` from the cookies after the callback for the redirect URI has been completed:
-
-And implement like such:
+To do this for the signed in session for web using `@stytch/react`, use the following package `browser-cookies` to retrieve the `stytch_session_jwt` from the cookies after the callback once the redirect has been completed:
 
 ```typescript
 import { SequenceWaaS } from '@0xsequence/waas'
