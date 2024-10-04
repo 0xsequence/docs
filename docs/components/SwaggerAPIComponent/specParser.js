@@ -23,6 +23,9 @@ async function parseOpenAPISpec(specPath) {
   // Object to store servers for each tag
   const serversByTag = {}
 
+  // Object to store servers for each tag
+  const serversByTag = {};
+
   // Iterate through the paths in the spec
   for (const [path, methods] of Object.entries(spec.paths)) {
     for (const [method, details] of Object.entries(methods)) {
@@ -76,6 +79,14 @@ async function parseOpenAPISpec(specPath) {
     } else {
       // If no specific servers for this tag, use the top-level servers
       tagSpec.servers = spec.servers
+    }
+
+    // Update servers for this tag
+    if (serversByTag[tag]) {
+      tagSpec.servers = Array.from(serversByTag[tag]).map(JSON.parse);
+    } else {
+      // If no specific servers for this tag, use the top-level servers
+      tagSpec.servers = spec.servers;
     }
 
     // Ensure the spec is valid by including only relevant schema components
