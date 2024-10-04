@@ -20,6 +20,9 @@ async function parseOpenAPISpec(specPath) {
     indexer: { ...spec, paths: {} }
   };
 
+  // Object to store servers for each tag
+  const serversByTag = {};
+
   // Iterate through the paths in the spec
   for (const [path, methods] of Object.entries(spec.paths)) {
     for (const [method, details] of Object.entries(methods)) {
@@ -32,6 +35,14 @@ async function parseOpenAPISpec(specPath) {
             specsByTag[tag].paths[path] = {};
           }
           specsByTag[tag].paths[path][method] = details;
+
+          // Check for servers in the operation
+          if (details.servers) {
+            if (!serversByTag[tag]) {
+              serversByTag[tag] = new Set();
+            }
+            details.servers.forEach(server => serversByTag[tag].add(JSON.stringify(server)));
+          }
         }
       });
     }
@@ -58,6 +69,14 @@ async function parseOpenAPISpec(specPath) {
       title: `${tagSpec.info.title} - ${tag.charAt(0).toUpperCase() + tag.slice(1)} API`,
       description: `${tagSpec.info.description}\n\nThis specification covers the ${tag} endpoints of the API.`
     };
+
+    // Update servers for this tag
+    if (serversByTag[tag]) {
+      tagSpec.servers = Array.from(serversByTag[tag]).map(JSON.parse);
+    } else {
+      // If no specific servers for this tag, use the top-level servers
+      tagSpec.servers = spec.servers;
+    }
 
     // Ensure the spec is valid by including only relevant schema components
     tagSpec.components = { 
@@ -104,6 +123,16 @@ async function parseOpenAPISpec(specPath) {
     await fs.writeFile(outputPath, JSON.stringify(tagSpec, null, 2));
     console.log(`Created ${outputPath}`);
   }
+
+  // Update the top-level spec with all servers
+  const allServers = new Set();
+  Object.values(serversByTag).forEach(servers => servers.forEach(server => allServers.add(server)));
+  spec.servers = Array.from(allServers).map(JSON.parse);
+
+  // Write the updated top-level spec
+  const updatedSpecPath = path.join(outputDir, 'updated-openapi.json');
+  await fs.writeFile(updatedSpecPath, JSON.stringify(spec, null, 2));
+  console.log(`Created ${updatedSpecPath}`);
 }
 
 // Usage
