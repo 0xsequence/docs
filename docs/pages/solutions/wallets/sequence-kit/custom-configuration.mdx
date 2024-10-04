@@ -1,0 +1,282 @@
+---
+title: Customizing Sequence Kit with Configuration Options
+description: The Configuration section allows developers to customize the Sequence Kit by passing options to the KitProvider wrapper.
+sidebar_label: Configuration
+---
+
+# Custom Configuration Options
+Developers can customize the Sequence Kit experience by passing configuration options to the `SequenceKit` wrapper.
+
+Here's how you can configure the kit using these options:
+
+
+```jsx
+  const kitConfig =  {
+		defaultTheme: 'light',
+		position: 'top-left',
+		...
+	}
+
+  <SequenceKit config={kitConfig}>
+    <App />
+  <SequenceKit>
+
+```
+
+## Configuration Overview
+
+The following is the available configuration customization options, or, [see below for all the options in-depth](/solutions/wallets/sequence-kit/custom-configuration#available-options):
+
+```typescript
+interface CreateConfigOptions {
+  appName: string
+  projectAccessKey: string
+  chainIds?: number[]
+  defaultChainId?: number
+  disableAnalytics?: boolean
+  defaultTheme?: Theme
+  position?: ModalPosition
+  signIn?: {
+    logoUrl?: string
+    projectName?: string
+    useMock?: boolean
+  }
+  displayedAssets?: Array<{
+    contractAddress: string
+    chainId: number
+  }>
+  ethAuth?: EthAuthSettings
+  isDev?: boolean
+
+  wagmiConfig?: WagmiConfig // optional wagmiConfig overrides
+
+  waasConfigKey: string
+  enableConfirmationModal?: boolean
+
+  walletConnect?:
+    | false
+    | {
+        projectId: string
+      }
+
+  google?:
+    | false
+    | {
+        clientId: string
+      }
+
+  apple?:
+    | false
+    | {
+        clientId: string
+        rediretURI: string
+      }
+
+  email?:
+    | boolean
+    | {
+        legacyEmailAuth?: boolean
+      }
+}
+```
+
+# Available Options
+
+## Sequence App Development
+
+### `appName`
+| Type    | Default |
+| -------- | ------- |
+| string  | undefined    |
+
+An internal software naming value that is not presented to the user. 
+
+### `projectAccessKey`
+
+| Type    | Default |
+| -------- | ------- |
+| string  | undefined    |
+
+The project access key that is required by the [Sequence Builder](https://sequence.build)
+
+### `ethAuth` as EthAuthSettings
+
+```typescript
+{
+  app?: string
+  /** expiry number (in seconds) that is used for ETHAuth proof. Default is 1 week in seconds. */
+  expiry?: number
+  /** origin hint of the dapp's host opening the wallet. This value will automatically
+   * be determined and verified for integrity, and can be omitted. */
+  origin?: string
+  /** authorizeNonce is an optional number to be passed as ETHAuth's nonce claim for replay protection. **/
+  nonce?: number
+}
+```
+
+### `waasConfigKey`
+
+| Type    | Default |
+| -------- | ------- |
+| string  | undefined    |
+
+The Embedded Wallet Configuration Key required for WaaS wallets, configured within the [Sequence Builder](https://sequence.build).
+
+## Network
+
+### `chainIds`
+
+| Type    | Default |
+| -------- | ------- |
+| number[]  | undefined    |
+
+A list of chain Ids. e.g. [1, 137]
+
+### `defaultChainId`
+
+| Type    | Default |
+| -------- | ------- |
+| number  | undefined    |
+
+The chain Id that is first used for signatures and transactions.
+
+## UI
+User Interface based parameters that augment the modal interface.
+
+### Sign In Modal Configuration (`signIn`)
+The `signIn` object is used to configure the sign in modal.
+
+#### `signIn.logoUrl`
+
+<div>
+  <img src="/img/kit/sign-in-modal-with-logo.png" alt="Enable a dark theme to Sequence Kit"/>
+</div>
+
+| Type    | Default |
+| -------- | ------- |
+| string  | undefined    |
+
+URL of the logo to be shown in the sign in modal.
+
+#### `signIn.projectName`
+
+<div>
+  <img src="/img/kit/sign-in-modal-project-name.png" alt="Add a project name to Sequence Kit"/>
+</div>
+
+| Type    | Default |
+| -------- | ------- |
+| string  | undefined    |
+
+Name of the project to be shown in the sign in modal.
+
+#### `signIn.useMock`
+
+| Type    | Default |
+| -------- | ------- |
+| boolean  | undefined    |
+
+Removes the ability to make live blockchain requests if set to `true` by using the [wagmi mock connector](https://wagmi.sh/core/api/connectors/mock#mock)
+
+### `position`
+| Type    | Default |
+| -------- | ------- |
+| string  | center    |
+
+The position parameter determines the location of the various modals on the screen. Possible values include:
+- center
+- middle-right
+- middle-left
+- top-center
+- top-right
+- top-left
+- bottom-center
+- bottom-right
+- bottom-left
+
+### `defaultTheme`
+| Type    | Default |
+| -------- | ------- |
+|  string or object | dark    |
+
+The defaultTheme determines the color palette used for styling the modal. Possible values include:
+- 'light'
+- 'dark'
+- object
+
+Specific colors can be overwritten by passing a theme override object. The [Sequence Builder](https://sequence.build/) provides a useful playground for toying with the colors in Sequence Kit.
+
+## Wallet
+Parameters that entail wallet configuration options
+
+### `disableAnalytics`
+| Type    | Default |
+| -------- | ------- |
+| boolean  | undefined    |
+
+Turning on and off the analytics feature that is connected to your [Sequence Builder](http://sequence.build) project
+
+### `displayedAssets`
+
+| Type    | Default |
+| -------- | ------- |
+| [\{ contractAddress: string, chainId: number \}, ...]  | undefined |
+
+If provided, this will determine which assets are to be displayed in the in-game wallet modal main view.
+By passing a list of displayed assets, only assets from the provided list will be displayed in the main view.
+In the case that no assets are provided, all owned assets can be displayed in the main view.
+
+### `enableConfirmationModal`
+| Type    | Default |
+| -------- | ------- |
+| boolean  | undefined |
+
+Enable confirmations for when sending transaction 
+
+## Sign in providers
+
+The various sign in providers that create wallet connections for the user:
+
+### `walletConnect`
+
+| Type                        | Default   |
+| ---------------------------- | --------- |
+| `false` \| `{ projectId: string }` | `undefined` |
+
+### `google`
+
+| Type                        | Default   |
+| ---------------------------- | --------- |
+| `false` \| `{ clientId: string }` | `undefined` |
+
+### `apple`
+| Type                        | Default   |
+| ---------------------------- | --------- |
+| `false` \| `{ clientId: string, rediretURI: string }` | `undefined` |
+
+### `email`
+| Type                        | Default   |
+| ---------------------------- | --------- |
+| `boolean` \| `{ legacyEmailAuth: boolean }` | `undefined` |
+
+# Create Universal Default Connectors
+While we generally recommed using Embedded Wallets with SequenceKit, as an alternative, you can also use leverage our Universal Wallet configuration. When creating a wagmi `connectors` variable, import the `getDefaultConnectors` function from the `@0xsequence/kit` package, and include a Wallet Connect ID obtained from [here](https://cloud.walletconnect.com/app), a default chain ID, app name, and the `projectAccessKey`, then [continue with the integration from the quickstart](/solutions/wallets/sequence-kit/getting-started#create-wagmi-config).
+
+```typescript [config.ts]
+import { getDefaultConnectors } from '@0xsequence/kit'
+...
+export const projectAccessKey = '<access-key>'
+
+const connectors = getDefaultConnectors({
+  walletConnectProjectId: 'wallet-connect-id',
+  defaultChainId: 1,
+  appName: 'demo app',
+  projectAccessKey
+})
+
+export const config = createConfig({
+  transports,
+  connectors,
+  chains
+})
+```

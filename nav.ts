@@ -201,7 +201,7 @@ export const sidebar = {
           items: [
             { text: 'Overview', link: '/solutions/wallets/sequence-kit/overview' },
             { text: 'Quickstart', link: '/solutions/wallets/sequence-kit/getting-started' },
-            { text: 'Configuration', link: '/solutions/wallets/sequence-kit/configuration' },
+            { text: 'Custom Configuration', link: '/solutions/wallets/sequence-kit/custom-configuration' },
             { text: 'On-ramp', link: '/solutions/wallets/sequence-kit/on-ramp' },
             { text: 'Checkout', link: '/solutions/wallets/sequence-kit/checkout' },
             {
