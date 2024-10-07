@@ -18,10 +18,10 @@ const Layout = ({ children }: { children: ReactElement | string }) => {
 
   return (
     <div>
-      {/* <TopNavButton/> */}
-
-      <TopNavButton />
-      <BuilderAuthenticationButton />
+      <div className="container mx-auto px-4 flex justify-between items-center">
+        <TopNavButton />
+        <BuilderAuthenticationButton />
+      </div>
       {children}
     </div>
   )
