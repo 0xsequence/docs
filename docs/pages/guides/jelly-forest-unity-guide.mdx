@@ -47,7 +47,7 @@ For our game loop, we purchased the [Infinite Runner Engine](https://assetstore.
 3. Drag the `LoginPanel` prefab into your Scene Hierarchy under the Canvas. This can be found in the Project window under `Packages > Sequence Embedded Wallet SDK > SequenceFrontend > Prefabs`.
 4. Create a UI manager to call `Open` on the `LoginPanel`. See [our implementation](https://github.com/0xsequence/sequence-unity-demo/blob/JellyForest/Scripts/UI/LoginScreenUIManager.cs) below:
 
-```
+```csharp
 private void Start()
 {
     LoginPanel loginPanel = GetComponentInChildren<LoginPanel>();
@@ -78,7 +78,7 @@ When social sign in is complete, the `OpenIdAuthenticator.SignedIn` event is fir
 
 In order to retrieve the wallet, you'll need to subscribe to the `SequenceWallet.OnWalletCreated` event.
 
-```
+```csharp
 SequenceWallet.OnWalletCreated += OnWalletCreatedHandler;
 public void OnWalletCreatedHandler(SequenceWallet wallet) {
   // Do something
@@ -89,7 +89,7 @@ We highly recommend you import `SequenceConnector` via the "Useful Scripts" unde
 
 In JellyForest, we also created a [LevelLoader](https://github.com/0xsequence/sequence-unity-demo/blob/JellyForest/Scripts/LevelLoader.cs) MonoBehaviour that loads the next scene when the `SequenceWallet.OnWalletCreated` event is fired.
 
-```
+```csharp
 private void Awake()
 {
     SequenceWallet.OnWalletCreated += OnWalletCreated;
@@ -184,7 +184,7 @@ Reading the tokens in a given user's wallet is a complicated process that is mad
 
 Here's a code snippet from Jelly Forest where we use the Indexer to read all the tokens in a player's wallet from our game's ERC1155 contract.
 
-```
+```csharp
 private Dictionary<BigInteger, TokenBalance> _tokenBalances = new Dictionary<BigInteger, TokenBalance>();
 private async Task GetTokenBalances(Page page = null)
 {
@@ -211,7 +211,7 @@ Since blockchain transactions are not instant but we want to provide our user wi
 
 When we first receive our `SequenceWallet` in Jelly Forest, [SequenceConnector](https://github.com/0xsequence/sequence-unity-demo/blob/JellyForest/Scripts/SequenceConnector.cs), which we used as our primary interface for communicating with the Sequence SDK in our game, creates an `Inventory`.
 
-```
+```csharp
 private void OnWalletCreated(SequenceWallet wallet)
 {
     Wallet = wallet;
@@ -244,7 +244,7 @@ In Jelly Forest, we attached a [PermissionedMinterTransactionQueuer](https://git
 
 Once [this is setup](https://github.com/0xsequence/sequence-unity-demo/blob/JellyForest/Scripts/SequenceConnector.cs#L78), all we need to do when a token is collected is call "mint token".
 
-```
+```csharp
 public class CollectibleToken : Coin
 {
     protected override void ObjectPicked()
@@ -277,7 +277,7 @@ Here are some things to consider when determining how to configure your transact
 
 As an example from Jelly Forest: we felt that the Shops' transactions were of high importance to the end user. We didn't want to risk a user thinking they had an upgrade/hat and then having the transaction fail and needing to either revoke the upgrade/hat or mint an extra one that the player may not have legitemately earned. So, we made it so that the user waits on the Shop pages until the purchase transaction (and all other transaction in the TransactionQueuers) have succeeded.
 
-```
+```csharp
 public async Task Buy()
 {
     if (Status != ItemStatus.Available)
@@ -336,7 +336,7 @@ Warning: the `BurnToMint` smart contract shared above has not been audited by a 
 
 When a user purchases an upgrade or cosmetic from the shop, we send a transaction to the `BurnToMint` smart contract by adding a [PurchaseShopItemQueueableTransaction](https://github.com/0xsequence/sequence-unity-demo/blob/JellyForest/Scripts/Items/ShopItem.cs#L109) to our [SequenceWalletTransactionQueuer](https://github.com/0xsequence/sequence-unity/blob/master/Packages/Sequence-Unity/Sequence/SequenceSDK/Relayer/SequenceWalletTransactionQueuer.cs) in our `SequenceConnector`.
 
-```
+```csharp
 SequenceConnector.Instance.AddToTransactionQueue(new PurchaseShopItemQueueableTransaction(this));
 ```
 

@@ -72,7 +72,7 @@ export const topNav = [
     text: 'Support',
     items: [
       { text: 'Support', link: '/support' },
-      { text: 'Changelog', link: 'https://0xsequence.canny.io/changelog' },
+      { text: 'Changelog', link: 'https://0xsequence.featurebase.app/' },
       { text: 'Restricted Regions', link: '/support/restricted-regions' },
       { text: 'Token Directory', link: '/support/token-directory' },
       { text: 'FAQ', link: 'https://support.sequence.xyz' },
@@ -120,6 +120,14 @@ export const sidebar = {
                 {
                   text: 'PlayFab Setup',
                   link: '/solutions/builder/embedded-wallet/playfab-configuration',
+                },
+                {
+                  text: 'Stytch Setup',
+                  link: '/solutions/builder/embedded-wallet/stytch-configuration',
+                },
+                {
+                  text: 'Guest Wallet Setup',
+                  link: '/solutions/builder/embedded-wallet/guest-wallet-configuration',
                 },
               ],
             },
@@ -201,7 +209,7 @@ export const sidebar = {
           items: [
             { text: 'Overview', link: '/solutions/wallets/sequence-kit/overview' },
             { text: 'Quickstart', link: '/solutions/wallets/sequence-kit/getting-started' },
-            { text: 'Configuration', link: '/solutions/wallets/sequence-kit/configuration' },
+            { text: 'Custom Configuration', link: '/solutions/wallets/sequence-kit/custom-configuration' },
             { text: 'On-ramp', link: '/solutions/wallets/sequence-kit/on-ramp' },
             { text: 'Checkout', link: '/solutions/wallets/sequence-kit/checkout' },
             {
@@ -460,17 +468,17 @@ export const sidebar = {
         {
           text: 'Build a Unity Game',
           collapsed: true,
-          link: '/guides/unity-guide',
+          link: '/guides/jelly-forest-unity-guide',
           // items: [
-          //   { text: 'Introduction', link: '/guides/unity-guide#intro-to-jelly-forest' },
-          //   { text: 'Build a Game Loop', link: '/guides/unity-guide#build-a-game-loop' },
-          //   { text: 'Integrate Embedded Wallets', link: '/guides/unity-guide#integrate-social-sign-in-and-sequences-embedded-wallet-solution' },
-          //   { text: 'Deploy Collectibles', link: '/guides/unity-guide#deploy-a-collectibles-contract' },
-          //   { text: 'Deploy Remote Minter', link: '/guides/unity-guide#deploy-a-remote-minter'},
-          //   { text: 'Minting Tokens to Inventory', link: '/guides/unity-guide#mint-in-game-tokens-to-the-players-inventory' },
-          //   { text: 'Purchase Collectibles with ERC20 Tokens', link: '/guides/unity-guide#burn-in-game-tokens-in-exchange-for-others' },
-          //   { text: 'Building an In-game Shop', link: '/guides/unity-guide#building-the-shop-pages-and-setting-the-minting-requirements' },
-          //   { text: 'Leverage Purchased Items In-game', link: '/guides/unity-guide#leverage-purchased-items-in-game' },
+          //   { text: 'Introduction', link: '/guides/jelly-forest-unity-guidee#intro-to-jelly-forest' },
+          //   { text: 'Build a Game Loop', link: '/guides/jelly-forest-unity-guide#build-a-game-loop' },
+          //   { text: 'Integrate Embedded Wallets', link: '/guides/jelly-forest-unity-guide#integrate-social-sign-in-and-sequences-embedded-wallet-solution' },
+          //   { text: 'Deploy Collectibles', link: '/guides/jelly-forest-unity-guide#deploy-a-collectibles-contract' },
+          //   { text: 'Deploy Remote Minter', link: '/guides/jelly-forest-unity-guide#deploy-a-remote-minter'},
+          //   { text: 'Minting Tokens to Inventory', link: '/guides/jelly-forest-unity-guide#mint-in-game-tokens-to-the-players-inventory' },
+          //   { text: 'Purchase Collectibles with ERC20 Tokens', link: '/guides/jelly-forest-unity-guide#burn-in-game-tokens-in-exchange-for-others' },
+          //   { text: 'Building an In-game Shop', link: '/guides/jelly-forest-unity-guide#building-the-shop-pages-and-setting-the-minting-requirements' },
+          //   { text: 'Leverage Purchased Items In-game', link: '/guides/jelly-forest-unity-guide#leverage-purchased-items-in-game' },
           // ]
         },
         {
@@ -488,6 +496,11 @@ export const sidebar = {
           //   { text: 'Building an In-game Shop', link: '/guides/unity-guide#building-the-shop-pages-and-setting-the-minting-requirements' },
           //   { text: 'Leverage Purchased Items In-game', link: '/guides/unity-guide#leverage-purchased-items-in-game' },
           // ]
+        },
+        {
+          text: 'Building Transaction Heavy Games with Unity',
+          collapsed: true,
+          link: '/guides/building-transaction-heavy-games-with-unity',
         },
         {
           text: 'Build a Collectible Minting Service',
@@ -562,6 +575,11 @@ export const sidebar = {
           //   { text: 'Order Accepting', link: '/guides/custom-marketplace#6-order-accepting' },
           //   { text: '(Optional) Enable Embedded Wallet', link: '/guides/custom-marketplace#7-optional-integrate-embedded-wallet-into-sequence-kit' },
           // ]
+        },
+        {
+          text: 'Sell your Game Items via a Web Shop',
+          collapsed: true,
+          link: '/guides/primary-sales',
         },
       ],
     },
@@ -646,13 +664,28 @@ export const sidebar = {
             { text: 'Installation', link: '/sdk/unreal/installation' },
             { text: 'Upgrading', link: '/sdk/unreal/upgrading' },
             { text: 'Setup', link: '/sdk/unreal/setup' },
-            { text: 'Authentication', link: '/sdk/unreal/authentication' },
+            {
+              text: 'Authentication',
+              collapsed: false,
+              items: [
+                { text: 'Introduction', link: '/sdk/unreal/authentication/intro' },
+                { text: 'Email + OTP', link: '/sdk/unreal/authentication/email' },
+                { text: 'OIDC - Social Sign In', link: '/sdk/unreal/authentication/oidc' },
+                { text: 'PlayFab', link: '/sdk/unreal/authentication/playfab' },
+                { text: 'Guest', link: '/sdk/unreal/authentication/guest' },
+                {
+                  text: 'Federated Accounts',
+                  link: '/sdk/unreal/authentication/federated-accounts',
+                },
+              ],
+            },
             { text: 'Sequence Wallet', link: '/sdk/unreal/api' },
             { text: 'Managing Session', link: '/sdk/unreal/managing-session' },
             { text: 'Read from Blockchain', link: '/sdk/unreal/read-from-blockchain' },
             { text: 'Write to Blockchain', link: '/sdk/unreal/write-to-blockchain' },
+            { text: 'Working with Blueprint', link: '/sdk/unreal/working-with-blueprint' },
             { text: 'On-Ramp Funds via Credit Card', link: '/sdk/unreal/onboard-user-funds' },
-            { text: 'Advanced Blockchain Intereactions', link: '/sdk/unreal/advanced' },
+            { text: 'Advanced Blockchain Interactions', link: '/sdk/unreal/advanced' },
             { text: 'Packaging', link: '/sdk/unreal/packaging' },
           ],
         },
@@ -852,7 +885,7 @@ export const sidebar = {
       text: 'Support',
       items: [
         { text: 'Support', link: '/support' },
-        { text: 'Changelog', link: 'https://0xsequence.canny.io/changelog' },
+        { text: 'Changelog', link: 'https://0xsequence.featurebase.app/' },
         { text: 'Restricted Regions', link: '/support/restricted-regions' },
         { text: 'FAQ', link: 'https://support.sequence.xyz' },
         { text: 'Token Directory', link: '/support/token-directory' },

@@ -1,5 +1,8 @@
 import { type ReactElement, useEffect, useState } from 'react'
 import TopNavButton from './components/TopNavButton'
+import { ThemeProvider } from '@0xsequence/design-system'
+import BuilderAuthenticationButton from './components/BuilderAuthenticationButton'
+
 import FullScreenLoading from './components/FullScreenLoading'
 
 const Layout = ({ children }: { children: ReactElement | string }) => {
@@ -15,7 +18,10 @@ const Layout = ({ children }: { children: ReactElement | string }) => {
 
   return (
     <div>
-      <TopNavButton />
+      <div className="container mx-auto px-4 flex justify-between items-center">
+        <TopNavButton />
+        <BuilderAuthenticationButton />
+      </div>
       {children}
     </div>
   )

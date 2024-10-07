@@ -11,7 +11,7 @@ export const SupportSection = () => (
     </div>
     <div className="flex flex-wrap gap-x-10 gap-y-5 md:flex-row flex-col">
       <ChangeLogItem
-        link="https://0xsequence.canny.io/changelog"
+        link="https://0xsequence.featurebase.app/"
         title="Changelog"
         body="See what we've been working on and keep up to date."
       />

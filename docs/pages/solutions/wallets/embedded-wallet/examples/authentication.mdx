@@ -54,6 +54,10 @@ Then, choose your approach to authenticate your users:
 - [Authentication via Email](/solutions/wallets/embedded-wallet/examples/authentication#email-authentication)
 - [Authentication as a Guest](/solutions/wallets/embedded-wallet/examples/authentication#guest-embedded-wallet)
 
+<Callout type='info'>
+Enable Email (Legacy), Stytch, and Guest Wallets, by directing yourself to [the Early Access Page](https://sequence.build/earlyaccess) and enable it via the toggle.
+</Callout>
+
 ## Authentication Methods
 Signing in and signing up are the same operation; the account is automatically created if it doesn't already exist which will also instantiate a web3 wallet for the user automatically.
 
@@ -65,7 +69,9 @@ await sequence.signIn({ idToken }, "Session name");
 ```
 
 For more examples on authenticating with specific providers, please ensure your embedded wallet [configuration](/solutions/builder/embedded-wallet) is setup with the corresponding auth provider. Then reference the example implementation:
-- [Authentication with Google Login](/solutions/wallets/embedded-wallet/examples/authentication#authenticating-with-google-login)
+- [Authentication with PlayFab](/solutions/wallets/embedded-wallet/examples/authentication#authenticating-with-playfab)
+- [Authentication with Google](/solutions/wallets/embedded-wallet/examples/authentication#authenticating-with-google)
+- [Authentication with Stytch](/solutions/wallets/embedded-wallet/examples/authentication#authenticating-with-stytch)
 
 ### Email Authentication
 
@@ -102,13 +108,16 @@ const emailResponse = await sequence.signIn({ email })
 
 ### Guest Embedded Wallet
 
-The Guest wallet allows you to create an ephemeral wallet and authenticate a user without requiring them to login with a social provider or email, however is not retrievable if associated app data is deleted.
+The Guest wallet allows you to create an ephemeral wallet and authenticate a user without requiring them to login with a social provider or email, however is not retrievable if associated app data is deleted. 
+
+You can enable Guest Wallets by directing yourself to [the Early Access Page](https://sequence.build/earlyaccess) and enable it via the toggle.
 
 To create a guest wallet, pass in a boolean `guest` key set to `true`, which will create an ephemeral wallet for use in the application with all Embedded Wallet functions possible.
 
 ```typescript [App.tsx]
 await sequence.signIn({ guest: true }, "Session name");
 ```
+
 <Callout type="danger">
 Assets stored in the guest wallet after a browser cache has been cleared - or if the user has uninstalled the app - will not be accessible by the user. 
 
@@ -154,9 +163,36 @@ Utilizing the `onEmailConflict` callback with `forceCreate` to create a second w
   });
 ```
 
-
-
 ## Authenticating with Specific Social Providers
+
+### Authenticating with Playfab
+In order to leverage Playfab for authentication, you must first retrieve a Playfab Ticket. This can be done by calling the API directly or leveraging a Playfab client SDK. Then simply pass your configured titleId as well as a unique user identifier as a `CustomId`. For example, the an example call is below:
+
+```ts
+const playfabResponse = PlayFabClient.LoginWithCustomID({
+  TitleId: titleId,
+  CustomId: "<CUSTOM_ID>",
+  CreateAccount: true,
+})
+```
+
+Once you have retrieved a valid session ticket from Playfab, simply pass this to the sequence `signIn` function as a parameter to authenticate the user and create a valid session:
+
+```ts
+const response = await sequence.signIn(
+  {
+    playFabTitleId: import.meta.env.VITE_PLAYFAB_TITLE_ID,
+    playFabSessionTicket: playfabResponse.data.SessionTicket
+  },
+  'playfab session'
+)
+```
+
+It is important to ensure that the title ID that is configured in builder matches the title ID that is passed to PlayFab, otherwise you will receive an `Invalid Verifier` error.
+
+<Callout type="info">
+You can use a variety of unique user information as a parameter to pass to Playfab to retrieve the session ticket such as a user's accessToken from Google or a custom username.
+</Callout>
 
 ### Authenticating with Google
 For example in React, we can leverage the `@react-oauth/google` package in order to generate an `idToken` and pass it to Sequence:
@@ -230,34 +266,33 @@ function Login() {
 export default Login
 ```
 
-### Authenticating with Playfab
-In order to leverage Playfab for authentication, you must first retrieve a Playfab Ticket. This can be done by calling the API directly or leveraging a Playfab client SDK. Then simply pass your configured titleId as well as a unique user identifier as a `CustomId`. For example, the an example call is below:
+### Authenticating with Stytch
 
-```ts
-const playfabResponse = PlayFabClient.LoginWithCustomID({
-  TitleId: titleId,
-  CustomId: "<CUSTOM_ID>",
-  CreateAccount: true,
-})
-```
-
-Once you have retrieved a valid session ticket from Playfab, simply pass this to the sequence `signIn` function as a parameter to authenticate the user and create a valid session:
-
-```ts
-const response = await sequence.signIn(
-  {
-    playFabTitleId: import.meta.env.VITE_PLAYFAB_TITLE_ID,
-    playFabSessionTicket: playfabResponse.data.SessionTicket
-  },
-  'playfab session'
-)
-```
-
-It is important to ensure that the title ID that is configured in builder matches the title ID that is passed to PlayFab, otherwise you will receive an `Invalid Verifier` error.
-
-<Callout type="info">
-You can use a variety of unique user information as a parameter to pass to Playfab to retrieve the session ticket such as a user's accessToken from Google or a custom username.
+<Callout type='info'>
+Ensure you [complete the configuration details](/solutions/builder/embedded-wallet/stytch-configuration) for Stytch prior.
 </Callout>
+
+You can see an example application in react with stytch [here](https://github.com/0xsequence/stytch-embedded-wallet-react-boilerplate/tree/master) with example keys for testing.
+
+### Implementation
+
+We will simply retrieve an `idToken` and pass that into the Embedded Wallet SDK.
+
+To do this for the signed in session for web using `@stytch/react`, use the following package `browser-cookies` to retrieve the `stytch_session_jwt` from the cookies after the callback once the redirect has been completed:
+
+```typescript
+import { SequenceWaaS } from '@0xsequence/waas'
+import cookies from 'browser-cookies'
+...
+export const sequence = new SequenceWaaS({
+  projectAccessKey: `${process.env.VITE_PROJECT_ACCESS_KEY}`,
+  waasConfigKey: `${process.env.VITE_WAAS_CONFIG_KEY}`,
+  network: "arbitrum-nova",
+});
+
+const idToken = cookies.get('stytch_session_jwt')
+await sequence.signIn({ idToken }, "Stytch Session name");
+```
 
 ## Retrieve User information from Social Providers
 
