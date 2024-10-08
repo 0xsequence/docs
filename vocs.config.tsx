@@ -10,11 +10,10 @@ export default defineConfig({
     dark: '/img/sequence-composite-dark.svg',
   },
   vite: {
-  ssr: {
-    noExternal: ["@docsearch/react"],
-  }
-},
-  
+    ssr: {
+      noExternal: ['@docsearch/react'],
+    },
+  },
 
   // rootDir: '.',
   basePath: '/',

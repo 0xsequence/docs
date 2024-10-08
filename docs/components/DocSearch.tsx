@@ -1,6 +1,6 @@
-import { Suspense, lazy, useEffect, useState } from "react"
-import type { DocSearchProps } from "@docsearch/react"
-import "@docsearch/css"
+import { Suspense, lazy, useEffect, useState } from 'react'
+import type { DocSearchProps } from '@docsearch/react'
+import '@docsearch/css'
 
 let hydrating = true
 
@@ -14,7 +14,7 @@ export function useHydrated() {
 }
 
 const OriginalDocSearch = lazy(() =>
-  import("@docsearch/react").then((module) => ({
+  import('@docsearch/react').then((module) => ({
     default: module.DocSearch,
   })),
 )
