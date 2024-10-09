@@ -9,6 +9,11 @@ export default defineConfig({
     light: '/img/sequence-composite-light.svg',
     dark: '/img/sequence-composite-dark.svg',
   },
+  vite: {
+    ssr: {
+      noExternal: ['@docsearch/react'],
+    },
+  },
 
   // rootDir: '.',
   basePath: '/',

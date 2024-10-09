@@ -18,12 +18,12 @@ export const GuidesSection = () => (
       <GuideCard
         title="Build a web3 game with Unity"
         body="Learn how to build an engaging iOS and Android game that uses Sequence Embedded Wallets under the hood for an integrated marketplace and in-game currency."
-        link="/guides/unity-guide"
+        link="/guides/jelly-forest-unity-guide"
       />
       <GuideCard
-        title="Create web3 lootboxes"
-        body="With this tutorial, build a web-based maze where lootbox items are generated using AI and dynamically minted into the player's universal wallet."
-        link="/guides/treasure-chest-guide"
+        title="Sell your Game Items via a Webshop"
+        body="Accelerate your game growth by selling items directly to your players with a webshop leveraging Sequence sale and item contracts."
+        link="/guides/primary-sales"
       />
       <GuideCard
         title="Sequence Market"

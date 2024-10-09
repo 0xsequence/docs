@@ -209,7 +209,10 @@ export const sidebar = {
           items: [
             { text: 'Overview', link: '/solutions/wallets/sequence-kit/overview' },
             { text: 'Quickstart', link: '/solutions/wallets/sequence-kit/getting-started' },
-            { text: 'Configuration', link: '/solutions/wallets/sequence-kit/configuration' },
+            {
+              text: 'Custom Configuration',
+              link: '/solutions/wallets/sequence-kit/custom-configuration',
+            },
             { text: 'On-ramp', link: '/solutions/wallets/sequence-kit/on-ramp' },
             { text: 'Checkout', link: '/solutions/wallets/sequence-kit/checkout' },
             {
@@ -648,13 +651,28 @@ export const sidebar = {
             { text: 'Installation', link: '/sdk/unreal/installation' },
             { text: 'Upgrading', link: '/sdk/unreal/upgrading' },
             { text: 'Setup', link: '/sdk/unreal/setup' },
-            { text: 'Authentication', link: '/sdk/unreal/authentication' },
+            {
+              text: 'Authentication',
+              collapsed: false,
+              items: [
+                { text: 'Introduction', link: '/sdk/unreal/authentication/intro' },
+                { text: 'Email + OTP', link: '/sdk/unreal/authentication/email' },
+                { text: 'OIDC - Social Sign In', link: '/sdk/unreal/authentication/oidc' },
+                { text: 'PlayFab', link: '/sdk/unreal/authentication/playfab' },
+                { text: 'Guest', link: '/sdk/unreal/authentication/guest' },
+                {
+                  text: 'Federated Accounts',
+                  link: '/sdk/unreal/authentication/federated-accounts',
+                },
+              ],
+            },
             { text: 'Sequence Wallet', link: '/sdk/unreal/api' },
             { text: 'Managing Session', link: '/sdk/unreal/managing-session' },
             { text: 'Read from Blockchain', link: '/sdk/unreal/read-from-blockchain' },
             { text: 'Write to Blockchain', link: '/sdk/unreal/write-to-blockchain' },
+            { text: 'Working with Blueprint', link: '/sdk/unreal/working-with-blueprint' },
             { text: 'On-Ramp Funds via Credit Card', link: '/sdk/unreal/onboard-user-funds' },
-            { text: 'Advanced Blockchain Intereactions', link: '/sdk/unreal/advanced' },
+            { text: 'Advanced Blockchain Interactions', link: '/sdk/unreal/advanced' },
             { text: 'Packaging', link: '/sdk/unreal/packaging' },
           ],
         },
