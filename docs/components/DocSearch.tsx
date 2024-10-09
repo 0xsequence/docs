@@ -28,7 +28,7 @@ export function DocSearch(docSearchProps: DocSearchProps) {
 
   return (
     <Suspense fallback={<div className="h-9" />}>
-      <div className="-ml-4 flex flex-col">
+      <div className=".DocSearch .DocSearch-Button">
         <OriginalDocSearch {...docSearchProps} />
       </div>
     </Suspense>
