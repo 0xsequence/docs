@@ -41,6 +41,19 @@ const FFailureCallback OnFailure = [this](const FSequenceError& Error)
 // Create the Transaction object list
 TArray<TUnion<FRawTransaction, FERC20Transaction, FERC721Transaction, FERC1155Transaction, FDelayedTransaction>> Txn;
 ```
+
+### Native Token Transfer
+
+```cpp 
+FRawTransaction T;
+T.data = "0x0";
+T.to = ToAddress;
+T.value = "1";
+
+// Append the Raw Transaction
+Txn.Push(TUnion<FRawTransaction, FERC20Transaction, FERC721Transaction, FERC1155Transaction, FDelayedTransaction>(T));
+```
+
 ### ERC20 Transaction
 
 ```cpp
@@ -93,21 +106,23 @@ Txn.Push(TUnion<FRawTransaction, FERC20Transaction, FERC721Transaction, FERC1155
 *Note: if you want call contracts with the Raw type you'll want include the header #include "ABI/ABI.h" in order to use the ABI to encode the data for a contract call.*
 
 ```cpp
-// Create the Raw transaction
-FString FunctionSignature = "balanceOf(address,uint256)";
-TFixedABIData Account = ABI::Address(FAddress::From("0E0f9d1c4BeF9f0B8a2D9D4c09529F260C7758A2"));
-TFixedABIData Id = ABI::UInt32(0x01);
-TArray<ABIEncodeable*> Arr;
-Arr.Add(&Account);
-Arr.Add(&Id);
-FUnsizedData EncodedData = ABI::Encode(FunctionSignature, Arr);
-FRawTransaction T;
-T.data = "0x" + EncodedData.ToHex();
-T.to = "0x64d9f9d527abe2a1c1ce3fada98601c4ac5bfdd2";
-T.value = "0";
+void UMyClass::BurnToken(TArray<TUnion<FRawTransaction, FERC20Transaction, FERC721Transaction, FERC1155Transaction, FDelayedTransaction>> Txn, FString ContractAddress, int32 TokenId, int32 Amount)
+{
+   FString FunctionSignature = "burn(uint256,uint256)";
+   TFixedABIData ABITokenId = ABI::Int32(TokenId);
+   TFixedABIData ABIFixedAmount = ABI::Int32(Amount);
+   TArray<ABIEncodeable*> Arr;
+   Arr.Add(&ABITokenId);
+   Arr.Add(&ABIFixedAmount);
+   FUnsizedData EncodedData = ABI::Encode(FunctionSignature, Arr);
+   FRawTransaction T;
+   T.data = "0x" + EncodedData.ToHex();
+   T.to = ContractAddress;
+   T.value = "0"
 
-// Append the Raw transaction to the Txn object
-Txn.Push(TUnion<FRawTransaction, FERC20Transaction, FERC721Transaction, FERC1155Transaction, FDelayedTransaction>(T));
+   // Append the Raw Transaction
+   Txn.Push(TUnion<FRawTransaction, FERC20Transaction, FERC721Transaction, FERC1155Transaction, FDelayedTransaction>(T));
+}
 ```
 
 ### Sending the Transaction

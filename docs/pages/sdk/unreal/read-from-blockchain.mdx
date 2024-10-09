@@ -9,6 +9,43 @@ description: Documentation for Unreal SDK API for reading from the blockchain wi
 
 The [Indexer](/api/indexer/overview) is tied nicely with the wallet to allow for ease of use. One thing to note is the NetworkId you set with your wallet is the one that will be used with the Indexer. The default network we set is 137 (Polygon Mainnet). See the list of network ids supported by Sequence [here](https://status.sequence.info/).
 
+## Using USequenceWallet.h
+
+If you want to use our Indexer APIs only when the user has signed in with Sequence, you can use the Wallet class without defining the Network Id.
+
+```cpp
+// Define success and failure callbacks
+const TSuccessCallback<FEtherBalance> GenericSuccess = [=](const FEtherBalance& etherBalance) { };
+const FFailureCallback GenericFailure = [=](const FSequenceError& Error) { };
+
+// Get a reference of the user's current wallet session.
+const TOptional<USequenceWallet*> WalletOptional = USequenceWallet::Get();
+if (WalletOptional.IsSet() && WalletOptional.GetValue())
+{
+    // Example Indexer call
+	USequenceWallet * Wallet = WalletOptional.GetValue();
+	Wallet->GetEtherBalance(Wallet->GetWalletAddress(), GenericSuccess, GenericFailure);
+}
+```
+
+## Using UIndexer.h
+
+If you want to use our Indexer APIs when a user has not signed in with Sequence, create an instance of the UIndexer class.
+
+```cpp
+// Define success and failure callbacks
+const TSuccessCallback<FEtherBalance> SuccessCallback = [=](const FEtherBalance& etherBalance) { };
+const FFailureCallback GenericFailure = [=](const FSequenceError& Error) { };
+
+// Create an instance of UIndexer with example call
+const UIndexer* Indexer = NewObject<UIndexer>();
+Indexer->GetEtherBalance(137, "0x0...", SuccessCallback, FailureCallback);
+```
+
+:::warning
+Make sure that you use the correct network id for your project.
+:::
+
 ## Ping
 
 ```cpp
@@ -23,8 +60,8 @@ const FFailureCallback GenericFailure = [=](const FSequenceError& Error)
 const TOptional<USequenceWallet*> WalletOptional = USequenceWallet::Get();
 if (WalletOptional.IsSet() && WalletOptional.GetValue())
 {
-	USequenceWallet * Api = WalletOptional.GetValue();
-	Api->Ping(GenericSuccess, GenericFailure);
+	USequenceWallet * Wallet = WalletOptional.GetValue();
+	Wallet->Ping(GenericSuccess, GenericFailure);
 }
 ```
 
@@ -42,8 +79,8 @@ const FFailureCallback GenericFailure = [=](const FSequenceError& Error)
 const TOptional<USequenceWallet*> WalletOptional = USequenceWallet::Get();
 if (WalletOptional.IsSet() && WalletOptional.GetValue())
 {
-	USequenceWallet * Api = WalletOptional.GetValue();
-	Api->Version(GenericSuccess, GenericFailure);
+	USequenceWallet * Wallet = WalletOptional.GetValue();
+	Wallet->Version(GenericSuccess, GenericFailure);
 }
 ```
 
@@ -61,8 +98,8 @@ const FFailureCallback GenericFailure = [=](const FSequenceError& Error)
 const TOptional<USequenceWallet*> WalletOptional = USequenceWallet::Get();
 if (WalletOptional.IsSet() && WalletOptional.GetValue())
 {
-	USequenceWallet * Api = WalletOptional.GetValue();
-	Api->RunTimeStatus(GenericSuccess, GenericFailure);
+	USequenceWallet * Wallet = WalletOptional.GetValue();
+	Wallet->RunTimeStatus(GenericSuccess, GenericFailure);
 }
 ```
 
@@ -80,8 +117,8 @@ const FFailureCallback GenericFailure = [=](const FSequenceError& Error)
 const TOptional<USequenceWallet*> WalletOptional = USequenceWallet::Get();
 if (WalletOptional.IsSet() && WalletOptional.GetValue())
 {
-	USequenceWallet * Api = WalletOptional.GetValue();
-	Api->GetChainID(GenericSuccess, GenericFailure);
+	USequenceWallet * Wallet = WalletOptional.GetValue();
+	Wallet->GetChainID(GenericSuccess, GenericFailure);
 }
 ```
 
@@ -100,8 +137,8 @@ const FFailureCallback GenericFailure = [=](const FSequenceError& Error)
 const TOptional<USequenceWallet*> WalletOptional = USequenceWallet::Get();
 if (WalletOptional.IsSet() && WalletOptional.GetValue())
 {
-	USequenceWallet * Api = WalletOptional.GetValue();
-	Api->GetEtherBalance(Api->GetWalletAddress(), GenericSuccess, GenericFailure);
+	USequenceWallet * Wallet = WalletOptional.GetValue();
+	Wallet->GetEtherBalance(Wallet->GetWalletAddress(), GenericSuccess, GenericFailure);
 }
 ```
 
@@ -120,11 +157,11 @@ if (WalletOptional.IsSet() && WalletOptional.GetValue())
 	const TOptional<USequenceWallet*> WalletOptional = USequenceWallet::Get();
 	if (WalletOptional.IsSet() && WalletOptional.GetValue())
 	{
-		USequenceWallet * Api = WalletOptional.GetValue();
+		USequenceWallet * Wallet = WalletOptional.GetValue();
 		FGetTokenBalancesArgs args;
-		args.accountAddress = Api->GetWalletAddress();
+		args.accountAddress = Wallet->GetWalletAddress();
 		args.includeMetaData = true;
-		Api->GetTokenBalances(args, GenericSuccess, GenericFailure);
+		Wallet->GetTokenBalances(args, GenericSuccess, GenericFailure);
 	}
 ```
 
@@ -143,11 +180,11 @@ if (WalletOptional.IsSet() && WalletOptional.GetValue())
 	const TOptional<USequenceWallet*> WalletOptional = USequenceWallet::Get();
 	if (WalletOptional.IsSet() && WalletOptional.GetValue())
 	{
-		USequenceWallet * Api = WalletOptional.GetValue();
+		USequenceWallet * Wallet = WalletOptional.GetValue();
 		FGetTokenSuppliesArgs args;
 		args.contractAddress = "0x01";//Testing Contract Address in hex with leading 0x
 		args.includeMetaData = true;
-		Api->GetTokenSupplies(args, GenericSuccess, GenericFailure);
+		Wallet->GetTokenSupplies(args, GenericSuccess, GenericFailure);
 	}
 ```
 
@@ -165,14 +202,14 @@ const FFailureCallback GenericFailure = [=](const FSequenceError& Error)
 const TOptional<USequenceWallet*> WalletOptional = USequenceWallet::Get();
 if (WalletOptional.IsSet() && WalletOptional.GetValue())
 {
-	USequenceWallet * Api = WalletOptional.GetValue();    
+	USequenceWallet * Wallet = WalletOptional.GetValue();
 	TMap<FString, FTokenList> tokenMap;
 	const TPair<FString,FTokenList> item;
 	tokenMap.Add(item);
 	FGetTokenSuppliesMapArgs args;
 	args.includeMetaData = true;
 	args.tokenMap = tokenMap;
-	Api->GetTokenSuppliesMap(args, GenericSuccess, GenericFailure);
+	Wallet->GetTokenSuppliesMap(args, GenericSuccess, GenericFailure);
 }
 ```
 
@@ -191,12 +228,12 @@ const FFailureCallback GenericFailure = [=](const FSequenceError& Error)
 const TOptional<USequenceWallet*> WalletOptional = USequenceWallet::Get();
 if (WalletOptional.IsSet() && WalletOptional.GetValue())
 {
-	USequenceWallet * Api = WalletOptional.GetValue();
+	USequenceWallet * Wallet = WalletOptional.GetValue();
 	FGetBalanceUpdatesArgs args;
 	args.contractAddress = "0x0E0f9d1c4BeF9f0B8a2D9D4c09529F260C7758A2";
 	args.page.page = 10;
 	args.page.more = true;
-	Api->GetBalanceUpdates(args, GenericSuccess, GenericFailure);
+	Wallet->GetBalanceUpdates(args, GenericSuccess, GenericFailure);
 }
 ```
 
@@ -215,12 +252,12 @@ const FFailureCallback GenericFailure = [=](const FSequenceError& Error)
 const TOptional<USequenceWallet*> WalletOptional = USequenceWallet::Get();
 if (WalletOptional.IsSet() && WalletOptional.GetValue())
 {
-	USequenceWallet * Api = WalletOptional.GetValue();
+	USequenceWallet * Wallet = WalletOptional.GetValue();
 	FGetTransactionHistoryArgs args;
-	args.filter.accountAddress = Api->GetWalletAddress();
+	args.filter.accountAddress = Wallet->GetWalletAddress();
 	args.includeMetaData = true;
 	args.page.page = 0;
 	args.page.more = true;    
-	Api->GetTransactionHistory(args, GenericSuccess, GenericFailure);
+	Wallet->GetTransactionHistory(args, GenericSuccess, GenericFailure);
 }
 ```
