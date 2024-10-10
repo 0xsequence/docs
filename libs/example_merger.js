@@ -1,20 +1,20 @@
 import * as fs from 'fs';
+import path from 'path';
 import * as yaml from 'js-yaml';
+import yargs from 'yargs'
+import { hideBin } from 'yargs/helpers'
 
-// Load OpenAPI Document
 const loadOpenAPIDocument = (filePath) => {
     const file = fs.readFileSync(filePath, 'utf8');
     return yaml.load(file);
 };
 
-// Save OpenAPI Document
 const saveOpenAPIDocument = (filePath, document) => {
     const yamlStr = yaml.dump(document);
     fs.writeFileSync(filePath, yamlStr, 'utf8');
     console.log('OpenAPI document updated with examples!');
 };
 
-// Add Examples to the Document
 const addExamplesToOpenAPI = (doc, examples) => {
     for (let [endpoint, value] of Object.entries(examples)) {
         const path = doc.paths[endpoint];
@@ -35,18 +35,26 @@ const addExamplesToOpenAPI = (doc, examples) => {
     }
 };
 
-export const merge = () => {
-    // Load the OpenAPI document
-    let openAPIDoc = loadOpenAPIDocument('/home/lj/Projects/Sequence/docs/docs/pages/api/marketplace/marketplace.gen.yaml');
+export const merge = (openApiFilepath) => {
+    // /docs/pages/api/marketplace/marketplace.gen.yaml
+    let openAPIDoc = loadOpenAPIDocument(openApiFilepath);
 
-    const examples = JSON.parse(fs.readFileSync('/home/lj/Projects/Sequence/docs/docs/pages/api/marketplace/examples.json').toString());
+    const dir = path.dirname(openApiFilepath);
 
-    // Modify the document to add examples
-    addExamplesToOpenAPI(openAPIDoc, examples);
+    // expect to live inside same directory as generated openapi
+    // /docs/pages/api/marketplace/examples.json
+    const examplesPath = path.join(dir, 'examples.json');
 
-    // Save the modified document
-    saveOpenAPIDocument('/home/lj/Projects/Sequence/docs/docs/pages/api/marketplace/marketplace.gen.yaml', openAPIDoc);
+    const reqResponseExamples = JSON.parse(fs.readFileSync(examplesPath).toString());
+
+    addExamplesToOpenAPI(openAPIDoc, reqResponseExamples);
+
+    saveOpenAPIDocument(openApiFilepath, openAPIDoc);
 };
 
-
-merge()
+yargs(hideBin(process.argv))
+    .command('merge <input>', 'merge request/response examples with generated openapi document', () => {}, (argv) => {
+        merge(argv.input)
+    })
+    .demandCommand(1)
+    .parse()
