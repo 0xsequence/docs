@@ -5,14 +5,24 @@ import yargs from 'yargs'
 import { hideBin } from 'yargs/helpers'
 
 const loadOpenAPIDocument = (filePath) => {
-    const file = fs.readFileSync(filePath, 'utf8');
-    return yaml.load(file);
+    try {
+        const file = fs.readFileSync(filePath, 'utf8');
+        return yaml.load(file);
+    } catch (error) {
+        console.error(`Error loading OpenAPI document from ${filePath}:`, error);
+        throw error;
+    }
 };
 
 const saveOpenAPIDocument = (filePath, document) => {
-    const yamlStr = yaml.dump(document);
-    fs.writeFileSync(filePath, yamlStr, 'utf8');
-    console.log('OpenAPI document updated with examples!');
+    try {
+        const yamlStr = yaml.dump(document);
+        fs.writeFileSync(filePath, yamlStr, 'utf8');
+        console.log('OpenAPI document updated with examples!');
+    } catch (error) {
+        console.error(`Error saving OpenAPI document to ${filePath}:`, error);
+        throw error;
+    }
 };
 
 const addExamplesToOpenAPI = (doc, examples) => {
