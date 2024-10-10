@@ -1,9 +1,9 @@
 name: Merge openapi request response examples
 
 on:
-  push:
-    branches:
-      - master
+  pull_request:
+    paths:
+      - "docs/pages/api/marketplace/marketplace.gen.yaml"
 
 jobs:
   build:
@@ -14,3 +14,37 @@ jobs:
         uses: actions/checkout@v4
         with:
           lfs: true
+
+      - name: Install dependencies
+        run: |
+          npm install -g pnpm@8.15.4
+          pnpm install
+
+      # Step 3: Get the list of changed files
+      - name: Get changed files
+        id: changes
+        run: |
+          git fetch origin ${{ github.base_ref }}
+          # List only the files that have changed between the current commit and the previous one
+          git diff --name-only origin/master | grep '\.gen\.yaml$' > changed_files.txt
+          echo "Changed files:"
+          cat changed_files.txt
+          # Save the changed files to an output to be used later
+          echo "::set-output name=files::$(cat changed_files.txt | tr '\n' ' ')"
+
+      - name: Merge request and responses
+        run: |
+          echo ${{ steps.changes.outputs.files }}
+          # Read the changed files from the previous step
+          node libs/example_merger.js merge ${{ steps.changes.outputs.files }}
+
+      - name: Push changes
+        uses: 0xsequence/actions/git-commit@master
+        env:
+          API_TOKEN_GITHUB: ${{ secrets.GH_TOKEN_GIT_COMMIT }}
+        with:
+          src: ${{ steps.changes.outputs.files }}
+          dst: 'docs/pages/api/marketplace/'
+          branch: 'marketplace_docs'
+          pr_create: false
+

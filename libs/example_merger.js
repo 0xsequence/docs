@@ -53,8 +53,11 @@ export const merge = (openApiFilepath) => {
 };
 
 yargs(hideBin(process.argv))
-    .command('merge <input>', 'merge request/response examples with generated openapi document', () => {}, (argv) => {
-        merge(argv.input)
+    .command('merge <input...>', 'merge request/response examples with generated openapi document', () => {}, (argv) => {
+        argv.input.forEach((filePath) => {
+            merge(filePath)
+            console.log(filePath, "updated")
+        })
     })
     .demandCommand(1)
     .parse()
