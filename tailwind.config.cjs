@@ -2,7 +2,7 @@
 module.exports = {
   content: ['./docs/**/*.{js,ts,jsx,tsx,md,mdx}'],
   darkMode: 'class',
-  important: true,
+  // important: true,
   theme: {
     extend: {
       fontFamily: {

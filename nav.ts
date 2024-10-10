@@ -842,6 +842,8 @@ export const sidebar = {
       collapsed: false,
       items: [
         { text: 'Overview', link: '/api/marketplace/overview' },
+        { text: 'Endpoints', link: '/api/marketplace/endpoints' },
+
         // { text: 'Schema', link: '/api/marketplace/schema' },
         // { text: 'Marketplace API', link: '/api/marketplace/api' },
         {
