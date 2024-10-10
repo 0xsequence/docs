@@ -26,16 +26,13 @@ jobs:
           git fetch origin ${{ github.base_ref }}
           # List only the files that have changed between the current commit and the previous one
           git diff --name-only origin/master | grep '\.gen\.yaml$' > changed_files.txt
-          echo "Changed files:"
-          cat changed_files.txt
           # Save the changed files to an output to be used later
           echo "::set-output name=files::$(cat changed_files.txt | tr '\n' ' ' | sed -e 's/\ *$//g')"
           echo "::set-output name=dirs::$(cat changed_files.txt | xargs -n 1 dirname | sort -u | tr '\n' ' ' | sed -e 's/\ *$//g')"
           rm changed_files.txt
+
       - name: Merge request and responses
         run: |
-          echo ${{ steps.changes.outputs.files }}
-          echo ${{ steps.changes.outputs.dirs }}
           # Read the changed files from the previous step
           node libs/example_merger.js merge ${{ steps.changes.outputs.files }}
 
