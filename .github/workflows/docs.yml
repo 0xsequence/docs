@@ -29,10 +29,9 @@ jobs:
           echo "Changed files:"
           cat changed_files.txt
           # Save the changed files to an output to be used later
-          echo "::set-output name=files::$(cat changed_files.txt | tr '\n' ' ')"
-          echo "::set-output name=dirs::$(cat changed_files.txt | xargs -n 1 dirname | sort -u | tr '\n' ' ')"
+          echo "::set-output name=files::$(cat changed_files.txt | tr '\n' ' ' | sed -e 's/\ *$//g')"
+          echo "::set-output name=dirs::$(cat changed_files.txt | xargs -n 1 dirname | sort -u | tr '\n' ' ' | sed -e 's/\ *$//g')"
           rm changed_files.txt
-
       - name: Merge request and responses
         run: |
           echo ${{ steps.changes.outputs.files }}
