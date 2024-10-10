@@ -45,11 +45,24 @@ export const merge = (openApiFilepath) => {
     // /docs/pages/api/marketplace/examples.json
     const examplesPath = path.join(dir, 'examples.json');
 
+<<<<<<< HEAD
     const reqResponseExamples = JSON.parse(fs.readFileSync(examplesPath).toString());
 
     addExamplesToOpenAPI(openAPIDoc, reqResponseExamples);
 
     saveOpenAPIDocument(openApiFilepath, openAPIDoc);
+=======
+    // do nothing if examples.json file does not exist
+    if (fs.existsSync(examplesPath)) {
+        const reqResponseExamples = JSON.parse(fs.readFileSync(examplesPath).toString());
+
+        addExamplesToOpenAPI(openAPIDoc, reqResponseExamples);
+
+        saveOpenAPIDocument(openApiFilepath, openAPIDoc);
+    } else {
+        console.log(examplesPath, "does not exist")
+    }
+>>>>>>> origin/request_response_examples
 };
 
 yargs(hideBin(process.argv))
