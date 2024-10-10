@@ -1,14 +1,14 @@
-name: Merge openapi request response examples
+name: Docs
 
 on:
   pull_request:
     paths:
-      - "docs/pages/api/marketplace/marketplace.gen.yaml"
+      - "**/*.gen.yaml"
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    name: Build and Push
+    name: Merge request && response examples
     steps:
       - name: git-checkout
         uses: actions/checkout@v4
@@ -20,7 +20,6 @@ jobs:
           npm install -g pnpm@8.15.4
           pnpm install
 
-      # Step 3: Get the list of changed files
       - name: Get changed files
         id: changes
         run: |
@@ -31,10 +30,13 @@ jobs:
           cat changed_files.txt
           # Save the changed files to an output to be used later
           echo "::set-output name=files::$(cat changed_files.txt | tr '\n' ' ')"
+          echo "::set-output name=dirs::$(cat changed_files.txt | xargs -n 1 dirname | sort -u | tr '\n' ' ')"
+          rm changed_files.txt
 
       - name: Merge request and responses
         run: |
           echo ${{ steps.changes.outputs.files }}
+          echo ${{ steps.changes.outputs.dirs }}
           # Read the changed files from the previous step
           node libs/example_merger.js merge ${{ steps.changes.outputs.files }}
 
@@ -44,7 +46,8 @@ jobs:
           API_TOKEN_GITHUB: ${{ secrets.GH_TOKEN_GIT_COMMIT }}
         with:
           src: ${{ steps.changes.outputs.files }}
-          dst: 'docs/pages/api/marketplace/'
-          branch: 'marketplace_docs'
+          dst: ${{ steps.changes.outputs.dirs }}
+          branch: ${{ github.head_ref }}
+          ## since openapi docs are generated and PR is automatically created there is no need to try create new one
           pr_create: false
 
