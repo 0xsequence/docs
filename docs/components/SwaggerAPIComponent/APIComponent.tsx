@@ -11,7 +11,7 @@ const importSpec = async (specType) => {
       return (await import('./output/indexer-openapi.json')).default
     case 'marketplace':
       return (await import('../../../docs/pages/api/marketplace/marketplace.gen.yaml')).default
- 
+
     // Add more cases for other spec types as needed
     default:
       throw new Error(`Invalid spec type: ${specType}`)
