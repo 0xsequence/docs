@@ -1,0 +1,49 @@
+name: Docs
+
+on:
+  pull_request:
+    paths:
+      - "**/*.gen.yaml"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    name: Merge request && response examples
+    steps:
+      - name: git-checkout
+        uses: actions/checkout@v4
+        with:
+          lfs: true
+
+      - name: Install dependencies
+        run: |
+          npm install -g pnpm@8.15.4
+          pnpm install
+
+      - name: Get changed files
+        id: changes
+        run: |
+          git fetch origin ${{ github.base_ref }}
+          # List only the files that have changed between the current commit and the previous one
+          git diff --name-only origin/master | grep '\.gen\.yaml$' > changed_files.txt
+          # Save the changed files to an output to be used later
+          echo "::set-output name=files::$(cat changed_files.txt | tr '\n' ' ' | sed -e 's/\ *$//g')"
+          echo "::set-output name=dirs::$(cat changed_files.txt | xargs -n 1 dirname | sort -u | tr '\n' ' ' | sed -e 's/\ *$//g')"
+          rm changed_files.txt
+
+      - name: Merge request and responses
+        run: |
+          # Read the changed files from the previous step
+          node libs/example_merger.js merge ${{ steps.changes.outputs.files }}
+
+      - name: Push changes
+        uses: 0xsequence/actions/git-commit@master
+        env:
+          API_TOKEN_GITHUB: ${{ secrets.GH_TOKEN_GIT_COMMIT }}
+        with:
+          src: ${{ steps.changes.outputs.files }}
+          dst: "${{ steps.changes.outputs.dirs }}/"
+          branch: ${{ github.head_ref }}
+          ## since openapi docs are generated and PR is automatically created there is no need to try create new one
+          pr_create: false
+
