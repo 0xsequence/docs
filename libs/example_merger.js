@@ -26,21 +26,29 @@ const saveOpenAPIDocument = (filePath, document) => {
 };
 
 const addExamplesToOpenAPI = (doc, examples) => {
-    for (let [endpoint, value] of Object.entries(examples)) {
+    for (let [endpoint, example] of Object.entries(examples)) {
         const path = doc.paths[endpoint];
+        if (!path) {
+            console.warn(path, "not defined in examples")
+            continue
+        }
 
-        if (path) {
-            if (value["request"] && Object.keys(value["request"]).length > 0) {
+        for (let [exampleName, ex] of Object.entries(example)) {
+            if (ex["request"] && Object.keys(ex["request"]).length > 0) {
                 const response = path.post.requestBody;
-                response.content['application/json']['example'] = value["request"];
+                response.content['application/json']['examples'] = {}
+                response.content['application/json']['examples'][exampleName] = {}
+                response.content['application/json']['examples'][exampleName]["value"] = ex["request"];
+                response.content['application/json']['examples'][exampleName]["summary"] = ex["summary"];
             }
 
-            if (value["response"] && Object.keys(value["response"]).length > 0) {
+            if (ex["response"] && Object.keys(ex["response"]).length > 0) {
                 const response = path.post.responses['200'];
-                response.content['application/json']['example'] = value["response"];
+                response.content['application/json']['examples'] = {}
+                response.content['application/json']['examples'][exampleName] = {}
+                response.content['application/json']['examples'][exampleName]["value"] = ex["response"];
+                response.content['application/json']['examples'][exampleName]["summary"] = ex["summary"];
             }
-        } else {
-            console.error("non existent endpoint", endpoint)
         }
     }
 };
