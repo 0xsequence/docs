@@ -83,10 +83,93 @@ When you're ready, replace the contents of `.env` with your project's informatio
 
 </div>
 
+## How to use this repository
 
-## Configure your own Primary Sales Contracts in the repository
+This repository covers three key concepts: first, the creation of placeholders; second, the sale of those placeholders; and finally, the reveal phase, where the placeholders are unveiled, revealing their true characteristics.
 
-We provide a few example contracts and variables in order to get you started. However, you will likely wnat to use your own contracts. In order to configure this simply following the steps below:
+### Placeholders creation
+
+This guide explains how to create placeholders for your NFT collection using a POST request. Follow the steps carefully, ensuring that your collection is properly set up, and you have its ID copied from the URL in the collection details view.
+
+#### Endpoint:
+
+```bash
+POST /create-placeholders
+```
+
+#### Headers:
+
+| Header        | Value                        |
+|---------------|------------------------------|
+| Authorization | `Bearer ${password}`         |
+
+#### Body Parameters:
+
+*  quantity: `number` – Total number of placeholders to create.
+*  startTokenId: `number` – Initial token ID. Should always be 0 unless specified otherwise.
+*  collectionId: `string` – The unique ID of the NFT collection.
+
+#### Call api Example in Typescript
+
+```ts
+interface PlaceholderRequest {
+  quantity: number;
+  startTokenId: number;
+  collectionId: string;
+}
+
+async function createPlaceholders(
+  apiBaseUrl: string,
+  password: string,
+  data: PlaceholderRequest
+): Promise<void> {
+  try {
+    const response = await fetch(`${apiBaseUrl}/create-placeholders`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${password}`
+      },
+      body: JSON.stringify(data)
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(`Error: ${error.message}`);
+    }
+
+    console.log('Placeholders created successfully.');
+  } catch (error) {
+    console.error('Failed to create placeholders:', error);
+  }
+}
+
+// Example usage:
+const apiBaseUrl = 'https://your-api-url.com';
+const password = 'your-secure-password';
+const requestData: PlaceholderRequest = {
+  quantity: 10,
+  startTokenId: 0,
+  collectionId: 'your-collection-id'
+};
+
+createPlaceholders(apiBaseUrl, password, requestData);
+```
+
+### Project Connection Flow and ERC721 Sales Contract Setup
+
+From this point, you need to complete the entire connection flow for your project and set up the ERC721 sales contract, which will be linked to the collection containing the placeholders.
+
+#### Important Considerations:
+
+* The primary sales contract must have the same stock as the number of placeholders you created via the endpoint.
+* For example, if you generated 300 placeholders, you should configure 300 units of stock in the sales contract to ensure consistency between the contract and the placeholders.
+* Link the Collection with Placeholders to the Contract.
+* Ensure the total supply or stock in your ERC721 sales contract matches the number of placeholders. This avoids inconsistencies between what the contract offers for sale and the placeholders available.
+
+### Configure your own Primary Sales Contracts in the repository
+
+We provide a few example contracts and variables to get you started. However, you will likely want to use your own contracts. To configure this, simply follow the steps below:
 
 ::::steps
 ### Deploy a Primary Sales Contract in Sequence Builder.
@@ -125,6 +208,68 @@ export const defaultChainId = 80002;
 Your primary drop sale should now appear and function correctly from this point onward. In order to make a purchase, ensure you have the corresponding token that you set as a currency for the sale in your wallet, increment the amount, and click purchase!
 ::::
 
-## How to use this repository
 
-This repository covers three key concepts: first, the creation of placeholders; second, the sale of those placeholders; and finally, the reveal phase, where the placeholders are unveiled, revealing their true characteristics.
+### Reveal placeholders
+
+This endpoint will reveal all the placeholders and assign all their actual values to the NFTs. These actual values are generated randomly. You can modify this endpoint to create the metadata as you wish.
+
+Before this step, you should disable your primary sales by setting an expiration date and/or waiting for the stock in the contract to run out (required). After that, you can call the following endpoint:
+
+#### Endpoint:
+
+```bash
+PUT /update-metadatas
+```
+
+#### Headers:
+
+| Header        | Value                        |
+|---------------|------------------------------|
+| Authorization | `Bearer ${password}`         |
+
+#### Body Parameters:
+
+*  collectionId: `string` – The unique ID of the NFT collection.
+
+#### Call api Example in Typescript
+
+```ts
+interface UpdateMetadataRequest {
+  collectionId: number;
+}
+
+async function updateMetadatas(
+  apiBaseUrl: string,
+  password: string,
+  data: UpdateMetadataRequest
+): Promise<void> {
+  try {
+    const response = await fetch(`${apiBaseUrl}/update-metadatas`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${password}`
+      },
+      body: JSON.stringify(data)
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(`Error: ${error.message}`);
+    }
+
+    console.log('Metadatas updated successfully.');
+  } catch (error) {
+    console.error('Failed to update metadatas:', error);
+  }
+}
+
+// Example usage:
+const apiBaseUrl = 'https://your-api-url.com';
+const password = 'your-secure-password';
+const requestData: UpdateMetadataRequest = {
+  collectionId: 12345
+};
+
+updateMetadatas(apiBaseUrl, password, requestData);
+```
