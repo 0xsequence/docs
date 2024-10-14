@@ -487,7 +487,7 @@ export const sidebar = {
           link: '/guides/building-transaction-heavy-games-with-unity',
         },
         {
-          text: 'Integrate Sequence Into Your Unreal Project',
+          text: 'How to build a Game with Unreal Engine',
           collapsed: true,
           link: '/guides/unreal-ew-guide',
         },
@@ -564,11 +564,6 @@ export const sidebar = {
           //   { text: 'Order Accepting', link: '/guides/custom-marketplace#6-order-accepting' },
           //   { text: '(Optional) Enable Embedded Wallet', link: '/guides/custom-marketplace#7-optional-integrate-embedded-wallet-into-sequence-kit' },
           // ]
-        },
-        {
-          text: 'Integrate Primary Sales in Unity & Unreal',
-          collapsed: true,
-          link: '/guides/game-primary-sales-guide',
         },
         {
           text: 'Sell your Game Items via a Web Shop',
