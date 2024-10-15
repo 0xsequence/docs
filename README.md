@@ -13,6 +13,17 @@ In order to run the authentication, if needed, you will need to setup a cors-any
 docker run -d -p 8080:8080 --dns 1.1.1.1 --name cors-anywhere redocly/cors-anywhere
 ```
 
+### Update openapi docs
+
+When you update examples in any of the existing `docs/pages/api/**/examples.json` which updates openapi request/response 
+examples.
+
+You have to run this command to propagate those changes to openapi document.
+
+```
+pnpm run update-examples
+```
+
 ## 
 
 In production, we leverage github actions to deploy a workflow and deploy automatically to github pages via the build branch.
