@@ -811,6 +811,7 @@ export const sidebar = {
       collapsed: false,
       items: [
         { text: 'Overview', link: '/api/analytics/overview' },
+        { text: 'Endpoints', link: '/api/metadata/endpoints' },
         {
           text: 'Examples',
           collapsed: false,
@@ -826,6 +827,7 @@ export const sidebar = {
       collapsed: false,
       items: [
         { text: 'Overview', link: '/api/metadata/overview' },
+        { text: 'Endpoints', link: '/api/metadata/endpoints' },
         {
           text: 'Examples',
           collapsed: false,
