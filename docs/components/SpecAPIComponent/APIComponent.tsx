@@ -7,15 +7,15 @@ import '@scalar/api-reference-react/style.css'
 const importSpec = async (specType: any) => {
   switch (specType) {
     case 'analytics':
-      return (await import('./output/analytics-openapi.json')).default
+      return (await import('../../../docs/pages/api/analytics/indexer.gen.yaml')).default
     case 'indexer':
-      return (await import('./output/indexer-openapi.json')).default
+      return (await import('../../../docs/pages/api/indexer/indexer.gen.yaml')).default
     case 'marketplace':
-      return (await import('./output/marketplace-openapi.json')).default
+      return (await import('../../../docs/pages/api/marketplace/marketplace.gen.yaml')).default
     case 'metadata':
-      return (await import('./output/metadata-openapi.json')).default
+      return (await import('../../../docs/pages/api/metadata/metadata.gen.yaml')).default
     case 'transactions':
-      return (await import('./output/relayer-openapi.json')).default
+      return (await import('../../../docs/pages/api/transactions/transactions.gen.yaml')).default
 
     // Add more cases for other spec types as needed
     default:
