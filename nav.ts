@@ -490,6 +490,11 @@ export const sidebar = {
           link: '/guides/building-transaction-heavy-games-with-unity',
         },
         {
+          text: 'How to sell On-Chain Items in your Unreal Project',
+          collapsed: true,
+          link: '/guides/unreal-primary-sales',
+        },
+        {
           text: 'Build a Collectible Minting Service',
           collapsed: true,
           link: '/guides/mint-collectibles-serverless',
