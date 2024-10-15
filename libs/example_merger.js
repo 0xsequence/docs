@@ -1,5 +1,5 @@
-import * as fs from 'fs'
-import path from 'path'
+import * as fs from 'node:fs'
+import path from 'node:path'
 import * as yaml from 'js-yaml'
 import yargs from 'yargs'
 import { hideBin } from 'yargs/helpers'
@@ -16,28 +16,28 @@ const saveOpenAPIDocument = (filePath, document) => {
 }
 
 const addExamplesToOpenAPI = (doc, examples) => {
-  for (let [endpoint, example] of Object.entries(examples)) {
+  for (const [endpoint, example] of Object.entries(examples)) {
     const path = doc.paths[endpoint]
     if (!path) {
       console.warn(path, 'not defined in examples')
       continue
     }
 
-    for (let [exampleName, ex] of Object.entries(example)) {
-      if (ex['request'] && Object.keys(ex['request']).length > 0) {
+    for (const [exampleName, ex] of Object.entries(example)) {
+      if (ex.request && Object.keys(ex.request).length > 0) {
         const response = path.post.requestBody
-        response.content['application/json']['examples'] = {}
-        response.content['application/json']['examples'][exampleName] = {}
-        response.content['application/json']['examples'][exampleName]['value'] = ex['request']
-        response.content['application/json']['examples'][exampleName]['summary'] = ex['summary']
+        response.content['application/json'].examples = {}
+        response.content['application/json'].examples[exampleName] = {}
+        response.content['application/json'].examples[exampleName].value = ex.request
+        response.content['application/json'].examples[exampleName].summary = ex.summary
       }
 
-      if (ex['response'] && Object.keys(ex['response']).length > 0) {
+      if (ex.response && Object.keys(ex.response).length > 0) {
         const response = path.post.responses['200']
-        response.content['application/json']['examples'] = {}
-        response.content['application/json']['examples'][exampleName] = {}
-        response.content['application/json']['examples'][exampleName]['value'] = ex['response']
-        response.content['application/json']['examples'][exampleName]['summary'] = ex['summary']
+        response.content['application/json'].examples = {}
+        response.content['application/json'].examples[exampleName] = {}
+        response.content['application/json'].examples[exampleName].value = ex.response
+        response.content['application/json'].examples[exampleName].summary = ex.summary
       }
     }
   }
@@ -45,7 +45,7 @@ const addExamplesToOpenAPI = (doc, examples) => {
 
 export const merge = (openApiFilepath) => {
   // /docs/pages/api/marketplace/marketplace.gen.yaml
-  let openAPIDoc = loadOpenAPIDocument(openApiFilepath)
+  const openAPIDoc = loadOpenAPIDocument(openApiFilepath)
 
   const dir = path.dirname(openApiFilepath)
 
