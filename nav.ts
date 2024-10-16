@@ -569,6 +569,11 @@ export const sidebar = {
           collapsed: true,
           link: '/guides/primary-sales',
         },
+        {
+          text: 'Create NFT Drop Sale',
+          collapsed: true,
+          link: '/guides/primary-drop-sales',
+        },
       ],
     },
     // {
