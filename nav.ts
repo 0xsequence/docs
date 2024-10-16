@@ -35,6 +35,7 @@ export const topNav = [
     items: [
       { text: 'Unity', link: '/sdk/unity/overview', match: '/sdk/unity/overview' },
       { text: 'Unreal', link: '/sdk/unreal/overview', match: '/sdk/unreal/overview' },
+      { text: 'React', link: '/solutions/wallets/sequence-kit/overview', match: '/solutions/wallets/sequence-kit/overview' },
       {
         text: 'Typescript',
         link: '/sdk/typescript/guides/overview',
