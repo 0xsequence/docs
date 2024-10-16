@@ -7,7 +7,8 @@ import '@scalar/api-reference-react/style.css'
 const importSpec = async (specType: any) => {
   switch (specType) {
     case 'analytics':
-      return (await import('../../../docs/pages/api/analytics/indexer.gen.yaml')).default
+      // need to change to analytics once deployed
+      return (await import('../../../docs/pages/api/indexer/indexer.gen.yaml')).default
     case 'indexer':
       return (await import('../../../docs/pages/api/indexer/indexer.gen.yaml')).default
     case 'marketplace':
@@ -15,7 +16,8 @@ const importSpec = async (specType: any) => {
     case 'metadata':
       return (await import('../../../docs/pages/api/metadata/metadata.gen.yaml')).default
     case 'transactions':
-      return (await import('../../../docs/pages/api/transactions/transactions.gen.yaml')).default
+      // need to change to transactions once deployed
+      return (await import('../../../docs/pages/api/indexer/indexer.gen.yaml')).default
 
     // Add more cases for other spec types as needed
     default:
