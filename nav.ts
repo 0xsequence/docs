@@ -764,7 +764,7 @@ export const sidebar = {
       items: [
         { text: 'Overview', link: '/api/transactions/overview' },
         { text: 'Installation', link: '/api/transactions/installation' },
-        { text: 'Endpoints', link: '/api/transactions/endpoints' },
+        // { text: 'Endpoints', link: '/api/transactions/endpoints' },
         {
           text: 'Examples',
           collapsed: false,
@@ -813,7 +813,7 @@ export const sidebar = {
       collapsed: false,
       items: [
         { text: 'Overview', link: '/api/analytics/overview' },
-        { text: 'Endpoints', link: '/api/analytics/endpoints' },
+        // { text: 'Endpoints', link: '/api/analytics/endpoints' },
         {
           text: 'Examples',
           collapsed: false,
