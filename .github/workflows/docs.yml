@@ -1,0 +1,32 @@
+name: Docs
+on:
+  pull_request:
+    paths:
+      - "**/examples.json"
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    name: Merge request && response examples
+    steps:
+      - name: git-checkout
+        uses: actions/checkout@v4
+        with:
+          lfs: true
+      - name: Install dependencies
+        run: |
+          npm install -g pnpm@8.15.4
+          pnpm install
+      - name: Merge request and responses
+        run: |
+          # Read the changed files from the previous step
+          node libs/example_merger.js merge docs/pages/api/indexer/indexer.gen.yaml  docs/pages/api/metadata/metadata.gen.yaml docs/pages/api/marketplace/marketplace.gen.yaml
+      - name: Push changes
+        uses: 0xsequence/actions/git-commit@master
+        env:
+          API_TOKEN_GITHUB: ${{ secrets.GH_TOKEN_GIT_COMMIT }}
+        with:
+          src: "docs/pages/api/**/*.gen.yaml"
+          branch: ${{ github.head_ref }}
+          ## since openapi docs are generated and PR is automatically created there is no need to try create new one
+          pr_create: false
+          overwrite: true
