@@ -2106,7 +2106,7 @@ components:
       type: object
       properties:
         balance:
-          $ref: '#/components/schemas/TokenBalance'
+          $ref: '#/components/scGetTokenSupplieshemas/TokenBalance'
 paths:
   /rpc/Indexer/GetEtherBalance:
     post:
@@ -2120,6 +2120,11 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/Indexer_GetEtherBalance_Request'
+            examples:
+              '0':
+                value:
+                  accountAddress: '0x8e3e38fe7367dd3b52d1e281e4e8400447c8d8b9'
+                summary: Get Ether balance for an account
       responses:
         '200':
           description: OK
@@ -2127,6 +2132,13 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Indexer_GetEtherBalance_Response'
+              examples:
+                '0':
+                  value:
+                    balance:
+                      accountAddress: '0x8e3e38fe7367dd3b52d1e281e4e8400447c8d8b9'
+                      balanceWei: '9429929734634710350'
+                  summary: Get Ether balance for an account
         4XX:
           description: Client error
           content:
@@ -2476,6 +2488,11 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/Indexer_GetTokenSupplies_Request'
+            examples:
+              '0':
+                value:
+                  contractAddress: '0x369db37255c76aec060d070eabeb0661e51a42a9'
+                summary: Get token supplies for a contract
       responses:
         '200':
           description: OK
@@ -2483,6 +2500,18 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Indexer_GetTokenSupplies_Response'
+              examples:
+                '0':
+                  value:
+                    page:
+                      pageSize: 200
+                      more: false
+                    contractType: ERC1155
+                    tokenIDs:
+                      - tokenID: '0'
+                        supply: '9'
+                        chainId: 1
+                  summary: Get token supplies for a contract
         4XX:
           description: Client error
           content:
@@ -2589,6 +2618,12 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/Indexer_GetBalanceUpdates_Request'
+            examples:
+              '0':
+                value:
+                  contractAddress: '0x369db37255c76aec060d070eabeb0661e51a42a9'
+                  lastBlockNumber: 0
+                summary: Get balance updates for a contract
       responses:
         '200':
           description: OK
@@ -2596,6 +2631,59 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Indexer_GetBalanceUpdates_Response'
+              examples:
+                '0':
+                  value:
+                    page:
+                      pageSize: 200
+                      more: false
+                    balances:
+                      - contractType: ERC1155
+                        contractAddress: '0x369db37255c76aec060d070eabeb0661e51a42a9'
+                        accountAddress: '0xc48835421ce2651bc5f78ee59d1e10244753c7fc'
+                        tokenID: '0'
+                        balance: '8'
+                        blockHash: >-
+                          0x4db688b03de5804dd6e916ebafbc687aa3196c99288fbc63698e92c855400ff3
+                        blockNumber: 20126805
+                        chainId: 1
+                      - contractType: ERC1155
+                        contractAddress: '0x369db37255c76aec060d070eabeb0661e51a42a9'
+                        accountAddress: ''
+                        tokenID: '0'
+                        balance: '9'
+                        blockHash: >-
+                          0xd5e2e041f9d292b25076a512e198d183a55d21440be15e9869c0b1b7d9b179f5
+                        blockNumber: 20363254
+                        chainId: 1
+                      - contractType: ERC1155
+                        contractAddress: '0x369db37255c76aec060d070eabeb0661e51a42a9'
+                        accountAddress: '0x0000000000000000000000000000000000000000'
+                        tokenID: '0'
+                        balance: '-9'
+                        blockHash: >-
+                          0xd5e2e041f9d292b25076a512e198d183a55d21440be15e9869c0b1b7d9b179f5
+                        blockNumber: 20363254
+                        chainId: 1
+                      - contractType: ERC1155
+                        contractAddress: '0x369db37255c76aec060d070eabeb0661e51a42a9'
+                        accountAddress: '0xbabebe9fe973a5735d486bf6d31e9a027248024e'
+                        tokenID: '0'
+                        balance: '1'
+                        blockHash: >-
+                          0x080ea6171f82705555cd1248f73ce1d61dbcbd68f5eefab44b64dec2293a695f
+                        blockNumber: 20692108
+                        chainId: 1
+                      - contractType: ERC1155
+                        contractAddress: '0x369db37255c76aec060d070eabeb0661e51a42a9'
+                        accountAddress: '0xe6eb28398ccbe46aa505b62b96822c2ce8daabf4'
+                        tokenID: '0'
+                        balance: '0'
+                        blockHash: >-
+                          0x080ea6171f82705555cd1248f73ce1d61dbcbd68f5eefab44b64dec2293a695f
+                        blockNumber: 20692108
+                        chainId: 1
+                  summary: Get balance updates for a contract
         4XX:
           description: Client error
           content:
@@ -2644,6 +2732,11 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/Indexer_GetTransactionHistory_Request'
+            examples:
+              '0':
+                value:
+                  accountAddress: '0xe6eb28398ccbe46aa505b62b96822c2ce8daabf4'
+                summary: Get transaction history for an account
       responses:
         '200':
           description: OK
@@ -2651,6 +2744,90 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Indexer_GetTransactionHistory_Response'
+              examples:
+                '0':
+                  value:
+                    page:
+                      after: >-
+                        rmExGgC37OVhMnhCMHhiMjMzM2NlNDliNzlmMzcyOGUwYWFjNzNlNGMwNzYzYmVjODBlYmVmZGViZWZlOWU1ZDVmZGNiNWVmNzMyZWE2YTN4KjB4ZTZlYjI4Mzk4Y2NiZTQ2YWE1MDViNjJiOTY4MjJjMmNlOGRhYWJmNGE0eCoweGRkOTAxMjY4NTY5NTdhYTFlOWM1Y2MzMzk1ZTg2NmI2ZWI4MzBhNDRhNQJhNngqMHgwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwYTd4KjB4ZTZlYjI4Mzk4Y2NiZTQ2YWE1MDViNjJiOTY4MjJjMmNlOGRhYWJmNGE4eEIweDJkNmFiZmE1MTI2NDRmYzVjMjY2Nzk2ZTg4MzMxYmY0MWNhZDc1YWFlMjE4ZDQxODk0ODU1MzU4ZDhjODlhMGRhOQBhYQFhYmBhZIFDIjAiYWWBRCI2MiJhYxpm6I0N
+                      pageSize: 10
+                      more: true
+                    transactions:
+                      - txnHash: >-
+                          0x64628263b93ccad7dfd6fb1a81f1bcdadd0eb89649e0a43bdf65f639fddcd319
+                        blockNumber: 12215569
+                        blockHash: >-
+                          0x05a4b055603a0b0cdb9e0d1bc28088bb4fca79a83d32bdc4a98d665e06ae7564
+                        chainId: 80002
+                        metaTxnID: null
+                        transfers:
+                          - transferType: RECEIVE
+                            contractAddress: '0xdd90126856957aa1e9c5cc3395e866b6eb830a44'
+                            contractType: ERC20
+                            from: '0x0000000000000000000000000000000000000000'
+                            to: '0xe6eb28398ccbe46aa505b62b96822c2ce8daabf4'
+                            tokenIds:
+                              - '0'
+                            amounts:
+                              - '33'
+                            logIndex: 9
+                            contractInfo:
+                              chainId: 80002
+                              address: '0xdd90126856957aa1e9c5cc3395e866b6eb830a44'
+                              name: Oracle Token
+                              type: ERC20
+                              symbol: ''
+                              deployed: true
+                              bytecodeHash: >-
+                                0x77d12b9637a99b3ba23920eea929a68cc89b49a0e1ff4d2a71b798550cc0060e
+                              extensions:
+                                link: ''
+                                description: ''
+                                ogImage: ''
+                                originChainId: 0
+                                originAddress: '0xdd90126856957aa1e9c5cc3395e866b6eb830a44'
+                                verified: true
+                                verifiedBy: Sequence Builder
+                              updatedAt: '0001-01-01T00:00:00Z'
+                        timestamp: '2024-09-20T20:36:45Z'
+                      - txnHash: >-
+                          0x5aae198a65b993a767bd495ea77b7825e0e884d9dcc446a1515097eb962814d6
+                        blockNumber: 12213913
+                        blockHash: >-
+                          0x726ccdee4ef384493f96c666e959258ba70689bd6553c098a51542b2627a8b22
+                        chainId: 80002
+                        metaTxnID: null
+                        transfers:
+                          - transferType: RECEIVE
+                            contractAddress: '0xdd90126856957aa1e9c5cc3395e866b6eb830a44'
+                            contractType: ERC20
+                            from: '0x0000000000000000000000000000000000000000'
+                            to: '0xe6eb28398ccbe46aa505b62b96822c2ce8daabf4'
+                            tokenIds:
+                              - '0'
+                            amounts:
+                              - '1000'
+                            logIndex: 1
+                            contractInfo:
+                              chainId: 80002
+                              address: '0xdd90126856957aa1e9c5cc3395e866b6eb830a44'
+                              name: Oracle Token
+                              type: ERC20
+                              symbol: ''
+                              deployed: true
+                              bytecodeHash: >-
+                                0x77d12b9637a99b3ba23920eea929a68cc89b49a0e1ff4d2a71b798550cc0060e
+                              extensions:
+                                link: ''
+                                description: ''
+                                ogImage: ''
+                                originChainId: 0
+                                originAddress: '0xdd90126856957aa1e9c5cc3395e866b6eb830a44'
+                                verified: true
+                                verifiedBy: Sequence Builder
+                              updatedAt: '0001-01-01T00:00:00Z'
+                        timestamp: '2024-09-20T19:37:18Z'
+                  summary: Get transaction history for an account
         4XX:
           description: Client error
           content:
@@ -2817,11 +2994,11 @@ paths:
                   collectionAddress: '0x602d5dc17490794267c7fa5f58a453eb9159a86d'
                   currencyAddresses:
                     - '0x7ceb23fd6bc0add59e62ac25578270cff1b9f619'
-                    - 0x0000000 000000000000000000000000000000000
+                    - '0x0000000000000000000000000000000000000000'
                     - '0x3c499c542cef5e3811e1192ce70d8cc03d5c3359'
                   filter:
                     isListing: null
-                    'userAddresses ': null
+                    userAddresses: null
                     tokenIds: null
                     excludeUserAddresses: null
                     afterBlockNumber: 0
@@ -3015,6 +3192,11 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/Indexer_GetAllWebhookListeners_Request'
+            examples:
+              '0':
+                value:
+                  projectId: 31396
+                summary: Get all webhook listeners for a project
       responses:
         '200':
           description: OK
@@ -3022,6 +3204,28 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Indexer_GetAllWebhookListeners_Response'
+              examples:
+                '0':
+                  value:
+                    listeners:
+                      - id: 160497579
+                        projectID: 31396
+                        url: >-
+                          https://webhook.site/#!/view/a2859143-0a52-4b69-98f2-a58733e4dcf0
+                        filters:
+                          events:
+                            - >-
+                              Transfer(address indexed from,address indexed
+                              to,uint256 indexed tokenId)
+                          contractAddresses:
+                            - '0x9bec34c1f7098e278afd48fedcf13355b854364a'
+                          accounts:
+                            - '0xe6eb28398ccbe46aa505b62b96822c2ce8daabf4'
+                          tokenIDs: null
+                        name: 'webhook.site #a84730'
+                        updatedAt: '2024-10-10T20:37:01.685037Z'
+                        active: true
+                  summary: Get all webhook listeners for a project
         4XX:
           description: Client error
           content:
@@ -3066,6 +3270,12 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/Indexer_GetWebhookListener_Request'
+            examples:
+              '0':
+                value:
+                  id: 160497579
+                  projectId: 31396
+                summary: Get a specific webhook listener
       responses:
         '200':
           description: OK
@@ -3073,6 +3283,28 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Indexer_GetWebhookListener_Response'
+              examples:
+                '0':
+                  value:
+                    listener:
+                      id: 160497579
+                      projectID: 31396
+                      url: >-
+                        https://webhook.site/#!/view/a2859143-0a52-4b69-98f2-a58733e4dcf0
+                      filters:
+                        events:
+                          - >-
+                            Transfer(address indexed from,address indexed
+                            to,uint256 indexed tokenId)
+                        contractAddresses:
+                          - '0x9bec34c1f7098e278afd48fedcf13355b854364a'
+                        accounts:
+                          - '0xe6eb28398ccbe46aa505b62b96822c2ce8daabf4'
+                        tokenIDs: null
+                      name: 'webhook.site #a84730'
+                      updatedAt: '2024-10-10T20:37:01.685037632Z'
+                      active: true
+                  summary: Get a specific webhook listener
         4XX:
           description: Client error
           content:
@@ -3117,6 +3349,22 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/Indexer_AddWebhookListener_Request'
+            examples:
+              '0':
+                value:
+                  filters:
+                    accounts:
+                      - '0xe6eB28398CCBe46aA505b62b96822c2Ce8DAABf4'
+                    contractAddresses:
+                      - '0x9bec34c1f7098e278afd48fedcf13355b854364a'
+                    events:
+                      - >-
+                        Transfer(address indexed from, address indexed to,
+                        uint256 indexed tokenId)
+                  projectId: 31396
+                  url: >-
+                    https://webhook.site/#!/view/a2859143-0a52-4b69-98f2-a58733e4dcf0
+                summary: Add a webhook listener
       responses:
         '200':
           description: OK
@@ -3124,6 +3372,29 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Indexer_AddWebhookListener_Response'
+              examples:
+                '0':
+                  value:
+                    status: true
+                    listener:
+                      id: 160497579
+                      projectID: 31396
+                      url: >-
+                        https://webhook.site/#!/view/a2859143-0a52-4b69-98f2-a58733e4dcf0
+                      filters:
+                        events:
+                          - >-
+                            Transfer(address indexed from,address indexed
+                            to,uint256 indexed tokenId)
+                        contractAddresses:
+                          - '0x9bec34c1f7098e278afd48fedcf13355b854364a'
+                        accounts:
+                          - '0xe6eb28398ccbe46aa505b62b96822c2ce8daabf4'
+                        tokenIDs: null
+                      name: 'webhook.site #a84730'
+                      updatedAt: '2024-10-10T20:37:01.685037632Z'
+                      active: true
+                  summary: Add a webhook listener
         4XX:
           description: Client error
           content:
@@ -3168,6 +3439,24 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/Indexer_UpdateWebhookListener_Request'
+            examples:
+              '0':
+                value:
+                  filters:
+                    accounts:
+                      - '0xe6eB28398CCBe46aA505b62b96822c2Ce8DAABf4'
+                    contractAddresses:
+                      - '0x9bec34c1f7098e278afd48fedcf13355b854364a'
+                    tokenIDs:
+                      - '100'
+                    events:
+                      - >-
+                        Transfer(address indexed from, address indexed to,
+                        uint256 indexed tokenId)
+                  projectId: 31396
+                  url: >-
+                    https://webhook.site/#!/view/a2859143-0a52-4b69-98f2-a58733e4dcf0
+                summary: Update a webhook listener
       responses:
         '200':
           description: OK
@@ -3175,6 +3464,30 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Indexer_UpdateWebhookListener_Response'
+              examples:
+                '0':
+                  value:
+                    status: true
+                    listener:
+                      id: 2435835685
+                      projectID: 31396
+                      url: >-
+                        https://webhook.site/#!/view/a2859143-0a52-4b69-98f2-a58733e4dcf0
+                      filters:
+                        events:
+                          - >-
+                            Transfer(address indexed from,address indexed
+                            to,uint256 indexed tokenId)
+                        contractAddresses:
+                          - '0x9bec34c1f7098e278afd48fedcf13355b854364a'
+                        accounts:
+                          - '0xe6eb28398ccbe46aa505b62b96822c2ce8daabf4'
+                        tokenIDs:
+                          - '100'
+                      name: 'webhook.site #b5cf2f'
+                      updatedAt: '2024-10-10T20:52:58.924369913Z'
+                      active: true
+                  summary: Update a webhook listener
         4XX:
           description: Client error
           content:
@@ -3219,6 +3532,12 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/Indexer_RemoveWebhookListener_Request'
+            examples:
+              '0':
+                value:
+                  id: 160497579
+                  projectId: 31396
+                summary: Remove a webhook listener
       responses:
         '200':
           description: OK
@@ -3226,6 +3545,11 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Indexer_RemoveWebhookListener_Response'
+              examples:
+                '0':
+                  value:
+                    status: true
+                  summary: Remove a webhook listener
         4XX:
           description: Client error
           content:
