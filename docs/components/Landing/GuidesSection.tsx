@@ -18,7 +18,7 @@ export const GuidesSection = () => (
       <GuideCard
         title="Build a web3 game with Unity"
         body="Learn how to build an engaging iOS and Android game that uses Sequence Embedded Wallets under the hood for an integrated marketplace and in-game currency."
-        link="/guides/unity-guide"
+        link="/guides/jelly-forest-unity-guide"
       />
       <GuideCard
         title="Create web3 lootboxes"
