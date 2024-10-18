@@ -22,7 +22,7 @@ const TableCell = ({ content, imgSrc }: any) => {
 
 const Table = ({ rows, columns }: any) => {
   return (
-    <table>
+    <table className='docs-table'>
       <thead>
         <tr>
           {columns.map((column: any) => {
@@ -36,6 +36,8 @@ const Table = ({ rows, columns }: any) => {
             <TableCell content={rowData.network} imgSrc={rowData.networkImage} />
             <TableCell content={rowData.chainHandle} />
             <TableCell content={rowData.indexerEndpoint} />
+            <TableCell content={rowData.rpcURL} />
+            <TableCell content={rowData.chainPage} />
           </TableRow>
         ))}
       </tbody>

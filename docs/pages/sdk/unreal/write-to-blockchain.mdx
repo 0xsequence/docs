@@ -125,6 +125,25 @@ void UMyClass::BurnToken(TArray<TUnion<FRawTransaction, FERC20Transaction, FERC7
 }
 ```
 
+### DelayedEncode (Example Contract Call)
+
+In some cases, such as when working with blueprints, it will be easier to call a contract via server-side encoding using a Delayed Encode transaction. Code example:
+
+```cpp
+FDelayedTransaction DelayedEncodeTxn;
+DelayedEncodeTxn.to = ERC20Address;
+DelayedEncodeTxn.value = TEXT("0");
+UDelayedEncodingBP* data = NewObject<UDelayedEncodingBP>();
+data->SetAbi(TEXT("mint(address,uint256)"));
+UDelayedEncodingArrayArgsBP* args = NewObject<UDelayedEncodingArrayArgsBP>();
+args->AddStringArg(WalletAddress);
+args->AddStringArg("1");
+data->SetArgs(args);
+data->SetFunc(TEXT("mint"));
+DelayedEncodeTxn.data = data;
+Transactions.Add(TransactionUnion(DelayedEncodeTxn));
+```
+
 ### Sending the Transaction
 
 ```cpp
