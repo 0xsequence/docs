@@ -51,6 +51,7 @@ function BuilderAuthenticationButton(): ReactElement {
       setSelectedProjectId(projectId)
       setShowModal(false)
       setIsConnected(true)
+      window.location.reload()
     } catch (error) {
       console.error('Error getting project access key:', error)
     }
@@ -74,7 +75,7 @@ function BuilderAuthenticationButton(): ReactElement {
         {isConnected && selectedProjectId ? `Project: ${selectedProjectId}` : 'Login'}
       </button>
       <Dialog open={showModal} onOpenChange={setShowModal}>
-        <DialogContent className="sm:max-w-[600px] bg-black text-white border-gray-800">
+        <DialogContent className="overflow-y-auto max-h-[80vh] sm:max-w-[600px] bg-black text-white border-gray-800">
           <DialogHeader>
             <DialogTitle className="text-2xl font-bold text-white">Select a Project</DialogTitle>
             <DialogDescription className="text-gray-400">
