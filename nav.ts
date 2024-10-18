@@ -495,6 +495,11 @@ export const sidebar = {
           link: '/guides/building-transaction-heavy-games-with-unity',
         },
         {
+          text: 'How to build a Game with Unreal Engine',
+          collapsed: true,
+          link: '/guides/unreal-ew-guide',
+        },
+        {
           text: 'Build a Collectible Minting Service',
           collapsed: true,
           link: '/guides/mint-collectibles-serverless',
