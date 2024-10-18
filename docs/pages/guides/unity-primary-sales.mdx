@@ -1,21 +1,19 @@
 ---
-title: How to sell On-Chain Items in your Game Client
-description: Intro to Jelly Forest - Unity Game Guide introduces a 2D runner game with blockchain features like social sign-in, upgrades, and cosmetic items stored in a smart contract wallet.
+title: How to do Primary Sales for On-Chain Items in Unity
+description: This guide covers the creation of a Primary Sale with Sequence's Unity SDK.
 ---
 
-# How to sell On-Chain Items in Unity
+# How to do Primary Sales for On-Chain Items in Unity
 
 Accelerate your game growth by selling items directly to your players. In this guide, we will go over the steps how
 to deploy a Primary Sale contract using any custom or existing currency for an In-Game Shop that utilizes game items
 from a ERC1155 contract. We will use the following technologies from the Sequence platform:
 
 - [Primary Sales Contract](/solutions/collectibles/contracts/deploy-primary-sales-contract/): How to set up and deploy contracts for launching a primary sale — suitable for an Web Shop, NFT Drop, and more.
-- [Embedded Wallet](/solutions/wallets/embedded-wallet/overview): Use Sequence Kit and Sequence Embedded Wallet to authenticate a user.
 - [Sequence Indexer](solutions/builder/indexer): Leveraging the Sequence Indexer to query NFT metadata and user's wallet assets.
 
 ## 1. Deploy your own Token- and Sale Contract in Sequence Builder
 
-In the builder you have to create your own token contract and a sale contract specific to your
 We first need a Primary Sales Contract along with an ERC1155 contract that will contain our game items we want to sell.
 To do that, please follow the [guide](/solutions/collectibles/contracts/deploy-primary-sales-contract) here.
 
@@ -41,17 +39,16 @@ allowing us to display this information to users effectively.
 In the PrimarySalePage.cs demo, the data is sourced from the Configuration section.
 
 ```csharp
-class ERC1155SaleState
+class ERC1155SaleState;
+
+public ERC1155SaleState(IWallet wallet, string tokenContractAddress, string saleContractAddress, Chain chain, int[] itemsForSale)
 {
-    public ERC1155SaleState(IWallet wallet, string tokenContractAddress, string saleContractAddress, Chain chain, int[] itemsForSale)
-    {
-        _tokenContractAddress = tokenContractAddress;
-        _saleContract = new ERC1155Sale(saleContractAddress);
-        _client = new SequenceEthClient(chain);
-        _wallet = wallet;
-        _chain = chain;
-        _itemsForSale = itemsForSale;
-    }
+    _tokenContractAddress = tokenContractAddress;
+    _saleContract = new ERC1155Sale(saleContractAddress);
+    _client = new SequenceEthClient(chain);
+    _wallet = wallet;
+    _chain = chain;
+    _itemsForSale = itemsForSale;
 }
 ```
 
@@ -119,6 +116,8 @@ the contract will mint the item to that user. You can use the `ERC1155Sale.cs` c
 reference, which allows you to send a transaction to your sales contract using the user's wallet.
 
 ```csharp
+class ERC1155SaleState;
+
 public async Task<bool> PurchaseAsync(BigInteger tokenId, int amount)
 {
     string to = _wallet.GetWalletAddress();
@@ -130,5 +129,27 @@ public async Task<bool> PurchaseAsync(BigInteger tokenId, int amount)
     Transaction[] transactions = new Transaction[] { new RawTransaction(contractCall) };
     TransactionReturn result = await _wallet.SendTransaction(_chain, transactions);
     return result is SuccessfulTransactionReturn;
+}
+```
+
+When the user clicks the purchase button in the game UI, we call and await the PurchaseAsync function from the sale state class.
+If the purchase is successful, we show a notification and update the UI.
+If it fails, we display a QR code for the user to add more funds to their wallet.
+
+```csharp
+class GameWindowUI;
+
+private ERC1155SaleState _saleState;
+
+public async void OnPurchaseClicked(BigInteger tokenId, int amount)
+{
+    bool success = await _saleState.PurchaseAsync(tokenId, amount);
+    if (!success) {
+        OpenQrCodeView();
+        return;
+    }
+
+    ShowNotification("Purchase succeeded.");
+    RenderState();
 }
 ```
