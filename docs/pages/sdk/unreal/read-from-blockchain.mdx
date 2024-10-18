@@ -3,6 +3,8 @@ title: Sequence - Web3 Gaming Platform - Unreal SDK Sequence API
 description: Documentation for Unreal SDK API for reading from the blockchain with the Sequence infrastructure stack for web3 gaming.
 ---
 
+import TabbedContent from "../../../components/TabbedContent";
+
 # Read From Blockchain
 
 ## Indexer & the Wallet
@@ -13,6 +15,13 @@ The [Indexer](/api/indexer/overview) is tied nicely with the wallet to allow for
 
 If you want to use our Indexer APIs only when the user has signed in with Sequence, you can use the Wallet class without defining the Network Id.
 
+<TabbedContent labels={["Blueprint", "C++"]}/>
+
+<div className="tabbed-content__content">
+    <img alt={'img'} src={'/img/unreal/get_ether_balance.png'}/>
+</div>
+
+<div className="tabbed-content__content">
 ```cpp
 // Define success and failure callbacks
 const TSuccessCallback<FEtherBalance> GenericSuccess = [=](const FEtherBalance& etherBalance) { };
@@ -27,6 +36,7 @@ if (WalletOptional.IsSet() && WalletOptional.GetValue())
 	Wallet->GetEtherBalance(Wallet->GetWalletAddress(), GenericSuccess, GenericFailure);
 }
 ```
+</div>
 
 ## Using UIndexer.h
 
@@ -48,22 +58,30 @@ Make sure that you use the correct network id for your project.
 
 ## Ping
 
-```cpp
-const TSuccessCallback<bool> GenericSuccess = [=](const bool bSuccess)
-{
-	//Ping response is in bSuccess
-};
-const FFailureCallback GenericFailure = [=](const FSequenceError& Error)
-{
-	//Ping failure
-};
-const TOptional<USequenceWallet*> WalletOptional = USequenceWallet::Get();
-if (WalletOptional.IsSet() && WalletOptional.GetValue())
-{
-	USequenceWallet * Wallet = WalletOptional.GetValue();
-	Wallet->Ping(GenericSuccess, GenericFailure);
-}
-```
+<TabbedContent labels={["Blueprint", "C++"]}/>
+
+            <div className="tabbed-content__content">
+                <img alt={'img'} src={'/img/unreal/get_ether_balance.png'}/>
+            </div>
+
+            <div className="tabbed-content__content">
+                ```cpp
+                const TSuccessCallback<bool> GenericSuccess = [=](const bool bSuccess)
+                {
+                    //Ping response is in bSuccess
+                };
+                const FFailureCallback GenericFailure = [=](const FSequenceError& Error)
+                {
+                    //Ping failure
+                };
+                const TOptional<USequenceWallet*> WalletOptional = USequenceWallet::Get();
+                if (WalletOptional.IsSet() && WalletOptional.GetValue())
+                {
+                    USequenceWallet * Wallet = WalletOptional.GetValue();
+                    Wallet->Ping(GenericSuccess, GenericFailure);
+                }
+                ```
+            </div>
 
 ## Version
 
