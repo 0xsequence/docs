@@ -36,6 +36,11 @@ export const topNav = [
       { text: 'Unity', link: '/sdk/unity/overview', match: '/sdk/unity/overview' },
       { text: 'Unreal', link: '/sdk/unreal/overview', match: '/sdk/unreal/overview' },
       {
+        text: 'React',
+        link: '/solutions/wallets/sequence-kit/overview',
+        match: '/solutions/wallets/sequence-kit/overview',
+      },
+      {
         text: 'Typescript',
         link: '/sdk/typescript/guides/overview',
         match: '/sdk/typescript/guides/overview',
@@ -768,6 +773,7 @@ export const sidebar = {
       items: [
         { text: 'Overview', link: '/api/transactions/overview' },
         { text: 'Installation', link: '/api/transactions/installation' },
+        // { text: 'Endpoints', link: '/api/transactions/endpoints' },
         {
           text: 'Examples',
           collapsed: false,
@@ -788,6 +794,7 @@ export const sidebar = {
       items: [
         { text: 'Overview', link: '/api/indexer/overview' },
         { text: 'Installation', link: '/api/indexer/installation' },
+        { text: 'Endpoints', link: '/api/indexer/endpoints' },
         {
           text: 'Examples',
           collapsed: false,
@@ -815,6 +822,7 @@ export const sidebar = {
       collapsed: false,
       items: [
         { text: 'Overview', link: '/api/analytics/overview' },
+        // { text: 'Endpoints', link: '/api/analytics/endpoints' },
         {
           text: 'Examples',
           collapsed: false,
@@ -830,6 +838,7 @@ export const sidebar = {
       collapsed: false,
       items: [
         { text: 'Overview', link: '/api/metadata/overview' },
+        { text: 'Endpoints', link: '/api/metadata/endpoints' },
         {
           text: 'Examples',
           collapsed: false,
@@ -846,6 +855,8 @@ export const sidebar = {
       collapsed: false,
       items: [
         { text: 'Overview', link: '/api/marketplace/overview' },
+        { text: 'Endpoints', link: '/api/marketplace/endpoints' },
+
         // { text: 'Schema', link: '/api/marketplace/schema' },
         // { text: 'Marketplace API', link: '/api/marketplace/api' },
         {

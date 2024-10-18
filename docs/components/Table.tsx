@@ -22,7 +22,7 @@ const TableCell = ({ content, imgSrc }: any) => {
 
 const Table = ({ rows, columns }: any) => {
   return (
-    <table>
+    <table className='docs-table'>
       <thead>
         <tr>
           {columns.map((column: any) => {
