@@ -16,11 +16,18 @@ export const GuidesOverview = () => (
       <GuideCard
         title="Build a Mobile Game with Unity + Sequence"
         body="Learn how to build an engaging iOS and Android game that uses Sequence Embedded Wallets under the hood for an integrated marketplace and in-game currency."
-        link="/guides/unity-guide"
+        link="/guides/jelly-forest-unity-guide"
         image="/img/unity/jellyforest.webp"
         demoLinkiOS="https://testflight.apple.com/join/xrnh8Vzm"
         demoLinkAndroid="https://play.google.com/store/apps/details?id=app.sequence.jelly_forest"
       />
+        <GuideCard
+            title="How to build a Game with Unreal Engine"
+            body="Use Sequence's Unreal SDK to display Embedded Wallet information, sign messages, and send transactions."
+            link="/guides/unreal-ew-guide"
+            image="/img/guides/overview/unreal-ew-guide.png"
+            deployLink="https://github.com/0xsequence/unreal-embedded-wallet-boilerplate"
+        />
       <GuideCard
         title="Create a Dungeon Crawler Game with AI Generated Rewards"
         body="With this tutorial, build a web-based maze where lootbox items are generated using AI and dynamically minted into the player's universal wallet."
