@@ -495,6 +495,11 @@ export const sidebar = {
           link: '/guides/building-transaction-heavy-games-with-unity',
         },
         {
+          text: 'How to do Primary Sales for On-Chain Items in Unity',
+          collapsed: true,
+          link: '/guides/unity-primary-sales'
+        },
+        {
           text: 'How to build a Game with Unreal Engine',
           collapsed: true,
           link: '/guides/unreal-ew-guide',

@@ -49,6 +49,13 @@ export const GuidesOverview = () => (
         image="/img/guides/overview/primary-sales.png"
         demoLink="https://primary-drop-sale-1155-boilerplate.pages.dev/"
       />
+        <GuideCard
+            title="How to do Primary Sales for On-Chain Items in Unity"
+            body="This guide covers the creation of a Primary Sale with Sequence's Unity SDK."
+            link="/guides/unity-primary-sales"
+            image="/img/guides/overview/unity-primary-sales.png"
+            demoLink="https://github.com/0xsequence/sequence-unity"
+        />
     </div>
 
     <div className="flex flex-wrap gap-4 md:flex-row flex-col">
