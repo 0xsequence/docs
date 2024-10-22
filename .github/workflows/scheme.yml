@@ -1,6 +1,8 @@
 name: Scheme
 on:
   pull_request:
+    paths:
+      - "**/*.gen.yaml"
 
 jobs:
   securityScheme:
@@ -23,7 +25,7 @@ jobs:
           go mod init github.com/0xsequence/docs 
           go get github.com/mikefarah/yq/v4@latest 
           go run github.com/mikefarah/yq/v4 -e -i '.security=[{"ApiKeyAuth":[]}]' docs/pages/api/marketplace/marketplace.gen.yaml
-          go run github.com/mikefarah/yq/v4 -e -i '.security=[{"ApiKeyAuth":[]}]' docs/pages/api/metadata/metadata.gen.yaml
+          go run github.com/mikefarah/yq/v4 -e -i '.security=[{"ApiKeyAuth":[]}, {"BearerAuth":[]}]' docs/pages/api/metadata/metadata.gen.yaml
           go run github.com/mikefarah/yq/v4 -e -i '.security=[{"ApiKeyAuth":[]}]' docs/pages/api/indexer/indexer.gen.yaml
 
       - name: Push changes
@@ -34,4 +36,5 @@ jobs:
           files: "docs/pages/api/**/*.gen.yaml"
           branch: ${{ github.head_ref }}
           ## since openapi docs are generated and PR is automatically created there is no need to try create new one
+          pr_title: "[AUTOMATED] Add global security schemes"
           pr_create: false
