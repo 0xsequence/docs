@@ -3,32 +3,15 @@ title: Sequence - Web3 Gaming Platform - Unreal SDK Sequence API
 description: Documentation for Unreal SDK API for reading from the blockchain with the Sequence infrastructure stack for web3 gaming.
 ---
 
+import TabbedContent from "../../../components/TabbedContent";
+
 # Read From Blockchain
 
 ## Indexer & the Wallet
 
 The [Indexer](/api/indexer/overview) is tied nicely with the wallet to allow for ease of use. One thing to note is the NetworkId you set with your wallet is the one that will be used with the Indexer. The default network we set is 137 (Polygon Mainnet). See the list of network ids supported by Sequence [here](https://status.sequence.info/).
 
-## Using USequenceWallet.h
-
-If you want to use our Indexer APIs only when the user has signed in with Sequence, you can use the Wallet class without defining the Network Id.
-
-```cpp
-// Define success and failure callbacks
-const TSuccessCallback<FEtherBalance> GenericSuccess = [=](const FEtherBalance& etherBalance) { };
-const FFailureCallback GenericFailure = [=](const FSequenceError& Error) { };
-
-// Get a reference of the user's current wallet session.
-const TOptional<USequenceWallet*> WalletOptional = USequenceWallet::Get();
-if (WalletOptional.IsSet() && WalletOptional.GetValue())
-{
-    // Example Indexer call
-	USequenceWallet * Wallet = WalletOptional.GetValue();
-	Wallet->GetEtherBalance(Wallet->GetWalletAddress(), GenericSuccess, GenericFailure);
-}
-```
-
-## Using UIndexer.h
+### Using Indexer
 
 If you want to use our Indexer APIs when a user has not signed in with Sequence, create an instance of the UIndexer class.
 
@@ -48,99 +31,139 @@ Make sure that you use the correct network id for your project.
 
 ## Ping
 
-```cpp
-const TSuccessCallback<bool> GenericSuccess = [=](const bool bSuccess)
-{
-	//Ping response is in bSuccess
-};
-const FFailureCallback GenericFailure = [=](const FSequenceError& Error)
-{
-	//Ping failure
-};
-const TOptional<USequenceWallet*> WalletOptional = USequenceWallet::Get();
-if (WalletOptional.IsSet() && WalletOptional.GetValue())
-{
-	USequenceWallet * Wallet = WalletOptional.GetValue();
-	Wallet->Ping(GenericSuccess, GenericFailure);
-}
-```
+<TabbedContent labels={["Blueprint", "C++"]}>
+
+            <div className="tabbed-content__content">
+                <img alt={'img'} src={'/img/unreal/ping.png'}/>
+            </div>
+
+            <div className="tabbed-content__content">
+                ```cpp
+                const TSuccessCallback<bool> GenericSuccess = [=](const bool bSuccess)
+                {
+                    //Ping response is in bSuccess
+                };
+                const FFailureCallback GenericFailure = [=](const FSequenceError& Error)
+                {
+                    //Ping failure
+                };
+                const TOptional<USequenceWallet*> WalletOptional = USequenceWallet::Get();
+                if (WalletOptional.IsSet() && WalletOptional.GetValue())
+                {
+                    USequenceWallet * Wallet = WalletOptional.GetValue();
+                    Wallet->Ping(GenericSuccess, GenericFailure);
+                }
+                ```
+            </div>
+</TabbedContent>
 
 ## Version
 
-```cpp
-const TSuccessCallback<FVersion> GenericSuccess = [=](const FVersion& version)
-{
-	//Response contained in FVersion
-};
-const FFailureCallback GenericFailure = [=](const FSequenceError& Error)
-{
-	//Version Failure
-};
-const TOptional<USequenceWallet*> WalletOptional = USequenceWallet::Get();
-if (WalletOptional.IsSet() && WalletOptional.GetValue())
-{
-	USequenceWallet * Wallet = WalletOptional.GetValue();
-	Wallet->Version(GenericSuccess, GenericFailure);
-}
-```
+<TabbedContent labels={["Blueprint", "C++"]}>
+    <div className="tabbed-content__content">
+        <img alt={'img'} src={'/img/unreal/version.png'}/>
+    </div>
+
+    <div className="tabbed-content__content">
+        ```cpp
+        const TSuccessCallback<FVersion> GenericSuccess = [=](const FVersion& version)
+        {
+            //Response contained in FVersion
+        };
+        const FFailureCallback GenericFailure = [=](const FSequenceError& Error)
+        {
+            //Version Failure
+        };
+        const TOptional<USequenceWallet*> WalletOptional = USequenceWallet::Get();
+        if (WalletOptional.IsSet() && WalletOptional.GetValue())
+        {
+            USequenceWallet * Wallet = WalletOptional.GetValue();
+            Wallet->Version(GenericSuccess, GenericFailure);
+        }
+        ```
+    </div>
+</TabbedContent>
 
 ## RunTimeStatus
 
-```cpp
-const TSuccessCallback<FRuntimeStatus> GenericSuccess = [=](const FRuntimeStatus& runTimeStatus)
-{
-	//Response is in FRunTimeStatus
-};
-const FFailureCallback GenericFailure = [=](const FSequenceError& Error)
-{
-	//RunTimeStatus Failure
-};
-const TOptional<USequenceWallet*> WalletOptional = USequenceWallet::Get();
-if (WalletOptional.IsSet() && WalletOptional.GetValue())
-{
-	USequenceWallet * Wallet = WalletOptional.GetValue();
-	Wallet->RunTimeStatus(GenericSuccess, GenericFailure);
-}
-```
+<TabbedContent labels={["Blueprint", "C++"]}>
+    <div className="tabbed-content__content">
+        <img alt={'img'} src={'/img/unreal/runtime_status.png'}/>
+    </div>
+
+    <div className="tabbed-content__content">
+        ```cpp
+        const TSuccessCallback<FRuntimeStatus> GenericSuccess = [=](const FRuntimeStatus& runTimeStatus)
+        {
+            //Response is in FRunTimeStatus
+        };
+        const FFailureCallback GenericFailure = [=](const FSequenceError& Error)
+        {
+            //RunTimeStatus Failure
+        };
+        const TOptional<USequenceWallet*> WalletOptional = USequenceWallet::Get();
+        if (WalletOptional.IsSet() && WalletOptional.GetValue())
+        {
+            USequenceWallet * Wallet = WalletOptional.GetValue();
+            Wallet->RunTimeStatus(GenericSuccess, GenericFailure);
+        }
+        ```
+    </div>
+</TabbedContent>
 
 ## GetChainID
 
-```cpp
-const TSuccessCallback<int64> GenericSuccess = [=](const int64 chainID)
-{
-	//Response in int64
-};
-const FFailureCallback GenericFailure = [=](const FSequenceError& Error)
-{
-	//GetChainID Failure
-};
-const TOptional<USequenceWallet*> WalletOptional = USequenceWallet::Get();
-if (WalletOptional.IsSet() && WalletOptional.GetValue())
-{
-	USequenceWallet * Wallet = WalletOptional.GetValue();
-	Wallet->GetChainID(GenericSuccess, GenericFailure);
-}
-```
+<TabbedContent labels={["Blueprint", "C++"]}>
+    <div className="tabbed-content__content">
+        <img alt={'img'} src={'/img/unreal/get_chain_id.png'}/>
+    </div>
 
-## GetEtherBalance
+    <div className="tabbed-content__content">
+        ```cpp
+        const TSuccessCallback<int64> GenericSuccess = [=](const int64 chainID)
+        {
+            //Response in int64
+        };
+        const FFailureCallback GenericFailure = [=](const FSequenceError& Error)
+        {
+            //GetChainID Failure
+        };
+        const TOptional<USequenceWallet*> WalletOptional = USequenceWallet::Get();
+        if (WalletOptional.IsSet() && WalletOptional.GetValue())
+        {
+            USequenceWallet * Wallet = WalletOptional.GetValue();
+            Wallet->GetChainID(GenericSuccess, GenericFailure);
+        }
+        ```
+    </div>
+</TabbedContent>
 
-```cpp
-const TSuccessCallback<FEtherBalance> GenericSuccess = [=](const FEtherBalance& etherBalance)
-{
-	//Response in FEtherBalance
-};
-const FFailureCallback GenericFailure = [=](const FSequenceError& Error)
-{
-	//GetEtherBalance Failure
-};
-	
-const TOptional<USequenceWallet*> WalletOptional = USequenceWallet::Get();
-if (WalletOptional.IsSet() && WalletOptional.GetValue())
-{
-	USequenceWallet * Wallet = WalletOptional.GetValue();
-	Wallet->GetEtherBalance(Wallet->GetWalletAddress(), GenericSuccess, GenericFailure);
-}
-```
+## Get Ether Balance
+
+Use the Indexer API to retrieve the Ether balance for a specified wallet address, such as the local user's address.
+
+<TabbedContent labels={["Blueprint", "C++"]}>
+    <div className="tabbed-content__content">
+        <img alt={'img'} src={'/img/unreal/get_ether_balance.png'}/>
+    </div>
+
+    <div className="tabbed-content__content">
+        ```cpp
+        // Define success and failure callbacks
+        const TSuccessCallback<FEtherBalance> GenericSuccess = [=](const FEtherBalance& etherBalance) { };
+        const FFailureCallback GenericFailure = [=](const FSequenceError& Error) { };
+
+        // Get a reference of the user's current wallet session.
+        const TOptional<USequenceWallet*> WalletOptional = USequenceWallet::Get();
+        if (WalletOptional.IsSet() && WalletOptional.GetValue())
+        {
+            // Example Indexer call
+            USequenceWallet * Wallet = WalletOptional.GetValue();
+            Wallet->GetEtherBalance(Wallet->GetWalletAddress(), GenericSuccess, GenericFailure);
+        }
+        ```
+    </div>
+</TabbedContent>
 
 ## GetTokenBalances
 
