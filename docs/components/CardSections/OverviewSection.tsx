@@ -24,7 +24,7 @@ export const OverviewSection = () => (
             icon: 'UnityIcon',
             title: 'End to End Unity Game Guide',
             body: 'Introducing Jelly Forest: a blockchain-enabled 2D runner game with social sign in, an in-game store, a backend transaction manager and more - all built in Unity using the Sequence platform.',
-            link: '/guides/unity-guide',
+            link: '/guides/jelly-forest-unity-guide',
           },
           {
             icon: 'DiscordIcon',
