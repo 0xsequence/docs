@@ -1,5 +1,6 @@
 import { defineConfig } from 'vocs'
 import { sidebar, topNav } from './nav'
+import ViteYaml from '@modyfi/vite-plugin-yaml'
 
 export default defineConfig({
   title: 'Sequence',
@@ -13,6 +14,7 @@ export default defineConfig({
     ssr: {
       noExternal: ['@docsearch/react'],
     },
+    plugins: [ViteYaml()],
   },
 
   // rootDir: '.',

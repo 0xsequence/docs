@@ -34,3 +34,17 @@ public void OnWalletCreatedHandler(SequenceWallet wallet) {
 ```
 
 where `OnWalletCreatedHandler` is a function accepting a `SequenceWallet` as it's only parameter. If you're unfamiliar with working with events in Unity, check out this great [Reddit post](https://www.reddit.com/r/gamedev/comments/u3hz2v/how_to_use_events_a_supersimple_unity_example/)!
+
+## Error Handling
+
+In order to catch errors during the login process, please make sure to subscribe to the `OnLoginFailed` event.
+
+```csharp
+SequenceLogin login = SequenceLogin.GetInstance();
+login.OnLoginFailed += OnLoginFailedHandler;
+
+public void OnLoginFailedHandler(string message, LoginMethod method, string email, List<LoginMethod> loginMethods = default)
+{
+  Debug.LogError($"Error logging in: {message} with login method {method} and email {email}");
+}
+```
