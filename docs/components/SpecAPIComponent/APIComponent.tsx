@@ -17,7 +17,7 @@ const importSpec = async (specType: any) => {
       return (await import('../../../docs/pages/api/metadata/metadata.gen.yaml')).default
     case 'transactions':
       // need to change to transactions once deployed
-      return (await import('../../../docs/pages/api/indexer/indexer.gen.yaml')).default
+      return (await import('../../../docs/pages/api/relayer/relayer.gen.yaml')).default
 
     // Add more cases for other spec types as needed
     default:
