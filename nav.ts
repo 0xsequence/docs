@@ -502,7 +502,7 @@ export const sidebar = {
         {
           text: 'How to do Primary Sales for On-Chain Items in Unity',
           collapsed: true,
-          link: '/guides/unity-primary-sales'
+          link: '/guides/unity-primary-sales',
         },
         {
           text: 'How to build a Game with Unreal Engine',
@@ -783,7 +783,7 @@ export const sidebar = {
       items: [
         { text: 'Overview', link: '/api/transactions/overview' },
         { text: 'Installation', link: '/api/transactions/installation' },
-        // { text: 'Endpoints', link: '/api/transactions/endpoints' },
+        { text: 'Endpoints', link: '/api/transactions/endpoints' },
         {
           text: 'Examples',
           collapsed: false,
