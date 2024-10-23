@@ -2138,6 +2138,15 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/Metadata_EnqueueTokensForRefresh_Request'
+            examples:
+              '0':
+                value:
+                  chainId: '80002'
+                  contractAddress: '0x70a2177079877e4aae639d1abb29ffa537b94970'
+                  tokenIds:
+                    - '0'
+                    - '1'
+                    - '2'
       responses:
         '200':
           description: OK
@@ -2145,6 +2154,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Metadata_EnqueueTokensForRefresh_Response'
+              examples:
+                '0':
+                  value:
+                    taskId: 64352
         4XX:
           description: Client error
           content:
@@ -5461,11 +5474,17 @@ paths:
   /rpc/Collections/PublishCollection:
     post:
       summary: PublishCollection
+      description: Make your collection public. Change the value of private to false
       requestBody:
         content:
           application/json:
             schema:
               $ref: '#/components/schemas/Collections_PublishCollection_Request'
+            examples:
+              '0':
+                value:
+                  projectId: 30957
+                  collectionId: 888
       responses:
         '200':
           description: OK
@@ -5473,6 +5492,29 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Collections_PublishCollection_Response'
+              examples:
+                '0':
+                  value:
+                    collection:
+                      id: 888
+                      projectId: 30957
+                      metadata:
+                        name: Sandbox Chronicles Modified
+                        description: >-
+                          A collection of test cases designed to push the
+                          boundaries of your API. Whether you’re validating edge
+                          cases, simulating real-world scenarios, or just
+                          experimenting with wild inputs, this suite ensures
+                          your endpoints are battle-tested and ready for
+                          anything. Perfect for developers who embrace the
+                          unexpected and thrive on precision.
+                        properties:
+                          funCollection: false
+                          maxNfts: 1000
+                          minNfts: 1
+                      private: false
+                      createdAt: '2024-10-23T07:02:00.905283Z'
+                      updatedAt: '2024-10-23T07:10:45.118089Z'
         4XX:
           description: Client error
           content:
@@ -5515,11 +5557,17 @@ paths:
   /rpc/Collections/UnpublishCollection:
     post:
       summary: UnpublishCollection
+      description: Make your collection private. Change the value of private to true
       requestBody:
         content:
           application/json:
             schema:
               $ref: '#/components/schemas/Collections_UnpublishCollection_Request'
+            examples:
+              '0':
+                value:
+                  projectId: 30957
+                  collectionId: 888
       responses:
         '200':
           description: OK
@@ -5527,6 +5575,29 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Collections_UnpublishCollection_Response'
+              examples:
+                '0':
+                  value:
+                    collection:
+                      id: 888
+                      projectId: 30957
+                      metadata:
+                        name: Sandbox Chronicles Modified
+                        description: >-
+                          A collection of test cases designed to push the
+                          boundaries of your API. Whether you’re validating edge
+                          cases, simulating real-world scenarios, or just
+                          experimenting with wild inputs, this suite ensures
+                          your endpoints are battle-tested and ready for
+                          anything. Perfect for developers who embrace the
+                          unexpected and thrive on precision.
+                        properties:
+                          funCollection: false
+                          maxNfts: 1000
+                          minNfts: 1
+                      private: true
+                      createdAt: '2024-10-23T07:02:00.905283Z'
+                      updatedAt: '2024-10-23T07:10:45.118089Z'
         4XX:
           description: Client error
           content:
@@ -5853,6 +5924,33 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/Collections_CreateToken_Request'
+            examples:
+              '0':
+                value:
+                  projectId: 30957
+                  collectionId: 888
+                  private: false
+                  token:
+                    tokenId: '200'
+                    name: Eclipse Dragon
+                    description: >-
+                      Forged from starlight and shadows, the Eclipse Dragon
+                      emerges only during celestial alignments. Its obsidian
+                      scales shimmer with constellations, and its breath holds
+                      the power to bend time and space. Legends say that those
+                      who possess its essence gain unparalleled wisdom—though at
+                      the cost of fleeting moments lost to the void. Will you
+                      dare wield its mystic force?
+                    properties:
+                      element: Shadow and Starlight
+                      rarity: Legendary
+                      alignment: Celestial
+                      age: Ancient
+                      size: Massive
+                      breath_power: Time Distortion
+                      temperament: Mysterious
+                      constellations_on_scales: 42
+                      last_seen: During the Last Solar Eclipse
       responses:
         '200':
           description: OK
@@ -5860,6 +5958,34 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Collections_CreateToken_Response'
+              examples:
+                '0':
+                  value:
+                    token:
+                      tokenId: '200'
+                      name: Eclipse Dragon
+                      description: >-
+                        Forged from starlight and shadows, the Eclipse Dragon
+                        emerges only during celestial alignments. Its obsidian
+                        scales shimmer with constellations, and its breath holds
+                        the power to bend time and space. Legends say that those
+                        who possess its essence gain unparalleled wisdom—though
+                        at the cost of fleeting moments lost to the void. Will
+                        you dare wield its mystic force?
+                      image: ''
+                      properties:
+                        age: Ancient
+                        alignment: Celestial
+                        breath_power: Time Distortion
+                        constellations_on_scales: 42
+                        element: Shadow and Starlight
+                        last_seen: During the Last Solar Eclipse
+                        rarity: Legendary
+                        size: Massive
+                        temperament: Mysterious
+                      attributes: null
+                      updatedAt: '0001-01-01T00:00:00Z'
+                    assets: null
         4XX:
           description: Client error
           content:
@@ -5910,6 +6036,12 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/Collections_GetToken_Request'
+            examples:
+              '0':
+                value:
+                  projectId: 30957
+                  collectionId: 888
+                  tokenId: '200'
       responses:
         '200':
           description: OK
@@ -5917,6 +6049,34 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Collections_GetToken_Response'
+              examples:
+                '0':
+                  value:
+                    token:
+                      tokenId: '200'
+                      name: Eclipse Dragon
+                      description: >-
+                        Forged from starlight and shadows, the Eclipse Dragon
+                        emerges only during celestial alignments. Its obsidian
+                        scales shimmer with constellations, and its breath holds
+                        the power to bend time and space. Legends say that those
+                        who possess its essence gain unparalleled wisdom—though
+                        at the cost of fleeting moments lost to the void. Will
+                        you dare wield its mystic force?
+                      image: ''
+                      properties:
+                        age: Ancient
+                        alignment: Celestial
+                        breath_power: Time Distortion
+                        constellations_on_scales: 42
+                        element: Shadow and Starlight
+                        last_seen: During the Last Solar Eclipse
+                        rarity: Legendary
+                        size: Massive
+                        temperament: Mysterious
+                      attributes: null
+                      updatedAt: '2024-10-23T19:34:40.158987036Z'
+                    assets: []
         4XX:
           description: Client error
           content:
@@ -5967,6 +6127,11 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/Collections_ListTokens_Request'
+            examples:
+              '0':
+                value:
+                  projectId: 30957
+                  collectionId: 888
       responses:
         '200':
           description: OK
@@ -5974,6 +6139,36 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Collections_ListTokens_Response'
+              examples:
+                '0':
+                  value:
+                    page:
+                      pageSize: 30
+                      more: false
+                    tokens:
+                      - tokenId: '200'
+                        name: Eclipse Dragon
+                        description: >-
+                          Forged from starlight and shadows, the Eclipse Dragon
+                          emerges only during celestial alignments. Its obsidian
+                          scales shimmer with constellations, and its breath
+                          holds the power to bend time and space. Legends say
+                          that those who possess its essence gain unparalleled
+                          wisdom—though at the cost of fleeting moments lost to
+                          the void. Will you dare wield its mystic force?
+                        image: ''
+                        properties:
+                          age: Ancient
+                          alignment: Celestial
+                          breath_power: Time Distortion
+                          constellations_on_scales: 42
+                          element: Shadow and Starlight
+                          last_seen: During the Last Solar Eclipse
+                          rarity: Legendary
+                          size: Massive
+                          temperament: Mysterious
+                        attributes: null
+                        updatedAt: '2024-10-23T19:34:40.158987036Z'
         4XX:
           description: Client error
           content:
@@ -6024,6 +6219,34 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/Collections_UpdateToken_Request'
+            examples:
+              '0':
+                value:
+                  projectId: 30957
+                  collectionId: 888
+                  tokenId: '200'
+                  private: false
+                  token:
+                    tokenId: '201'
+                    name: Eclipse Dragon
+                    description: >-
+                      Forged from starlight and shadows, the Eclipse Dragon
+                      emerges only during celestial alignments. Its obsidian
+                      scales shimmer with constellations, and its breath holds
+                      the power to bend time and space. Legends say that those
+                      who possess its essence gain unparalleled wisdom—though at
+                      the cost of fleeting moments lost to the void. Will you
+                      dare wield its mystic force?
+                    properties:
+                      element: Shadow and Starlight
+                      rarity: Legendary
+                      alignment: Celestial
+                      age: Ancient
+                      size: Massive
+                      breath_power: Time Distortion
+                      temperament: Mysterious
+                      constellations_on_scales: 42
+                      last_seen: During the Last Solar Eclipse
       responses:
         '200':
           description: OK
@@ -6031,6 +6254,33 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Collections_UpdateToken_Response'
+              examples:
+                '0':
+                  value:
+                    token:
+                      tokenId: '201'
+                      name: Eclipse Dragon
+                      description: >-
+                        Forged from starlight and shadows, the Eclipse Dragon
+                        emerges only during celestial alignments. Its obsidian
+                        scales shimmer with constellations, and its breath holds
+                        the power to bend time and space. Legends say that those
+                        who possess its essence gain unparalleled wisdom—though
+                        at the cost of fleeting moments lost to the void. Will
+                        you dare wield its mystic force?
+                      image: ''
+                      properties:
+                        age: Ancient
+                        alignment: Celestial
+                        breath_power: Time Distortion
+                        constellations_on_scales: 42
+                        element: Shadow and Starlight
+                        last_seen: During the Last Solar Eclipse
+                        rarity: Legendary
+                        size: Massive
+                        temperament: Mysterious
+                      attributes: null
+                      updatedAt: '0001-01-01T00:00:00Z'
         4XX:
           description: Client error
           content:
