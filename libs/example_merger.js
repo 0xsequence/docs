@@ -31,12 +31,14 @@ const addExamplesToOpenAPI = (doc, examples) => {
     doc.tags = [
       {
         name: 'public',
-        description: 'Endpoints accessible by passing your project-access-key in the header. This is injected whenever you login automatically.'
+        description:
+          'Endpoints accessible by passing your project-access-key in the header. This is injected whenever you login automatically.',
       },
       {
         name: 'secret',
-        description: 'Endpoints that require a Sequence service token intended to be secret. You can manually generate one on Sequence Builder and pass it as a Bearer Token.'
-      }
+        description:
+          'Endpoints that require a Sequence service token intended to be secret. You can manually generate one on Sequence Builder and pass it as a Bearer Token.',
+      },
     ]
   }
 
@@ -46,8 +48,6 @@ const addExamplesToOpenAPI = (doc, examples) => {
       console.warn(path, 'not defined in examples')
       continue
     }
-
-    
 
     for (const [exampleName, ex] of Object.entries(example)) {
       if (ex.request && Object.keys(ex.request).length > 0) {
@@ -73,8 +73,6 @@ const addExamplesToOpenAPI = (doc, examples) => {
     }
   }
 }
-
-
 
 export const merge = (openApiFilepath) => {
   // /docs/pages/api/marketplace/marketplace.gen.yaml
