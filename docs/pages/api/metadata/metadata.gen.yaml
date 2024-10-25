@@ -11,8 +11,7 @@ components:
       type: apiKey
       in: header
       description: >-
-        Project access key for authenticating requests, get an access key at
-        https://sequence.build
+        Project access key for authenticating requests, get an access key at https://sequence.build
       name: X-Access-Key
     BearerAuth:
       type: http
@@ -663,11 +662,10 @@ components:
       type: string
       description: Represented as uint8 on the server side
       enum:
-        - PENDING
+        - QUEUED
         - PAUSED
         - FAILED
         - COMPLETED
-        - DISABLED
     Version:
       type: object
       required:
@@ -1206,6 +1204,32 @@ components:
       properties:
         taskId:
           type: number
+    Metadata_RefreshContractInfo_Request:
+      type: object
+      properties:
+        chainHandle:
+          type: string
+        contractAddress:
+          type: string
+    Metadata_RefreshContractTokens_Request:
+      type: object
+      properties:
+        chainHandle:
+          type: string
+        contractAddress:
+          type: string
+        tokenIDs:
+          type: array
+          description: '[]string'
+          items:
+            type: string
+    Metadata_RefreshAllContractTokens_Request:
+      type: object
+      properties:
+        chainHandle:
+          type: string
+        contractAddress:
+          type: string
     Metadata_GetTokenMetadataBatch_Request:
       type: object
       properties:
@@ -1473,6 +1497,20 @@ components:
       properties:
         ok:
           type: boolean
+    Metadata_RefreshContractInfo_Response:
+      type: object
+    Metadata_RefreshContractTokens_Response:
+      type: object
+      properties:
+        task:
+          $ref: '#/components/schemas/Task'
+    Metadata_RefreshAllContractTokens_Response:
+      type: object
+      properties:
+        task:
+          $ref: '#/components/schemas/Task'
+        retryAfter:
+          type: number
     Metadata_GetTokenMetadataBatch_Response:
       type: object
       properties:
@@ -1977,8 +2015,7 @@ paths:
     post:
       summary: GetTokenMetadata
       description: >-
-        GetTokenMetadata - fetch token metadata for a particular contract and
-        respective tokenIDs
+        GetTokenMetadata - fetch token metadata for a particular contract and respective tokenIDs
       requestBody:
         content:
           application/json:
@@ -2067,6 +2104,8 @@ paths:
   /rpc/Metadata/RefreshTokenMetadata:
     post:
       summary: RefreshTokenMetadata
+      deprecated: true
+      description: "Deprecated -> Use RefreshContractInfo, RefreshContractTokens or RefreshAllContractTokens"
       requestBody:
         content:
           application/json:
@@ -2121,6 +2160,8 @@ paths:
   /rpc/Metadata/EnqueueTokensForRefresh:
     post:
       summary: EnqueueTokensForRefresh
+      deprecated: true
+      description: "Deprecated -> RefreshContractTokens or RefreshAllContractTokens"
       requestBody:
         content:
           application/json:
@@ -2334,16 +2375,175 @@ paths:
                   - $ref: '#/components/schemas/ErrorWebrpcServerPanic'
                   - $ref: '#/components/schemas/ErrorWebrpcInternalError'
                   - $ref: '#/components/schemas/ErrorFail'
+  /rpc/Metadata/RefreshContractInfo:
+    post:
+      summary: RefreshContractInfo
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Metadata_RefreshContractInfo_Request'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Metadata_RefreshContractInfo_Response'
+        '4XX':
+          description: Client error
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: '#/components/schemas/ErrorWebrpcEndpoint'
+                  - $ref: '#/components/schemas/ErrorWebrpcRequestFailed'
+                  - $ref: '#/components/schemas/ErrorWebrpcBadRoute'
+                  - $ref: '#/components/schemas/ErrorWebrpcBadMethod'
+                  - $ref: '#/components/schemas/ErrorWebrpcBadRequest'
+                  - $ref: '#/components/schemas/ErrorWebrpcClientDisconnected'
+                  - $ref: '#/components/schemas/ErrorWebrpcStreamLost'
+                  - $ref: '#/components/schemas/ErrorUnauthorized'
+                  - $ref: '#/components/schemas/ErrorPermissionDenied'
+                  - $ref: '#/components/schemas/ErrorSessionExpired'
+                  - $ref: '#/components/schemas/ErrorMethodNotFound'
+                  - $ref: '#/components/schemas/ErrorRequestConflict'
+                  - $ref: '#/components/schemas/ErrorGeoblocked'
+                  - $ref: '#/components/schemas/ErrorTimeout'
+                  - $ref: '#/components/schemas/ErrorInvalidArgument'
+                  - $ref: '#/components/schemas/ErrorRequiredArgument'
+                  - $ref: '#/components/schemas/ErrorQueryFailed'
+                  - $ref: '#/components/schemas/ErrorValidationFailed'
+                  - $ref: '#/components/schemas/ErrorRateLimited'
+                  - $ref: '#/components/schemas/ErrorNotFound'
+                  - $ref: '#/components/schemas/ErrorProjectNotFound'
+                  - $ref: '#/components/schemas/ErrorChainNotFound'
+                  - $ref: '#/components/schemas/ErrorTokenDirectoryDisabled'
+        '5XX':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: '#/components/schemas/ErrorWebrpcBadResponse'
+                  - $ref: '#/components/schemas/ErrorWebrpcServerPanic'
+                  - $ref: '#/components/schemas/ErrorWebrpcInternalError'
+                  - $ref: '#/components/schemas/ErrorFail'
+  /rpc/Metadata/RefreshContractTokens:
+    post:
+      summary: RefreshContractTokens
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Metadata_RefreshContractTokens_Request'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Metadata_RefreshContractTokens_Response'
+        '4XX':
+          description: Client error
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: '#/components/schemas/ErrorWebrpcEndpoint'
+                  - $ref: '#/components/schemas/ErrorWebrpcRequestFailed'
+                  - $ref: '#/components/schemas/ErrorWebrpcBadRoute'
+                  - $ref: '#/components/schemas/ErrorWebrpcBadMethod'
+                  - $ref: '#/components/schemas/ErrorWebrpcBadRequest'
+                  - $ref: '#/components/schemas/ErrorWebrpcClientDisconnected'
+                  - $ref: '#/components/schemas/ErrorWebrpcStreamLost'
+                  - $ref: '#/components/schemas/ErrorUnauthorized'
+                  - $ref: '#/components/schemas/ErrorPermissionDenied'
+                  - $ref: '#/components/schemas/ErrorSessionExpired'
+                  - $ref: '#/components/schemas/ErrorMethodNotFound'
+                  - $ref: '#/components/schemas/ErrorRequestConflict'
+                  - $ref: '#/components/schemas/ErrorGeoblocked'
+                  - $ref: '#/components/schemas/ErrorTimeout'
+                  - $ref: '#/components/schemas/ErrorInvalidArgument'
+                  - $ref: '#/components/schemas/ErrorRequiredArgument'
+                  - $ref: '#/components/schemas/ErrorQueryFailed'
+                  - $ref: '#/components/schemas/ErrorValidationFailed'
+                  - $ref: '#/components/schemas/ErrorRateLimited'
+                  - $ref: '#/components/schemas/ErrorNotFound'
+                  - $ref: '#/components/schemas/ErrorProjectNotFound'
+                  - $ref: '#/components/schemas/ErrorChainNotFound'
+                  - $ref: '#/components/schemas/ErrorTokenDirectoryDisabled'
+        '5XX':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: '#/components/schemas/ErrorWebrpcBadResponse'
+                  - $ref: '#/components/schemas/ErrorWebrpcServerPanic'
+                  - $ref: '#/components/schemas/ErrorWebrpcInternalError'
+                  - $ref: '#/components/schemas/ErrorFail'
+  /rpc/Metadata/RefreshAllContractTokens:
+    post:
+      summary: RefreshAllContractTokens
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Metadata_RefreshAllContractTokens_Request'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Metadata_RefreshAllContractTokens_Response'
+        '4XX':
+          description: Client error
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: '#/components/schemas/ErrorWebrpcEndpoint'
+                  - $ref: '#/components/schemas/ErrorWebrpcRequestFailed'
+                  - $ref: '#/components/schemas/ErrorWebrpcBadRoute'
+                  - $ref: '#/components/schemas/ErrorWebrpcBadMethod'
+                  - $ref: '#/components/schemas/ErrorWebrpcBadRequest'
+                  - $ref: '#/components/schemas/ErrorWebrpcClientDisconnected'
+                  - $ref: '#/components/schemas/ErrorWebrpcStreamLost'
+                  - $ref: '#/components/schemas/ErrorUnauthorized'
+                  - $ref: '#/components/schemas/ErrorPermissionDenied'
+                  - $ref: '#/components/schemas/ErrorSessionExpired'
+                  - $ref: '#/components/schemas/ErrorMethodNotFound'
+                  - $ref: '#/components/schemas/ErrorRequestConflict'
+                  - $ref: '#/components/schemas/ErrorGeoblocked'
+                  - $ref: '#/components/schemas/ErrorTimeout'
+                  - $ref: '#/components/schemas/ErrorInvalidArgument'
+                  - $ref: '#/components/schemas/ErrorRequiredArgument'
+                  - $ref: '#/components/schemas/ErrorQueryFailed'
+                  - $ref: '#/components/schemas/ErrorValidationFailed'
+                  - $ref: '#/components/schemas/ErrorRateLimited'
+                  - $ref: '#/components/schemas/ErrorNotFound'
+                  - $ref: '#/components/schemas/ErrorProjectNotFound'
+                  - $ref: '#/components/schemas/ErrorChainNotFound'
+                  - $ref: '#/components/schemas/ErrorTokenDirectoryDisabled'
+        '5XX':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: '#/components/schemas/ErrorWebrpcBadResponse'
+                  - $ref: '#/components/schemas/ErrorWebrpcServerPanic'
+                  - $ref: '#/components/schemas/ErrorWebrpcInternalError'
+                  - $ref: '#/components/schemas/ErrorFail'
   /rpc/Metadata/GetTokenMetadataBatch:
     post:
       summary: GetTokenMetadataBatch
       description: >-
-        GetTokenMetadataBatch allows you to query the token metadata of a batch
-        of contracts and respective tokenIDs where map is
-        contractAddress::[]tokenID => contractAddress::[]TokenMetadata
+        GetTokenMetadataBatch allows you to query the token metadata of a batch of contracts and respective tokenIDs where map is contractAddress::[]tokenID => contractAddress::[]TokenMetadata
 
-        Note, we limit each request to 50 contracts max and 50 tokens max per
-        contract.
+        Note, we limit each request to 50 contracts max and 50 tokens max per contract.
       requestBody:
         content:
           application/json:
@@ -2561,8 +2761,7 @@ paths:
     post:
       summary: GetContractInfo
       description: >-
-        Contract Info -- returns contract meta-info for contracts found in
-        registered chain's token-lists
+        Contract Info -- returns contract meta-info for contracts found in registered chain's token-lists
       requestBody:
         content:
           application/json:
@@ -2672,9 +2871,7 @@ paths:
     post:
       summary: SearchContractInfo
       description: >-
-        Search Contract Info across all chains token-lists. Similar to
-        GetContractInfo above, but it will traverse all chains and results from
-        all.
+        Search Contract Info across all chains token-lists. Similar to GetContractInfo above, but it will traverse all chains and results from all.
       requestBody:
         content:
           application/json:
@@ -2784,7 +2981,8 @@ paths:
   /rpc/Metadata/SearchMetadata:
     post:
       summary: SearchMetadata
-      description: 'Deprecated: Use SearchTokens() and SearchContracts() instead.'
+      deprecated: true
+      description: "Deprecated: Use SearchTokens() and SearchContracts() instead."
       requestBody:
         content:
           application/json:
@@ -3438,8 +3636,7 @@ paths:
                         extensions:
                           link: https://www.skyweaver.net/
                           description: >-
-                            Skyweaver is a Free-to-Play, trading card game
-                            powered by Polygon and Ethereum.
+                            Skyweaver is a Free-to-Play, trading card game powered by Polygon and Ethereum.
                           ogImage: https://skyweaver.net/images/skyweavercover.jpg
                           ogName: ''
                           originChainId: 0
@@ -3461,8 +3658,7 @@ paths:
                         extensions:
                           link: https://www.skyweaver.net/
                           description: >-
-                            Skyweaver is a Free-to-Play, trading card game
-                            powered by Ethereum.
+                            Skyweaver is a Free-to-Play, trading card game powered by Ethereum.
                           ogImage: https://skyweaver.net/images/skyweavercover.jpg
                           ogName: ''
                           originChainId: 0
@@ -4066,8 +4262,7 @@ paths:
     post:
       summary: DirectoryGetNetworks
       description: >-
-        Token Directory. NOTE: this only searches the 'token-directory' items.
-        Use 'SearchContracts' or 'SearchTokens' for everything else.
+        Token Directory. NOTE: this only searches the 'token-directory' items. Use 'SearchContracts' or 'SearchTokens' for everything else.
       requestBody:
         content:
           application/json:
