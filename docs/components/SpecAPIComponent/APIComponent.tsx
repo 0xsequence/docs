@@ -15,6 +15,8 @@ const importSpec = async (specType: any) => {
       return (await import('../../../docs/pages/api/marketplace/marketplace.gen.yaml')).default
     case 'metadata':
       return (await import('../../../docs/pages/api/metadata/metadata.gen.yaml')).default
+    case 'infrastructure':
+        return (await import('../../../docs/pages/api/api/api.gen.yaml')).default
     case 'transactions':
       // need to change to transactions once deployed
       return (await import('../../../docs/pages/api/relayer/relayer.gen.yaml')).default

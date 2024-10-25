@@ -69,6 +69,11 @@ export const topNav = [
         link: '/api/marketplace/overview',
         match: '/api/marketplace/overview',
       },
+      {
+        text: 'Infrastructure API',
+        link: '/api/infrastructure/overview',
+        match: '/api/infrastructure/overview',
+      },
       { text: 'Node Gateway', link: '/api/node-gateway', match: '/api/node-gateway' },
     ],
   },
@@ -858,6 +863,14 @@ export const sidebar = {
             { text: 'REST API', link: '/api/metadata/rest-api' },
           ],
         },
+      ],
+    },
+    {
+      text: 'Infrastructure',
+      collapsed: false,
+      items: [
+        { text: 'Overview', link: '/api/infrastructure/overview' },
+        { text: 'Endpoints', link: '/api/infrastructure/endpoints' },
       ],
     },
     {
