@@ -44,7 +44,6 @@ function APIComponent({ specType }: any) {
           content: specContent // {{ edit_4 }}
         },
         authentication: {
-          preferredSecurityScheme: 'ApiKeyAuth',
           apiKey: {
             token: apiKey,
           },

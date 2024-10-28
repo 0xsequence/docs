@@ -353,6 +353,10 @@ export const sidebar = {
               link: '/solutions/collectibles/contracts/deploy-ERC20-currency',
             },
             {
+              text: 'Deploy a Soulbound Token Contract',
+              link: '/solutions/collectibles/contracts/deploy-soulbound-token',
+            },
+            {
               text: 'Deploy a Primary Sales Contract',
               link: '/solutions/collectibles/contracts/deploy-primary-sales-contract',
             },

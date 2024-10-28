@@ -7,63 +7,19 @@ import { Callout } from "vocs/components";
 
 # Token Directory
 
-Sequence maintains an open [token directory on github](https://github.com/0xsequence/token-directory/), that allows Sequence infrastructure to filter spam from verified tokens.
+When tokens are added to various blockchains, the default is for these tokens to not be included in the default wallet settings since a lot of tokens can be considering spam until they are verified.
 
-While the infrastructure also watches sources like [CoinGecko](https://www.coingecko.com/) and [OpenSea](https://opensea.com) for verified contracts, all new tokens that are to be used - not verified from these sources - must be maintained manually.
+The best way to get your contracts verified is to deploy them through the Sequence Builder which will add them to our token directory automatically.
 
-When tokens are added to various blockchains, the default is for these tokens to not be included in the default wallet settings.
+We also support verifying external contracts and collections, to do this - please get in [contact](https://go.crisp.chat/chat/embed/?website_id=9ef4395b-6bb1-4645-8e02-6071d89290a1).
 
-Allowing these tokens to be seen by the wallet and infrastructure (even for testnets) can be done with one of the following steps:
+Otherwise, if you are deploying tokens for testing - you can also configure your Sequence Wallet to show unverified tokens.
 
-## How to make tokens appear in stack
+## How to make tokens appear in your wallet
 
-1. [Update Wallet Settings](/support/token-directory#1-update-wallet-settings) (For Single Wallet): One can update their wallet settings and make a token appear only for a single wallet
-2. [Update Token Directory](/support/token-directory#2-update-token-directory) (For All Wallets & Indexer): One can update the token directory to make a token appear for all wallets and Indexer infrastructure
-
-### 1. Update Wallet Settings
-
-Navigate to [Settings > General](https://sequence.app/settings/general) and untoggle `Hide Unverified Tokens`.
+From your Sequence Wallet in Builder, navigate to [Settings > General](https://sequence.app/settings/general) and untoggle `Hide Unverified Tokens`.
 
 <Callout type="warning">
   Note <br />
-  This can be useful for testing and immediate token appearance
+  This will show all unverified tokens which can be utilized for testing purposes.
 </Callout>
-
-### 2. Update Token Directory (Recommended)
-
-Create a pull request in the [token directory on github](https://github.com/0xsequence/token-directory/tree/master/index) updating the `index` folder for the specified network and token type and append to the `tokens` array, with updated fields for the specified token:
-
-```
-{
-      "chainId": <chain_id>,
-      "address": "<address>",
-      "name": "<name>",
-      "type": "<type>,
-      "symbol": "<SYMBOL>",
-      "deployed": true,
-      "logoURI": "<logo_uri_thumbnail>"
-      "extensions": {
-        "link": <token_homepage_url_link>,
-        "description": <description>,
-        "ogImage": "<og_image_banner>",
-        "originChainId": <origin_chain_id>,
-        "originAddress": <origin_address>
-      }
-}
-```
-
-### `logoURI` vs `ogImage`
-
-When adding images to describe your token, there are 2 possible options for accomplishing this.
-
-The first is the `logoURI` of size 40x40px which represents the rendered thumbnail beside a token in your wallet list
-
-The second is the `ogImage` of size 1200x640px which represents the rendered banner at the top of a token page when viewing in the wallet.
-
-### In Wallet
-
-![Verified Token Metadata](/img/metadata/verified_token_logoURI.png)
-
-### For a Token
-
-![Verified Token Metadata](/img/metadata/verified_token_metadata.png)
