@@ -52,18 +52,16 @@ const addExamplesToOpenAPI = (doc, examples) => {
     for (const [exampleName, ex] of Object.entries(example)) {
       if (ex.request && Object.keys(ex.request).length > 0) {
         const response = path.post.requestBody
-        response.content['application/json'].examples = {}
-        response.content['application/json'].examples[exampleName] = {}
-        response.content['application/json'].examples[exampleName].value = ex.request
-        response.content['application/json'].examples[exampleName].summary = ex.summary
+        response.content['application/json'].example = ex.request
       }
 
       if (ex.response && Object.keys(ex.response).length > 0) {
         const response = path.post.responses['200']
-        response.content['application/json'].examples = {}
-        response.content['application/json'].examples[exampleName] = {}
-        response.content['application/json'].examples[exampleName].value = ex.response
-        response.content['application/json'].examples[exampleName].summary = ex.summary
+        response.content['application/json'].example = ex.response
+      }
+
+      if (ex.description && Object.keys(ex.description).length > 0) {
+        path.post.description = ex.description
       }
 
       if (ex.tag && Object.keys(ex.tag).length > 0) {
