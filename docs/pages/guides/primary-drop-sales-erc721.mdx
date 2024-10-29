@@ -1,6 +1,6 @@
 ---
 title: Creating a Primary Drop Sale with Sequence Embedded Wallet Integration
-description: This guide covers the creation of a Primary Sales 721 of Sequence. It includes steps for create sales contract, create nft contract, create collection, create placeholders, reveal placeholders, wallet authentication, purchase and mint.
+description: This guide covers the creation of a Primary Sales 721 of Sequence. It includes steps to create a sales contract, to create an NFT contract, to create a collection, to create unrevealed tokens, to reveal unrevealed tokens, to authenticate wallets, and to purchase and mint.
 ---
 
 import { Callout } from "vocs/components";
@@ -8,7 +8,7 @@ import TabbedContent from "../../components/TabbedContent";
 
 # Create NFT Drop Sales with Sequence
 
-Accelerate your game’s growth and add excitement by selling placeholders to your players, offering them amazing rewards when the sale period ends, as all placeholders reveal their true features that your players will love. In this guide, we’ll walk you through the steps to deploy a Primary Sale contract using any custom or existing currency for a drop sale that leverages game items from an ERC721 contract. We will use the following technologies from the Sequence platform:
+Accelerate your game’s growth and add excitement by selling unrevealed tokens to your players, offering them amazing rewards when the sale period ends, as all unrevealed tokens reveal their true features that your players will love. In this guide, we’ll walk you through the steps to deploy a Primary Sale contract using any custom or existing currency for a drop sale that leverages game items from an ERC721 contract. We will use the following technologies from the Sequence platform:
 
 1. [Primary Sales Contract](/solutions/collectibles/contracts/deploy-primary-sales-contract/): How to set up and deploy contracts for launching a primary sale — suitable for an Web Shop, NFT Drop, and more.
 2. [Embedded Wallet](/solutions/wallets/embedded-wallet/overview): Use Sequence Kit and Sequence Embedded Wallet to authenticate a user.
@@ -87,11 +87,11 @@ When you're ready, replace the contents of `.env` with your project's informatio
 
 What can you do with this? The idea is to sell NFTs with hidden metadata—exciting, right? You’ll promise users amazing rewards! Swords? Shields? Paintings? Random battle passes? Maybe even a golden ticket? Imagine the thrill! Get your users hooked, eagerly buying these NFTs without knowing what they’ll get. And here’s the best part: you decide when to reveal them. In a month? Two? It’s entirely up to you. Just run a simple script when the time is right, and unveil the NFTs to all your players. Follow the steps below to make it happen!
 
-### Placeholders creation
+### Unrevealed Tokens Creation
 
-This step explains how to create placeholders for your NFT collection using a script. Follow the steps carefully to ensure your collection is properly configured, and make sure you have its ID copied from the URL in the collection details view.
+This step explains how to create unrevealed tokens for your NFT collection using a script. Follow the steps carefully to ensure your collection is properly configured, and make sure you have its ID copied from the URL in the collection details view.
 
-To create the placeholders, make sure to set your `collectionId` and the `number` of placeholders you want to create inside the `scripts/utils/getBodyAndKeys.ts` file, which already contains an example.
+To create the unrevealed tokens, make sure to set your `collectionId` and the `number` of tokens you want to create inside the `scripts/utils/getBodyAndKeys.ts` file, which already contains an example.
 
 <Callout type="warning">
   Make sure to configure your `JWT_SECRET_KEY`, `VITE_PROJECT_ACCESS_KEY`, and `VITE_PROJECT_ID` in your `.env` file.
@@ -100,19 +100,19 @@ To create the placeholders, make sure to set your `collectionId` and the `number
 #### Script:
 
 ```bash
-pnpm placeholders:create
+pnpm create-unrevealed-tokens
 ```
 
 ### Project Connection Flow and ERC721 Sales Contract Setup
 
-From this point, you need to complete the entire connection flow for your project and set up the ERC721 sales contract, which will be linked to the collection containing the placeholders.
+From this point, you need to complete the entire connection flow for your project and set up the ERC721 sales contract, which will be linked to the collection containing the unrevealed tokens.
 
 #### Important Considerations:
 
-* The primary sales contract must have the same stock as the number of placeholders you created via the endpoint.
-* For example, if you generated 300 placeholders, you should configure 300 units of stock in the sales contract to ensure consistency between the contract and the placeholders.
-* Link the Collection with Placeholders to the Contract.
-* Ensure the total supply or stock in your ERC721 sales contract matches the number of placeholders. This avoids inconsistencies between what the contract offers for sale and the placeholders available.
+* The primary sales contract must have the same stock as the number of unrevealed tokens you created via the endpoint.
+* For example, if you generated 300 unrevealed tokens, you should configure 300 units of stock in the sales contract to ensure consistency between the contract and the unrevealed tokens.
+* Link the Collection with Unrevealed Tokens to the Contract.
+* Ensure the total supply or stock in your ERC721 sales contract matches the number of unrevealed tokens. This avoids inconsistencies between what the contract offers for sale and the unrevealed tokens available.
 
 ### Configure your own Primary Sales Contracts in the repository
 
@@ -156,11 +156,11 @@ Your primary drop sale should now appear and function correctly from this point 
 ::::
 
 
-### Reveal placeholders
+### Reveal Tokens
 
-Hey, isn’t it exciting? Your users are eagerly waiting to discover their fate—make them happy by revealing the true attributes of their NFTs! Good luck to everyone! This script will unveil all the placeholders and assign their actual values to the NFTs, which are generated randomly. Feel free to customize this script to create the metadata exactly how you want!
+Hey, isn’t it exciting? Your users are eagerly waiting to discover their fate—make them happy by revealing the true attributes of their NFTs! Good luck to everyone! This script will unveil all the unrevealed tokens and assign their actual values to the NFTs, which are generated randomly. Feel free to customize this script to create the metadata exactly how you want!
 
-To reveal the placeholders, make sure to set your `collectionId` inside the `scripts/utils/getBodyAndKeys.ts` file, which already contains an example.
+To reveal the unrevealed tokens, make sure to set your `collectionId` inside the `scripts/utils/getBodyAndKeys.ts` file, which already contains an example.
 
 <Callout type="warning">
   Make sure to configure your `JWT_SECRET_KEY`, `VITE_PROJECT_ACCESS_KEY`, and `VITE_PROJECT_ID` in your `.env` file.
@@ -170,5 +170,5 @@ To reveal the placeholders, make sure to set your `collectionId` inside the `scr
 #### Script:
 
 ```bash
-pnpm placeholders:reveal
+pnpm reveal-tokens
 ```
