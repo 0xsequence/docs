@@ -1,0 +1,227 @@
+openapi: 3.0.1
+info:
+  title: Metadata rest endpoints
+  version: "1.0.0"
+  description: API for managing projects, collections, assets, and tokens.
+paths:
+  /projects/{projectId}:
+    get:
+      summary: Retrieve a project
+      description: Fetches a project by its ID.
+      parameters:
+        - name: projectId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The ID of the project to retrieve.
+      responses:
+        "200":
+          description: Project retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  project:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+        "400":
+          description: Bad request, wrong format for projectId
+        "403":
+          description: Forbidden, access denied to project
+
+  /projects/{projectId}/collections/{collectionId}/private:
+    get:
+      summary: Retrieve a private collection
+      description: Fetches private collection details within a project.
+      parameters:
+        - name: projectId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: collectionId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Collection retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+        "403":
+          description: Forbidden, access denied to collection
+
+  /projects/{projectId}/collections/{collectionId}/private/{assetType}:
+    get:
+      summary: Download private collection asset
+      description: Downloads a private asset from a collection.
+      parameters:
+        - name: projectId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: collectionId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: assetType
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Asset downloaded successfully
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+        "403":
+          description: Forbidden, access denied to asset
+
+  /projects/{projectId}/collections/{collectionId}/assets/{assetId}/upload:
+    put:
+      summary: Upload an asset
+      description: Uploads an asset file to a specified collection.
+      parameters:
+        - name: projectId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: collectionId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: assetId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/octet-stream:
+            schema:
+              type: string
+              format: binary
+      responses:
+        "200":
+          description: Asset uploaded successfully
+        "403":
+          description: Forbidden, access denied to upload
+
+  /projects/{projectId}/collections/{collectionId}/tokens/{tokenId}/private:
+    get:
+      summary: Retrieve a private token
+      description: Fetches a private token within a collection in a project.
+      parameters:
+        - name: projectId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: collectionId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: tokenId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Token retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+        "403":
+          description: Forbidden, access denied to token
+
+  /projects/{projectId}/collections/{collectionId}/tokens/{tokenId}/upload/{assetIdOrAssetType}:
+    put:
+      summary: Upload a token asset
+      description: Uploads an asset to a token within a collection.
+      parameters:
+        - name: projectId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: collectionId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: tokenId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: assetIdOrAssetType
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/octet-stream:
+            schema:
+              type: string
+              format: binary
+      responses:
+        "200":
+          description: Asset uploaded successfully
+        "403":
+          description: Forbidden, access denied to upload
+
+  /projects/{projectId}/collections/{collectionId}/tokens/{tokenId}/asset/{assetType}:
+    get:
+      summary: Download a token asset
+      description: Downloads an asset of a specified type from a token.
+      parameters:
+        - name: projectId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: collectionId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: tokenId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: assetType
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Asset downloaded successfully
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+        "403":
+          description: Forbidden, access denied to asset
