@@ -75,7 +75,7 @@ const addExamplesToOpenAPI = (doc, examples) => {
 }
 
 export const merge = (openApiFilepath) => {
-  // /docs/pages/api/marketplace/marketplace.gen.yaml
+  // /docs/pages/api/marketplace/rpc.gen.yaml
   const openAPIDoc = loadOpenAPIDocument(openApiFilepath)
 
   const dir = path.dirname(openApiFilepath)
