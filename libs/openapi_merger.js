@@ -22,11 +22,18 @@ const saveOpenAPIDocument = (filePath, document) => {
 }
 
 const result = {
+    openapi: "3.0.0",
+    info: {
+        title: "",
+        version: "",
+    },
+    servers: [],
     components: {
         schemas: {},
         securitySchemes: {},
     },
-    paths: {}
+    paths: {},
+    security: []
 }
 
 yargs(hideBin(process.argv))
