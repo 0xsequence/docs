@@ -8,7 +8,7 @@ const importSpec = async (specType: any) => {
   switch (specType) {
     case 'analytics':
       // need to change to analytics once deployed
-      return (await import('../../../docs/pages/api/indexer/indexer.gen.yaml')).default
+      return (await import('../../../docs/pages/api/analytics/analytics.gen.yaml')).default
     case 'indexer':
       return (await import('../../../docs/pages/api/indexer/indexer.gen.yaml')).default
     case 'marketplace':
