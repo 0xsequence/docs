@@ -23,6 +23,23 @@ jobs:
     - name: Build
       run: pnpm run build
 
+    - name: setup-go
+      uses: actions/setup-go@v5
+      with:
+        go-version: "1.22.5"
+
+    - name: Update openapi docs
+      run: |
+        # Read the changed files from the previous step
+        go mod init github.com/0xsequence/docs 
+        go get github.com/mikefarah/yq/v4@latest 
+        go run github.com/mikefarah/yq/v4 -e -i '.security=[{"ApiKeyAuth":[]}]' docs/pages/api/api/api.gen.yaml
+        go run github.com/mikefarah/yq/v4 -e -i '.security=[{"ApiKeyAuth":[]}]' docs/pages/api/analytics/analytics.gen.yaml
+        go run github.com/mikefarah/yq/v4 -e -i '.security=[{"ApiKeyAuth":[]}]' docs/pages/api/marketplace/marketplace.gen.yaml
+        go run github.com/mikefarah/yq/v4 -e -i '.security=[{"ApiKeyAuth":[]}, {"BearerAuth":[]}]' docs/pages/api/metadata/metadata.gen.yaml
+        go run github.com/mikefarah/yq/v4 -e -i '.security=[{"ApiKeyAuth":[]}]' docs/pages/api/indexer/indexer.gen.yaml
+        go run github.com/mikefarah/yq/v4 -e -i '.security=[{"ApiKeyAuth":[]}]' docs/pages/api/relayer/relayer.gen.yaml
+
     - name: Touch .nojeykll
       run: touch ./docs/dist/.nojekyll
 
