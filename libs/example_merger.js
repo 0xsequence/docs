@@ -52,23 +52,61 @@ const addExamplesToOpenAPI = (doc, examples) => {
     }
 
     for (const [exampleName, ex] of Object.entries(example)) {
-      if (ex.request && Object.keys(ex.request).length > 0) {
-        const response = path.post.requestBody
-        response.content['application/json'].example = ex.request
-      }
+      const methods = ['post', 'put'];
+    
+      for (const method of methods) {
+        if (path[method]) {
+          if (ex.request && Object.keys(ex.request).length > 0) {
+            const requestBody = path[method].requestBody;
+    
+            if (requestBody) {
+              if (requestBody.content['application/octet-stream']) {
+                // Remove content of application/octet-stream
+                delete requestBody.content['application/octet-stream'];
+                requestBody.content['multipart/form-data'] = requestBody.content['multipart/form-data'] || {};
+                requestBody.content['multipart/form-data'].example = ex.request;
+              }
 
-      if (ex.response && Object.keys(ex.response).length > 0) {
-        const response = path.post.responses['200']
-        response.content['application/json'].example = ex.response
-      }
+              if (requestBody.content['multipart/form-data']) {
+                requestBody.content['multipart/form-data'].example = ex.request;
+              }
 
-      if (ex.description && Object.keys(ex.description).length > 0) {
-        path.post.description = ex.description
-      }
+              if (requestBody.content['application/json']) {
+                requestBody.content['application/json'].example = ex.request;
+              }
+            }
+          }
+    
+          if (ex.response && Object.keys(ex.response).length > 0) {
+            const response = path[method].responses['200'];
 
-      if (ex.tag && Object.keys(ex.tag).length > 0) {
-        path.post.tags = {}
-        path.post.tags = ex.tag
+            if (response) {
+              if (!response.content) {
+                response.content = {
+                  'application/json': {
+                    example: ex.response,
+                  },
+                };
+              } else {
+                if (response.content['application/json']) {
+                  response.content['application/json'].example = ex.response;
+                } else {
+                  response.content['application/json'] = {
+                    example: ex.response,
+                  };
+                }
+              }
+            }
+          }
+    
+          if (ex.description && Object.keys(ex.description).length > 0) {
+            path[method].description = ex.description;
+          }
+    
+          if (ex.tag && Object.keys(ex.tag).length > 0) {
+            path[method].tags = ex.tag;
+          }
+        }
       }
     }
   }
