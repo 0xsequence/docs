@@ -29,7 +29,7 @@ const saveOpenAPIDocument = (filePath, document) => {
 
 const addExamplesToOpenAPI = (doc, examples) => {
   // Check if the document title contains 'Metadata' or 'Indexer'
-  if (doc.info.title.includes('Metadata') || doc.info.title.includes('Indexer')) {
+  if (doc.info.title.includes('Metadata') || doc.info.title.includes('Indexer') || doc.info.title.includes('Analytics')) {
     doc.tags = [
       {
         name: 'public',
@@ -52,33 +52,34 @@ const addExamplesToOpenAPI = (doc, examples) => {
     }
 
     for (const [exampleName, ex] of Object.entries(example)) {
-      const methods = ['post', 'put'];
-    
+      const methods = ['post', 'put']
+
       for (const method of methods) {
         if (path[method]) {
           if (ex.request && Object.keys(ex.request).length > 0) {
-            const requestBody = path[method].requestBody;
-    
+            const requestBody = path[method].requestBody
+
             if (requestBody) {
               if (requestBody.content['application/octet-stream']) {
                 // Remove content of application/octet-stream
-                delete requestBody.content['application/octet-stream'];
-                requestBody.content['multipart/form-data'] = requestBody.content['multipart/form-data'] || {};
-                requestBody.content['multipart/form-data'].example = ex.request;
+                requestBody.content['application/octet-stream'] = undefined
+                requestBody.content['multipart/form-data'] =
+                  requestBody.content['multipart/form-data'] || {}
+                requestBody.content['multipart/form-data'].example = ex.request
               }
 
               if (requestBody.content['multipart/form-data']) {
-                requestBody.content['multipart/form-data'].example = ex.request;
+                requestBody.content['multipart/form-data'].example = ex.request
               }
 
               if (requestBody.content['application/json']) {
-                requestBody.content['application/json'].example = ex.request;
+                requestBody.content['application/json'].example = ex.request
               }
             }
           }
-    
+
           if (ex.response && Object.keys(ex.response).length > 0) {
-            const response = path[method].responses['200'];
+            const response = path[method].responses['200']
 
             if (response) {
               if (!response.content) {
@@ -86,25 +87,25 @@ const addExamplesToOpenAPI = (doc, examples) => {
                   'application/json': {
                     example: ex.response,
                   },
-                };
+                }
               } else {
                 if (response.content['application/json']) {
-                  response.content['application/json'].example = ex.response;
+                  response.content['application/json'].example = ex.response
                 } else {
                   response.content['application/json'] = {
                     example: ex.response,
-                  };
+                  }
                 }
               }
             }
           }
-    
+
           if (ex.description && Object.keys(ex.description).length > 0) {
-            path[method].description = ex.description;
+            path[method].description = ex.description
           }
-    
+
           if (ex.tag && Object.keys(ex.tag).length > 0) {
-            path[method].tags = ex.tag;
+            path[method].tags = ex.tag
           }
         }
       }
