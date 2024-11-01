@@ -28,8 +28,8 @@ const saveOpenAPIDocument = (filePath, document) => {
 }
 
 const addExamplesToOpenAPI = (doc, examples) => {
-  // Check if the document title contains 'Metadata'
-  if (doc.info.title.includes('Metadata')) {
+  // Check if the document title contains 'Metadata' or 'Indexer'
+  if (doc.info.title.includes('Metadata') || doc.info.title.includes('Indexer')) {
     doc.tags = [
       {
         name: 'public',
