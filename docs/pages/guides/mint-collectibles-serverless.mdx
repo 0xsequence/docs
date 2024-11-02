@@ -97,17 +97,11 @@ import { ethers } from "ethers";
 
   // Or, use an existing EOA private key
   const privateKey = "";
-  const provider = new ethers.providers.JsonRpcProvider(
-    "https://nodes.sequence.app/mainnet"
-  );
-
-  // Create your server EOA
-  const walletEOA = new ethers.Wallet(privateKey, provider);
 
   // Open a Sequence session, this will find or create
   // a Sequence wallet controlled by your server EOA
   const session = await Session.singleSigner({
-    signer: walletEOA,
+    signer: privateKey,
     projectAccessKey: "access_key",
   });
 
@@ -407,18 +401,14 @@ const callContract = async (request: Request, env: Env, address: string, tokenId
 
 	const nodeUrl = `https://nodes.sequence.app/${env.CHAIN_HANDLE}`
 	const relayerUrl = `https://${env.CHAIN_HANDLE}-relayer.sequence.app`
-	const provider = new ethers.providers.JsonRpcProvider({ url: nodeUrl, skipFetchSetup: true })
-    const contractAddress = env.CONTRACT_ADDRESS
+	const contractAddress = env.CONTRACT_ADDRESS
 
-    // create EOA from private key
-	const walletEOA = new ethers.Wallet(env.PKEY, provider);
 
 	// instantiate settings
 	const settings: Partial<SessionSettings> = {
 		networks: [{
 			...networks[findSupportedNetwork(env.CHAIN_HANDLE)!.chainId],
 			rpcUrl: findSupportedNetwork(env.CHAIN_HANDLE)!.rpcUrl,
-			provider: provider,
 			relayer: {
 				url: relayerUrl,
 				provider: {
@@ -431,7 +421,7 @@ const callContract = async (request: Request, env: Env, address: string, tokenId
     // create a single signer sequence wallet session
 	const session = await Session.singleSigner({
 		settings: settings,
-		signer: walletEOA,
+		signer: env.PKEY,
 		projectAccessKey: env.PROJECT_ACCESS_KEY
 	})
 
