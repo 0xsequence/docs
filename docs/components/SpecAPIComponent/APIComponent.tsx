@@ -8,18 +8,18 @@ const importSpec = async (specType: any) => {
   switch (specType) {
     case 'analytics':
       // need to change to analytics once deployed
-      return (await import('../../../docs/pages/api/analytics/analytics.gen.yaml')).default
+      return (await import('../../../docs/pages/api/analytics/rpc.gen.yaml')).default
     case 'indexer':
-      return (await import('../../../docs/pages/api/indexer/indexer.gen.yaml')).default
+      return (await import('../../../docs/pages/api/indexer/rpc.gen.yaml')).default
     case 'marketplace':
-      return (await import('../../../docs/pages/api/marketplace/marketplace.gen.yaml')).default
+      return (await import('../../../docs/pages/api/marketplace/rpc.gen.yaml')).default
     case 'metadata':
-      return (await import('../../../docs/pages/api/metadata/metadata.gen.yaml')).default
+      return (await import('../../../docs/pages/api/metadata/rpc.gen.yaml')).default
     case 'infrastructure':
-        return (await import('../../../docs/pages/api/api/api.gen.yaml')).default
+        return (await import('../../../docs/pages/api/api/rpc.gen.yaml')).default
     case 'transactions':
       // need to change to transactions once deployed
-      return (await import('../../../docs/pages/api/relayer/relayer.gen.yaml')).default
+      return (await import('../../../docs/pages/api/relayer/rpc.gen.yaml')).default
 
     // Add more cases for other spec types as needed
     default:
@@ -48,6 +48,7 @@ function APIComponent({ specType }: any) {
             token: apiKey,
           },
         },
+        defaultOpenAllTags: true
       })
     }
 
