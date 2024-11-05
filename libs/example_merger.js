@@ -31,9 +31,40 @@ const addExamplesToOpenAPI = (doc, examples) => {
   // Check if the document title contains 'Metadata' or 'Indexer'
   if (
     doc.info.title.includes('Metadata') ||
-    doc.info.title.includes('Indexer') ||
     doc.info.title.includes('Analytics')
   ) {
+    doc.tags = [
+      {
+        name: 'public',
+        description:
+          'Endpoints accessible by passing your project-access-key in the header. This is injected whenever you login automatically.',
+      },
+      {
+        name: 'secret',
+        description:
+          'Endpoints that require a Sequence service token intended to be secret. You can manually generate one on Sequence Builder and pass it as a Bearer Token.',
+      },
+    ]
+  }
+
+  if (
+    doc.info.title.includes('Indexer')
+  ) {
+    doc.components.securitySchemes = {
+      ApiKeyAuth: {
+        type: 'apiKey',
+        in: 'header',
+        description: 'Project access key for authenticating requests, get an access key at https://sequence.build',
+        name: 'X-Access-Key'
+      },
+      BearerAuth: {
+        type: 'http',
+        scheme: 'bearer',
+        bearerFormat: 'JWT',
+        description: 'JWT Service Token generated from Sequence Builder'
+      }
+    }
+
     doc.tags = [
       {
         name: 'public',
