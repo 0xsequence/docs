@@ -29,10 +29,7 @@ const saveOpenAPIDocument = (filePath, document) => {
 
 const addExamplesToOpenAPI = (doc, examples) => {
   // Check if the document title contains 'Metadata' or 'Indexer'
-  if (
-    doc.info.title.includes('Metadata') ||
-    doc.info.title.includes('Analytics')
-  ) {
+  if (doc.info.title.includes('Metadata') || doc.info.title.includes('Analytics')) {
     doc.tags = [
       {
         name: 'public',
@@ -47,22 +44,21 @@ const addExamplesToOpenAPI = (doc, examples) => {
     ]
   }
 
-  if (
-    doc.info.title.includes('Indexer')
-  ) {
+  if (doc.info.title.includes('Indexer')) {
     doc.components.securitySchemes = {
       ApiKeyAuth: {
         type: 'apiKey',
         in: 'header',
-        description: 'Project access key for authenticating requests, get an access key at https://sequence.build',
-        name: 'X-Access-Key'
+        description:
+          'Project access key for authenticating requests, get an access key at https://sequence.build',
+        name: 'X-Access-Key',
       },
       BearerAuth: {
         type: 'http',
         scheme: 'bearer',
         bearerFormat: 'JWT',
-        description: 'JWT Service Token generated from Sequence Builder'
-      }
+        description: 'JWT Service Token generated from Sequence Builder',
+      },
     }
 
     doc.tags = [
@@ -101,6 +97,7 @@ const addExamplesToOpenAPI = (doc, examples) => {
                 requestBody.content['multipart/form-data'] =
                   requestBody.content['multipart/form-data'] || {}
                 requestBody.content['multipart/form-data'].example = ex.request
+
               }
 
               if (requestBody.content['multipart/form-data']) {
@@ -108,7 +105,10 @@ const addExamplesToOpenAPI = (doc, examples) => {
               }
 
               if (requestBody.content['application/json']) {
-                requestBody.content['application/json'].example = ex.request
+                requestBody.content['application/json'].examples = {}
+                requestBody.content['application/json'].examples[exampleName] = {}
+                requestBody.content['application/json'].examples[exampleName].value = ex.request
+                requestBody.content['application/json'].examples[exampleName].summary = ex.summary
               }
             }
           }
@@ -120,15 +120,28 @@ const addExamplesToOpenAPI = (doc, examples) => {
               if (!response.content) {
                 response.content = {
                   'application/json': {
-                    example: ex.response,
+                    examples: {
+                      exampleName: {
+                        value: ex.response,
+                        summary: ex.summary
+                      }
+                    }
                   },
                 }
               } else {
                 if (response.content['application/json']) {
-                  response.content['application/json'].example = ex.response
+                  response.content['application/json'].examples = {}
+                  response.content['application/json'].examples[exampleName] = {}
+                  response.content['application/json'].examples[exampleName].value = ex.response
+                  response.content['application/json'].examples[exampleName].summary = ex.summary
                 } else {
                   response.content['application/json'] = {
-                    example: ex.response,
+                    examples: {
+                      exampleName: {
+                        value: ex.response,
+                        summary: ex.summary
+                      }
+                    }
                   }
                 }
               }
