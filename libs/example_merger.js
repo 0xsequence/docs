@@ -97,7 +97,6 @@ const addExamplesToOpenAPI = (doc, examples) => {
                 requestBody.content['multipart/form-data'] =
                   requestBody.content['multipart/form-data'] || {}
                 requestBody.content['multipart/form-data'].example = ex.request
-
               }
 
               if (requestBody.content['multipart/form-data']) {
@@ -123,9 +122,9 @@ const addExamplesToOpenAPI = (doc, examples) => {
                     examples: {
                       exampleName: {
                         value: ex.response,
-                        summary: ex.summary
-                      }
-                    }
+                        summary: ex.summary,
+                      },
+                    },
                   },
                 }
               } else {
@@ -139,9 +138,9 @@ const addExamplesToOpenAPI = (doc, examples) => {
                     examples: {
                       exampleName: {
                         value: ex.response,
-                        summary: ex.summary
-                      }
-                    }
+                        summary: ex.summary,
+                      },
+                    },
                   }
                 }
               }
