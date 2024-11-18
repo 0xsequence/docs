@@ -1,0 +1,121 @@
+---
+title: How to integrate Sequence with a Telegram Mini-app or Game
+description: This guide covers the creation of a Primary Sales of Sequence. It includes steps for create sales contract, create nft contract, create collection, wallet authentication, purchase and mint.
+---
+
+import { Callout } from "vocs/components";
+import TabbedContent from "../../components/TabbedContent";
+
+# How to Integrate Sequence Embedded Wallets with your Telegram Mini-app or Telegram game
+
+We'll be walking through how to integrate a sequence embedded wallet into your Telegram game or app and authenticate your users via email.
+
+## Clone the Telegram Boilerplate
+
+<TabbedContent labels={["Github", "Github Template"]}>
+    <div className="tabbed-content__content">
+
+        #### You can clone Primary Sales Repository from Github
+
+        ```shell
+        git clone https://github.com/0xsequence/primary-drop-sale-1155-boilerplate.git
+        ```
+
+        <br/>
+
+        Then install and run:
+
+        <br/>
+
+        ```shell
+        pnpm install && pnpm dev
+        ```
+
+        <br/>
+
+        After you install the dependencies, `.env.example` will be automatically copied to `.env`, so you can test things out with pre-provided keys.
+
+        <br/>
+
+        When you're ready, replace the contents of `.env` with your project's information.
+
+    </div>
+    <div className="tabbed-content__content">
+
+        #### You can use the Primary Sales Repository Template from Github
+
+        Go to https://github.com/0xsequence/primary-drop-sale-1155-boilerplate and click "Use this Template" in the top right corner.
+        <br/>
+
+        Clone your newly made repo.
+
+        <br/>
+
+        Then install and run:
+
+        <br/>
+
+        ```shell
+        pnpm install && pnpm dev
+        ```
+
+        <br/>
+        After you install the dependencies, `.env.example` will be automatically copied to `.env`, so you can test things out with pre-provided keys.
+        <br/>
+
+        When you're ready, replace the contents of `.env` with your project's information.
+
+    </div>
+</TabbedContent>
+
+::::steps
+### Bot Setup and Auth Token
+
+- Open the Telegram app then in the search bar type **BotFather** and select the verified account.
+- Click on **Start** or type `/start` to initiate a conversation with BotFather.
+- Type `/newbot` and press Enter.
+- Follow the prompts to provide a name and a unique username for your bot.
+  - The bot's name can be anything, but the username must end in `bot` (e.g., `Sequence_Example_bot`).
+- Once your bot is created, BotFather will send a message with your **HTTP API Token**.
+  - The token will look something like this: `123456789:ABC-DEF1234ghIkl-zyx57W2v1u123ew11`.
+
+### Set the Sales Configurations for the project.
+
+Once we have our sales contract deployed, we'll simply update the sales configuration on the boilerplate. Go to `src/salesConfigs.ts` and modify the salesConfigs variable by adding each contract sale in an array for your project with the networks you want to support. Example:
+
+```ts
+export const salesConfigs: SaleConfiguration[] = [
+  {
+    nftTokenAddress: "0x888a322db4b8033bac3ff84412738c096f87f9d0",
+    salesContractAddress: "0x0327b2f274e04d292e74a06809bcd687c63a4ba4",
+    chainId: 80002, //polygonAmoy
+    // Modify here to show different items
+    itemsForSale: ["0", "1"],
+  },
+  {
+    nftTokenAddress: "0xd4bb59d0ba1f7b2beea4c6d9b9f151ee1da02665",
+    salesContractAddress: "0x326d2fbe4808dd2a3e205aecc5e25a6322ad0a81",
+    chainId: 421614, //arbitrumSepolia,
+    // Modify here to show different items
+    itemsForSale: ["0"],
+  },
+];
+```
+
+<Callout type="info">
+  You can see all the available chains currently supported by sequence <a href="/solutions/technical-references/chain-support" target="_blank" rel="noopener noreferrer" style={{ fontWeight: 700 }}>here</a>.
+</Callout>
+
+### Set a default chainId for the project.
+
+To set the default chainId, go to `src/salesConfigs.ts` and modify the defaultChainId variable with the chainId you want to display by default in the project. It must match a chainId present in your salesConfigs variable. For example:
+
+```ts
+// In this case, the chosen `defaultChainId` is 80002 (amoy), which is present in the previously declared `salesConfigs` variable.
+export const defaultChainId = 80002;
+```
+
+### Done!
+
+Your primary sales should now appear and function correctly from this point onward. In order to make a purchase, ensure you have the corresponding token that you set as a currency for the sale in your wallet, increment the amount, and click purchase!
+::::
