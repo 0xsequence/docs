@@ -314,7 +314,24 @@ export const sidebar = {
           items: [
             {
               text: 'White-label Marketplace',
-              link: '/solutions/marketplaces/white-label-marketplace',
+              collapsed: true,
+              items: [
+                {
+                  text: "Overview",
+                  link: '/solutions/marketplaces/white-label-marketplace/overview',
+                  collapsed: true,
+                },
+                {
+                  text: "Guide",
+                  link: '/solutions/marketplaces/white-label-marketplace/guide',
+                  collapsed: true,
+                },
+                {
+                  text: "Video Walkthrough",
+                  link: '/solutions/marketplaces/white-label-marketplace/video-walkthrough',
+                  collapsed: true,
+                }
+              ]
             },
             {
               text: 'Build your Custom Marketplace',
