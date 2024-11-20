@@ -1,0 +1,34 @@
+import{d as t,j as n}from"./index-C1I6LFNT.js";const o={title:"Soneium Minato - Sepolia Blockchain Network",description:"Explore Soneium Minato, a blockchain network with chain ID 1946. Learn about its native currency, ETH, and how to interact with the network."};function r(i){const e={a:"a",div:"div",h1:"h1",h2:"h2",header:"header",li:"li",p:"p",strong:"strong",ul:"ul",...t(),...i.components};return n.jsxs(n.Fragment,{children:[n.jsx(e.header,{children:n.jsxs(e.h1,{id:"soneium-minato",children:["Soneium Minato",n.jsx(e.a,{"aria-hidden":"true",tabIndex:"-1",href:"#soneium-minato",children:n.jsx(e.div,{"data-autolink-icon":!0})})]})}),`
+`,n.jsx(e.p,{children:"Soneium Minato is a blockchain network with chain ID 1946."}),`
+`,n.jsxs(e.h2,{id:"network-details",children:["Network Details",n.jsx(e.a,{"aria-hidden":"true",tabIndex:"-1",href:"#network-details",children:n.jsx(e.div,{"data-autolink-icon":!0})})]}),`
+`,n.jsxs(e.ul,{children:[`
+`,n.jsxs(e.li,{children:[n.jsx(e.strong,{children:"Chain ID"}),": 1946"]}),`
+`,n.jsxs(e.li,{children:[n.jsx(e.strong,{children:"Chain Name"}),": Sepolia"]}),`
+`,n.jsxs(e.li,{children:[n.jsx(e.strong,{children:"Short Name"}),": ETH"]}),`
+`,n.jsxs(e.li,{children:[n.jsx(e.strong,{children:"Network ID"}),": 1946"]}),`
+`,n.jsxs(e.li,{children:[n.jsx(e.strong,{children:"Currency"}),":",`
+`,n.jsxs(e.ul,{children:[`
+`,n.jsxs(e.li,{children:[n.jsx(e.strong,{children:"Name"}),": ETH"]}),`
+`,n.jsxs(e.li,{children:[n.jsx(e.strong,{children:"Symbol"}),": ETH"]}),`
+`,n.jsxs(e.li,{children:[n.jsx(e.strong,{children:"Decimals"}),": 18"]}),`
+`]}),`
+`]}),`
+`]}),`
+`,n.jsxs(e.h2,{id:"rpc-urls",children:["RPC URLs",n.jsx(e.a,{"aria-hidden":"true",tabIndex:"-1",href:"#rpc-urls",children:n.jsx(e.div,{"data-autolink-icon":!0})})]}),`
+`,n.jsx(e.p,{children:"Soneium Minato can be accessed through the following RPC endpoints:"}),`
+`,n.jsxs(e.ul,{children:[`
+`,n.jsxs(e.li,{children:[n.jsx(e.a,{href:"https://nodes.sequence.app/soneium-minato/*PROJECT_ACCESS_KEY",children:"https://nodes.sequence.app/soneium-minato/*PROJECT_ACCESS_KEY"}),"*"]}),`
+`,n.jsx(e.li,{children:n.jsx(e.a,{href:"https://rpc.minato.soneium.org/",children:"https://rpc.minato.soneium.org/"})}),`
+`]}),`
+`,n.jsxs(e.h2,{id:"soneium-minato-block-explorers",children:["Soneium Minato Block Explorers",n.jsx(e.a,{"aria-hidden":"true",tabIndex:"-1",href:"#soneium-minato-block-explorers",children:n.jsx(e.div,{"data-autolink-icon":!0})})]}),`
+`,n.jsxs(e.ul,{children:[`
+`,n.jsx(e.li,{children:n.jsx(e.a,{href:"https://explorer-testnet.soneium.org",children:"Minato - Soneium L2 Testnet"})}),`
+`]}),`
+`,n.jsxs(e.h2,{id:"additional-information",children:["Additional Information",n.jsx(e.a,{"aria-hidden":"true",tabIndex:"-1",href:"#additional-information",children:n.jsx(e.div,{"data-autolink-icon":!0})})]}),`
+`,n.jsxs(e.ul,{children:[`
+`,n.jsxs(e.li,{children:[n.jsx(e.strong,{children:"Official Website"}),": ",n.jsx(e.a,{href:"https://soneium.org/en/",children:"https://soneium.org/en/"})]}),`
+`]}),`
+`,n.jsxs(e.h2,{id:"sequence-integration-status",children:["Sequence Integration Status",n.jsx(e.a,{"aria-hidden":"true",tabIndex:"-1",href:"#sequence-integration-status",children:n.jsx(e.div,{"data-autolink-icon":!0})})]}),`
+`,n.jsx(e.p,{children:"All Sequence services including our smart account infrastructure are available on this network."}),`
+`,n.jsxs(e.h2,{id:"soneium-minato-faucet",children:["Soneium Minato Faucet",n.jsx(e.a,{"aria-hidden":"true",tabIndex:"-1",href:"#soneium-minato-faucet",children:n.jsx(e.div,{"data-autolink-icon":!0})})]}),`
+`,n.jsx(e.p,{children:"When building with Sequence, faucets aren't necessary due to our smart account infrastructure. This allows for a smoother onboarding process for your users and a better developer experience."})]})}function a(i={}){const{wrapper:e}={...t(),...i.components};return e?n.jsx(e,{...i,children:n.jsx(r,{...i})}):r(i)}export{a as default,o as frontmatter};
