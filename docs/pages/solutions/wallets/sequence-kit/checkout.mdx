@@ -3,19 +3,25 @@ title: Setting Up Cryptocurrency Payments with Kit Checkout
 description: The Checkout Overview provides developers with a modal to easily implement cryptocurrency payments.
 ---
 
-# Checkout Overview
-The checkout modal enables developers to easily facilitate cryptocurrency payments.
+# Overview
+Sequence Checkout allows users to easily purchase an ERC721 or ERC1155 token with a primary or secondary sales contract such as a marketplace, with the following payment options:
+  - Purchase with any cryptocurrency in the wallet.
+  - Transfer funds from another wallet to a Sequence wallet and purchase.
+  - Pay using a credit or debit card which will intelligently detect the correct provider for each region, chain and currency.
+  - Pay with another cryptocurrency in a wallet by doing an automated swap and purchase.
 
-<div class="text--center">
-  <img src="/img/kit/checkout-modal.png" alt="make it easier for users to checkout with a collectible in your dap with the Kit checkout modal"/>
-</div>
+We have an integrated checkout flow within Sequence Kit that you can leverage by installing the dedicated sub-module `kit-checkout`.
 
-# Integration
+:::info
+In order to enable credit card payments for checkout, please get in touch with our team as your contract address will need to be allowlisted.
+:::
+
+# Installation and Setup
 To integrate the checkout feature, follow these steps:
 
 ::::steps
 
-## 1. Install the `kit-checkout` Module:
+#### Install the `kit-checkout` module:
 
 ```bash
 npm install @0xsequence/kit-checkout
@@ -25,7 +31,7 @@ pnpm install @0xsequence/kit-checkout
 yarn add @0xsequence/kit-checkout
 ```
 
-## 2. Place the `KitCheckoutProvider` below the Sequence Kit Core Provider in your App:
+#### Place the `KitCheckoutProvider` below the Sequence Kit Core Provider in your App:
 
 ```jsx
 import { KitCheckoutProvider } from '@0xsequence/kit-checkout'
@@ -40,9 +46,68 @@ const App = () => {
   )
 }
 ```
-## 3. Opening the Checkout modal
-Use the `useCheckoutModal` hook to open the checkout modal and pass a settings object:
+::::
 
+Now we have the setup done, let's see how to use the checkout modal for different use cases.
+
+## Checkout with an ERC1155 Token
+We have convenient utility functions for ERC1155 tokens that make it easy to configure the checkout modal.
+
+Here's a configuration with example variables:
+
+```jsx
+  import { useERC1155SaleContractPaymentModal } from '@0xsequence/kit-checkout'
+
+  const MyComponent = () => {
+    const { openERC1155SaleContractPaymentModal } = useERC1155SaleContractPaymentModal()
+
+    // Compatible with NATIVE tokens
+    // const currencyAddress = ethers.ZeroAddress
+    // const salesContractAddress = '0xf0056139095224f4eec53c578ab4de1e227b9597'
+    // const collectionAddress = '0x92473261f2c26f2264429c451f70b0192f858795'
+    // const price = '200000000000000'
+
+    // Custom ERC-20 contract
+    const currencyAddress = '0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359' // Address of your ERC-20 contract
+    const salesContractAddress = '0xe65b75eb7c58ffc0bf0e671d64d0e1c6cd0d3e5b' // Sales contract address
+    const collectionAddress = '0xdeb398f41ccd290ee5114df7e498cf04fac916cb' // Your NFT contract address
+    const price = '20000' // Price according to decimals of currencyAddress contract, i.e. 0.02 USDC for 6 decimals.
+
+    const chainId = 137 // Polygon
+
+    const onClickSelectPayment = () => {
+        openERC1155SaleContractPaymentModal({
+        collectibles: [
+          {
+            tokenId: '1',
+            quantity: '1'
+          }
+        ],
+        chain: chainId,
+        price,
+        targetContractAddress: salesContractAddress,
+        recipientAddress: address, // Address of the wallet that will receive the NFT
+        currencyAddress,
+        collectionAddress,
+        creditCardProviders: ['sardine'],
+        copyrightText: 'ⓒ2024 Sequence',
+        onSuccess: (txnHash: string) => {
+          console.log('success!', txnHash)
+        },
+        onError: (error: Error) => {
+          console.error(error)
+        }
+      })
+    }
+
+    return (
+      <button onClick={onClickSelectPayment}>checkout</button>
+    )
+  }
+```
+
+## Advanced Configuration
+We first instantiate the `useCheckoutModal` hook to open the checkout modal and pass a settings object:
 
 ```jsx
   import { useCheckoutModal } from '@0xsequence/kit-checkout'
@@ -62,12 +127,12 @@ Use the `useCheckoutModal` hook to open the checkout modal and pass a settings o
   }
 ```
 
-## 4. Configuring the Checkout modal
+### Configuring the Checkout modal
 Configure the checkout modal using the `checkoutSettings` object:
-
 
 ```jsx
 const checkoutSettings = {
+  creditCardCheckout: {...},
   cryptoCheckout: {...},
   orderSummaryItems: {...}
 }
@@ -79,11 +144,11 @@ The `cryptoCheckout` field specifies settings for checking out with cryptocurren
 Example configuration:
 
 ```jsx
-cons checkoutConfig = {
-  // ...
+const checkoutSettings = {
+  creditCardCheckout: {...},
   cryptoCheckout: {
     chainId: 137,
-    triggerTransaction: async () => { console.log('triggered transaction') },
+    triggerTransaction: async () => { console.log('triggered transaction')},
     coinQuantity: {
       contractAddress: '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174',
       amountRequiredRaw: '10000000000'
@@ -91,6 +156,44 @@ cons checkoutConfig = {
   },
 }
 ```
+
+### Credit Card Checkout Configuration
+The `creditcardCheckout` field specifies settings for checking out with cryptocurrency, e.g., interacting with a minting contract or marketplace contract.
+
+```jsx
+
+const chainId = 137
+const orderbookAddress = '0xB537a160472183f2150d42EB1c3DD6684A55f74c'
+const recipientAddress = address || ''
+const nftQuantity = '1'
+
+const checkoutSettings = {
+  creditCardCheckout: {        
+        chainId: chainId,
+        contractAddress: orderbookAddress,
+        recipientAddress,
+        currencyQuantity: '100000',
+        currencySymbol: 'USDC',
+        currencyAddress: '0x3c499c542cef5e3811e1192ce70d8cc03d5c3359',
+        currencyDecimals: '6',
+        nftId: 1,
+        nftAddress: 0xdeb398f41ccd290ee5114df7e498cf04fac916cb, // collection Address
+        nftQuantity, 
+        approvedSpenderAddress: orderbookAddress, 
+        calldata: orderbookCallData // pass in callData for your function.
+      },
+}
+```
+
+You will notice the `calldata` field is in the example above, which you can pass call data for the function that should be executed
+
+```
+  const calldata = encodeFunctionData({
+    abi: orderbookAbi,
+    functionName: 'acceptRequest',
+    args: [BigInt(orderId), BigInt(quantity), recipient as Hex, [], []]
+  })
+  ```
 
 ### Order Summary Configuration (`orderSummaryItems`)
 The `orderSummaryItems` field specifies the list of collectibles shown in the order summary.

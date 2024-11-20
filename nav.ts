@@ -223,8 +223,12 @@ export const sidebar = {
               text: 'Custom Configuration',
               link: '/solutions/wallets/sequence-kit/custom-configuration',
             },
-            { text: 'On-ramp', link: '/solutions/wallets/sequence-kit/on-ramp' },
-            { text: 'Checkout', link: '/solutions/wallets/sequence-kit/checkout' },
+            { text: 'Sequence Pay', collapsed: false, items: [
+              { text: 'On-ramp', link: '/solutions/wallets/sequence-kit/on-ramp' },
+              { text: 'Checkout', link: '/solutions/wallets/sequence-kit/checkout' },
+            ] },
+
+
             {
               text: 'Custom Connectors',
               link: '/solutions/wallets/sequence-kit/custom-connectors',
@@ -327,9 +331,23 @@ export const sidebar = {
           ],
         },
         {
+          text: 'Sequence Pay',
+          collapsed: true,
+          items: [
+            {
           text: 'Fiat On-ramps',
           link: '/solutions/payments/onramps/fiat-on-ramps',
           match: '/solutions/payments/onramps/fiat-on-ramps',
+            },
+            {
+              text: 'Smart Swaps',
+              link: '/solutions/payments/smart-swaps',
+            },
+            {
+              text: 'NFT Checkout',
+              link: '/solutions/payments/nft-checkout',
+            }
+          ],
         },
       ],
     },
