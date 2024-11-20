@@ -38,9 +38,8 @@ We recommend using the Built-In UI for development purposes, [learn how to creat
 
 ## 2. Interact with the SDK
 To enable interaction with the Sequence SDK, start by creating a widget blueprint for your project.
-Open the Sequence Pawn, locate the Auth Success event, and create a UserWidget of your choice.
-Finally, implement the widget functionality using C++ or use the Blueprint components directly.
-For Blueprints, use the `SequenceWalletBP` reference to access the functions in the following sections.
+Open the Sequence Pawn, locate the `Auth Success` event, and create a reference of your new UserWidget.
+Finally, use our subsystems like the `SequenceWalletBP` to access our features from the following sections.
 
 ## 3. Display Wallet Information
 
@@ -49,36 +48,8 @@ Then, use it to fetch and display the wallet's address and current balance direc
 
 <b>Example Use Case:</b><br/>Build a UserWidget for your users Web3 profile.
 
-```cpp
-void GameUserWidget::UpdateAddress()
-{
-    // Get the reference to the users wallet
-	const TOptional<USequenceWallet*> WalletOptional = USequenceWallet::Get();
-	const USequenceWallet* Wallet = WalletOptional.GetValue();
-
-    // Apply the wallet address to a text field
-    const FString Address = Wallet->GetWalletAddress();
-	this->WalletAddress->SetText(FText::FromString("Wallet Address: " + Address));
-}
-```
-
-```cpp
-void GameUserWidget::UpdateBalance()
-{
-    // Get the reference to the users wallet
-	const TOptional<USequenceWallet*> WalletOptional = USequenceWallet::Get();
-	const USequenceWallet* Wallet = WalletOptional.GetValue();
-	const FString Address = Wallet->GetWalletAddress();
-
-    // Make an asynchronous request to fetch the users balance for the chains native token
-	Wallet->GetEtherBalance(Address, [this](const FSeqEtherBalance& Balance)
-	{
-		const FString BalanceText = FString::Printf(TEXT("Balance: %lld"), Balance.balanceWei);
-		this->EtherBalance->SetText(FText::FromString(BalanceText));
-	},
-    [](const FSequenceError& Error){});
-}
-```
+<img alt={'img'} src={'/img/unreal/unreal_boilerplate_address.png'} style={{borderRadius: 20}}/>
+<img alt={'img'} src={'/img/unreal/unreal_boilerplate_balance.png'} style={{borderRadius: 20}}/>
 
 ## 4. Sign a Message
 
@@ -87,69 +58,16 @@ and initiate the signing process through the wallet to generate the signature.
 
 <b>Example Use Case:</b><br/>You can use this feature to sign a message from your backend, allowing you to verify your user's wallet upon receipt.
 
-```cpp
-void GameUserWidget::SignMessage()
-{
-    // Get the user input from the UEditableTextBox
-	const FString& MessageInputText = this->MessageInput->GetText().ToString();
-	const TOptional<USequenceWallet*> WalletOptional = USequenceWallet::Get();
-	const USequenceWallet* Wallet = WalletOptional.GetValue();
+<img alt={'img'} src={'/img/unreal/unreal_boilerplate_signature.png'} style={{borderRadius: 20}}/>
 
-    // Sign the user's input message
-	Wallet->SignMessage(MessageInputText, [this, MessageInputText](const FSeqSignMessageResponse_Response& Response)
-	{
-		const FString& SignedMessageText = *Response.Data.Message;
-		this->SignedMessage->SetText(FText::FromString("Signed Message: " + SignedMessageText));
-	},
-	[](const FSequenceError& Error){});
-}
-```
+## 5. Send Ether to another User
 
-## 5. Send an ERC20 Transaction
-
-To send an ERC20 transaction, first retrieve the user's wallet reference. Then, use the recipient's address,
-token contract address, and amount from the boilerplate's input fields to initiate the transaction.
+To send an Ether transaction, use the recipient's address and amount from the boilerplate's input fields to initiate
+the transaction with the `SequenceWalletBP` subsystem and listen to the response event.
 
 <b>Example Use Case:</b><br/>A user initiates a payment transaction to another user within your game client.
 
-```cpp
-void GameUserWidget::SendERC20Transaction()
-{
-    // Get the reference to the sequence wallet.
-	const TOptional<USequenceWallet*> WalletOptional = USequenceWallet::Get();
-	const USequenceWallet* Wallet = WalletOptional.GetValue();
-
-    // Here we get the transaction values from the widgets input fields.
-	const FString RecipientAddress = RecipientAddressInput->GetText().ToString();
-	const FString TokenContractAddress = TokenContractAddressInput->GetText().ToString();
-	const FString TransactionValue = TransactionValueInput->GetText().ToString();
-
-    // Create the transaction object.
-	TArray<TUnion<FRawTransaction, FERC20Transaction, FERC721Transaction, FERC1155Transaction, FDelayedTransaction>> Txn;
-
-	FERC20Transaction T20;
-	T20.to = ToAddress;
-	T20.tokenAddress = TokenAddress;
-	T20.value = TransactionValue;
-
-	Txn.Push(TUnion<FRawTransaction, FERC20Transaction, FERC721Transaction, FERC1155Transaction, FDelayedTransaction>(T20));
-
-    // Get the fee options before we send the transaction,
-	Wallet->GetFeeOptions(Txn, [this, Txn, Wallet](const TArray<FFeeOption>& Response)
-	{
-		const FFeeOption SelectedFeeOption = Response[0];
-        UE_LOG(LogTemp, Log, TEXT("Using FeeOption value: %s"), *SelectedFeeOption.Value);
-
-        // Send the transaction including the selected fee option.
-		Wallet->SendTransactionWithFeeOption(Txn, SelectedFeeOption, [=](const FSeqTransactionResponse_Data& Transaction)
-		{
-			UE_LOG(LogTemp, Log, TEXT("SUCCESS: Transaction sent, hash: %s"), *Transaction.TxHash);
-		},
-		[](const FSequenceError& Error) {});
-	},
-	[](const FSequenceError& Error) {});
-}
-```
+<img alt={'img'} src={'/img/unreal/unreal_boilerplate_transaction.png'} style={{borderRadius: 20}}/>
 
 :::warning
 Make sure to include your own error handling. The provided code snippets are simplified.
