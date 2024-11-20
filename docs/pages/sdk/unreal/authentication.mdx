@@ -1,0 +1,150 @@
+---
+title: Sequence - Web3 Gaming Platform - Unreal SDK Sequence API
+description: Documentation for Unreal SDK API to manage sessions for the Sequence infrastructure stack for web3 gaming.
+---
+
+import TabbedContent from "../../../components/TabbedContent";
+
+# Authenticating Users
+
+Visit our [Platform Requirements](/sdk/unreal/platforms) page for detailed information on setting up and ensuring
+that the authentication methods you choose are properly configured in your Builder project.
+
+## Sign In with Email OTP
+
+Sign in users with any email, and they will receive a one-time password in their inbox.
+Listen for the Email Requires Code event.
+
+<TabbedContent labels={["Blueprint"]}>
+    <div className="tabbed-content__content">
+        <img alt={'img'} src={'/img/unreal/email_otp.png'}/>
+    </div>
+</TabbedContent>
+
+## Social Sign In
+
+To initiate SSO-based authentication on desktop, you need to navigate to a browser to obtain the necessary id_token.
+On mobile, our SDK handles this process for you using integrated plugins.
+
+On desktop platforms, listen for the `Sign in Web View Required` event and open the returned `Sign In URL`.
+On mobile platforms, listen for the `Id Token Received` event.
+
+### Get Google Id Token
+
+<TabbedContent labels={["Blueprint"]}>
+    <div className="tabbed-content__content">
+        <img alt={'img'} src={'/img/unreal/google_idtoken.png'}/>
+    </div>
+</TabbedContent>
+
+### Get Apple Id Token
+
+<TabbedContent labels={["Blueprint"]}>
+    <div className="tabbed-content__content">
+        <img alt={'img'} src={'/img/unreal/apple_idtoken.png'}/>
+    </div>
+</TabbedContent>
+
+### Start Session with Id Token
+
+Use this method to start a session using a valid Id token from Google or Apple.
+
+<TabbedContent labels={["Blueprint"]}>
+    <div className="tabbed-content__content">
+        <img alt={'img'} src={'/img/unreal/token_session.png'}/>
+    </div>
+</TabbedContent>
+
+## PlayFab
+
+You will need to include your PlayFab Title ID in the `SequenceConfig.ini` file
+during [Configuration](/sdk/unreal/configuration) and [configure PlayFab in the Builder](/solutions/builder/embedded-wallet/playfab-configuration).
+
+### Register a new PlayFab user
+
+<TabbedContent labels={["Blueprint"]}>
+    <div className="tabbed-content__content">
+        <img alt={'img'} src={'/img/unreal/playfab_registration.png'}/>
+    </div>
+</TabbedContent>
+
+### Login with existing PlayFab user
+
+<TabbedContent labels={["Blueprint"]}>
+    <div className="tabbed-content__content">
+        <img alt={'img'} src={'/img/unreal/playfab_login.png'}/>
+    </div>
+</TabbedContent>
+
+## Sign In as a Guest
+
+You can sign in users as guests. However, note that they will lose access to their wallet if they uninstall the app or sign out.
+
+<TabbedContent labels={["Blueprint"]}>
+    <div className="tabbed-content__content">
+        <img alt={'img'} src={'/img/unreal/guest_session.png'}/>
+    </div>
+</TabbedContent>
+
+## Federate Accounts
+
+With Federated Accounts, you can associate multiple login methods with a single account and wallet.
+If your user has signed in with as a Guest, you will definitely want to push them towards federating their
+account in order to have persistent credentials with which they can access their Sequence Embedded Wallet in subsequent sessions.
+While a user is authenticated with the Sequence API, you can add an additional login method by using the appropriate federate account call.
+
+<TabbedContent labels={["Blueprint"]}>
+    <div className="tabbed-content__content">
+        <img alt={'img'} src={'/img/unreal/email_federation.png'}/>
+    </div>
+</TabbedContent>
+
+## Sign Out
+
+Clear the credentials cache and sign out the current user.
+
+<TabbedContent labels={["Blueprint", "C++"]}>
+    <div className="tabbed-content__content">
+        <img alt={'img'} src={'/img/unreal/sign_out.png'}/>
+    </div>
+
+    <div className="tabbed-content__content">
+        ```cpp
+        const TOptional<USequenceWallet*> WalletOptional = USequenceWallet::Get();
+        if (WalletOptional.IsSet() && WalletOptional.GetValue())
+        {
+            USequenceWallet * Api = WalletOptional.GetValue();
+            Api->SignOut();
+        }
+        ```
+    </div>
+</TabbedContent>
+
+## List Sessions
+
+List the active sessions.
+
+<TabbedContent labels={["Blueprint", "C++"]}>
+    <div className="tabbed-content__content">
+        <img alt={'img'} src={'/img/unreal/list_sessions.png'}/>
+    </div>
+
+    <div className="tabbed-content__content">
+        ```cpp
+        const TSuccessCallback<TArray<FSession>> OnSuccess = [=](TArray<FSession> Response)
+        {
+            //Response is a list of Sessions
+        };
+        const FFailureCallback OnFailure = [=](const FSequenceError& Error)
+        {
+            UE_LOG(LogTemp,Display,TEXT("Error Message: %s"),*Error.Message);
+        };
+        const TOptional<USequenceWallet*> WalletOptional = USequenceWallet::Get();
+        if (WalletOptional.IsSet() && WalletOptional.GetValue())
+        {
+            USequenceWallet * Api = WalletOptional.GetValue();
+            Api->ListSessions(OnSuccess,OnFailure);
+        }
+        ```
+    </div>
+</TabbedContent>

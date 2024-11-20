@@ -3,11 +3,30 @@ title: Sequence - Web3 Gaming Platform - Unity SDK Setup
 description: Documentation for Unity SDK setup for the Sequence infrastructure stack for web3 gaming.
 ---
 
-# Setup
+# Configuration
 
 ::::steps
 
-### Create a config file
+## Private Dependency Modules
+
+In your Project's Build.cs file ([where to find](https://forums.unrealengine.com/t/where-are-build-cs-and-target-cs/302665)) please check the private Dependency module such that it includes "SequencePlugin":
+
+```cpp
+    public SequenceTest(ReadOnlyTargetRules Target) : base(Target)
+    {
+        PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
+		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore" });
+        //The line below is what you want
+		PrivateDependencyModuleNames.AddRange(new string[] { "SequencePlugin" });
+		// Uncomment if you are using Slate UI
+		// PrivateDependencyModuleNames.AddRange(new string[] { "Slate", "SlateCore" });
+		// Uncomment if you are using online features
+		// PrivateDependencyModuleNames.Add("OnlineSubsystem");
+		// To include OnlineSubsystemSteam, add it to the plugins section in your uproject file with the Enabled attribute set to true
+	}
+```
+
+## Create a config file
 Navigate to `[YourProjectDirectory]/Config`, create a file named `SequenceConfig.ini`, and add the following lines:
 
 ```
@@ -24,7 +43,7 @@ PlayFabTitleID = ""
 RedirectUrl = "https://api.sequence.app"
 ```
 
-### Add your project keys
+## Add your project keys
 Fill in `[YourProjectDirectory]/Config/SequenceConfig.ini` with the appropriate values for your project.
 
 `WaaS Config Key` - You can get this key in [Sequence Builder](https://sequence.build/) under **Onboard > Embedded Wallet**
