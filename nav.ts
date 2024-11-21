@@ -317,21 +317,21 @@ export const sidebar = {
               collapsed: true,
               items: [
                 {
-                  text: "Overview",
+                  text: 'Overview',
                   link: '/solutions/marketplaces/white-label-marketplace/overview',
                   collapsed: true,
                 },
                 {
-                  text: "Guide",
+                  text: 'Guide',
                   link: '/solutions/marketplaces/white-label-marketplace/guide',
                   collapsed: true,
                 },
                 {
-                  text: "Video Walkthrough",
+                  text: 'Video Walkthrough',
                   link: '/solutions/marketplaces/white-label-marketplace/video-walkthrough',
                   collapsed: true,
-                }
-              ]
+                },
+              ],
             },
             {
               text: 'Build your Custom Marketplace',
