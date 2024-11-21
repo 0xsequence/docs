@@ -821,6 +821,15 @@ components:
       description: Represented as string on the server side
       enum:
         - ANALYTICS
+    CustomerTier:
+      type: string
+      description: Represented as uint8 on the server side
+      enum:
+        - TIER_1
+        - TIER_2
+        - TIER_3
+        - TIER_4
+        - TIER_5
     Version:
       type: object
       required:
@@ -975,8 +984,14 @@ components:
       type: object
       required:
         - freeProjectsLeft
+        - totalFreeProjectLimit
+        - totalPaidProjects
       properties:
         freeProjectsLeft:
+          type: number
+        totalFreeProjectLimit:
+          type: number
+        totalPaidProjects:
           type: number
     UserOverride:
       type: object
@@ -1175,6 +1190,11 @@ components:
           $ref: '#/components/schemas/ContractSourceType'
         itemsContractAddress:
           type: string
+        splitterContractAddresses:
+          type: array
+          description: '[]string'
+          items:
+            type: string
         abi:
           type: string
         bytecode:
@@ -2626,6 +2646,40 @@ components:
           description: '[]OpenIdProvider'
           items:
             $ref: '#/components/schemas/OpenIdProvider'
+    Customer:
+      type: object
+      required:
+        - id
+        - name
+        - tier
+        - metadata
+        - createdAt
+        - updatedAt
+      properties:
+        id:
+          type: number
+        name:
+          type: string
+        tier:
+          $ref: '#/components/schemas/CustomerTier'
+        metadata:
+          type: object
+          description: map<string,string>
+          additionalProperties:
+            type: string
+        createdAt:
+          type: string
+        updatedAt:
+          type: string
+        deletedAt:
+          type: string
+    CustomerFilter:
+      type: object
+      properties:
+        name:
+          type: string
+        tier:
+          $ref: '#/components/schemas/CustomerTier'
     Builder_TotalCompute_Request:
       type: object
       properties:
@@ -3205,12 +3259,14 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/Builder_TotalCompute_Request'
-            example:
-              filter:
-                projectId: 122
-                startDate: '2024-09-30'
-                endDate: '2024-10-10'
-                dateInterval: DAY
+            examples:
+              '0':
+                value:
+                  filter:
+                    projectId: 122
+                    startDate: '2024-09-30'
+                    endDate: '2024-10-10'
+                    dateInterval: DAY
       responses:
         '200':
           description: OK
@@ -3218,12 +3274,14 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Builder_TotalCompute_Response'
-              example:
-                computeStats:
-                  - value: 100
-                    label: '2024-09-30'
-                  - value: 150
-                    label: '2024-10-01'
+              examples:
+                '0':
+                  value:
+                    computeStats:
+                      - value: 100
+                        label: '2024-09-30'
+                      - value: 150
+                        label: '2024-10-01'
         4XX:
           description: Client error
           content:
@@ -3274,12 +3332,14 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/Builder_ComputeByService_Request'
-            example:
-              filter:
-                projectId: 122
-                startDate: '2024-09-30'
-                endDate: '2024-10-10'
-                dateInterval: DAY
+            examples:
+              '0':
+                value:
+                  filter:
+                    projectId: 122
+                    startDate: '2024-09-30'
+                    endDate: '2024-10-10'
+                    dateInterval: DAY
       responses:
         '200':
           description: OK
@@ -3287,12 +3347,14 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Builder_ComputeByService_Response'
-              example:
-                computeStats:
-                  - value:
-                      service1: 100
-                      service2: 150
-                    label: '2024-09-30'
+              examples:
+                '0':
+                  value:
+                    computeStats:
+                      - value:
+                          service1: 100
+                          service2: 150
+                        label: '2024-09-30'
         4XX:
           description: Client error
           content:
@@ -3344,12 +3406,14 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/Builder_DailyComputeByType_Request'
-            example:
-              filter:
-                projectId: 122
-                startDate: '2024-09-30'
-                endDate: '2024-10-10'
-                dateInterval: DAY
+            examples:
+              '0':
+                value:
+                  filter:
+                    projectId: 122
+                    startDate: '2024-09-30'
+                    endDate: '2024-10-10'
+                    dateInterval: DAY
       responses:
         '200':
           description: OK
@@ -3357,12 +3421,14 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Builder_DailyComputeByType_Response'
-              example:
-                computeStats:
-                  - value:
-                      type1: 100
-                      type2: 150
-                    label: '2024-09-30'
+              examples:
+                '0':
+                  value:
+                    computeStats:
+                      - value:
+                          type1: 100
+                          type2: 150
+                        label: '2024-09-30'
         4XX:
           description: Client error
           content:
@@ -3579,12 +3645,14 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/Builder_WalletsDaily_Request'
-            example:
-              filter:
-                projectId: 122
-                startDate: '2024-09-30'
-                endDate: '2024-10-10'
-                dateInterval: DAY
+            examples:
+              '0':
+                value:
+                  filter:
+                    projectId: 122
+                    startDate: '2024-09-30'
+                    endDate: '2024-10-10'
+                    dateInterval: DAY
       responses:
         '200':
           description: OK
@@ -3592,12 +3660,14 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Builder_WalletsDaily_Response'
-              example:
-                walletStats:
-                  - value: 2
-                    label: '2024-09-23'
-                  - value: 3
-                    label: '2024-09-29'
+              examples:
+                '0':
+                  value:
+                    walletStats:
+                      - value: 2
+                        label: '2024-09-23'
+                      - value: 3
+                        label: '2024-09-29'
         4XX:
           description: Client error
           content:
@@ -3649,12 +3719,14 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/Builder_WalletsMonthly_Request'
-            example:
-              filter:
-                projectId: 122
-                startDate: '2024-09-30'
-                endDate: '2024-10-10'
-                dateInterval: MONTH
+            examples:
+              '0':
+                value:
+                  filter:
+                    projectId: 122
+                    startDate: '2024-09-30'
+                    endDate: '2024-10-10'
+                    dateInterval: MONTH
       responses:
         '200':
           description: OK
@@ -3662,12 +3734,14 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Builder_WalletsMonthly_Response'
-              example:
-                walletStats:
-                  - value: 20
-                    label: 2024-09
-                  - value: 30
-                    label: 2024-10
+              examples:
+                '0':
+                  value:
+                    walletStats:
+                      - value: 20
+                        label: 2024-09
+                      - value: 30
+                        label: 2024-10
         4XX:
           description: Client error
           content:
@@ -3719,11 +3793,13 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/Builder_WalletsByCountry_Request'
-            example:
-              filter:
-                projectId: 122
-                startDate: '2024-09-30'
-                endDate: '2024-10-10'
+            examples:
+              '0':
+                value:
+                  filter:
+                    projectId: 122
+                    startDate: '2024-09-30'
+                    endDate: '2024-10-10'
       responses:
         '200':
           description: OK
@@ -3731,12 +3807,14 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Builder_WalletsByCountry_Response'
-              example:
-                walletStats:
-                  - value: 50
-                    label: US
-                  - value: 30
-                    label: UK
+              examples:
+                '0':
+                  value:
+                    walletStats:
+                      - value: 50
+                        label: US
+                      - value: 30
+                        label: UK
         4XX:
           description: Client error
           content:
@@ -3788,11 +3866,13 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/Builder_WalletsByDevice_Request'
-            example:
-              filter:
-                projectId: 122
-                startDate: '2024-09-30'
-                endDate: '2024-10-10'
+            examples:
+              '0':
+                value:
+                  filter:
+                    projectId: 122
+                    startDate: '2024-09-30'
+                    endDate: '2024-10-10'
       responses:
         '200':
           description: OK
@@ -3800,12 +3880,14 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Builder_WalletsByDevice_Response'
-              example:
-                walletStats:
-                  - value: 200
-                    label: Mobile
-                  - value: 150
-                    label: Desktop
+              examples:
+                '0':
+                  value:
+                    walletStats:
+                      - value: 200
+                        label: Mobile
+                      - value: 150
+                        label: Desktop
         4XX:
           description: Client error
           content:
@@ -3857,11 +3939,13 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/Builder_WalletsByBrowser_Request'
-            example:
-              filter:
-                projectId: 122
-                startDate: '2024-09-30'
-                endDate: '2024-10-10'
+            examples:
+              '0':
+                value:
+                  filter:
+                    projectId: 122
+                    startDate: '2024-09-30'
+                    endDate: '2024-10-10'
       responses:
         '200':
           description: OK
@@ -3869,12 +3953,14 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Builder_WalletsByBrowser_Response'
-              example:
-                walletStats:
-                  - value: 150
-                    label: Chrome
-                  - value: 100
-                    label: Firefox
+              examples:
+                '0':
+                  value:
+                    walletStats:
+                      - value: 150
+                        label: Chrome
+                      - value: 100
+                        label: Firefox
         4XX:
           description: Client error
           content:
@@ -3926,11 +4012,13 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/Builder_WalletsByOS_Request'
-            example:
-              filter:
-                projectId: 122
-                startDate: '2024-09-30'
-                endDate: '2024-10-10'
+            examples:
+              '0':
+                value:
+                  filter:
+                    projectId: 122
+                    startDate: '2024-09-30'
+                    endDate: '2024-10-10'
       responses:
         '200':
           description: OK
@@ -3938,12 +4026,14 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Builder_WalletsByOS_Response'
-              example:
-                walletStats:
-                  - value: 180
-                    label: Windows
-                  - value: 120
-                    label: MacOS
+              examples:
+                '0':
+                  value:
+                    walletStats:
+                      - value: 180
+                        label: Windows
+                      - value: 120
+                        label: MacOS
         4XX:
           description: Client error
           content:
@@ -3995,11 +4085,13 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/Builder_WalletsTxnSentTotal_Request'
-            example:
-              filter:
-                projectId: 122
-                startDate: '2024-09-30'
-                endDate: '2024-10-10'
+            examples:
+              '0':
+                value:
+                  filter:
+                    projectId: 122
+                    startDate: '2024-09-30'
+                    endDate: '2024-10-10'
       responses:
         '200':
           description: OK
@@ -4007,10 +4099,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Builder_WalletsTxnSentTotal_Response'
-              example:
-                walletStats:
-                  - value: 1000
-                    label: Total Transactions
+              examples:
+                '0':
+                  value:
+                    walletStats:
+                      - value: 1000
+                        label: Total Transactions
         4XX:
           description: Client error
           content:
@@ -4062,11 +4156,13 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/Builder_WalletsTxnSentDaily_Request'
-            example:
-              filter:
-                projectId: 122
-                startDate: '2024-09-30'
-                endDate: '2024-10-10'
+            examples:
+              '0':
+                value:
+                  filter:
+                    projectId: 122
+                    startDate: '2024-09-30'
+                    endDate: '2024-10-10'
       responses:
         '200':
           description: OK
@@ -4074,12 +4170,14 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Builder_WalletsTxnSentDaily_Response'
-              example:
-                walletStats:
-                  - value: 45
-                    label: '2024-09-30'
-                  - value: 52
-                    label: '2024-10-01'
+              examples:
+                '0':
+                  value:
+                    walletStats:
+                      - value: 45
+                        label: '2024-09-30'
+                      - value: 52
+                        label: '2024-10-01'
         4XX:
           description: Client error
           content:
@@ -4186,11 +4284,13 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/Builder_MarketTxnEventTotal_Request'
-            example:
-              filter:
-                projectId: 122
-                startDate: '2024-09-30'
-                endDate: '2024-10-10'
+            examples:
+              '0':
+                value:
+                  filter:
+                    projectId: 122
+                    startDate: '2024-09-30'
+                    endDate: '2024-10-10'
       responses:
         '200':
           description: OK
@@ -4198,10 +4298,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Builder_MarketTxnEventTotal_Response'
-              example:
-                marketStats:
-                  - value: 500
-                    label: Total Events
+              examples:
+                '0':
+                  value:
+                    marketStats:
+                      - value: 500
+                        label: Total Events
         4XX:
           description: Client error
           content:
@@ -4253,11 +4355,13 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/Builder_MarketTxnEventDaily_Request'
-            example:
-              filter:
-                projectId: 122
-                startDate: '2024-09-30'
-                endDate: '2024-10-10'
+            examples:
+              '0':
+                value:
+                  filter:
+                    projectId: 122
+                    startDate: '2024-09-30'
+                    endDate: '2024-10-10'
       responses:
         '200':
           description: OK
@@ -4265,12 +4369,14 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Builder_MarketTxnEventDaily_Response'
-              example:
-                marketStats:
-                  - value:
-                      buy: 25
-                      sell: 20
-                    label: '2024-09-30'
+              examples:
+                '0':
+                  value:
+                    marketStats:
+                      - value:
+                          buy: 25
+                          sell: 20
+                        label: '2024-09-30'
         4XX:
           description: Client error
           content:
@@ -4377,11 +4483,13 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/Builder_MarketWalletsTotal_Request'
-            example:
-              filter:
-                projectId: 122
-                startDate: '2024-09-30'
-                endDate: '2024-10-10'
+            examples:
+              '0':
+                value:
+                  filter:
+                    projectId: 122
+                    startDate: '2024-09-30'
+                    endDate: '2024-10-10'
       responses:
         '200':
           description: OK
@@ -4389,10 +4497,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Builder_MarketWalletsTotal_Response'
-              example:
-                marketStats:
-                  - value: 1500
-                    label: Total Market Wallets
+              examples:
+                '0':
+                  value:
+                    marketStats:
+                      - value: 1500
+                        label: Total Market Wallets
         4XX:
           description: Client error
           content:
@@ -4444,11 +4554,13 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/Builder_MarketWalletsDaily_Request'
-            example:
-              filter:
-                projectId: 122
-                startDate: '2024-09-30'
-                endDate: '2024-10-10'
+            examples:
+              '0':
+                value:
+                  filter:
+                    projectId: 122
+                    startDate: '2024-09-30'
+                    endDate: '2024-10-10'
       responses:
         '200':
           description: OK
@@ -4456,12 +4568,14 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Builder_MarketWalletsDaily_Response'
-              example:
-                marketStats:
-                  - value: 75
-                    label: '2024-09-30'
-                  - value: 82
-                    label: '2024-10-01'
+              examples:
+                '0':
+                  value:
+                    marketStats:
+                      - value: 75
+                        label: '2024-09-30'
+                      - value: 82
+                        label: '2024-10-01'
         4XX:
           description: Client error
           content:
@@ -4513,11 +4627,13 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/Builder_MarketWalletsMonthly_Request'
-            example:
-              filter:
-                projectId: 122
-                startDate: '2024-09-30'
-                endDate: '2024-10-10'
+            examples:
+              '0':
+                value:
+                  filter:
+                    projectId: 122
+                    startDate: '2024-09-30'
+                    endDate: '2024-10-10'
       responses:
         '200':
           description: OK
@@ -4525,12 +4641,14 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Builder_MarketWalletsMonthly_Response'
-              example:
-                marketStats:
-                  - value: 450
-                    label: 2024-09
-                  - value: 520
-                    label: 2024-10
+              examples:
+                '0':
+                  value:
+                    marketStats:
+                      - value: 450
+                        label: 2024-09
+                      - value: 520
+                        label: 2024-10
         4XX:
           description: Client error
           content:
@@ -4583,11 +4701,13 @@ paths:
             schema:
               $ref: >-
                 #/components/schemas/Builder_TotalWalletTxnConversionRate_Request
-            example:
-              filter:
-                projectId: 122
-                startDate: '2024-09-30'
-                endDate: '2024-10-10'
+            examples:
+              '0':
+                value:
+                  filter:
+                    projectId: 122
+                    startDate: '2024-09-30'
+                    endDate: '2024-10-10'
       responses:
         '200':
           description: OK
@@ -4596,10 +4716,12 @@ paths:
               schema:
                 $ref: >-
                   #/components/schemas/Builder_TotalWalletTxnConversionRate_Response
-              example:
-                marketStats:
-                  - value: 0.45
-                    label: Conversion Rate
+              examples:
+                '0':
+                  value:
+                    marketStats:
+                      - value: 0.45
+                        label: Conversion Rate
         4XX:
           description: Client error
           content:
@@ -4652,11 +4774,13 @@ paths:
             schema:
               $ref: >-
                 #/components/schemas/Builder_DailyWalletTxnConversionRate_Request
-            example:
-              filter:
-                projectId: 122
-                startDate: '2024-09-30'
-                endDate: '2024-10-10'
+            examples:
+              '0':
+                value:
+                  filter:
+                    projectId: 122
+                    startDate: '2024-09-30'
+                    endDate: '2024-10-10'
       responses:
         '200':
           description: OK
@@ -4665,12 +4789,14 @@ paths:
               schema:
                 $ref: >-
                   #/components/schemas/Builder_DailyWalletTxnConversionRate_Response
-              example:
-                marketStats:
-                  - value: 0.42
-                    label: '2024-09-30'
-                  - value: 0.45
-                    label: '2024-10-01'
+              examples:
+                '0':
+                  value:
+                    marketStats:
+                      - value: 0.42
+                        label: '2024-09-30'
+                      - value: 0.45
+                        label: '2024-10-01'
         4XX:
           description: Client error
           content:
@@ -4779,11 +4905,13 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/Builder_DailyNewWallets_Request'
-            example:
-              filter:
-                projectId: 122
-                startDate: '2024-09-30'
-                endDate: '2024-10-10'
+            examples:
+              '0':
+                value:
+                  filter:
+                    projectId: 122
+                    startDate: '2024-09-30'
+                    endDate: '2024-10-10'
       responses:
         '200':
           description: OK
@@ -4791,12 +4919,14 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Builder_DailyNewWallets_Response'
-              example:
-                data:
-                  - value: 25
-                    label: '2024-09-30'
-                  - value: 30
-                    label: '2024-10-01'
+              examples:
+                '0':
+                  value:
+                    data:
+                      - value: 25
+                        label: '2024-09-30'
+                      - value: 30
+                        label: '2024-10-01'
         4XX:
           description: Client error
           content:
@@ -4848,11 +4978,13 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/Builder_MonthlyNewWallets_Request'
-            example:
-              filter:
-                projectId: 122
-                startDate: '2024-09-30'
-                endDate: '2024-10-10'
+            examples:
+              '0':
+                value:
+                  filter:
+                    projectId: 122
+                    startDate: '2024-09-30'
+                    endDate: '2024-10-10'
       responses:
         '200':
           description: OK
@@ -4860,12 +4992,14 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Builder_MonthlyNewWallets_Response'
-              example:
-                data:
-                  - value: 750
-                    label: 2024-09
-                  - value: 820
-                    label: 2024-10
+              examples:
+                '0':
+                  value:
+                    data:
+                      - value: 750
+                        label: 2024-09
+                      - value: 820
+                        label: 2024-10
         4XX:
           description: Client error
           content:
@@ -4972,11 +5106,13 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/Builder_AverageDAU_Request'
-            example:
-              filter:
-                projectId: 122
-                startDate: '2024-09-30'
-                endDate: '2024-10-10'
+            examples:
+              '0':
+                value:
+                  filter:
+                    projectId: 122
+                    startDate: '2024-09-30'
+                    endDate: '2024-10-10'
       responses:
         '200':
           description: OK
@@ -4984,12 +5120,14 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Builder_AverageDAU_Response'
-              example:
-                data:
-                  - value: 250
-                    label: '2024-09-30'
-                  - value: 275
-                    label: '2024-10-01'
+              examples:
+                '0':
+                  value:
+                    data:
+                      - value: 250
+                        label: '2024-09-30'
+                      - value: 275
+                        label: '2024-10-01'
         4XX:
           description: Client error
           content:
@@ -5041,11 +5179,13 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/Builder_RollingStickiness_Request'
-            example:
-              filter:
-                projectId: 122
-                startDate: '2024-09-30'
-                endDate: '2024-10-10'
+            examples:
+              '0':
+                value:
+                  filter:
+                    projectId: 122
+                    startDate: '2024-09-30'
+                    endDate: '2024-10-10'
       responses:
         '200':
           description: OK
@@ -5053,12 +5193,14 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Builder_RollingStickiness_Response'
-              example:
-                data:
-                  - value: 0.35
-                    label: '2024-09-30'
-                  - value: 0.38
-                    label: '2024-10-01'
+              examples:
+                '0':
+                  value:
+                    data:
+                      - value: 0.35
+                        label: '2024-09-30'
+                      - value: 0.38
+                        label: '2024-10-01'
         4XX:
           description: Client error
           content:
@@ -5165,11 +5307,13 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/Builder_D1RetentionByCohort_Request'
-            example:
-              filter:
-                projectId: 122
-                startDate: '2024-09-30'
-                endDate: '2024-10-10'
+            examples:
+              '0':
+                value:
+                  filter:
+                    projectId: 122
+                    startDate: '2024-09-30'
+                    endDate: '2024-10-10'
       responses:
         '200':
           description: OK
@@ -5177,12 +5321,14 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Builder_D1RetentionByCohort_Response'
-              example:
-                data:
-                  - value: 0.65
-                    label: '2024-09-30'
-                  - value: 0.68
-                    label: '2024-10-01'
+              examples:
+                '0':
+                  value:
+                    data:
+                      - value: 0.65
+                        label: '2024-09-30'
+                      - value: 0.68
+                        label: '2024-10-01'
         4XX:
           description: Client error
           content:
@@ -5234,11 +5380,13 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/Builder_D3RetentionByCohort_Request'
-            example:
-              filter:
-                projectId: 122
-                startDate: '2024-09-30'
-                endDate: '2024-10-10'
+            examples:
+              '0':
+                value:
+                  filter:
+                    projectId: 122
+                    startDate: '2024-09-30'
+                    endDate: '2024-10-10'
       responses:
         '200':
           description: OK
@@ -5246,12 +5394,14 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Builder_D3RetentionByCohort_Response'
-              example:
-                data:
-                  - value: 0.45
-                    label: '2024-09-30'
-                  - value: 0.48
-                    label: '2024-10-01'
+              examples:
+                '0':
+                  value:
+                    data:
+                      - value: 0.45
+                        label: '2024-09-30'
+                      - value: 0.48
+                        label: '2024-10-01'
         4XX:
           description: Client error
           content:
@@ -5303,11 +5453,13 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/Builder_D7RetentionByCohort_Request'
-            example:
-              filter:
-                projectId: 122
-                startDate: '2024-09-30'
-                endDate: '2024-10-10'
+            examples:
+              '0':
+                value:
+                  filter:
+                    projectId: 122
+                    startDate: '2024-09-30'
+                    endDate: '2024-10-10'
       responses:
         '200':
           description: OK
@@ -5315,12 +5467,14 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Builder_D7RetentionByCohort_Response'
-              example:
-                data:
-                  - value: 0.35
-                    label: '2024-09-30'
-                  - value: 0.38
-                    label: '2024-10-01'
+              examples:
+                '0':
+                  value:
+                    data:
+                      - value: 0.35
+                        label: '2024-09-30'
+                      - value: 0.38
+                        label: '2024-10-01'
         4XX:
           description: Client error
           content:
@@ -5372,11 +5526,13 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/Builder_D14RetentionByCohort_Request'
-            example:
-              filter:
-                projectId: 122
-                startDate: '2024-09-30'
-                endDate: '2024-10-10'
+            examples:
+              '0':
+                value:
+                  filter:
+                    projectId: 122
+                    startDate: '2024-09-30'
+                    endDate: '2024-10-10'
       responses:
         '200':
           description: OK
@@ -5384,12 +5540,14 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Builder_D14RetentionByCohort_Response'
-              example:
-                data:
-                  - value: 0.25
-                    label: '2024-09-30'
-                  - value: 0.28
-                    label: '2024-10-01'
+              examples:
+                '0':
+                  value:
+                    data:
+                      - value: 0.25
+                        label: '2024-09-30'
+                      - value: 0.28
+                        label: '2024-10-01'
         4XX:
           description: Client error
           content:
@@ -5441,11 +5599,13 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/Builder_D28RetentionByCohort_Request'
-            example:
-              filter:
-                projectId: 122
-                startDate: '2024-09-30'
-                endDate: '2024-10-10'
+            examples:
+              '0':
+                value:
+                  filter:
+                    projectId: 122
+                    startDate: '2024-09-30'
+                    endDate: '2024-10-10'
       responses:
         '200':
           description: OK
@@ -5453,12 +5613,14 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Builder_D28RetentionByCohort_Response'
-              example:
-                data:
-                  - value: 0.15
-                    label: '2024-09-30'
-                  - value: 0.18
-                    label: '2024-10-01'
+              examples:
+                '0':
+                  value:
+                    data:
+                      - value: 0.15
+                        label: '2024-09-30'
+                      - value: 0.18
+                        label: '2024-10-01'
         4XX:
           description: Client error
           content:
@@ -5786,11 +5948,13 @@ paths:
             schema:
               $ref: >-
                 #/components/schemas/Builder_MonthlyActiveWalletsBySegment_Request
-            example:
-              filter:
-                projectId: 122
-                startDate: '2024-09-30'
-                endDate: '2024-10-10'
+            examples:
+              '0':
+                value:
+                  filter:
+                    projectId: 122
+                    startDate: '2024-09-30'
+                    endDate: '2024-10-10'
       responses:
         '200':
           description: OK
@@ -5799,18 +5963,20 @@ paths:
               schema:
                 $ref: >-
                   #/components/schemas/Builder_MonthlyActiveWalletsBySegment_Response
-              example:
-                data:
-                  segment1:
-                    - value: 150
-                      label: 2024-09
-                    - value: 180
-                      label: 2024-10
-                  segment2:
-                    - value: 120
-                      label: 2024-09
-                    - value: 140
-                      label: 2024-10
+              examples:
+                '0':
+                  value:
+                    data:
+                      segment1:
+                        - value: 150
+                          label: 2024-09
+                        - value: 180
+                          label: 2024-10
+                      segment2:
+                        - value: 120
+                          label: 2024-09
+                        - value: 140
+                          label: 2024-10
         4XX:
           description: Client error
           content:
@@ -5863,11 +6029,13 @@ paths:
             schema:
               $ref: >-
                 #/components/schemas/Builder_MonthlyTransactingWalletsBySegment_Request
-            example:
-              filter:
-                projectId: 122
-                startDate: '2024-09-30'
-                endDate: '2024-10-10'
+            examples:
+              '0':
+                value:
+                  filter:
+                    projectId: 122
+                    startDate: '2024-09-30'
+                    endDate: '2024-10-10'
       responses:
         '200':
           description: OK
@@ -5876,18 +6044,20 @@ paths:
               schema:
                 $ref: >-
                   #/components/schemas/Builder_MonthlyTransactingWalletsBySegment_Response
-              example:
-                data:
-                  segment1:
-                    - value: 100
-                      label: 2024-09
-                    - value: 120
-                      label: 2024-10
-                  segment2:
-                    - value: 80
-                      label: 2024-09
-                    - value: 95
-                      label: 2024-10
+              examples:
+                '0':
+                  value:
+                    data:
+                      segment1:
+                        - value: 100
+                          label: 2024-09
+                        - value: 120
+                          label: 2024-10
+                      segment2:
+                        - value: 80
+                          label: 2024-09
+                        - value: 95
+                          label: 2024-10
         4XX:
           description: Client error
           content:
@@ -5939,11 +6109,13 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/Builder_WeeklyActiveWallets_Request'
-            example:
-              filter:
-                projectId: 122
-                startDate: '2024-09-30'
-                endDate: '2024-10-10'
+            examples:
+              '0':
+                value:
+                  filter:
+                    projectId: 122
+                    startDate: '2024-09-30'
+                    endDate: '2024-10-10'
       responses:
         '200':
           description: OK
@@ -5951,12 +6123,14 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Builder_WeeklyActiveWallets_Response'
-              example:
-                data:
-                  - value: 350
-                    label: Week 39
-                  - value: 380
-                    label: Week 40
+              examples:
+                '0':
+                  value:
+                    data:
+                      - value: 350
+                        label: Week 39
+                      - value: 380
+                        label: Week 40
         4XX:
           description: Client error
           content:
