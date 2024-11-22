@@ -223,8 +223,16 @@ export const sidebar = {
               text: 'Custom Configuration',
               link: '/solutions/wallets/sequence-kit/custom-configuration',
             },
-            { text: 'On-ramp', link: '/solutions/wallets/sequence-kit/on-ramp' },
-            { text: 'Checkout', link: '/solutions/wallets/sequence-kit/checkout' },
+            {
+              text: 'Sequence Pay',
+              collapsed: false,
+              items: [
+                { text: 'Checkout', link: '/solutions/wallets/sequence-kit/checkout' },
+                { text: 'Smart Swaps', link: '/solutions/wallets/sequence-kit/smart-swaps' },
+                { text: 'On-ramp', link: '/solutions/wallets/sequence-kit/on-ramp' },
+              ],
+            },
+
             {
               text: 'Custom Connectors',
               link: '/solutions/wallets/sequence-kit/custom-connectors',
@@ -338,15 +346,23 @@ export const sidebar = {
               collapsed: true,
               items: [
                 { text: 'Overview', link: '/solutions/marketplaces/orderbook/overview' },
-                { text: 'Starter', link: '/solutions/marketplaces/orderbook/starter' },
+                { text: 'Starter Template', link: '/solutions/marketplaces/orderbook/starter' },
               ],
             },
           ],
         },
         {
-          text: 'Fiat On-ramps',
-          link: '/solutions/payments/onramps/fiat-on-ramps',
-          match: '/solutions/payments/onramps/fiat-on-ramps',
+          text: 'Sequence Pay',
+          collapsed: false,
+          items: [
+            {
+              text: 'Overview',
+              link: '/solutions/payments/overview',
+            },
+            { text: 'Checkout', link: '/solutions/wallets/sequence-kit/checkout' },
+            { text: 'Smart Swaps', link: '/solutions/wallets/sequence-kit/smart-swaps' },
+            { text: 'On-ramp', link: '/solutions/wallets/sequence-kit/on-ramp' },
+          ],
         },
       ],
     },

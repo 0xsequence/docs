@@ -59,15 +59,9 @@ export const SolutionsSection = () => (
           },
           {
             icon: 'CartIcon',
-            title: 'NFT Checkout',
-            body: 'Offer easy purchases with credit card, crypto, IAP support.',
-            link: '/solutions/wallets/sequence-kit/checkout',
-          },
-          {
-            icon: 'NodeGatewayIcon',
-            title: 'Fiat On-ramps',
-            body: 'Allow players to convert from fiat to crypto globally.',
-            link: '/solutions/payments/onramps/fiat-on-ramps',
+            title: 'Sequence Pay',
+            body: 'An integrated payment solution designed to simplify and enhance the transaction experience within Web3 games. It combines multiple payment functionalities into a cohesive SDK available for Unity, Unreal, and React.',
+            link: '/solutions/payments/overview',
           },
         ]}
       />
