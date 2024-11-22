@@ -340,7 +340,7 @@ export const sidebar = {
           items: [
             {
               text: 'Overview',
-              link: '/solutions/payments/overview'
+              link: '/solutions/payments/overview',
             },
             { text: 'Checkout', link: '/solutions/wallets/sequence-kit/checkout' },
             { text: 'Smart Swaps', link: '/solutions/wallets/sequence-kit/smart-swaps' },
