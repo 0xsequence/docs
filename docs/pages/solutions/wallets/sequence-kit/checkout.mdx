@@ -12,8 +12,12 @@ Sequence Checkout allows users to easily purchase an ERC721 or ERC1155 token wit
 
 We have an integrated checkout flow within Sequence Kit that you can leverage by installing the dedicated sub-module `kit-checkout`.
 
+<div class="text--center">
+  <img src="/img/kit/checkout-modal.png" alt="Enable the checkout modal in Sequence Kit to onboard users using fiat currencies with a credit or debit card"/>
+</div>
+
 :::info
-In order to enable credit card payments for checkout, please get in touch with our team as your contract address will need to be allowlisted.
+In order to enable credit card payments for checkout, please get in touch with the Sequence team as your contract address will need to be allowlisted.
 :::
 
 # Installation and Setup
@@ -50,164 +54,133 @@ const App = () => {
 
 Now we have the setup done, let's see how to use the checkout modal for different use cases.
 
+
 ## Checkout with an ERC1155 Token
+
 We have convenient utility functions for ERC1155 tokens that make it easy to configure the checkout modal.
 
-Here's a configuration with example variables:
+Here's a configuration with example varibles variables:
 
 ```jsx
-  import { useERC1155SaleContractPaymentModal } from '@0xsequence/kit-checkout'
+import { useERC1155SaleContractPaymentModal } from '@0xsequence/kit-checkout'
 
-  const MyComponent = () => {
-    const { openERC1155SaleContractPaymentModal } = useERC1155SaleContractPaymentModal()
+const MyComponent = () => {
+  const { openERC1155SaleContractPaymentModal } = useERC1155SaleContractPaymentModal()
 
-    // Compatible with NATIVE tokens
-    // const currencyAddress = ethers.ZeroAddress
-    // const salesContractAddress = '0xf0056139095224f4eec53c578ab4de1e227b9597'
-    // const collectionAddress = '0x92473261f2c26f2264429c451f70b0192f858795'
-    // const price = '200000000000000'
 
-    // Custom ERC-20 contract
-    const currencyAddress = '0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359' // Address of your ERC-20 contract
-    const salesContractAddress = '0xe65b75eb7c58ffc0bf0e671d64d0e1c6cd0d3e5b' // Sales contract address
-    const collectionAddress = '0xdeb398f41ccd290ee5114df7e498cf04fac916cb' // Your NFT contract address
-    const price = '20000' // Price according to decimals of currencyAddress contract, i.e. 0.02 USDC for 6 decimals.
+  const onClick = () => {
+    if (!address) {
+      return
+    }
+    // ERC-20 contract - replace with your contracts for sales
+    const currencyAddress = '0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359'
+    const salesContractAddress = '0xe65b75eb7c58ffc0bf0e671d64d0e1c6cd0d3e5b'
+    const collectionAddress = '0xdeb398f41ccd290ee5114df7e498cf04fac916cb'
+    const price = '20000'
 
-    const chainId = 137 // Polygon
+    const chainId = 137
 
-    const onClickSelectPayment = () => {
-        openERC1155SaleContractPaymentModal({
-        collectibles: [
-          {
-            tokenId: '1',
-            quantity: '1'
-          }
-        ],
-        chain: chainId,
-        price,
-        targetContractAddress: salesContractAddress,
-        recipientAddress: address, // Address of the wallet that will receive the NFT
-        currencyAddress,
-        collectionAddress,
-        creditCardProviders: ['sardine'],
-        copyrightText: 'ⓒ2024 Sequence',
-        onSuccess: (txnHash: string) => {
-          console.log('success!', txnHash)
-        },
-        onError: (error: Error) => {
-          console.error(error)
+    openERC1155SaleContractPaymentModal({
+      collectibles: [ // array of collectibles to purchase
+        {
+          tokenId: '1',
+          quantity: '1'
         }
-      })
-    }
-
-    return (
-      <button onClick={onClickSelectPayment}>checkout</button>
-    )
-  }
-```
-
-## Advanced Configuration
-We first instantiate the `useCheckoutModal` hook to open the checkout modal and pass a settings object:
-
-```jsx
-  import { useCheckoutModal } from '@0xsequence/kit-checkout'
-
-
-  const MyComponent = () => {
-    const { triggerCheckout } = useCheckoutModal()
-  
-    const onClick = () => {
-      const checkoutSettings = {...}
-      triggerCheckout(checkoutSettings)
-    }
-
-    return (
-      <button onClick={onClick}>checkout</button>
-    )
-  }
-```
-
-### Configuring the Checkout modal
-Configure the checkout modal using the `checkoutSettings` object:
-
-```jsx
-const checkoutSettings = {
-  creditCardCheckout: {...},
-  cryptoCheckout: {...},
-  orderSummaryItems: {...}
-}
-```
-
-### Crypto Checkout Configuration (`cryptoCheckout`)
-The `cryptoCheckout` field specifies settings for checking out with cryptocurrency, e.g., interacting with a minting contract or marketplace contract.
-
-Example configuration:
-
-```jsx
-const checkoutSettings = {
-  creditCardCheckout: {...},
-  cryptoCheckout: {
-    chainId: 137,
-    triggerTransaction: async () => { console.log('triggered transaction')},
-    coinQuantity: {
-      contractAddress: '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174',
-      amountRequiredRaw: '10000000000'
-    },
-  },
-}
-```
-
-### Credit Card Checkout Configuration
-The `creditcardCheckout` field specifies settings for checking out with cryptocurrency, e.g., interacting with a minting contract or marketplace contract.
-
-```jsx
-
-const chainId = 137
-const orderbookAddress = '0xB537a160472183f2150d42EB1c3DD6684A55f74c'
-const recipientAddress = address || ''
-const nftQuantity = '1'
-
-const checkoutSettings = {
-  creditCardCheckout: {        
-        chainId: chainId,
-        contractAddress: orderbookAddress,
-        recipientAddress,
-        currencyQuantity: '100000',
-        currencySymbol: 'USDC',
-        currencyAddress: '0x3c499c542cef5e3811e1192ce70d8cc03d5c3359',
-        currencyDecimals: '6',
-        nftId: 1,
-        nftAddress: 0xdeb398f41ccd290ee5114df7e498cf04fac916cb, // collection Address
-        nftQuantity, 
-        approvedSpenderAddress: orderbookAddress, 
-        calldata: orderbookCallData // pass in callData for your function.
+      ],
+      chain: chainId, // chainId of the chain the collectible is on
+      price, // price of the collectible according to decimals of currencyAddress contract
+      targetContractAddress: salesContractAddress, // address of the contract handling the minting function
+      recipientAddress: address, // address of the recipient
+      currencyAddress, // address of the currency contract
+      collectionAddress, // address of the collection contract
+      creditCardProviders: ['sardine'], // array of credit card providers to use, i.e., Sardine
+      copyrightText: 'ⓒ2024 Sequence',
+      onSuccess: (txnHash: string) => {
+        console.log('success!', txnHash)
       },
+      onError: (error: Error) => {
+        console.error(error)
+      }
+    })
+  }
+
+  return <button onClick={onClick}>Buy ERC-1155 collectble!</button>
 }
 ```
 
-You will notice the `calldata` field is in the example above, which you can pass call data for the function that should be executed
 
-```
-  const calldata = encodeFunctionData({
-    abi: orderbookAbi,
-    functionName: 'acceptRequest',
-    args: [BigInt(orderId), BigInt(quantity), recipient as Hex, [], []]
-  })
-  ```
 
-### Order Summary Configuration (`orderSummaryItems`)
-The `orderSummaryItems` field specifies the list of collectibles shown in the order summary.
-
-Example configuration:
+## Custom Contract
+We instantiate the `useSelectPaymentModal` hook to open the checkout modal and pass a settings object. In addition, for custom contracts, you can specify a contract ABI along with encoding the call data, in this case we are using `ethers` and `viem`'s `encodeFunctionData` utility.
 
 ```jsx
-    orderSummaryItems: [
+import { useSelectPaymentModal, type SelectPaymentSettings } from '@0xsequence/kit-checkout'
+
+const MyComponent = () => {
+  const { openSelectPaymentModal } = useSelectPaymentModal()
+
+  const onClick = () => {
+    const erc1155SalesContractAbi = [
       {
-        contractAddress: '0x631998e91476da5b870d741192fc5cbc55f5a52e',
-        tokenId: '66597',
-        quantityRaw: '100'
-      },
+        type: 'function',
+        name: 'mint',
+        inputs: [
+          { name: 'to', type: 'address', internalType: 'address' },
+          { name: 'tokenIds', type: 'uint256[]', internalType: 'uint256[]' },
+          { name: 'amounts', type: 'uint256[]', internalType: 'uint256[]' },
+          { name: 'data', type: 'bytes', internalType: 'bytes' },
+          { name: 'expectedPaymentToken', type: 'address', internalType: 'address' },
+          { name: 'maxTotal', type: 'uint256', internalType: 'uint256' },
+          { name: 'proof', type: 'bytes32[]', internalType: 'bytes32[]' }
+        ],
+        outputs: [],
+        stateMutability: 'payable'
+      }
     ]
+
+    const purchaseTransactionData = encodeFunctionData({
+      abi: erc1155SalesContractAbi,
+      functionName: 'mint',
+      args: [
+        recipientAddress,
+        collectibles.map(c => BigInt(c.tokenId)),
+        collectibles.map(c => BigInt(c.quantity)),
+        toHex(0),
+        currencyAddress,
+        price,
+        [toHex(0, { size: 32 })]
+      ]
+    })
+
+    const swapModalSettings = {
+            collectibles: [
+        {
+          tokenId: '1',
+          quantity: '1'
+        }
+      ],
+      chain: chainId,
+      price,
+      targetContractAddress: salesContractAddress,
+      recipientAddress: address,
+      currencyAddress,
+      collectionAddress,
+      enable
+      creditCardProviders: ['sardine'],
+      copyrightText: 'ⓒ2024 Sequence',
+      onSuccess: (txnHash: string) => {
+        console.log('success!', txnHash)
+      },
+      onError: (error: Error) => {
+        console.error(error)
+      },
+      txData: purchaseTransactionData,
+    }
+
+    openSwapModal(swapModalSettings)
+  }
+
+  return <button onClick={onClick}>Swap and Pay</button>
+}
 ```
 
-::::
