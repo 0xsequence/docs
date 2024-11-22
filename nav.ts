@@ -34,7 +34,7 @@ export const topNav = [
     text: 'SDKs',
     items: [
       { text: 'Unity', link: '/sdk/unity/overview', match: '/sdk/unity/overview' },
-      { text: 'Unreal', link: '/sdk/unreal/overview', match: '/sdk/unreal/overview' },
+      { text: 'Unreal', link: '/sdk/unreal/introduction', match: '/sdk/unreal/introduction' },
       {
         text: 'React',
         link: '/solutions/wallets/sequence-kit/overview',
@@ -322,7 +322,24 @@ export const sidebar = {
           items: [
             {
               text: 'White-label Marketplace',
-              link: '/solutions/marketplaces/white-label-marketplace',
+              collapsed: true,
+              items: [
+                {
+                  text: 'Overview',
+                  link: '/solutions/marketplaces/white-label-marketplace/overview',
+                  collapsed: true,
+                },
+                {
+                  text: 'Guide',
+                  link: '/solutions/marketplaces/white-label-marketplace/guide',
+                  collapsed: true,
+                },
+                {
+                  text: 'Video Walkthrough',
+                  link: '/solutions/marketplaces/white-label-marketplace/video-walkthrough',
+                  collapsed: true,
+                },
+              ],
             },
             {
               text: 'Build your Custom Marketplace',
@@ -520,6 +537,11 @@ export const sidebar = {
           link: '/guides/building-transaction-heavy-games-with-unity',
         },
         {
+          text: 'Using Unity IAP to Sell NFTs',
+          collapsed: true,
+          link: '/guides/using-unity-iap-to-sell-nfts',
+        },
+        {
           text: 'How to sell On-Chain Items in your Unreal Project',
           collapsed: true,
           link: '/guides/unreal-primary-sales',
@@ -654,8 +676,8 @@ export const sidebar = {
               collapsed: false,
               items: [
                 { text: 'Introduction', link: '/sdk/unity/authentication/intro' },
-                { text: 'Email + OTP', link: '/sdk/unity/authentication/email' },
-                { text: 'OIDC - Social Sign In', link: '/sdk/unity/authentication/oidc' },
+                { text: 'Email OTP', link: '/sdk/unity/authentication/email' },
+                { text: 'Social Sign In', link: '/sdk/unity/authentication/oidc' },
                 { text: 'PlayFab', link: '/sdk/unity/authentication/playfab' },
                 { text: 'Guest', link: '/sdk/unity/authentication/guest' },
                 {
@@ -695,35 +717,19 @@ export const sidebar = {
         {
           text: 'Unreal',
           collapsed: true,
-          match: '/sdk/unreal/overview',
+          match: '/sdk/unreal/introduction',
           items: [
-            { text: 'Overview', link: '/sdk/unreal/overview' },
+            { text: 'Introduction', link: '/sdk/unreal/introduction' },
             { text: 'Installation', link: '/sdk/unreal/installation' },
-            { text: 'Upgrading', link: '/sdk/unreal/upgrading' },
-            { text: 'Setup', link: '/sdk/unreal/setup' },
-            {
-              text: 'Authentication',
-              collapsed: false,
-              items: [
-                { text: 'Introduction', link: '/sdk/unreal/authentication/intro' },
-                { text: 'Email + OTP', link: '/sdk/unreal/authentication/email' },
-                { text: 'OIDC - Social Sign In', link: '/sdk/unreal/authentication/oidc' },
-                { text: 'PlayFab', link: '/sdk/unreal/authentication/playfab' },
-                { text: 'Guest', link: '/sdk/unreal/authentication/guest' },
-                {
-                  text: 'Federated Accounts',
-                  link: '/sdk/unreal/authentication/federated-accounts',
-                },
-              ],
-            },
-            { text: 'Sequence Wallet', link: '/sdk/unreal/api' },
-            { text: 'Managing Session', link: '/sdk/unreal/managing-session' },
-            { text: 'Read from Blockchain', link: '/sdk/unreal/read-from-blockchain' },
+            { text: 'Configuration', link: '/sdk/unreal/configuration' },
+            { text: 'Blueprint Subsystems', link: '/sdk/unreal/subsystems' },
+            { text: 'Bootstrap your UI', link: '/sdk/unreal/user_interfaces' },
+            { text: 'Authenticate Users', link: '/sdk/unreal/authentication' },
             { text: 'Write to Blockchain', link: '/sdk/unreal/write-to-blockchain' },
-            { text: 'Working with Blueprint', link: '/sdk/unreal/working-with-blueprint' },
-            { text: 'On-Ramp Funds via Credit Card', link: '/sdk/unreal/onboard-user-funds' },
+            { text: 'Read from Blockchain', link: '/sdk/unreal/read-from-blockchain' },
+            { text: 'On-Ramp via Credit Card', link: '/sdk/unreal/onboard-user-funds' },
             { text: 'Advanced Blockchain Interactions', link: '/sdk/unreal/advanced' },
-            { text: 'Packaging', link: '/sdk/unreal/packaging' },
+            { text: 'Platform Requirements', link: '/sdk/unreal/platforms' },
           ],
         },
       ],

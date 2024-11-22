@@ -74,7 +74,7 @@ export const OverviewSection = () => (
             icon: 'MarketplaceIcon',
             title: 'White-Label Marketplace',
             body: 'Launch an in-game collectibles marketplace within minutes.',
-            link: '/solutions/marketplaces/white-label-marketplace',
+            link: '/solutions/marketplaces/white-label-marketplace/overview',
           },
           {
             icon: 'SequenceIcon',
