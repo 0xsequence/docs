@@ -13,3 +13,5 @@ yq -e -i '.security=[{"ApiKeyAuth":[]}]' docs/pages/api/marketplace/marketplace.
 yq -e -i '.security=[{"ApiKeyAuth":[]}, {"BearerAuth":[]}]' docs/pages/api/metadata/metadata.gen.yaml && echo "updated docs/pages/api/metadata/metadata.gen.yaml"
 yq -e -i '.security=[{"ApiKeyAuth":[]}, {"BearerAuth":[]}]' docs/pages/api/indexer/indexer.gen.yaml && echo "updated docs/pages/api/indexer/indexer.gen.yaml"
 yq -e -i '.security=[{"ApiKeyAuth":[]}]' docs/pages/api/relayer/relayer.gen.yaml && echo "updated docs/pages/api/relayer/relayer.gen.yaml"
+yq -e -i '.security=[{"BearerAuth":[]}]' docs/pages/api/builder/builder.gen.yaml && echo "updated docs/pages/api/builder/builder.gen.yaml"
+
