@@ -3,223 +3,257 @@ title: Sequence - Web3 Gaming Platform - Unreal SDK Sequence API
 description: Documentation for Unreal SDK API for writing to the blockchain with the Sequence infrastructure stack for web3 gaming.
 ---
 
+import TabbedContent from "../../../components/TabbedContent";
+
 # Write to Blockchain
 
-## Example SignMessage
+When transferring tokens, listen to the `Send Transaction` event when the transaction is finished.
 
-Used to Sign a message
+## Sign Message
 
-```cpp
-const TSuccessCallback<FSeqSignMessageResponse_Response> OnResponse = [this] (const FSeqSignMessageResponse_Response& Response)
-{
-	//Response is the signed message
-};
-const FFailureCallback OnFailure = [this](const FSequenceError& Error)
-{
-	UE_LOG(LogTemp,Display,TEXT("Error Message: %s"),*Error.Message);
-};
-const TOptional<USequenceWallet*> WalletOptional = USequenceWallet::Get();
-if (WalletOptional.IsSet() && WalletOptional.GetValue())
-{
-   USequenceWallet* Wallet = WalletOptional.GetValue();
-   const FString Message = "Hi";
-   Wallet->SignMessage(Message, OnResponse, OnFailure);
-}
-```
-## Example SendTransaction
+Sign a given message as a hex string. For example, you can use this signature to validate content on your backend.
 
-Used to send a transaction / perform contract calls.
+<TabbedContent labels={["Blueprint", "C++"]}>
+    <div className="tabbed-content__content">
+        <img alt={'img'} src={'/img/unreal/sign_message.png'}/>
+    </div>
 
-To send transactions, first create each desired transaction individually and append it to a `TArray<TUnion<FRawTransaction, FERC20Transaction, FERC721Transaction, FERC1155Transaction, FDelayedTransaction>>` object. This allows you to send multiple transactions in a single request.
+    <div className="tabbed-content__content">
+        ```cpp
+        const TSuccessCallback<FSeqSignMessageResponse_Response> OnResponse = [this] (const FSeqSignMessageResponse_Response& Response)
+        {
+            //Response is the signed message
+        };
+        const FFailureCallback OnFailure = [this](const FSequenceError& Error)
+        {
+            UE_LOG(LogTemp,Display,TEXT("Error Message: %s"),*Error.Message);
+        };
+        const TOptional<USequenceWallet*> WalletOptional = USequenceWallet::Get();
+        if (WalletOptional.IsSet() && WalletOptional.GetValue())
+        {
+            USequenceWallet* Wallet = WalletOptional.GetValue();
+            const FString Message = "Hi";
+            Wallet->SignMessage(Message, OnResponse, OnFailure);
+        }
+        ```
+    </div>
+</TabbedContent>
 
-```cpp
-const FFailureCallback OnFailure = [this](const FSequenceError& Error)
-{
-	UE_LOG(LogTemp,Display,TEXT("Error Message: %s"),*Error.Message);
-};
+## Send Native Tokens
 
-// Create the Transaction object list
-TArray<TUnion<FRawTransaction, FERC20Transaction, FERC721Transaction, FERC1155Transaction, FDelayedTransaction>> Txn;
-```
+Send native token balances to other users, such as sending ETH on the Ethereum Mainnet.
 
-### Native Token Transfer
+<TabbedContent labels={["Blueprint", "C++"]}>
+    <div className="tabbed-content__content">
+        <img alt={'img'} src={'/img/unreal/send_native_token.png'}/>
+    </div>
 
-```cpp 
-FRawTransaction T;
-T.data = "0x0";
-T.to = ToAddress;
-T.value = "1";
+    <div className="tabbed-content__content">
+        ```cpp
+        FRawTransaction T;
+        T.data = "0x0";
+        T.to = ToAddress;
+        T.value = "1";
 
-// Append the Raw Transaction
-Txn.Push(TUnion<FRawTransaction, FERC20Transaction, FERC721Transaction, FERC1155Transaction, FDelayedTransaction>(T));
-```
+        // Append the Raw Transaction
+        Txn.Push(TUnion<FRawTransaction, FERC20Transaction, FERC721Transaction, FERC1155Transaction, FDelayedTransaction>(T));
+        ```
+    </div>
+</TabbedContent>
 
-### ERC20 Transaction
+## Send ERC20 Tokens
 
-```cpp
-// Create the ERC20 transaction
-FERC20Transaction T20;
-T20.to = "0x0E0f9d1c4BeF9f0B8a2D9D4c09529F260C7758A2";
-T20.tokenAddress = "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174";
-T20.value = "1000";
+Send your custom ERC20 tokens from Builder to users, or transfer existing tokens like USDC or WETH.
 
-// Append the ERC20 transaction to the Txn object
-Txn.Push(TUnion<FRawTransaction, FERC20Transaction, FERC721Transaction, FERC1155Transaction, FDelayedTransaction>(T20));
-```
+<TabbedContent labels={["Blueprint", "C++"]}>
+    <div className="tabbed-content__content">
+        <img alt={'img'} src={'/img/unreal/send_erc20.png'}/>
+    </div>
 
-*Note: To send the correct value for the transaction of the ERC20 you will need to make a conversion of the expected transfer value to the expected input value, to make up for the different decimals a contract might have. The formula to do so is as follows: **Transfer Value = Input Value /(10 ^ Contract Decimals) **.
-(i.e: To transfer 1 USDC -> Input Value = 1 × 10^6)*
+    <div className="tabbed-content__content">
+        ```cpp
+        // Create the ERC20 transaction
+        FERC20Transaction T20;
+        T20.to = "0x0E0f9d1c4BeF9f0B8a2D9D4c09529F260C7758A2";
+        T20.tokenAddress = "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174";
+        T20.value = "1000";
 
-### ERC721 Transaction
+        // Append the ERC20 transaction to the Txn object
+        Txn.Push(TUnion<FRawTransaction, FERC20Transaction, FERC721Transaction, FERC1155Transaction, FDelayedTransaction>(T20));
+        ```
+    </div>
+</TabbedContent>
 
-```cpp
-// Create the ERC721 transaction
-FERC721Transaction T721;
-T721.safe = true;
-T721.id = "54530968763798660137294927684252503703134533114052628080002308208148824588621";
-T721.to = "0x0E0f9d1c4BeF9f0B8a2D9D4c09529F260C7758A2";
-T721.tokenAddress = "0xa9a6A3626993D487d2Dbda3173cf58cA1a9D9e9f";
+## Send NFTs (ERC721 Tokens)
 
-// Append the ERC721 transaction to the Txn object
-Txn.Push(TUnion<FRawTransaction, FERC20Transaction, FERC721Transaction, FERC1155Transaction, FDelayedTransaction>(T721));
-```
+Enable your users to send NFTs to others.
 
-### ERC1155 Transaction
+<TabbedContent labels={["Blueprint", "C++"]}>
+    <div className="tabbed-content__content">
+        <img alt={'img'} src={'/img/unreal/send_erc721.png'}/>
+    </div>
 
-```cpp
-// Create the ERC1155 transaction
-FERC1155Transaction T1155;
-T1155.to = "0x0E0f9d1c4BeF9f0B8a2D9D4c09529F260C7758A2";
-T1155.tokenAddress = "0x631998e91476DA5B870D741192fc5Cbc55F5a52E";
+    <div className="tabbed-content__content">
+        ```cpp
+        // Create the ERC721 transaction
+        FERC721Transaction T721;
+        T721.safe = true;
+        T721.id = "54530968763798660137294927684252503703134533114052628080002308208148824588621";
+        T721.to = "0x0E0f9d1c4BeF9f0B8a2D9D4c09529F260C7758A2";
+        T721.tokenAddress = "0xa9a6A3626993D487d2Dbda3173cf58cA1a9D9e9f";
 
-FERC1155TxnValue Val;
-Val.amount = "1";
-Val.id = "66635";
-T1155.vals.Add(Val);
+        // Append the ERC721 transaction to the Txn object
+        Txn.Push(TUnion<FRawTransaction, FERC20Transaction, FERC721Transaction, FERC1155Transaction, FDelayedTransaction>(T721));
+        ```
+    </div>
+</TabbedContent>
 
-// Append the ERC1155 transaction to the Txn object
-Txn.Push(TUnion<FRawTransaction, FERC20Transaction, FERC721Transaction, FERC1155Transaction, FDelayedTransaction>(T1155));
-```
+## Send Collectibles (ERC1155 Tokens)
 
-### Raw Transaction (Example Contract Call)
+Enable your users to send Collectibles to others.
+
+<TabbedContent labels={["Blueprint", "C++"]}>
+    <div className="tabbed-content__content">
+        <img alt={'img'} src={'/img/unreal/send_erc1155.png'}/>
+    </div>
+
+    <div className="tabbed-content__content">
+        ```cpp
+        // Create the ERC1155 transaction
+        FERC1155Transaction T1155;
+        T1155.to = "0x0E0f9d1c4BeF9f0B8a2D9D4c09529F260C7758A2";
+        T1155.tokenAddress = "0x631998e91476DA5B870D741192fc5Cbc55F5a52E";
+
+        FERC1155TxnValue Val;
+        Val.amount = "1";
+        Val.id = "66635";
+        T1155.vals.Add(Val);
+
+        // Append the ERC1155 transaction to the Txn object
+        Txn.Push(TUnion<FRawTransaction, FERC20Transaction, FERC721Transaction, FERC1155Transaction, FDelayedTransaction>(T1155));
+        ```
+    </div>
+</TabbedContent>
+
+## Send Raw Transactions
 
 *Note: if you want call contracts with the Raw type you'll want include the header #include "ABI/ABI.h" in order to use the ABI to encode the data for a contract call.*
 
-```cpp
-void UMyClass::BurnToken(TArray<TUnion<FRawTransaction, FERC20Transaction, FERC721Transaction, FERC1155Transaction, FDelayedTransaction>> Txn, FString ContractAddress, int32 TokenId, int32 Amount)
-{
-   FString FunctionSignature = "burn(uint256,uint256)";
-   TFixedABIData ABITokenId = ABI::Int32(TokenId);
-   TFixedABIData ABIFixedAmount = ABI::Int32(Amount);
-   TArray<ABIEncodeable*> Arr;
-   Arr.Add(&ABITokenId);
-   Arr.Add(&ABIFixedAmount);
-   FUnsizedData EncodedData = ABI::Encode(FunctionSignature, Arr);
-   FRawTransaction T;
-   T.data = "0x" + EncodedData.ToHex();
-   T.to = ContractAddress;
-   T.value = "0"
+<TabbedContent labels={["Blueprint", "C++"]}>
+    <div className="tabbed-content__content">
+        <img alt={'img'} src={'/img/unreal/send_raw_transaction.png'}/>
+    </div>
 
-   // Append the Raw Transaction
-   Txn.Push(TUnion<FRawTransaction, FERC20Transaction, FERC721Transaction, FERC1155Transaction, FDelayedTransaction>(T));
-}
-```
+    <div className="tabbed-content__content">
+        ```cpp
+        void UMyClass::BurnToken(TArray<TUnion<FRawTransaction, FERC20Transaction, FERC721Transaction, FERC1155Transaction, FDelayedTransaction>> Txn, FString ContractAddress, int32 TokenId, int32 Amount)
+        {
+            FString FunctionSignature = "burn(uint256,uint256)";
+            TFixedABIData ABITokenId = ABI::Int32(TokenId);
+            TFixedABIData ABIFixedAmount = ABI::Int32(Amount);
+            TArray<ABIEncodeable*> Arr;
+            Arr.Add(&ABITokenId);
+            Arr.Add(&ABIFixedAmount);
+            FUnsizedData EncodedData = ABI::Encode(FunctionSignature, Arr);
+            FRawTransaction T;
+            T.data = "0x" + EncodedData.ToHex();
+            T.to = ContractAddress;
+            T.value = "0"
 
-### DelayedEncode (Example Contract Call)
+            // Append the Raw Transaction
+            Txn.Push(TUnion<FRawTransaction, FERC20Transaction, FERC721Transaction, FERC1155Transaction, FDelayedTransaction>(T));
+        }
+        ```
+    </div>
+</TabbedContent>
 
-In some cases, such as when working with blueprints, it will be easier to call a contract via server-side encoding using a Delayed Encode transaction. Code example:
+## Send Delayed Encode Transactions
 
-```cpp
-FDelayedTransaction DelayedEncodeTxn;
-DelayedEncodeTxn.to = ERC20Address;
-DelayedEncodeTxn.value = TEXT("0");
-UDelayedEncodingBP* data = NewObject<UDelayedEncodingBP>();
-data->SetAbi(TEXT("mint(address,uint256)"));
-UDelayedEncodingArrayArgsBP* args = NewObject<UDelayedEncodingArrayArgsBP>();
-args->AddStringArg(WalletAddress);
-args->AddStringArg("1");
-data->SetArgs(args);
-data->SetFunc(TEXT("mint"));
-DelayedEncodeTxn.data = data;
-Transactions.Add(TransactionUnion(DelayedEncodeTxn));
-```
+When working with Blueprints, it is easier to call a contract via server-side encoding using a Delayed Encode transaction.
 
-### Sending the Transaction
+<TabbedContent labels={["Blueprint", "C++"]}>
+    <div className="tabbed-content__content">
+        <img alt={'img'} src={'/img/unreal/delayed_encode.png'}/>
+    </div>
 
-```cpp
-// Now send the transaction
-const TOptional<USequenceWallet*> WalletOptional = USequenceWallet::Get();
-if (WalletOptional.IsSet() && WalletOptional.GetValue())
-{
-	USequenceWallet* Wallet = WalletOptional.GetValue();
-	Wallet->SendTransaction(Txn, [this](const FSeqTransactionResponse_Data& Transaction)
-	{
-        TSharedPtr<FJsonObject> Json = Transaction.Json;
-        FSeqTransactionResponse_Receipt Receipt = Transaction.Receipt;
-        FSeqTransactionResponse_NativeReceipt NativeReceipt = Transaction.NativeReceipt;
-        FSeqTransactionResponse_Request Request = Transaction.Request;
-        TArray<FSeqTxnSimulation> Simulations = Transaction.Simulations;
-        FString TxHash = Transaction.TxHash;
-        FString IdentifyingCode = Transaction.IdentifyingCode;
-        FString MetaTxHash = Transaction.MetaTxHash;
-	}, OnFailure);
-}
-```
+    <div className="tabbed-content__content">
+        ```cpp
+        FDelayedTransaction DelayedEncodeTxn;
+        DelayedEncodeTxn.to = ERC20Address;
+        DelayedEncodeTxn.value = TEXT("0");
+        UDelayedEncodingBP* data = NewObject<UDelayedEncodingBP>();
+        data->SetAbi(TEXT("mint(address,uint256)"));
+        UDelayedEncodingArrayArgsBP* args = NewObject<UDelayedEncodingArrayArgsBP>();
+        args->AddStringArg(WalletAddress);
+        args->AddStringArg("1");
+        data->SetArgs(args);
+        data->SetFunc(TEXT("mint"));
+        DelayedEncodeTxn.data = data;
+        Transactions.Add(TransactionUnion(DelayedEncodeTxn));
+        ```
+    </div>
+</TabbedContent>
 
-## Send Transaction with Fee Options
+## Send Transactions with Fee Options
 
-To send transactions with fee options, first retrieve the available fee options using the `GetFeeOptions` method. Once the fee options are received, select a fee option and use the `SendTransactionWithFeeOption` method to send the transaction with the selected fee.
+To send transactions with fee options, first retrieve the available fee options using the `GetFeeOptions` method.
+Once the fee options are received, select a fee option and use the `SendTransactionWithFeeOption` method to send
+the transaction with the selected fee.
 
-```cpp
-// Define the callback for handling the fee options response
-const TFunction<void(TArray<FFeeOption>)> OnFeeResponse = [Transactions, OnSuccess, OnFailure](const TArray<FFeeOption>& Response)
-{
-   if (Response.Num() > 0)
-   {
-      const FFeeOption SelectedFeeOption = Response[0];
-      UE_LOG(LogTemp, Display, TEXT("Using FeeOption: %s"), *UIndexerSupport::StructToString(SelectedFeeOption));
-      
-      const FFailureCallback OnTransactionFailure = [OnFailure](const FSequenceError& Error)
-      {
-         OnFailure("Transaction failure", Error);
-      };
+<TabbedContent labels={["Blueprint", "C++"]}>
+    <div className="tabbed-content__content">
+        <img alt={'img'} src={'/img/unreal/transaction_fee_options.png'}/>
+    </div>
 
-      const UAuthenticator* Auth = NewObject<UAuthenticator>();
-      const TOptional<USequenceWallet*> WalletOptional = USequenceWallet::Get(Auth->GetStoredCredentials().GetCredentials());
-      if (WalletOptional.IsSet() && WalletOptional.GetValue())
-      {
-         USequenceWallet* Wallet = WalletOptional.GetValue();
-         Wallet->SendTransactionWithFeeOption(Transactions, SelectedFeeOption, [=](const FSeqTransactionResponse_Data& Transaction)
-         {
+    <div className="tabbed-content__content">
+        ```cpp
+        // Define the callback for handling the fee options response
+        const TFunction<void(TArray<FFeeOption>)> OnFeeResponse = [Transactions, OnSuccess, OnFailure](const TArray<FFeeOption>& Response)
+        {
+            if (Response.Num() > 0)
+        {
+            const FFeeOption SelectedFeeOption = Response[0];
+            UE_LOG(LogTemp, Display, TEXT("Using FeeOption: %s"), *UIndexerSupport::StructToString(SelectedFeeOption));
+
+            const FFailureCallback OnTransactionFailure = [OnFailure](const FSequenceError& Error)
+        {
+            OnFailure("Transaction failure", Error);
+        };
+
+            const UAuthenticator* Auth = NewObject<UAuthenticator>();
+            const TOptional<USequenceWallet*> WalletOptional = USequenceWallet::Get(Auth->GetStoredCredentials().GetCredentials());
+            if (WalletOptional.IsSet() && WalletOptional.GetValue())
+        {
+            USequenceWallet* Wallet = WalletOptional.GetValue();
+            Wallet->SendTransactionWithFeeOption(Transactions, SelectedFeeOption, [=](const FSeqTransactionResponse_Data& Transaction)
+        {
             FString OutputString;
             const TSharedRef<TJsonWriter<>> Writer = TJsonWriterFactory<>::Create(&OutputString);
             FJsonSerializer::Serialize(Transaction.Json.ToSharedRef(), Writer);
             OnSuccess(OutputString);
-         }, OnTransactionFailure);
-      }
-   }
-   else
-   {
-      OnFailure("Test failed no fee options in response", FSequenceError(EErrorType::EmptyResponse, "Empty fee option response"));
-   }
-};
+        }, OnTransactionFailure);
+        }
+        }
+            else
+        {
+            OnFailure("Test failed no fee options in response", FSequenceError(EErrorType::EmptyResponse, "Empty fee option response"));
+        }
+        };
 
-// Define the callback for handling fee options retrieval failure
-const FFailureCallback OnFeeFailure = [OnFailure](const FSequenceError& Error)
-{
-   OnFailure("Get Fee Option Response failure", Error);
-};
+        // Define the callback for handling fee options retrieval failure
+        const FFailureCallback OnFeeFailure = [OnFailure](const FSequenceError& Error)
+        {
+            OnFailure("Get Fee Option Response failure", Error);
+        };
 
-// Retrieve fee options and send the transaction with the selected fee option
-const UAuthenticator* Auth = NewObject<UAuthenticator>();
-const TOptional<USequenceWallet*> WalletOptional = USequenceWallet::Get(Auth->GetStoredCredentials().GetCredentials());
-if (WalletOptional.IsSet() && WalletOptional.GetValue())
-{
-   USequenceWallet* Wallet = WalletOptional.GetValue();
-   Wallet->GetFeeOptions(Transactions, OnFeeResponse, OnFeeFailure);
-}
-```
-
-:::info
-Your array of transactions will automatically be batched together into one single transaction by the API and will all pass or all fail.
-:::
+        // Retrieve fee options and send the transaction with the selected fee option
+        const UAuthenticator* Auth = NewObject<UAuthenticator>();
+            const TOptional<USequenceWallet*> WalletOptional = USequenceWallet::Get(Auth->GetStoredCredentials().GetCredentials());
+            if (WalletOptional.IsSet() && WalletOptional.GetValue())
+            {
+                USequenceWallet* Wallet = WalletOptional.GetValue();
+                Wallet->GetFeeOptions(Transactions, OnFeeResponse, OnFeeFailure);
+            }
+            ```
+    </div>
+</TabbedContent>

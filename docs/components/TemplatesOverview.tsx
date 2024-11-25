@@ -52,14 +52,14 @@ export const TemplatesOverview = () => (
       <TemplateCard
         title="Sequence Kit w/ Embedded Wallet for React Boilerplate"
         body="Example boilerplate showcasing embedded wallet integrated with Sequence Kit in a simple React application."
-        link="https://github.com/0xsequence/kit-embedded-wallet-react-boilerplate"
+        link="https://github.com/0xsequence-demos/kit-embedded-wallet-react-boilerplate"
         demolink="https://kit-embedded-wallet-react-boilerplate.pages.dev/"
         oneliner="npx sequence-cli boilerplates create-embedded-wallet-react-starter"
       />
       <TemplateCard
         title="Sequence Kit w/ Embedded Wallet for NextJS Boilerplate"
         body="Example boilerplate showcasing embedded wallet integrated with Sequence Kit in a simple NextJS application."
-        link="https://github.com/0xsequence/kit-embedded-wallet-nextjs-boilerplate"
+        link="https://github.com/0xsequence-demos/kit-embedded-wallet-nextjs-boilerplate"
         demolink="https://kit-embedded-wallet-nextjs-boilerplate.pages.dev/"
         oneliner="npx sequence-cli boilerplates create-kit-embedded-wallet-nextjs-starter"
       />
@@ -93,7 +93,7 @@ export const TemplatesOverview = () => (
       <TemplateCard
         title="Custom Marketplace Boilerplate"
         body="Open-source boilerplate of our white-label marketplace leveraging our marketplace APIs that can be completely customized to fit your game or use case."
-        link="https://github.com/0xsequence/marketplace-boilerplate"
+        link="https://github.com/0xsequence-demos/marketplace-boilerplate"
         demolink="https://marketplace-boilerplate.pages.dev/"
       />
     </div>

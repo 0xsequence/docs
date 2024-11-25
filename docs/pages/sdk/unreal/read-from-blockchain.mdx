@@ -7,136 +7,19 @@ import TabbedContent from "../../../components/TabbedContent";
 
 # Read From Blockchain
 
-## Indexer & the Wallet
+## Set Chain Id
 
-The [Indexer](/api/indexer/overview) is tied nicely with the wallet to allow for ease of use. One thing to note is the NetworkId you set with your wallet is the one that will be used with the Indexer. The default network we set is 137 (Polygon Mainnet). See the list of network ids supported by Sequence [here](https://status.sequence.info/).
+Select the Chain ID from which you want to retrieve user information. By default, this is set to Polygon.
 
-### Using Indexer
-
-If you want to use our Indexer APIs when a user has not signed in with Sequence, create an instance of the UIndexer class.
-
-```cpp
-// Define success and failure callbacks
-const TSuccessCallback<FEtherBalance> SuccessCallback = [=](const FEtherBalance& etherBalance) { };
-const FFailureCallback GenericFailure = [=](const FSequenceError& Error) { };
-
-// Create an instance of UIndexer with example call
-const UIndexer* Indexer = NewObject<UIndexer>();
-Indexer->GetEtherBalance(137, "0x0...", SuccessCallback, FailureCallback);
-```
+<TabbedContent labels={["Blueprint"]}>
+    <div className="tabbed-content__content">
+        <img alt={'img'} src={'/img/unreal/set_chain_id.png'}/>
+    </div>
+</TabbedContent>
 
 :::warning
-Make sure that you use the correct network id for your project.
+Make sure that you use the correct Chain Id for your project from [Sequence's Builder](https://sequence.build).
 :::
-
-## Ping
-
-<TabbedContent labels={["Blueprint", "C++"]}>
-
-            <div className="tabbed-content__content">
-                <img alt={'img'} src={'/img/unreal/ping.png'}/>
-            </div>
-
-            <div className="tabbed-content__content">
-                ```cpp
-                const TSuccessCallback<bool> GenericSuccess = [=](const bool bSuccess)
-                {
-                    //Ping response is in bSuccess
-                };
-                const FFailureCallback GenericFailure = [=](const FSequenceError& Error)
-                {
-                    //Ping failure
-                };
-                const TOptional<USequenceWallet*> WalletOptional = USequenceWallet::Get();
-                if (WalletOptional.IsSet() && WalletOptional.GetValue())
-                {
-                    USequenceWallet * Wallet = WalletOptional.GetValue();
-                    Wallet->Ping(GenericSuccess, GenericFailure);
-                }
-                ```
-            </div>
-</TabbedContent>
-
-## Version
-
-<TabbedContent labels={["Blueprint", "C++"]}>
-    <div className="tabbed-content__content">
-        <img alt={'img'} src={'/img/unreal/version.png'}/>
-    </div>
-
-    <div className="tabbed-content__content">
-        ```cpp
-        const TSuccessCallback<FVersion> GenericSuccess = [=](const FVersion& version)
-        {
-            //Response contained in FVersion
-        };
-        const FFailureCallback GenericFailure = [=](const FSequenceError& Error)
-        {
-            //Version Failure
-        };
-        const TOptional<USequenceWallet*> WalletOptional = USequenceWallet::Get();
-        if (WalletOptional.IsSet() && WalletOptional.GetValue())
-        {
-            USequenceWallet * Wallet = WalletOptional.GetValue();
-            Wallet->Version(GenericSuccess, GenericFailure);
-        }
-        ```
-    </div>
-</TabbedContent>
-
-## RunTimeStatus
-
-<TabbedContent labels={["Blueprint", "C++"]}>
-    <div className="tabbed-content__content">
-        <img alt={'img'} src={'/img/unreal/runtime_status.png'}/>
-    </div>
-
-    <div className="tabbed-content__content">
-        ```cpp
-        const TSuccessCallback<FRuntimeStatus> GenericSuccess = [=](const FRuntimeStatus& runTimeStatus)
-        {
-            //Response is in FRunTimeStatus
-        };
-        const FFailureCallback GenericFailure = [=](const FSequenceError& Error)
-        {
-            //RunTimeStatus Failure
-        };
-        const TOptional<USequenceWallet*> WalletOptional = USequenceWallet::Get();
-        if (WalletOptional.IsSet() && WalletOptional.GetValue())
-        {
-            USequenceWallet * Wallet = WalletOptional.GetValue();
-            Wallet->RunTimeStatus(GenericSuccess, GenericFailure);
-        }
-        ```
-    </div>
-</TabbedContent>
-
-## GetChainID
-
-<TabbedContent labels={["Blueprint", "C++"]}>
-    <div className="tabbed-content__content">
-        <img alt={'img'} src={'/img/unreal/get_chain_id.png'}/>
-    </div>
-
-    <div className="tabbed-content__content">
-        ```cpp
-        const TSuccessCallback<int64> GenericSuccess = [=](const int64 chainID)
-        {
-            //Response in int64
-        };
-        const FFailureCallback GenericFailure = [=](const FSequenceError& Error)
-        {
-            //GetChainID Failure
-        };
-        const TOptional<USequenceWallet*> WalletOptional = USequenceWallet::Get();
-        if (WalletOptional.IsSet() && WalletOptional.GetValue())
-        {
-            USequenceWallet * Wallet = WalletOptional.GetValue();
-            Wallet->GetChainID(GenericSuccess, GenericFailure);
-        }
-        ```
-    </div>
-</TabbedContent>
 
 ## Get Ether Balance
 
@@ -165,122 +48,142 @@ Use the Indexer API to retrieve the Ether balance for a specified wallet address
     </div>
 </TabbedContent>
 
-## GetTokenBalances
+## Get Token Balances
 
-```cpp
-	const TSuccessCallback<FGetTokenBalancesReturn> GenericSuccess = [=](const FGetTokenBalancesReturn& tokenBalances)
-	{
-		//Response in FGetTokenBalancesReturn
-	};
-	const FFailureCallback GenericFailure = [=](const FSequenceError& Error)
-	{
-		//GetTokenBalances Failure
-	};
-   
-	const TOptional<USequenceWallet*> WalletOptional = USequenceWallet::Get();
-	if (WalletOptional.IsSet() && WalletOptional.GetValue())
-	{
-		USequenceWallet * Wallet = WalletOptional.GetValue();
-		FGetTokenBalancesArgs args;
-		args.accountAddress = Wallet->GetWalletAddress();
-		args.includeMetaData = true;
-		Wallet->GetTokenBalances(args, GenericSuccess, GenericFailure);
-	}
-```
+Retrieve the user's token balances for ERC20, ERC721, and ERC1155 tokens. This will return an array of all tokens
+owned by the user. Ensure that 'includeMetadata' is enabled to include contract information in the response.
 
-## GetTokenSupplies
+<TabbedContent labels={["Blueprint", "C++"]}>
+    <div className="tabbed-content__content">
+        <img alt={'img'} src={'/img/unreal/get_token_balances.png'}/>
+    </div>
 
-```cpp  
-  const TSuccessCallback<FGetTokenSuppliesReturn> GenericSuccess = [=](const FGetTokenSuppliesReturn& tokenSupplies)
-	{
-		//Response is in FGetTokenSuppliesReturn
-	};
-	const FFailureCallback GenericFailure = [=](const FSequenceError& Error)
-	{
-		//GetTokenSupplies Failure
-	};
-    
-	const TOptional<USequenceWallet*> WalletOptional = USequenceWallet::Get();
-	if (WalletOptional.IsSet() && WalletOptional.GetValue())
-	{
-		USequenceWallet * Wallet = WalletOptional.GetValue();
-		FGetTokenSuppliesArgs args;
-		args.contractAddress = "0x01";//Testing Contract Address in hex with leading 0x
-		args.includeMetaData = true;
-		Wallet->GetTokenSupplies(args, GenericSuccess, GenericFailure);
-	}
-```
+    <div className="tabbed-content__content">
+        ```cpp
+        const TSuccessCallback<FGetTokenBalancesReturn> GenericSuccess = [=](const FGetTokenBalancesReturn& tokenBalances)
+        {
+            //Response in FGetTokenBalancesReturn
+        };
+        const FFailureCallback GenericFailure = [=](const FSequenceError& Error)
+        {
+            //GetTokenBalances Failure
+        };
 
-## GetTokenSuppliesMap
+        const TOptional<USequenceWallet*> WalletOptional = USequenceWallet::Get();
+        if (WalletOptional.IsSet() && WalletOptional.GetValue())
+        {
+            USequenceWallet * Wallet = WalletOptional.GetValue();
+            FGetTokenBalancesArgs args;
+            args.accountAddress = Wallet->GetWalletAddress();
+            args.includeMetaData = true;
+            Wallet->GetTokenBalances(args, GenericSuccess, GenericFailure);
+        }
+        ```
+    </div>
+</TabbedContent>
 
-```cpp  
-const TSuccessCallback<FGetTokenSuppliesMapReturn> GenericSuccess = [=](const FGetTokenSuppliesMapReturn& tokenSuppliesMap)
-{
-	//Response is in FGetTokenSuppliesMapReturn
-};
-const FFailureCallback GenericFailure = [=](const FSequenceError& Error)
-{
-	//GetTokenSuppliesMap Failure
-};
-const TOptional<USequenceWallet*> WalletOptional = USequenceWallet::Get();
-if (WalletOptional.IsSet() && WalletOptional.GetValue())
-{
-	USequenceWallet * Wallet = WalletOptional.GetValue();
-	TMap<FString, FTokenList> tokenMap;
-	const TPair<FString,FTokenList> item;
-	tokenMap.Add(item);
-	FGetTokenSuppliesMapArgs args;
-	args.includeMetaData = true;
-	args.tokenMap = tokenMap;
-	Wallet->GetTokenSuppliesMap(args, GenericSuccess, GenericFailure);
-}
-```
+## Get Token Supplies
 
-## GetBalanceUpdates
+Retrieve the token supplies for an ERC20, ERC721, or ERC1155 token. Make sure 'includeMetadata' is enabled to
+include contract information in the response.
 
-```cpp
-const TSuccessCallback<FGetBalanceUpdatesReturn> GenericSuccess = [=](const FGetBalanceUpdatesReturn& balanceUpdates)
-{
-	//Response in FGetBalanceUpdatesReturn
-};
-const FFailureCallback GenericFailure = [=](const FSequenceError& Error)
-{
-	//GetBalanceUpdates Failure
-};
-	
-const TOptional<USequenceWallet*> WalletOptional = USequenceWallet::Get();
-if (WalletOptional.IsSet() && WalletOptional.GetValue())
-{
-	USequenceWallet * Wallet = WalletOptional.GetValue();
-	FGetBalanceUpdatesArgs args;
-	args.contractAddress = "0x0E0f9d1c4BeF9f0B8a2D9D4c09529F260C7758A2";
-	args.page.page = 10;
-	args.page.more = true;
-	Wallet->GetBalanceUpdates(args, GenericSuccess, GenericFailure);
-}
-```
+<TabbedContent labels={["Blueprint", "C++"]}>
+    <div className="tabbed-content__content">
+        <img alt={'img'} src={'/img/unreal/get_token_supplies.png'}/>
+    </div>
 
-## GetTransactionHistory
+    <div className="tabbed-content__content">
+        ```cpp
+        const TSuccessCallback<FGetTokenSuppliesReturn> GenericSuccess = [=](const FGetTokenSuppliesReturn& tokenSupplies)
+        {
+            //Response is in FGetTokenSuppliesReturn
+        };
+        const FFailureCallback GenericFailure = [=](const FSequenceError& Error)
+        {
+            //GetTokenSupplies Failure
+        };
 
-```cpp
-const TSuccessCallback<FGetTransactionHistoryReturn> GenericSuccess = [=](const FGetTransactionHistoryReturn& transactionHistory)
-{
-	//Response is in FGetTransactionHistoryReturn
-};
-const FFailureCallback GenericFailure = [=](const FSequenceError& Error)
-{
-	//GetTransactionHistory Failure
-};
-   
-const TOptional<USequenceWallet*> WalletOptional = USequenceWallet::Get();
-if (WalletOptional.IsSet() && WalletOptional.GetValue())
-{
-	USequenceWallet * Wallet = WalletOptional.GetValue();
-	FGetTransactionHistoryArgs args;
-	args.filter.accountAddress = Wallet->GetWalletAddress();
-	args.includeMetaData = true;
-	args.page.page = 0;
-	args.page.more = true;    
-	Wallet->GetTransactionHistory(args, GenericSuccess, GenericFailure);
-}
-```
+        const TOptional<USequenceWallet*> WalletOptional = USequenceWallet::Get();
+        if (WalletOptional.IsSet() && WalletOptional.GetValue())
+        {
+            USequenceWallet * Wallet = WalletOptional.GetValue();
+            FGetTokenSuppliesArgs args;
+            args.contractAddress = "0x01";//Testing Contract Address in hex with leading 0x
+            args.includeMetaData = true;
+            Wallet->GetTokenSupplies(args, GenericSuccess, GenericFailure);
+        }
+        ```
+    </div>
+</TabbedContent>
+
+## Get Token Supplies Map
+
+Retrieve a collection of token supplies for ERC20, ERC721, or ERC1155 tokens. Make sure 'includeMetadata' is enabled to
+include contract information in the response.
+
+<TabbedContent labels={["Blueprint", "C++"]}>
+    <div className="tabbed-content__content">
+        <img alt={'img'} src={'/img/unreal/get_token_supplies_map.png'}/>
+    </div>
+
+    <div className="tabbed-content__content">
+        ```cpp
+        const TSuccessCallback<FGetTokenSuppliesMapReturn> GenericSuccess = [=](const FGetTokenSuppliesMapReturn& tokenSuppliesMap)
+        {
+            //Response is in FGetTokenSuppliesMapReturn
+        };
+        const FFailureCallback GenericFailure = [=](const FSequenceError& Error)
+        {
+            //GetTokenSuppliesMap Failure
+        };
+        const TOptional<USequenceWallet*> WalletOptional = USequenceWallet::Get();
+        if (WalletOptional.IsSet() && WalletOptional.GetValue())
+        {
+            USequenceWallet * Wallet = WalletOptional.GetValue();
+            TMap<FString, FTokenList> tokenMap;
+            const TPair<FString,FTokenList> item;
+            tokenMap.Add(item);
+            FGetTokenSuppliesMapArgs args;
+            args.includeMetaData = true;
+            args.tokenMap = tokenMap;
+            Wallet->GetTokenSuppliesMap(args, GenericSuccess, GenericFailure);
+        }
+        ```
+    </div>
+</TabbedContent>
+
+## Get Transaction History
+
+Retrieve the transaction history for a wallet- or token address.
+For example, here we get all transaction for the current user.
+
+<TabbedContent labels={["Blueprint", "C++"]}>
+    <div className="tabbed-content__content">
+        <img alt={'img'} src={'/img/unreal/get_transaction_history.png'}/>
+    </div>
+
+    <div className="tabbed-content__content">
+        ```cpp
+        const TSuccessCallback<FGetTransactionHistoryReturn> GenericSuccess = [=](const FGetTransactionHistoryReturn& transactionHistory)
+        {
+            //Response is in FGetTransactionHistoryReturn
+        };
+        const FFailureCallback GenericFailure = [=](const FSequenceError& Error)
+        {
+            //GetTransactionHistory Failure
+        };
+
+        const TOptional<USequenceWallet*> WalletOptional = USequenceWallet::Get();
+        if (WalletOptional.IsSet() && WalletOptional.GetValue())
+        {
+            USequenceWallet * Wallet = WalletOptional.GetValue();
+            FGetTransactionHistoryArgs args;
+            args.filter.accountAddress = Wallet->GetWalletAddress();
+            args.includeMetaData = true;
+            args.page.page = 0;
+            args.page.more = true;
+            Wallet->GetTransactionHistory(args, GenericSuccess, GenericFailure);
+        }
+        ```
+    </div>
+</TabbedContent>
