@@ -25,7 +25,7 @@ export const GuidesOverview = () => (
         title="Integrate Sequence Wallets with a Telegram Mini-App"
         body="Follow our integration guide to learn how to integrate a Sequence Embedded Wallet into a Telegram App to support your users on EVM chains."
         link="/guides/telegram-integration"
-        image="/img/guides/telegram/telegram-mini-app.webp"
+        image="/img/guides/telegram/telegram-miniapp.webp"
       />
         <GuideCard
             title="How to build a Game with Unreal Engine"
