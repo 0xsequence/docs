@@ -21,6 +21,12 @@ export const GuidesOverview = () => (
         demoLinkiOS="https://testflight.apple.com/join/xrnh8Vzm"
         demoLinkAndroid="https://play.google.com/store/apps/details?id=app.sequence.jelly_forest"
       />
+            <GuideCard
+        title="Integrate Sequence Wallets with a Telegram Mini-App"
+        body="Follow our integration guide to learn how to integrate a Sequence Embedded Wallet into a Telegram App to support your users on EVM chains."
+        link="/guides/telegram-integration"
+        image="/img/guides/telegram/telegram-mini-app.webp"
+      />
         <GuideCard
             title="How to build a Game with Unreal Engine"
             body="Use Sequence's Unreal SDK to display Embedded Wallet information, sign messages, and send transactions."
