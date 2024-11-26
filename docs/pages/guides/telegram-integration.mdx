@@ -1,121 +1,110 @@
 ---
 title: How to integrate Sequence with a Telegram Mini-app or Game
-description: This guide covers the creation of a Primary Sales of Sequence. It includes steps for create sales contract, create nft contract, create collection, wallet authentication, purchase and mint.
+description: Learn how to integrate Sequence Kit with your Telegram Mini-app or Game for seamless web3 functionality.
 ---
 
 import { Callout } from "vocs/components";
-import TabbedContent from "../../components/TabbedContent";
 
-# How to Integrate Sequence Embedded Wallets with your Telegram Mini-app or Telegram game
+# Integrating Sequence Kit with Telegram Mini-apps
 
-We'll be walking through how to integrate a sequence embedded wallet into your Telegram game or app and authenticate your users via email.
+This guide will walk you through setting up Sequence Kit with your Telegram Mini-app or Game, enabling web3 functionality on EVM chains for your users for email and guest authentication methods.
 
-## Clone the Telegram Boilerplate
+## Prerequisites
 
-<TabbedContent labels={["Github", "Github Template"]}>
-    <div className="tabbed-content__content">
+Before starting, ensure you have:
+- A Telegram account
+- Account and Access to [Cloudflare Dashboard](https://dash.cloudflare.com)
 
-        #### You can clone Primary Sales Repository from Github
-
-        ```shell
-        git clone https://github.com/0xsequence-demos/primary-sale-1155-boilerplate.git
-        ```
-
-        <br/>
-
-        Then install and run:
-
-        <br/>
-
-        ```shell
-        pnpm install && pnpm dev
-        ```
-
-        <br/>
-
-        After you install the dependencies, `.env.example` will be automatically copied to `.env`, so you can test things out with pre-provided keys.
-
-        <br/>
-
-        When you're ready, replace the contents of `.env` with your project's information.
-
-    </div>
-    <div className="tabbed-content__content">
-
-        #### You can use the Primary Sales Repository Template from Github
-
-        Go to https://github.com/0xsequence-demos/primary-sale-1155-boilerplate and click "Use this Template" in the top right corner.
-        <br/>
-
-        Clone your newly made repo.
-
-        <br/>
-
-        Then install and run:
-
-        <br/>
-
-        ```shell
-        pnpm install && pnpm dev
-        ```
-
-        <br/>
-        After you install the dependencies, `.env.example` will be automatically copied to `.env`, so you can test things out with pre-provided keys.
-        <br/>
-
-        When you're ready, replace the contents of `.env` with your project's information.
-
-    </div>
-</TabbedContent>
+## Integration Steps
 
 ::::steps
-### Bot Setup and Auth Token
+### Create a Telegram Bot with BotFather
 
-- Open the Telegram app then in the search bar type **BotFather** and select the verified account.
-- Click on **Start** or type `/start` to initiate a conversation with BotFather.
-- Type `/newbot` and press Enter.
-- Follow the prompts to provide a name and a unique username for your bot.
-  - The bot's name can be anything, but the username must end in `bot` (e.g., `Sequence_Example_bot`).
-- Once your bot is created, BotFather will send a message with your **HTTP API Token**.
-  - The token will look something like this: `123456789:ABC-DEF1234ghIkl-zyx57W2v1u123ew11`.
+1. Open Telegram and search for "@BotFather"
+2. Start a conversation by clicking "Start" or typing `/start`
+3. Create a new bot by typing `/newbot`
+4. Follow the prompts:
+   - Enter a name for your bot
+   - Choose a username (must end in 'bot')
 
-### Set the Sales Configurations for the project.
+### Obtain Required Tokens
 
-Once we have our sales contract deployed, we'll simply update the sales configuration on the boilerplate. Go to `src/salesConfigs.ts` and modify the salesConfigs variable by adding each contract sale in an array for your project with the networks you want to support. Example:
+After creating your bot, BotFather will provide:
+- Bot Token (HTTP API Token)
+- Bot Username
 
-```ts
-export const salesConfigs: SaleConfiguration[] = [
-  {
-    nftTokenAddress: "0x888a322db4b8033bac3ff84412738c096f87f9d0",
-    salesContractAddress: "0x0327b2f274e04d292e74a06809bcd687c63a4ba4",
-    chainId: 80002, //polygonAmoy
-    // Modify here to show different items
-    itemsForSale: ["0", "1"],
-  },
-  {
-    nftTokenAddress: "0xd4bb59d0ba1f7b2beea4c6d9b9f151ee1da02665",
-    salesContractAddress: "0x326d2fbe4808dd2a3e205aecc5e25a6322ad0a81",
-    chainId: 421614, //arbitrumSepolia,
-    // Modify here to show different items
-    itemsForSale: ["0"],
-  },
-];
-```
+Save these credentials - you'll need them for the next steps.
 
-<Callout type="info">
-  You can see all the available chains currently supported by sequence <a href="/solutions/technical-references/chain-support" target="_blank" rel="noopener noreferrer" style={{ fontWeight: 700 }}>here</a>.
+<Callout type="warning">
+  Never share or commit your bot token. It should be treated as a secret.
 </Callout>
 
-### Set a default chainId for the project.
+### Install and Configure Your Project
 
-To set the default chainId, go to `src/salesConfigs.ts` and modify the defaultChainId variable with the chainId you want to display by default in the project. It must match a chainId present in your salesConfigs variable. For example:
+1. Clone the Sequence Telegram starter:
 
-```ts
-// In this case, the chosen `defaultChainId` is 80002 (amoy), which is present in the previously declared `salesConfigs` variable.
-export const defaultChainId = 80002;
+```shell
+git clone https://github.com/0xsequence-demos/telegram-kit-embedded-wallet-react-boilerplate
 ```
 
-### Done!
+2. Copy the example files in your project root:
 
-Your primary sales should now appear and function correctly from this point onward. In order to make a purchase, ensure you have the corresponding token that you set as a currency for the sale in your wallet, increment the amount, and click purchase!
+```shell
+cp .env.example .env && cp example.wrangler.toml wrangler.toml
+```
+
+Update the `.env` file with the `VITE_PROJECT_ACCESS_KEY` and `VITE_WAAS_CONFIG_KEY` with your keys from [Sequence Builder](https://sequence.build/project/default/embedded-wallet) after configuration.
+
+3. Install dependencies:
+
+```shell
+pnpm install
+```
+
+4. Build the app:
+
+```shell
+pnpm run build
+```
+
+4. Update the `VARS` in the `wrangler.toml` file with a user provided secret for `BOT_SECRET` and the bot token from BotFather for `BOT_TOKEN`.
+
+### Authenticate with Cloudflare Account
+Deploy the app and functions logic to Cloudflare
+
+1. Run `pnpm wrangler pages deploy`
+
+This will prompt you to authenticate with Cloudflare if not already logged in. On successful deploy, copy the URL where your application is now hosted.
+
+### Register Webhook with Telegram
+
+Now we call our `registerWebhook` endpoint on our app to register the webhook function with the URL of your deployed application to enable access for the Telegram API.
+
+```shell
+curl -X POST \
+     "<YOUR_CLOUDFLARE_DEPLOYED_URL>/api/registerWebhook"
+```
+
+### Update Allowed Origins
+Ensure in your wallet configuration you have added the URL of your deployed application as an allowed origin through the configuration page on [Sequence Builder](https://sequence.build/project/default/embedded-wallet).
+
+### Test out the Bot!
+Send a message to your bot on Telegram and see if it responds! It should answer you with the ability to share, play and get more info on bot.
+
 ::::
+
+From here, you have a fully functional Telegram bot that can interact with Sequence Embedded wallets for all integrated EVM chains. You can customize the bot responses and the client side application with functionalities specific to your game or app - simply redeploy and update the allowed origins!
+
+
+## Going to production
+For your `BOT_TOKEN`, you can encrypt and store it in Cloudflare via the following command to prevent data leaks:
+
+```shell
+pnpm wrangler pages secret put BOT_TOKEN
+```
+
+Enter in your bot token when prompted.
+
+
+
+

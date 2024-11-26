@@ -532,6 +532,11 @@ export const sidebar = {
           // ]
         },
         {
+          text: 'Build a Telegram Mini-App with Sequence',
+          collapsed: true,
+          link: '/guides/telegram-integration',
+        },
+        {
           text: 'Building Transaction Heavy Games with Unity',
           collapsed: true,
           link: '/guides/building-transaction-heavy-games-with-unity',
