@@ -3248,7 +3248,12 @@ components:
           description: '[]Chart'
           items:
             $ref: '#/components/schemas/Chart'
-  securitySchemes: {}
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT Service Token generated from Sequence Builder
 paths:
   /rpc/Builder/TotalCompute:
     post:
@@ -6175,14 +6180,17 @@ paths:
       tags:
         - secret
 security:
-  - ApiKeyAuth: []
+  - BearerAuth: []
 tags:
   - name: public
     description: >-
-      Endpoints accessible by passing your project-access-key in the header.
-      This is injected whenever you login automatically.
+      Endpoints accessible by passing your project-access-key in the header. This is injected whenever you login automatically.
   - name: secret
     description: >-
-      Endpoints that require a Sequence service token intended to be secret. You
-      can manually generate one on Sequence Builder and pass it as a Bearer
-      Token.
+      Endpoints that require a Sequence service token intended to be secret. You can manually generate one on Sequence Builder and pass it as a Bearer Token.
+securitySchemes:
+  BearerAuth:
+    type: http
+    scheme: bearer
+    bearerFormat: JWT
+    description: JWT Service Token generated from Sequence Builder
