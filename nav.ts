@@ -74,6 +74,11 @@ export const topNav = [
         link: '/api/infrastructure/overview',
         match: '/api/infrastructure/overview',
       },
+      {
+        text: 'Builder API',
+        link: '/api/builder/overview',
+        match: '/api/builder/overview',
+      },
       { text: 'Node Gateway', link: '/api/node-gateway', match: '/api/node-gateway' },
     ],
   },
@@ -907,6 +912,14 @@ export const sidebar = {
       items: [
         { text: 'Overview', link: '/api/infrastructure/overview' },
         { text: 'Endpoints', link: '/api/infrastructure/endpoints' },
+      ],
+    },
+    {
+      text: 'Builder',
+      collapsed: false,
+      items: [
+        { text: 'Overview', link: '/api/builder/overview' },
+        { text: 'Endpoints', link: '/api/builder/endpoints' },
       ],
     },
     {

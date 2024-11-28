@@ -13,3 +13,6 @@ yq -e -i '.security=[{"ApiKeyAuth":[]}]' docs/pages/api/marketplace/marketplace.
 yq -e -i '.security=[{"ApiKeyAuth":[]}, {"BearerAuth":[]}]' docs/pages/api/metadata/metadata.gen.yaml && echo "updated docs/pages/api/metadata/metadata.gen.yaml"
 yq -e -i '.security=[{"ApiKeyAuth":[]}, {"BearerAuth":[]}]' docs/pages/api/indexer/indexer.gen.yaml && echo "updated docs/pages/api/indexer/indexer.gen.yaml"
 yq -e -i '.security=[{"ApiKeyAuth":[]}]' docs/pages/api/relayer/relayer.gen.yaml && echo "updated docs/pages/api/relayer/relayer.gen.yaml"
+yq -e -i '.security=[{"BearerAuth":[]}]' docs/pages/api/builder/builder.gen.yaml && echo "updated docs/pages/api/builder/builder.gen.yaml"
+yq -e -i '.components.securitySchemes.BearerAuth = {"type": "http", "scheme": "bearer", "bearerFormat": "JWT", "description": "JWT Service Token generated from Sequence Builder"}' docs/pages/api/builder/builder.gen.yaml && echo "updated docs/pages/api/builder/builder.gen.yaml"
+yq -e -i '.components.securitySchemes.BearerAuth = {"type": "http", "scheme": "bearer", "bearerFormat": "JWT", "description": "JWT Service Token generated from Sequence Builder"}' docs/pages/api/analytics/analytics.gen.yaml && echo "updated docs/pages/api/analytics/analytics.gen.yaml"
