@@ -17,7 +17,7 @@ We have an integrated checkout flow within Sequence Kit that you can leverage by
 </div>
 
 :::info
-In order to enable credit card payments for checkout, please get in touch with the Sequence team as your contract address will need to be allowlisted.
+In order to enable credit card payments for checkout, please get in touch with the Sequence team as your contract address will need to be allowlisted. Credit card payments only work on mainnet.
 :::
 
 # Installation and Setup
@@ -62,9 +62,11 @@ We have convenient utility functions for ERC1155 tokens that make it easy to con
 Here's a configuration with example varibles variables:
 
 ```jsx
+import { useAccount } from 'wagmi'
 import { useERC1155SaleContractPaymentModal } from '@0xsequence/kit-checkout'
 
 const MyComponent = () => {
+  const { address } = useAccount()
   const { openERC1155SaleContractPaymentModal } = useERC1155SaleContractPaymentModal()
 
 
@@ -114,12 +116,25 @@ const MyComponent = () => {
 We instantiate the `useSelectPaymentModal` hook to open the checkout modal and pass a settings object. In addition, for custom contracts, you can specify a contract ABI along with encoding the call data, in this case we are using `ethers` and `viem`'s `encodeFunctionData` utility.
 
 ```jsx
+import { useAccount } from 'wagmi'
 import { useSelectPaymentModal, type SelectPaymentSettings } from '@0xsequence/kit-checkout'
 
 const MyComponent = () => {
+  const { address } = useAccount()
   const { openSelectPaymentModal } = useSelectPaymentModal()
 
   const onClick = () => {
+    if (!address) {
+      return
+    }
+    
+    const currencyAddress = '0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359'
+    const salesContractAddress = '0xe65b75eb7c58ffc0bf0e671d64d0e1c6cd0d3e5b'
+    const collectionAddress = '0xdeb398f41ccd290ee5114df7e498cf04fac916cb'
+    const price = '20000'
+ 
+    const chainId = 137
+
     const erc1155SalesContractAbi = [
       {
         type: 'function',
@@ -152,8 +167,8 @@ const MyComponent = () => {
       ]
     })
 
-    const swapModalSettings = {
-            collectibles: [
+    const selectPaymentModalSettings: SelectPaymentSettings = {
+      collectibles: [
         {
           tokenId: '1',
           quantity: '1'
@@ -165,7 +180,7 @@ const MyComponent = () => {
       recipientAddress: address,
       currencyAddress,
       collectionAddress,
-      enable
+      isDev: true,
       creditCardProviders: ['sardine'],
       copyrightText: 'ⓒ2024 Sequence',
       onSuccess: (txnHash: string) => {
@@ -177,10 +192,10 @@ const MyComponent = () => {
       txData: purchaseTransactionData,
     }
 
-    openSwapModal(swapModalSettings)
+    openSelectPaymentModal(selectPaymentModalSettings)
   }
 
-  return <button onClick={onClick}>Swap and Pay</button>
+  return <button onClick={onClick}>Buy ERC-1155 collectble!</button>
 }
 ```
 
