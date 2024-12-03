@@ -4,7 +4,7 @@ const Video = (props: any) => {
   const imageRef = useRef<any>(null)
   const videoRef = useRef<any>(null)
   const width = props.width ? props.width : '560'
-  const height = props.height ? props.height : '315'
+  const height = props.height ? props.height : '400'
 
   useEffect(() => {
     const handleClick = () => {
