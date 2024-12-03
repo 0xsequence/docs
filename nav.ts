@@ -20,7 +20,6 @@ export const topNav = [
         match: '/solutions/monetization-overview',
       },
       { text: 'Power', link: '/solutions/power-overview', match: '/solutions/power-overview' },
-      // { text: 'Chain Support', link: '/solutions/technical-references/chain-support', match: '/solutions/technical-references/chain-support' },
     ],
   },
   {
@@ -159,7 +158,7 @@ export const sidebar = {
                   link: '/solutions/wallets/embedded-wallet/examples/use-wallets',
                 },
                 {
-                  text: 'Account Federation',
+                  text: 'Multi-account Support',
                   link: '/solutions/wallets/embedded-wallet/examples/account-federation',
                 },
                 {
@@ -172,7 +171,7 @@ export const sidebar = {
                   link: '/solutions/wallets/embedded-wallet/examples/fee-options',
                 },
                 {
-                  text: 'Token Verification',
+                  text: 'Backend Verification',
                   link: '/solutions/wallets/embedded-wallet/examples/verification',
                 },
                 {
@@ -829,7 +828,7 @@ export const sidebar = {
       items: [
         { text: 'Overview', link: '/api/transactions/overview' },
         { text: 'Installation', link: '/api/transactions/installation' },
-        { text: 'Endpoints', link: '/api/transactions/endpoints' },
+        { text: 'API References', link: '/api/transactions/endpoints' },
         {
           text: 'Examples',
           collapsed: false,
@@ -850,7 +849,7 @@ export const sidebar = {
       items: [
         { text: 'Overview', link: '/api/indexer/overview' },
         { text: 'Installation', link: '/api/indexer/installation' },
-        { text: 'Endpoints', link: '/api/indexer/endpoints' },
+        { text: 'API References', link: '/api/indexer/endpoints' },
         {
           text: 'Examples',
           collapsed: false,
@@ -878,7 +877,7 @@ export const sidebar = {
       collapsed: false,
       items: [
         { text: 'Overview', link: '/api/analytics/overview' },
-        { text: 'Endpoints', link: '/api/analytics/endpoints' },
+        { text: 'API References', link: '/api/analytics/endpoints' },
         {
           text: 'Examples',
           collapsed: false,
@@ -894,7 +893,7 @@ export const sidebar = {
       collapsed: false,
       items: [
         { text: 'Overview', link: '/api/metadata/overview' },
-        { text: 'Endpoints', link: '/api/metadata/endpoints' },
+        { text: 'API References', link: '/api/metadata/endpoints' },
         {
           text: 'Examples',
           collapsed: false,
@@ -911,7 +910,7 @@ export const sidebar = {
       collapsed: false,
       items: [
         { text: 'Overview', link: '/api/infrastructure/overview' },
-        { text: 'Endpoints', link: '/api/infrastructure/endpoints' },
+        { text: 'API References', link: '/api/infrastructure/endpoints' },
       ],
     },
     {
@@ -919,7 +918,7 @@ export const sidebar = {
       collapsed: false,
       items: [
         { text: 'Overview', link: '/api/builder/overview' },
-        { text: 'Endpoints', link: '/api/builder/endpoints' },
+        { text: 'API References', link: '/api/builder/endpoints' },
       ],
     },
     {
@@ -927,7 +926,7 @@ export const sidebar = {
       collapsed: false,
       items: [
         { text: 'Overview', link: '/api/marketplace/overview' },
-        { text: 'Endpoints', link: '/api/marketplace/endpoints' },
+        { text: 'API References', link: '/api/marketplace/endpoints' },
 
         // { text: 'Schema', link: '/api/marketplace/schema' },
         // { text: 'Marketplace API', link: '/api/marketplace/api' },

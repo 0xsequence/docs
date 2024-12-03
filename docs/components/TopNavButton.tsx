@@ -26,7 +26,7 @@ const TopNavButton = (): ReactElement => {
         window.open('https://sequence.build/', '_blank', 'noopener,noreferrer')
       }}
     >
-      Build
+      Sign Up
     </a>
   )
 }
