@@ -572,6 +572,11 @@ export const sidebar = {
               collapsed: true,
               link: '/guides/analytics-guide',
             },
+            {
+              text: 'Build an Embedded Wallet Linking Service',
+              collapsed: true,
+              link: '/solutions/wallets/link-wallets/integration-guide',
+            },
           ],
         },
         {
@@ -592,17 +597,6 @@ export const sidebar = {
               text: 'Create NFT Drop Sales',
               collapsed: true,
               link: '/guides/primary-drop-sales-erc721',
-            },
-          ],
-        },
-        {
-          text: 'Wallets and Authentication',
-          collapsed: true,
-          items: [
-            {
-              text: 'Build an Embedded Wallet Linking Service',
-              collapsed: true,
-              link: '/solutions/wallets/link-wallets/integration-guide',
             },
           ],
         },
