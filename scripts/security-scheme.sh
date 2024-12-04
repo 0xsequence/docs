@@ -9,6 +9,7 @@ fi
 # Run yq commands
 yq -e -i '.security=[{"ApiKeyAuth":[]}]' docs/pages/api/api/api.gen.yaml && echo "updated docs/pages/api/api/api.gen.yaml"
 yq -e -i '.security=[{"BearerAuth":[]}]' docs/pages/api/analytics/analytics.gen.yaml && echo "updated docs/pages/api/analytics/analytics.gen.yaml"
+yq -e -i '.servers=[{"url":"https://api.sequence.build"}]' docs/pages/api/analytics/analytics.gen.yaml && echo "updated docs/pages/api/analytics/analytics.gen.yaml"
 yq -e -i '.security=[{"ApiKeyAuth":[]}]' docs/pages/api/marketplace/marketplace.gen.yaml && echo "updated docs/pages/api/marketplace/marketplace.gen.yaml"
 yq -e -i '.security=[{"ApiKeyAuth":[]}, {"BearerAuth":[]}]' docs/pages/api/metadata/metadata.gen.yaml && echo "updated docs/pages/api/metadata/metadata.gen.yaml"
 yq -e -i '.security=[{"ApiKeyAuth":[]}, {"BearerAuth":[]}]' docs/pages/api/indexer/indexer.gen.yaml && echo "updated docs/pages/api/indexer/indexer.gen.yaml"

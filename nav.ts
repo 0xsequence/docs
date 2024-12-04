@@ -510,40 +510,100 @@ export const sidebar = {
           collapsed: true,
           items: [
             { text: 'Build a Game with WebGL', collapsed: true, link: '/guides/webgl-guide' },
-            { text: 'Build a Unity Game', collapsed: true, link: '/guides/jelly-forest-unity-guide' },
-            { text: 'Building Transaction Heavy Games with Unity', collapsed: true, link: '/guides/building-transaction-heavy-games-with-unity' },
-            { text: 'Using Unity IAP to Sell NFTs', collapsed: true, link: '/guides/using-unity-iap-to-sell-nfts' },
-            { text: 'How to sell On-Chain Items in your Unreal Project', collapsed: true, link: '/guides/unreal-primary-sales' },
-            { text: 'How to do Primary Sales for On-Chain Items in Unity', collapsed: true, link: '/guides/unity-primary-sales' },
-            { text: 'How to build a Game with Unreal Engine', collapsed: true, link: '/guides/unreal-ew-guide' },
-            { text: 'Build a Telegram Mini-App with Sequence', collapsed: true, link: '/guides/telegram-integration' },
+            {
+              text: 'Build a Unity Game',
+              collapsed: true,
+              link: '/guides/jelly-forest-unity-guide',
+            },
+            {
+              text: 'Building Transaction Heavy Games with Unity',
+              collapsed: true,
+              link: '/guides/building-transaction-heavy-games-with-unity',
+            },
+            {
+              text: 'Using Unity IAP to Sell NFTs',
+              collapsed: true,
+              link: '/guides/using-unity-iap-to-sell-nfts',
+            },
+            {
+              text: 'How to sell On-Chain Items in your Unreal Project',
+              collapsed: true,
+              link: '/guides/unreal-primary-sales',
+            },
+            {
+              text: 'How to do Primary Sales for On-Chain Items in Unity',
+              collapsed: true,
+              link: '/guides/unity-primary-sales',
+            },
+            {
+              text: 'How to build a Game with Unreal Engine',
+              collapsed: true,
+              link: '/guides/unreal-ew-guide',
+            },
+            {
+              text: 'Build a Telegram Mini-App with Sequence',
+              collapsed: true,
+              link: '/guides/telegram-integration',
+            },
           ],
         },
         {
           text: 'Blockchain Integrations',
           collapsed: true,
           items: [
-            { text: 'Build a Collectible Minting Service', collapsed: true, link: '/guides/mint-collectibles-serverless' },
+            {
+              text: 'Build a Collectible Minting Service',
+              collapsed: true,
+              link: '/guides/mint-collectibles-serverless',
+            },
             { text: 'Manage Collection Metadata', collapsed: true, link: '/guides/metadata-guide' },
-            { text: 'Build a Treasure Chest with AI Minting', collapsed: true, link: '/guides/treasure-chest-guide' },
-            { text: 'Build a Backend Transaction Service', collapsed: true, link: '/guides/building-relaying-server' },
-            { text: 'Leverage Sequence Analytics API in Dune', collapsed: true, link: '/guides/analytics-guide' },
+            {
+              text: 'Build a Treasure Chest with AI Minting',
+              collapsed: true,
+              link: '/guides/treasure-chest-guide',
+            },
+            {
+              text: 'Build a Backend Transaction Service',
+              collapsed: true,
+              link: '/guides/building-relaying-server',
+            },
+            {
+              text: 'Leverage Sequence Analytics API in Dune',
+              collapsed: true,
+              link: '/guides/analytics-guide',
+            },
           ],
         },
         {
           text: 'Marketplaces & Primary Sales',
           collapsed: true,
           items: [
-            { text: 'Build a Custom Marketplace', collapsed: true, link: '/guides/custom-marketplace' },
-            { text: 'Sell your ERC-1155 Game Items via a Web Shop', collapsed: true, link: '/guides/primary-sales' },
-            { text: 'Create NFT Drop Sales', collapsed: true, link: '/guides/primary-drop-sales-erc721' },
+            {
+              text: 'Build a Custom Marketplace',
+              collapsed: true,
+              link: '/guides/custom-marketplace',
+            },
+            {
+              text: 'Sell your ERC-1155 Game Items via a Web Shop',
+              collapsed: true,
+              link: '/guides/primary-sales',
+            },
+            {
+              text: 'Create NFT Drop Sales',
+              collapsed: true,
+              link: '/guides/primary-drop-sales-erc721',
+            },
           ],
         },
         {
           text: 'Wallets and Authentication',
           collapsed: true,
           items: [
-            { text: 'Build an Embedded Wallet Linking Service', collapsed: true, link: '/solutions/wallets/link-wallets/integration-guide' },
+            {
+              text: 'Build an Embedded Wallet Linking Service',
+              collapsed: true,
+              link: '/solutions/wallets/link-wallets/integration-guide',
+            },
           ],
         },
       ],
