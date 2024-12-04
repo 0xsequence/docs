@@ -86,6 +86,7 @@ export const topNav = [
     text: 'Support',
     items: [
       { text: 'Support', link: '/support' },
+      { text: 'Integrated Chains', link: '/solutions/technical-references/chain-support/' },
       { text: 'Changelog', link: 'https://0xsequence.featurebase.app/' },
       { text: 'Restricted Regions', link: '/support/restricted-regions' },
       { text: 'Token Directory', link: '/support/token-directory' },
@@ -505,149 +506,99 @@ export const sidebar = {
       collapsed: false,
       items: [
         {
-          text: 'Build a Game with WebGL',
+          text: 'Game Developers',
           collapsed: true,
-          link: '/guides/webgl-guide',
-          // items: [
-          //   { text: 'Introduction', link: '/guides/webgl-guide#aviator-web3-game-with-webgl' },
-          //   { text: 'Project Setup With Webpack', link: '/guides/webgl-guide#1-project-setup-with-webpack' },
-          //   { text: 'Integrate Sequence Kit With WaaS', link: '/guides/webgl-guide#2-integrate-sequence-kit' },
-          //   { text: 'Deploy a Collectibles Contract', link: '/guides/webgl-guide#3-deploy-a-collectibles-contract' },
-          //   { text: 'Deploy a Remote Minter', link: '/guides/webgl-guide#4-deploy-a-remote-minter--mint-in-game-achievement-tokens' },
-          //   { text: 'Leverage Items In-game', link: '/guides/webgl-guide#5-leverage-items-in-game' },
-          //   { text: 'Burn In-game Achievement Tokens', link: '/guides/webgl-guide#6-burn-in-game-achievement-tokens' },
-          //   { text: '(Optional) Integrate Embedded Wallet Into Sequence Kit', link: '/guides/webgl-guide#7-optional-integrate-embedded-wallet-into-sequence-kit' },
-          // ]
+          items: [
+            { text: 'Build a Game with WebGL', collapsed: true, link: '/guides/webgl-guide' },
+            {
+              text: 'Build a Unity Game',
+              collapsed: true,
+              link: '/guides/jelly-forest-unity-guide',
+            },
+            {
+              text: 'Building Transaction Heavy Games with Unity',
+              collapsed: true,
+              link: '/guides/building-transaction-heavy-games-with-unity',
+            },
+            {
+              text: 'Using Unity IAP to Sell NFTs',
+              collapsed: true,
+              link: '/guides/using-unity-iap-to-sell-nfts',
+            },
+            {
+              text: 'How to sell On-Chain Items in your Unreal Project',
+              collapsed: true,
+              link: '/guides/unreal-primary-sales',
+            },
+            {
+              text: 'How to do Primary Sales for On-Chain Items in Unity',
+              collapsed: true,
+              link: '/guides/unity-primary-sales',
+            },
+            {
+              text: 'How to build a Game with Unreal Engine',
+              collapsed: true,
+              link: '/guides/unreal-ew-guide',
+            },
+            {
+              text: 'Build a Telegram Mini-App with Sequence',
+              collapsed: true,
+              link: '/guides/telegram-integration',
+            },
+          ],
         },
         {
-          text: 'Build a Unity Game',
+          text: 'Blockchain Integrations',
           collapsed: true,
-          link: '/guides/jelly-forest-unity-guide',
-          // items: [
-          //   { text: 'Introduction', link: '/guides/jelly-forest-unity-guidee#intro-to-jelly-forest' },
-          //   { text: 'Build a Game Loop', link: '/guides/jelly-forest-unity-guide#build-a-game-loop' },
-          //   { text: 'Integrate Embedded Wallets', link: '/guides/jelly-forest-unity-guide#integrate-social-sign-in-and-sequences-embedded-wallet-solution' },
-          //   { text: 'Deploy Collectibles', link: '/guides/jelly-forest-unity-guide#deploy-a-collectibles-contract' },
-          //   { text: 'Deploy Remote Minter', link: '/guides/jelly-forest-unity-guide#deploy-a-remote-minter'},
-          //   { text: 'Minting Tokens to Inventory', link: '/guides/jelly-forest-unity-guide#mint-in-game-tokens-to-the-players-inventory' },
-          //   { text: 'Purchase Collectibles with ERC20 Tokens', link: '/guides/jelly-forest-unity-guide#burn-in-game-tokens-in-exchange-for-others' },
-          //   { text: 'Building an In-game Shop', link: '/guides/jelly-forest-unity-guide#building-the-shop-pages-and-setting-the-minting-requirements' },
-          //   { text: 'Leverage Purchased Items In-game', link: '/guides/jelly-forest-unity-guide#leverage-purchased-items-in-game' },
-          // ]
+          items: [
+            {
+              text: 'Build a Collectible Minting Service',
+              collapsed: true,
+              link: '/guides/mint-collectibles-serverless',
+            },
+            { text: 'Manage Collection Metadata', collapsed: true, link: '/guides/metadata-guide' },
+            {
+              text: 'Build a Treasure Chest with AI Minting',
+              collapsed: true,
+              link: '/guides/treasure-chest-guide',
+            },
+            {
+              text: 'Build a Backend Transaction Service',
+              collapsed: true,
+              link: '/guides/building-relaying-server',
+            },
+            {
+              text: 'Leverage Sequence Analytics API in Dune',
+              collapsed: true,
+              link: '/guides/analytics-guide',
+            },
+            {
+              text: 'Build an Embedded Wallet Linking Service',
+              collapsed: true,
+              link: '/solutions/wallets/link-wallets/integration-guide',
+            },
+          ],
         },
         {
-          text: 'Build a Telegram Mini-App with Sequence',
+          text: 'Marketplaces & Primary Sales',
           collapsed: true,
-          link: '/guides/telegram-integration',
-        },
-        {
-          text: 'Building Transaction Heavy Games with Unity',
-          collapsed: true,
-          link: '/guides/building-transaction-heavy-games-with-unity',
-        },
-        {
-          text: 'Using Unity IAP to Sell NFTs',
-          collapsed: true,
-          link: '/guides/using-unity-iap-to-sell-nfts',
-        },
-        {
-          text: 'How to sell On-Chain Items in your Unreal Project',
-          collapsed: true,
-          link: '/guides/unreal-primary-sales',
-        },
-        {
-          text: 'How to do Primary Sales for On-Chain Items in Unity',
-          collapsed: true,
-          link: '/guides/unity-primary-sales',
-        },
-        {
-          text: 'How to build a Game with Unreal Engine',
-          collapsed: true,
-          link: '/guides/unreal-ew-guide',
-        },
-        {
-          text: 'Build a Collectible Minting Service',
-          collapsed: true,
-          link: '/guides/mint-collectibles-serverless',
-          // items: [
-          //   { text: 'Introduction', link: '/guides/mint-collectibles-serverless#mint-collectibles-using-a-gasless-serverless-transactions-api', match: '/guides/mint-collectibles-serverless#mint-collectibles-using-a-gasless-serverless-transactions-api'},
-          //   { text: 'Setup Cloudflare Environment', link: '/guides/mint-collectibles-serverless#1-setup-cloudflare-environment-with-wrangler-cli-and-deploy-a-test', match: '/guides/mint-collectibles-serverless#1-setup-cloudflare-environment-with-wrangler-cli-and-deploy-a-test'},
-          //   { text: 'Deploy, Sponsor & Update Metadata For an ERC1155', link: '/guides/mint-collectibles-serverless#2-deploy-sponsor-and-update-metadata-for-an-erc1155-contract-with-sequence-builder'},
-          //   { text: 'Use EthAuthProof to Prevent EOA DDoS', link: '/guides/mint-collectibles-serverless#3-use-ethauthproof-to-prevent-eoa-ddos' },
-          //   { text: 'Mint a Collectible To Wallet', link: '/guides/mint-collectibles-serverless#4-mint-a-collectible-to-wallet' },
-          // ]
-        },
-        {
-          text: 'Manage Collection Metadata',
-          collapsed: true,
-          link: '/guides/metadata-guide',
-          // items: [
-          //   { text: 'Obtain a Secret API Key', link: '/guides/metadata-guide#1-obtain-a-secret-api-key'},
-          //   { text: 'Create Collection', link: '/guides/metadata-guide#2-create-collection-from-a-curl-request' },
-          //   { text: 'Create Token', link: '/guides/metadata-guide#3-create-token-using-tokenid' },
-          //   { text: 'Create Asset', link: '/guides/metadata-guide#4-create-asset-using-tokenid' },
-          //   { text: 'Store an Image', link: '/guides/metadata-guide#5-store-image-asset' },
-          //   { text: 'Update to Non-private', link: '/guides/metadata-guide#6-update-non-private-token' },
-          //   { text: 'Publish Collection', link: '/guides/metadata-guide#7-publish-collection-from-a-curl-request' },
-          //   { text: 'Render Asset from API', link: '/guides/metadata-guide#8-render-asset-from-api-publicly' },
-          // ]
-        },
-        {
-          text: 'Build a Treasure Chest with AI Minting',
-          collapsed: true,
-          link: '/guides/treasure-chest-guide',
-          // items: [
-          //   { text: 'Sequence Builder Console Signup & Project Creation', link: '/guides/lootbox-guide#1-builder-console-signup--project-creation' },
-          //   { text: 'Access Key Management', link: '/guides/lootbox-guide#2-access-key-management' },
-          //   { text: 'Sequence Kit integration', link: '/guides/lootbox-guide#3-sequence-kit-integration' },
-          //   { text: 'iframe-to-Dapp Communication', link: '/guides/lootbox-guide#4-iframe-to-dapp-communication' },
-          //   { text: 'Deploy a Contract & Sponsor Gas', link: '/guides/lootbox-guide#5-deploy-a-contract--sponsor-gas' },
-          //   { text: 'Deploy a Cloudflare Worker', link: '/guides/lootbox-guide#6-deploy-a-cloudflare-worker' },
-          //   { text: 'Generating AI Prompts & Images', link: '/guides/lootbox-guide#7-generating-ai-prompts--images' },
-          //   { text: 'Store Media To Sequence Metadata Service', link: '/guides/lootbox-guide#8-store-media-to-sequence-metadata-service' },
-          //   { text: 'Securing Your Cloudflare Worker', link: '/guides/lootbox-guide#9-securing-your-cloudflare-worker' },
-          //   { text: '(Optional) Naive Mint Restriction Per Wallet', link: '/guides/lootbox-guide#10-optional-naive-mint-restriction-per-wallet' },
-
-          // ]
-        },
-        {
-          text: 'Build a Backend Transaction Service',
-          collapsed: true,
-          link: '/guides/building-relaying-server',
-        },
-        {
-          text: 'Leverage Sequence Analytics API in Dune',
-          collapsed: true,
-          link: '/guides/analytics-guide',
-        },
-        {
-          text: 'Build an Embedded Wallet Linking Service',
-          collapsed: true,
-          link: '/solutions/wallets/link-wallets/integration-guide',
-        },
-        {
-          text: 'Build a Custom Marketplace',
-          collapsed: true,
-          link: '/guides/custom-marketplace',
-          // items: [
-          //   { text: 'Minting', link: '/guides/custom-marketplace#1-minting' },
-          //   { text: 'Wallet Authentication', link: '/guides/custom-marketplace#2-wallet-authentication' },
-          //   { text: 'Blockchain Queries', link: '/guides/custom-marketplace#3-blockchain-queries' },
-          //   { text: 'Multi-wallet types', link: '/guides/custom-marketplace#4-multi-wallet-types' },
-          //   { text: 'Request Creation', link: '/guides/custom-marketplace#5-request-creation' },
-          //   { text: 'Order Accepting', link: '/guides/custom-marketplace#6-order-accepting' },
-          //   { text: '(Optional) Enable Embedded Wallet', link: '/guides/custom-marketplace#7-optional-integrate-embedded-wallet-into-sequence-kit' },
-          // ]
-        },
-        {
-          text: 'Sell your Game Items via a Web Shop',
-          collapsed: true,
-          link: '/guides/primary-sales',
-        },
-        {
-          text: 'Create NFT Drop Sales',
-          collapsed: true,
-          link: '/guides/primary-drop-sales-erc721',
+          items: [
+            {
+              text: 'Build a Custom Marketplace',
+              collapsed: true,
+              link: '/guides/custom-marketplace',
+            },
+            {
+              text: 'Sell your ERC-1155 Game Items via a Web Shop',
+              collapsed: true,
+              link: '/guides/primary-sales',
+            },
+            {
+              text: 'Create NFT Drop Sales',
+              collapsed: true,
+              link: '/guides/primary-drop-sales-erc721',
+            },
+          ],
         },
       ],
     },
