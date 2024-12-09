@@ -536,6 +536,11 @@ export const sidebar = {
               link: '/guides/unity-primary-sales',
             },
             {
+              text: 'How to create a Telegram Game with Unity',
+              collapsed: true,
+              link: '/guides/unity-webgl-telegram',
+            },
+            {
               text: 'How to build a Game with Unreal Engine',
               collapsed: true,
               link: '/guides/unreal-ew-guide',
