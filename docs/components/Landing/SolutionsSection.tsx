@@ -28,10 +28,10 @@ export const SolutionsSection = () => (
             link: '/solutions/wallets/sequence-kit/overview',
           },
           {
-            icon: 'AirdropperIcon',
-            title: 'Wallet Linking',
-            body: 'Enable users to link their embedded wallet in your game with an external wallet - allowing you to query assets, balances, and allow easy flow of liquidity to your game.',
-            link: '/solutions/wallets/link-wallets/overview',
+            icon: 'CollectiblesIcon',
+            title: 'Ecosystem',
+            body: 'Create ecosystem wallets for your entire ecosystem through Sequence as well as enable external applications to connect to your embedded ecosystem wallet - all with the same address across chains & apps.',
+            link: '/solutions/wallets/ecosystem/overview',
           },
           {
             icon: 'WalletIcon',

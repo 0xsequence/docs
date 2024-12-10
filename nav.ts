@@ -114,6 +114,15 @@ export const sidebar = {
       items: [
         { text: 'Overview', link: '/solutions/wallets/overview' },
         {
+          text: 'Ecosystem Wallets',
+          collapsed: false,
+          items: [
+            { text: 'Overview', link: '/solutions/wallets/ecosystem/overview' },
+            { text: 'Configuration', link: '/solutions/wallets/ecosystem/configuration' },
+            { text: 'Cross-App Integration', link: '/solutions/wallets/ecosystem/cross-app' },
+          ],
+        },
+        {
           text: 'Embedded Wallet',
           collapsed: false,
           items: [
