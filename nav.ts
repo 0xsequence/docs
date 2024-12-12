@@ -521,6 +521,11 @@ export const sidebar = {
               link: '/guides/building-transaction-heavy-games-with-unity',
             },
             {
+              text: 'How to build a Game with Unreal Engine',
+              collapsed: true,
+              link: '/guides/unreal-ew-guide',
+            },
+            {
               text: 'Using Unity IAP to Sell NFTs',
               collapsed: true,
               link: '/guides/using-unity-iap-to-sell-nfts',
@@ -536,14 +541,9 @@ export const sidebar = {
               link: '/guides/unity-primary-sales',
             },
             {
-              text: 'How to create a Telegram Game with Unity',
+              text: 'Build a Telegram Mini-Game in Unity',
               collapsed: true,
               link: '/guides/unity-webgl-telegram',
-            },
-            {
-              text: 'How to build a Game with Unreal Engine',
-              collapsed: true,
-              link: '/guides/unreal-ew-guide',
             },
             {
               text: 'Build a Telegram Mini-App with Sequence',
