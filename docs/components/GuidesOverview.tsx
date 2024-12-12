@@ -96,7 +96,7 @@ export const GuidesOverview = () => (
       />
       <GuideCard
         title="Creating, Storing, and Managing Collectibles Metadata"
-        body="By utilizing Sequence's Metadata API, you can programatically create, manage, and store metadata associated with your NFTs from nearly any environment. We'll walk you through how to call these REST-APIs to organize your collections for your game or experience."
+        body="By utilizing Sequence's Metadata API, you can programmatically create, manage, and store metadata associated with your NFTs from nearly any environment. We'll walk you through how to call these REST-APIs to organize your collections for your game or experience."
         link="/guides/metadata-guide"
         image="/img/guides/overview/storage.png"
       />
