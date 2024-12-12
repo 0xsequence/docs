@@ -662,6 +662,7 @@ export const sidebar = {
             { text: 'Session Management', link: '/sdk/unity/session-management' },
             { text: 'On-Ramp Funds via Credit Card', link: '/sdk/unity/onboard-user-funds' },
             { text: 'Marketplace', link: '/sdk/unity/marketplace' },
+            { text: 'Currency Swaps', link: '/sdk/unity/currency-swaps' },
             {
               text: 'Connect with External Wallets',
               link: '/sdk/unity/connecting-external-wallets',
