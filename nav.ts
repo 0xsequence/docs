@@ -668,6 +668,7 @@ export const sidebar = {
                 { text: 'Introduction', link: '/sdk/unity/marketplace/intro' },
                 { text: 'Reading Orders', link: '/sdk/unity/marketplace/reading-orders' },
                 { text: 'Filling Orders', link: '/sdk/unity/marketplace/filling-orders' },
+                { text: 'Checkout UI', link: '/sdk/unity/marketplace/checkout-ui' },
               ]
             },
             { text: 'Currency Swaps', link: '/sdk/unity/currency-swaps' },
