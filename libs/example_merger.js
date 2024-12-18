@@ -108,6 +108,10 @@ const addExamplesToOpenAPI = (doc, examples) => {
                 requestBody.content['application/json'].examples[exampleName] = {}
                 requestBody.content['application/json'].examples[exampleName].value = ex.request
                 requestBody.content['application/json'].examples[exampleName].summary = ex.summary
+
+                if (requestBody.content['application/json'].example) {
+                  delete requestBody.content['application/json'].example
+                }
               }
             }
           }
