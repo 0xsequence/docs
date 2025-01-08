@@ -151,42 +151,38 @@ _wallet.SendTransaction(Chain.Polygon, new Sequence.EmbeddedWallet.Transaction[]
     });
 ```
 
-## DelayedEncode
+## SequenceContractCall
 When calling a smart contract on an EVM-based network, the client goes through a complex process known as "ABI encoding" where the function signature you want to call as well as the parameters you're providing are encoded into a binary format. This process is complicated and error-prone so we've abstracted it all away so that you don't have to deal with it. But, if you're curious to learn how it works, please see [this document](https://docs.soliditylang.org/en/develop/abi-spec.html).
 
-A DelayedEncode transaction allows you to call any method on an arbitrary smart contract, allowing us to handle the complicated ABI encoding process server-side.
+A SequenceContractCall transaction allows you to call any method on an arbitrary smart contract, allowing us to handle the complicated ABI encoding process server-side.
 
-To send a DelayedEncode transaction, you can use this code snippet:
+To send a SequenceContractCall transaction, you can use this code snippet:
 ```csharp
 _wallet.SendTransaction(Chain.Polygon, new Sequence.EmbeddedWallet.Transaction[]
     {
-        new DelayedEncode(ContractAddress, ValueAsString, new DelayedEncodeData(
-            ContractABIAsString,
-            ParametersAsObjectArray,
-            FunctionNameAsString)),
+        new SequenceContractCall(ContractAddress, new AbiData(
+            FunctionABIAsString,
+            ParametersAsObjectArray), ValueAsString),
     });
 ```
 Let's examine the above to get a better understanding of some of the variables that may be non-obvious.
 
-ValueAsString: This will <i>usually</i> be "0" unless you are calling a [payable method](https://solidity-by-example.org/payable/) denoted by the `payable` keyword in the smart contract definition. If you are calling a payable method, it is recommended to use `DecimalNormalizer.Normalize` to convert the amount from human readable format to EVM format. Note that the user will need to have the required funds in their wallet in order to pay the value specified to a payable function.
+ValueAsString: This will <i>usually</i> be "0" unless you are calling a [payable method](https://solidity-by-example.org/payable/) denoted by the `payable` keyword in the smart contract definition. If you are calling a payable method, it is recommended to use `DecimalNormalizer.Normalize` to convert the amount from human readable format to EVM format. Note that the user will need to have the required funds in their wallet in order to pay the value specified to a payable function. This parameter can be omitted to default to "0".
 
-ContractABIAsString: This can either be the entire [ABI](https://docs.soliditylang.org/en/latest/abi-spec.html#json) or just the function you plan on interacting with. If you're not familiar with ABIs, we'd recommend copy-pasting the function signature (with parameters) from the contract source code on Etherscan (or the appropriate block explorer for your network) and removing the whitespace and variable names.
+FunctionABIAsString: The function you plan on interacting with. We'd recommend copy-pasting the function signature (with parameters) from the contract source code on Etherscan (or the appropriate block explorer for your network) and removing the whitespace and variable names.
 
 ParametersAsObjectArray: The parameters you want to provide to the method you wish to call. No need to provide the parameter names, just their values in the order they appear in the ABI. Provide parameters in string format when in doubt.
 
-FunctionNameAsString: The name of the function you want to call as it appears in the ABI (or source code). Exclude parentheses and parameters.
-
-Putting this together, an example of using delayed encode to call the "mint" function on an ERC20 would look like this:
+Putting this together, an example of using `SequenceContractCall` to call the "mint" function on an ERC20 would look like this:
 ```csharp
 _wallet.SendTransaction(Chain.Polygon, new Sequence.EmbeddedWallet.Transaction[]
     {
-        new DelayedEncode(ContractAddress, "0", new DelayedEncodeData(
+        new SequenceContractCall(ContractAddress, new AbiData(
             "mint(address,uint256)",
             new object[]
             {
                 ToAddress, DecimalNormalizer.Normalize(1)
-            },
-            "mint")),
+            })),
     });
 ```
 
@@ -219,10 +215,9 @@ _wallet.SendTransaction(
                 new SendERC1155Values(TokenIdAsString, AmountAsString),
                 ...
             }),
-        new DelayedEncode(ContractAddress, ValueAsString, new DelayedEncodeData(
-            ContractABIAsString,
-            ParametersAsObjectArray,
-            FunctionNameAsString)),
+        new SequenceContractCall(ContractAddress, new AbiData(
+            FunctionABIAsString,
+            ParametersAsObjectArray), ValueAsString),
     });
 ```
 Since these transactions are all batched into a single transaction by the Sequence Smart Contract Wallet before being submitted to the network, you will receive only one transaction receipt.
