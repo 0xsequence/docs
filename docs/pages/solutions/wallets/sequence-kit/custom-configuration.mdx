@@ -80,6 +80,59 @@ interface CreateConfigOptions {
 }
 ```
 
+## Custom Styling and Design
+
+You can customize the visual appearance of Sequence Kit by providing a custom theme object to the `defaultTheme` configuration option. Here's an example of how to implement custom styling:
+
+```typescript
+import { createConfig } from "@0xsequence/kit";
+
+const CUSTOM_THEME = {
+  backgroundPrimary: 'rgba(35, 100, 32, 1)',
+  backgroundSecondary: 'navy',
+}
+
+export const config = createConfig("waas", {
+  projectAccessKey: projectAccessKey,
+  defaultTheme: CUSTOM_THEME,
+  // ... other config options
+})
+```
+
+### Available Theme Variables
+
+The following theme variables can be customized:
+
+```typescript
+  // Text Colors
+  text100: string            // 'rgba(255, 255, 255, 1)'
+  text80: string             // 'rgba(255, 255, 255, 0.8)'
+  text50: string             // 'rgba(255, 255, 255, 0.5)'
+  textInverse100: string     // 'rgba(0, 0, 0, 1)'
+
+  // Background Colors
+  backgroundPrimary: string    // 'rgba(0, 0, 0, 1)'
+  backgroundSecondary: string  // 'rgba(255, 255, 255, 0.1)'
+  backgroundContrast: string   // 'rgba(0, 0, 0, 0.5)'
+  backgroundMuted: string      // 'rgba(255, 255, 255, 0.05)'
+  backgroundControl: string    // 'rgba(255, 255, 255, 0.25)'
+  backgroundInverse: string    // 'rgba(255, 255, 255, 1)'
+  backgroundBackdrop: string   // 'rgba(34, 34, 34, 0.9)'
+  backgroundOverlay: string    // 'rgba(0, 0, 0, 0.7)'
+  backgroundRaised: string     // 'rgba(54, 54, 54, 0.7)'
+
+  // Button Colors
+  buttonGlass: string         // 'rgba(255, 255, 255, 0.15)'
+  buttonEmphasis: string      // 'rgba(0, 0, 0, 0.5)'
+  buttonInverse: string       // 'rgba(255, 255, 255, 0.8)'
+
+  // Border Colors
+  borderNormal: string        // 'rgba(255, 255, 255, 0.25)'
+  borderFocus: string         // 'rgba(255, 255, 255, 0.5)'
+```
+
+You can override any combination of these variables to create your custom theme. The values can be provided in any valid CSS color format (rgba, hex, named colors, etc.).
+
 # Available Options
 
 ## Sequence App Development
@@ -268,7 +321,7 @@ import { getDefaultConnectors } from '@0xsequence/kit'
 ...
 export const projectAccessKey = '<access-key>'
 
-const connectors = getDefaultConnectors({
+const connectors = getDefaultConnectors( "universal", {
   walletConnectProjectId: 'wallet-connect-id',
   defaultChainId: 1,
   appName: 'demo app',

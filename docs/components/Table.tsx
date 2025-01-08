@@ -25,14 +25,14 @@ const Table = ({ rows, columns }: any) => {
     <table className='docs-table'>
       <thead>
         <tr>
-          {columns.map((column: any) => {
-            return <TableColumn title={column} />
+          {columns.map((column: any, index: any) => {
+            return <TableColumn key={index} title={column} />
           })}
         </tr>
       </thead>
       <tbody>
         {rows.map((rowData: any, index: any) => (
-          <TableRow key={index} index={index}>
+          <TableRow key={rowData.chainHandle} index={index}>
             <TableCell content={rowData.network} imgSrc={rowData.networkImage} />
             <TableCell content={rowData.chainHandle} />
             <TableCell content={rowData.indexerEndpoint} />
