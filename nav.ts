@@ -666,7 +666,16 @@ export const sidebar = {
             { text: 'Recovering Sessions', link: '/sdk/unity/recovering-sessions' },
             { text: 'Session Management', link: '/sdk/unity/session-management' },
             { text: 'On-Ramp Funds via Credit Card', link: '/sdk/unity/onboard-user-funds' },
-            { text: 'Marketplace', link: '/sdk/unity/marketplace' },
+            { 
+              text: 'Peer to Peer Trading / Marketplace',
+              collapsed: false,
+              items: [
+                { text: 'Introduction', link: '/sdk/unity/marketplace/intro' },
+                { text: 'Reading Orders', link: '/sdk/unity/marketplace/reading-orders' },
+                { text: 'Filling Orders', link: '/sdk/unity/marketplace/filling-orders' },
+                { text: 'Checkout UI', link: '/sdk/unity/marketplace/checkout-ui' },
+              ]
+            },
             { text: 'Currency Swaps', link: '/sdk/unity/currency-swaps' },
             {
               text: 'Connect with External Wallets',
