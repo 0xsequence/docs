@@ -704,6 +704,7 @@ export const sidebar = {
           match: '/sdk/unreal/introduction',
           items: [
             { text: 'Introduction', link: '/sdk/unreal/introduction' },
+            { text: 'Quickstart', link: '/sdk/unreal/quickstart' },
             { text: 'Installation', link: '/sdk/unreal/installation' },
             { text: 'Configuration', link: '/sdk/unreal/configuration' },
             { text: 'Blueprint Subsystems', link: '/sdk/unreal/subsystems' },
