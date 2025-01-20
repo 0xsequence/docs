@@ -713,7 +713,7 @@ export const sidebar = {
             { text: 'Authenticate Users', link: '/sdk/unreal/authentication' },
             { text: 'Write to Blockchain', link: '/sdk/unreal/write-to-blockchain' },
             { text: 'Read from Blockchain', link: '/sdk/unreal/read-from-blockchain' },
-            { text: 'On-Ramp via Credit Card', link: '/sdk/unreal/onboard-user-funds' },
+            { text: 'On-Ramp with Credit Card', link: '/sdk/unreal/onboard-user-funds' },
             { text: 'Advanced Blockchain Interactions', link: '/sdk/unreal/advanced' },
             { text: 'Platform Requirements', link: '/sdk/unreal/platforms' },
           ],
