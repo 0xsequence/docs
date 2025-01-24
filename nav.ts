@@ -518,7 +518,10 @@ export const sidebar = {
           text: 'Game Developers',
           collapsed: true,
           items: [
-            { text: 'Build a Game with WebGL', collapsed: true, link: '/guides/webgl-guide' },
+            { text: 'Build a Game with WebGL', 
+              collapsed: true, 
+              link: '/guides/webgl-guide'
+            },
             {
               text: 'Build a Unity Game',
               collapsed: true,
