@@ -122,7 +122,7 @@ export const OverviewSection = () => (
             icon: 'MinterIcon',
             title: 'Transaction Manager',
             body: 'Scalable transactions with batching, access-control, parallelization, automatic reorg management with our transactions API.',
-            link: '/solutions/transactions-api/overview',
+            link: '/solutions/transaction-manager/overview',
           },
           // {
           //   icon: 'MinterIcon',
