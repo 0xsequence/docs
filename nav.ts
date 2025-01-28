@@ -523,7 +523,7 @@ export const sidebar = {
               link: '/guides/webgl-guide'
             },
             {
-              text: 'Build a Unity Game',
+              text: 'Build a Game with Unity',
               collapsed: true,
               link: '/guides/jelly-forest-unity-guide',
             },
@@ -533,7 +533,7 @@ export const sidebar = {
               link: '/guides/building-transaction-heavy-games-with-unity',
             },
             {
-              text: 'How to build a Game with Unreal Engine',
+              text: 'Build a Game with Unreal Engine',
               collapsed: true,
               link: '/guides/unreal-ew-guide',
             },
