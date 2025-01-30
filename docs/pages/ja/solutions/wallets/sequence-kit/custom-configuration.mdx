@@ -5,16 +5,17 @@ sidebar_label: Configuration
 ---
 
 # MOCKDATA + ja-translated Custom Configuration Options
+
 ja-translated Developers can customize the Sequence Kit experience by passing configuration options to the `SequenceKit` wrapper.
 
 MOCKDATA + ja-translated Here's how you can configure the kit using these options:
 
 ```jsx
   const kitConfig =  {
-		defaultTheme: 'light',
-		position: 'top-left',
-		...
-	}
+  defaultTheme: 'light',
+  position: 'top-left',
+  ...
+ }
 
   <SequenceKit config={kitConfig}>
     <App />
@@ -23,108 +24,111 @@ MOCKDATA + ja-translated Here's how you can configure the kit using these option
 ```
 
 ## ja-translated Configuration Overview
+
 MOCKDATA + ja-translated The following is the available configuration customization options, or, [see below for all the options in-depth](/solutions/wallets/sequence-kit/custom-configuration#available-options):
 
 ```typescript
 interface CreateConfigOptions {
-  appName: string
-  projectAccessKey: string
-  chainIds?: number[]
-  defaultChainId?: number
-  disableAnalytics?: boolean
-  defaultTheme?: Theme
-  position?: ModalPosition
+  appName: string;
+  projectAccessKey: string;
+  chainIds?: number[];
+  defaultChainId?: number;
+  disableAnalytics?: boolean;
+  defaultTheme?: Theme;
+  position?: ModalPosition;
   signIn?: {
-    logoUrl?: string
-    projectName?: string
-    useMock?: boolean
-  }
+    logoUrl?: string;
+    projectName?: string;
+    useMock?: boolean;
+  };
   displayedAssets?: Array<{
-    contractAddress: string
-    chainId: number
-  }>
-  ethAuth?: EthAuthSettings
-  isDev?: boolean
+    contractAddress: string;
+    chainId: number;
+  }>;
+  ethAuth?: EthAuthSettings;
+  isDev?: boolean;
 
-  wagmiConfig?: WagmiConfig // optional wagmiConfig overrides
+  wagmiConfig?: WagmiConfig; // optional wagmiConfig overrides
 
-  waasConfigKey?: string
-  enableConfirmationModal?: boolean
+  waasConfigKey?: string;
+  enableConfirmationModal?: boolean;
 
   walletConnect?:
     | false
     | {
-        projectId: string
-      }
+        projectId: string;
+      };
 
   google?:
     | false
     | {
-        clientId: string
-      }
+        clientId: string;
+      };
 
   apple?:
     | false
     | {
-        clientId: string
-        redirectURI: string
-      }
+        clientId: string;
+        redirectURI: string;
+      };
 
   email?:
     | boolean
     | {
-        legacyEmailAuth?: boolean
-      }
+        legacyEmailAuth?: boolean;
+      };
 }
 ```
 
 ## ja-translated Custom Styling and Design
+
 MOCKDATA + ja-translated You can customize the visual appearance of Sequence Kit by providing a custom theme object to the `defaultTheme` configuration option. Here's an example of how to implement custom styling:
 
 ```typescript
 import { createConfig } from "@0xsequence/kit";
 
 const CUSTOM_THEME = {
-  backgroundPrimary: 'rgba(35, 100, 32, 1)',
-  backgroundSecondary: 'navy',
-}
+  backgroundPrimary: "rgba(35, 100, 32, 1)",
+  backgroundSecondary: "navy",
+};
 
 export const config = createConfig("waas", {
   projectAccessKey: projectAccessKey,
   defaultTheme: CUSTOM_THEME,
   // ... other config options
-})
+});
 ```
 
 ### ja-translated Available Theme Variables
+
 MOCKDATA + ja-translated The following theme variables can be customized:
 
 ```typescript
-  // Text Colors
-  text100: string            // 'rgba(255, 255, 255, 1)'
-  text80: string             // 'rgba(255, 255, 255, 0.8)'
-  text50: string             // 'rgba(255, 255, 255, 0.5)'
-  textInverse100: string     // 'rgba(0, 0, 0, 1)'
+// Text Colors
+text100: string; // 'rgba(255, 255, 255, 1)'
+text80: string; // 'rgba(255, 255, 255, 0.8)'
+text50: string; // 'rgba(255, 255, 255, 0.5)'
+textInverse100: string; // 'rgba(0, 0, 0, 1)'
 
-  // Background Colors
-  backgroundPrimary: string    // 'rgba(0, 0, 0, 1)'
-  backgroundSecondary: string  // 'rgba(255, 255, 255, 0.1)'
-  backgroundContrast: string   // 'rgba(0, 0, 0, 0.5)'
-  backgroundMuted: string      // 'rgba(255, 255, 255, 0.05)'
-  backgroundControl: string    // 'rgba(255, 255, 255, 0.25)'
-  backgroundInverse: string    // 'rgba(255, 255, 255, 1)'
-  backgroundBackdrop: string   // 'rgba(34, 34, 34, 0.9)'
-  backgroundOverlay: string    // 'rgba(0, 0, 0, 0.7)'
-  backgroundRaised: string     // 'rgba(54, 54, 54, 0.7)'
+// Background Colors
+backgroundPrimary: string; // 'rgba(0, 0, 0, 1)'
+backgroundSecondary: string; // 'rgba(255, 255, 255, 0.1)'
+backgroundContrast: string; // 'rgba(0, 0, 0, 0.5)'
+backgroundMuted: string; // 'rgba(255, 255, 255, 0.05)'
+backgroundControl: string; // 'rgba(255, 255, 255, 0.25)'
+backgroundInverse: string; // 'rgba(255, 255, 255, 1)'
+backgroundBackdrop: string; // 'rgba(34, 34, 34, 0.9)'
+backgroundOverlay: string; // 'rgba(0, 0, 0, 0.7)'
+backgroundRaised: string; // 'rgba(54, 54, 54, 0.7)'
 
-  // Button Colors
-  buttonGlass: string         // 'rgba(255, 255, 255, 0.15)'
-  buttonEmphasis: string      // 'rgba(0, 0, 0, 0.5)'
-  buttonInverse: string       // 'rgba(255, 255, 255, 0.8)'
+// Button Colors
+buttonGlass: string; // 'rgba(255, 255, 255, 0.15)'
+buttonEmphasis: string; // 'rgba(0, 0, 0, 0.5)'
+buttonInverse: string; // 'rgba(255, 255, 255, 0.8)'
 
-  // Border Colors
-  borderNormal: string        // 'rgba(255, 255, 255, 0.25)'
-  borderFocus: string         // 'rgba(255, 255, 255, 0.5)'
+// Border Colors
+borderNormal: string; // 'rgba(255, 255, 255, 0.25)'
+borderFocus: string; // 'rgba(255, 255, 255, 0.5)'
 ```
 
 ja-translated You can override any combination of these variables to create your custom theme. The values can be provided in any valid CSS color format (rgba, hex, named colors, etc.).
@@ -179,7 +183,7 @@ MOCKDATA + ja-translated The Embedded Wallet configuration key required for WaaS
 
 | MOCKDATA + ja-translated Type | ja-translated Default              |
 | ----------------------------- | ---------------------------------- |
-| ja-translated number\[]       | MOCKDATA + ja-translated undefined |
+| ja-translated number[]        | MOCKDATA + ja-translated undefined |
 
 MOCKDATA + ja-translated A list of chain Ids. e.g. \[1, 137]
 
@@ -192,9 +196,11 @@ MOCKDATA + ja-translated A list of chain Ids. e.g. \[1, 137]
 MOCKDATA + ja-translated The chain Id that is first used for signatures and transactions.
 
 ## ja-translated UI
+
 MOCKDATA + ja-translated User Interface based parameters that augment the modal interface.
 
 ### ja-translated Sign In Modal Configuration (`signIn`)
+
 MOCKDATA + ja-translated The `signIn` object is used to configure the sign in modal.
 
 #### ja-translated `signIn.logoUrl`
@@ -236,6 +242,7 @@ MOCKDATA + ja-translated Removes the ability to make live blockchain requests if
 | MOCKDATA + ja-translated string | MOCKDATA + ja-translated center |
 
 ja-translated The position parameter determines the location of the various modals on the screen. Possible values include:
+
 - MOCKDATA + ja-translated center
 - MOCKDATA + ja-translated middle-right
 - ja-translated middle-left
@@ -253,6 +260,7 @@ ja-translated The position parameter determines the location of the various moda
 | ja-translated string or object | MOCKDATA + ja-translated dark |
 
 ja-translated The defaultTheme determines the color palette used for styling the modal. Possible values include:
+
 - MOCKDATA + ja-translated 'light'
 - ja-translated 'dark'
 - MOCKDATA + ja-translated object
@@ -260,6 +268,7 @@ ja-translated The defaultTheme determines the color palette used for styling the
 MOCKDATA + ja-translated Specific colors can be overwritten by passing a theme override object. The [Sequence Builder](https://sequence.build/) provides a useful playground for toying with the colors in Sequence Kit.
 
 ## ja-translated Wallet
+
 ja-translated Parameters that entail wallet configuration options
 
 ### MOCKDATA + ja-translated `disableAnalytics`
@@ -272,9 +281,9 @@ ja-translated Turning on and off the analytics feature that is connected to your
 
 ### MOCKDATA + ja-translated `displayedAssets`
 
-| MOCKDATA + ja-translated Type                                                          | ja-translated Default              |
-| -------------------------------------------------------------------------------------- | ---------------------------------- |
-| ja-translated \[{ contractAddress: string, chainId: number }, ...] | MOCKDATA + ja-translated undefined |
+| MOCKDATA + ja-translated Type                                       | ja-translated Default              |
+| ------------------------------------------------------------------- | ---------------------------------- |
+| ja-translated `[{ contractAddress: string, chainId: number }, ...]` | MOCKDATA + ja-translated undefined |
 
 MOCKDATA + ja-translated If provided, this will determine which assets are to be displayed in the in-game wallet modal main view.
 By passing a list of displayed assets, only assets from the provided list will be displayed in the main view.
@@ -289,33 +298,35 @@ In the case that no assets are provided, all owned assets can be displayed in th
 MOCKDATA + ja-translated Enable confirmations for when sending transaction
 
 ## ja-translated Sign in providers
+
 MOCKDATA + ja-translated The various sign in providers that create wallet connections for the user:
 
 ### ja-translated `walletConnect`
 
-| MOCKDATA + ja-translated Type    | ja-translated Default                       |                           |
-| -------------------------------- | ------------------------------------------- | ------------------------- |
-| MOCKDATA + ja-translated `false` | `{ projectId: string }` | ja-translated `undefined` |
+| MOCKDATA + ja-translated Type                               | ja-translated Default     |     |
+| ----------------------------------------------------------- | ------------------------- | --- |
+| MOCKDATA + ja-translated `false` \| `{ projectId: string }` | ja-translated `undefined` |
 
 ### MOCKDATA + ja-translated `google`
 
-| MOCKDATA + ja-translated Type | ja-translated Default                      |                           |
-| ----------------------------- | ------------------------------------------ | ------------------------- |
-| ja-translated `false`         | `{ clientId: string }` | ja-translated `undefined` |
+| MOCKDATA + ja-translated Type                   | ja-translated Default     |     |
+| ----------------------------------------------- | ------------------------- | --- |
+| ja-translated `false` \| `{ clientId: string }` | ja-translated `undefined` |
 
 ### MOCKDATA + ja-translated `apple`
 
-| MOCKDATA + ja-translated Type | ja-translated Default                                           |                           |
-| ----------------------------- | --------------------------------------------------------------- | ------------------------- |
-| ja-translated `false`         | `{ clientId: string, redirectURI: string }` | ja-translated `undefined` |
+| MOCKDATA + ja-translated Type                                        | ja-translated Default     |     |
+| -------------------------------------------------------------------- | ------------------------- | --- |
+| ja-translated `false` \| `{ clientId: string, redirectURI: string }` | ja-translated `undefined` |
 
 ### MOCKDATA + ja-translated `email`
 
-| MOCKDATA + ja-translated Type | ja-translated Default                              |                           |
-| ----------------------------- | -------------------------------------------------- | ------------------------- |
-| ja-translated `boolean`       | `{ legacyEmailAuth: boolean }` | ja-translated `undefined` |
+| MOCKDATA + ja-translated Type                             | ja-translated Default     |     |
+| --------------------------------------------------------- | ------------------------- | --- |
+| ja-translated `boolean` \| `{ legacyEmailAuth: boolean }` | ja-translated `undefined` |
 
 # MOCKDATA + ja-translated Create Universal Default Connectors
+
 ja-translated While we generally recommed using Embedded Wallets with SequenceKit, as an alternative, you can also use leverage our Universal Wallet configuration. When creating a wagmi `connectors` variable, import the `getDefaultConnectors` function from the `@0xsequence/kit` package, and include a Wallet Connect ID obtained from [here](https://cloud.walletconnect.com/app), a default chain ID, app name, and the `projectAccessKey`, then [continue with the integration from the quickstart](/solutions/wallets/sequence-kit/getting-started#create-wagmi-config).
 
 ```typescript [config.ts]

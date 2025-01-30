@@ -4,6 +4,7 @@ description: The Sequence Embedded Wallet utilizes action payloads in JSON forma
 ---
 
 # ja-translated Action payloads
+
 MOCKDATA + ja-translated Each write operation in Sequence Embedded Wallet uses a payload. Payloads are JSON objects. They hold all data about the intent of the action and the user's signature.
 
 ja-translated The Embedded Wallet SDK generates Payloads. To complete the action, send them to the Embedded Wallet API.
@@ -12,6 +13,7 @@ MOCKDATA + ja-translated The Embedded Wallet API key authenticates all calls to 
 :::
 
 ## ja-translated Payload structure
+
 MOCKDATA + ja-translated You don't need to manually change the payload contents to integrate Embedded Wallet. But they have strict definitions. Use them if you need to.
 
 ja-translated The payload structure is as follows:
@@ -49,14 +51,17 @@ MOCKDATA + ja-translated \* signature should be an EIP-191 signature. See [https
     "network": "137",
     "wallet": "0xBc5F07A5852fdF3DBd57A76835109220D0ADd8E8"
   },
-  "signatures": [{
-    "session": "0xCF67BCbD9D5DFD373b03f4fc8143e1c6744B5696",
-    "signature": "0x4b0fc0c7d42566958d60f92115ab95167c837c891e2f4fa62a75bfed30d86af7291051fe5c88985269286548a42bed5b70bb16588e48998206a2e7a547f527d101"
-  }]
+  "signatures": [
+    {
+      "session": "0xCF67BCbD9D5DFD373b03f4fc8143e1c6744B5696",
+      "signature": "0x4b0fc0c7d42566958d60f92115ab95167c837c891e2f4fa62a75bfed30d86af7291051fe5c88985269286548a42bed5b70bb16588e48998206a2e7a547f527d101"
+    }
+  ]
 }
 ```
 
 ### ja-translated Open session payload
+
 MOCKDATA + ja-translated Opening a new client-side session on the Embedded Wallet SDK generates this payload. It holds the "proof" that authenticates the user and the session data to link to it.
 
 ja-translated Either `idToken`, `email` or a valid signature _MUST_ be present. If `email` is given, the Embedded Wallet will email the user on their first transaction with this session. The email asks them to confirm it.
@@ -90,6 +95,7 @@ ja-translated Notice that either `idToken`, `email` or a valid signature _MUST_ 
 ```
 
 ### MOCKDATA + ja-translated Sign message payload
+
 ja-translated This payload is generated when `signMessage` is called on the SDK.
 
 | ja-translated Name               | MOCKDATA + ja-translated Type   | ja-translated Description                                           | MOCKDATA + ja-translated Optional |
@@ -118,6 +124,7 @@ ja-translated This payload is generated when `signMessage` is called on the SDK.
 ```
 
 ### ja-translated Send transaction payload
+
 MOCKDATA + ja-translated This payload is generated when `sendTransaction` is called on the SDK.
 
 | ja-translated Name                    | MOCKDATA + ja-translated Type   | ja-translated Description                                    | MOCKDATA + ja-translated Optional |             |                   |                                                        |                             |
@@ -174,17 +181,18 @@ MOCKDATA + ja-translated Notice that `data` can only be used if `safe === true`.
 | ja-translated data             | MOCKDATA + ja-translated string | MOCKDATA + ja-translated Additional data for the transaction       | ja-translated Yes                 |
 
 #### ja-translated delayedEncode
+
 MOCKDATA + ja-translated Delayed encode transactions have their payload data not encoded on the client, it instead is left to be encoded by the Embedded Wallet API. This reduces the burden on the client, and makes it easier to integrate in environments with limited libraries.
 
-| MOCKDATA + ja-translated Type              | ja-translated Field            | ja-translated Data Type                    | ja-translated Description                                                                       |                                     |                                |                                                                                               |
-| ------------------------------------------ | ------------------------------ | ------------------------------------------ | ----------------------------------------------------------------------------------------------- | ----------------------------------- | ------------------------------ | --------------------------------------------------------------------------------------------- |
-| MOCKDATA + ja-translated DelayedEncodeData | ja-translated abi              | MOCKDATA + ja-translated string            | MOCKDATA + ja-translated The ABI (Application Binary Interface) for the contract.               |                                     |                                |                                                                                               |
-| ja-translated                              | MOCKDATA + ja-translated func  | MOCKDATA + ja-translated string            | ja-translated The function to call within the smart contract.                                   |                                     |                                |                                                                                               |
-| ja-translated                              | MOCKDATA + ja-translated args  | ja-translated (string                      | DelayedEncodeData)\[]                                                                           | { \[key: string]: (string | DelayedEncodeData) } | MOCKDATA + ja-translated The arguments to pass to the function. Can be an array or an object. |
-| ja-translated DelayedEncodeSubpacket       | MOCKDATA + ja-translated type  | MOCKDATA + ja-translated 'delayedEncode'   | ja-translated The type of the subpacket, in this case, it's `'delayedEncode'`.                  |                                     |                                |                                                                                               |
-| ja-translated                              | MOCKDATA + ja-translated to    | MOCKDATA + ja-translated string            | MOCKDATA + ja-translated The address to which the transaction is sent.                          |                                     |                                |                                                                                               |
-| ja-translated                              | MOCKDATA + ja-translated value | MOCKDATA + ja-translated string            | ja-translated The value being sent in the transaction, usually in Ether for Ethereum.           |                                     |                                |                                                                                               |
-| ja-translated                              | ja-translated data             | MOCKDATA + ja-translated DelayedEncodeData | MOCKDATA + ja-translated The data payload, containing the ABI, function to call, and arguments. |                                     |                                |                                                                                               |
+| MOCKDATA + ja-translated Type              | ja-translated Field            | ja-translated Data Type                    | ja-translated Description                                                                       |                           |                      |                                                                                               |
+| ------------------------------------------ | ------------------------------ | ------------------------------------------ | ----------------------------------------------------------------------------------------------- | ------------------------- | -------------------- | --------------------------------------------------------------------------------------------- |
+| MOCKDATA + ja-translated DelayedEncodeData | ja-translated abi              | MOCKDATA + ja-translated string            | MOCKDATA + ja-translated The ABI (Application Binary Interface) for the contract.               |                           |                      |                                                                                               |
+| ja-translated                              | MOCKDATA + ja-translated func  | MOCKDATA + ja-translated string            | ja-translated The function to call within the smart contract.                                   |                           |                      |                                                                                               |
+| ja-translated                              | MOCKDATA + ja-translated args  | ja-translated (string                      | DelayedEncodeData)\[]                                                                           | \{ [key: string]: (string | DelayedEncodeData) } | MOCKDATA + ja-translated The arguments to pass to the function. Can be an array or an object. |
+| ja-translated DelayedEncodeSubpacket       | MOCKDATA + ja-translated type  | MOCKDATA + ja-translated 'delayedEncode'   | ja-translated The type of the subpacket, in this case, it's `'delayedEncode'`.                  |                           |                      |                                                                                               |
+| ja-translated                              | MOCKDATA + ja-translated to    | MOCKDATA + ja-translated string            | MOCKDATA + ja-translated The address to which the transaction is sent.                          |                           |                      |                                                                                               |
+| ja-translated                              | MOCKDATA + ja-translated value | MOCKDATA + ja-translated string            | ja-translated The value being sent in the transaction, usually in Ether for Ethereum.           |                           |                      |                                                                                               |
+| ja-translated                              | ja-translated data             | MOCKDATA + ja-translated DelayedEncodeData | MOCKDATA + ja-translated The data payload, containing the ABI, function to call, and arguments. |                           |                      |                                                                                               |
 
 ja-translated Hope this helps!
 
@@ -223,47 +231,50 @@ ja-translated Hope this helps!
         "to": "0x91E8aC543C5fEDf9F3Ef8b9dA1500dB84305681F",
         "token": "0x631998e91476da5b870d741192fc5cbc55f5a52e",
         "type": "erc1155send",
-        "vals": [{
-          "amount": "5",
-          "id": "2"
-        }, {
-          "amount": "1",
-          "id": "500"
-        }]
+        "vals": [
+          {
+            "amount": "5",
+            "id": "2"
+          },
+          {
+            "amount": "1",
+            "id": "500"
+          }
+        ]
       },
-			{
-				"data": {
-					"abi": "[{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"_orderId\",\"type\":\"bytes32\"},{\"internalType\":\"uint256\",\"name\":\"_maxCost\",\"type\":\"uint256\"},{\"internalType\":\"address\",\"name\":\"_fees\",\"type\":\"address\"},{\"internalType\":\"bytes\",\"name\":\"_data\",\"type\":\"bytes\"}],\"name\":\"fillOrKillOrder\",\"outputs\":[],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"otherMethods\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"}]",
-					"args": [
-						"0x6bd55a2877890bd58871eefe886770a7734077a74981910a75d7b1f044b5bf28",
-						"1000000000000000000",
-						"[\"0x095aE61E8207C7856eA273235D6BAdb69d815F5e\", \"0xC9D9B33231d24dd8cC53fDD64F7ABdd156f2a7E2\"]",
-						{
-							"abi": "notExpired(uint256,string)",
-							"args": [
-								"1600000000",
-								"Nov 1st, 2020"
-							],
-							"func": "notExpired"
-						}
-					],
-					"func": "fillOrKillOrder"
-				},
+      {
+        "data": {
+          "abi": "[{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"_orderId\",\"type\":\"bytes32\"},{\"internalType\":\"uint256\",\"name\":\"_maxCost\",\"type\":\"uint256\"},{\"internalType\":\"address\",\"name\":\"_fees\",\"type\":\"address\"},{\"internalType\":\"bytes\",\"name\":\"_data\",\"type\":\"bytes\"}],\"name\":\"fillOrKillOrder\",\"outputs\":[],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"otherMethods\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"}]",
+          "args": [
+            "0x6bd55a2877890bd58871eefe886770a7734077a74981910a75d7b1f044b5bf28",
+            "1000000000000000000",
+            "[\"0x095aE61E8207C7856eA273235D6BAdb69d815F5e\", \"0xC9D9B33231d24dd8cC53fDD64F7ABdd156f2a7E2\"]",
+            {
+              "abi": "notExpired(uint256,string)",
+              "args": ["1600000000", "Nov 1st, 2020"],
+              "func": "notExpired"
+            }
+          ],
+          "func": "fillOrKillOrder"
+        },
         "to": "0x140d72763D1ce39Ad4E2e73EC6e8FC53E5b73B64",
-				"type": "delayedEncode",
+        "type": "delayedEncode",
         "value": "0"
-			}
+      }
     ],
     "wallet": "0xBc5F07A5852fdF3DBd57A76835109220D0ADd8E8"
   },
-  "signatures": [{
-    "session": "0xCF67BCbD9D5DFD373b03f4fc8143e1c6744B5696",
-    "signature": "0x4f9555c73908b6a5b61e0a744cb4e00fce7b20743d5799e4cb1774081bc6b2ec192c740e50f1adec84605636e09c9cdf4d2f6629f9ce64d8d0f3ae10305ef90400"
-  }]
+  "signatures": [
+    {
+      "session": "0xCF67BCbD9D5DFD373b03f4fc8143e1c6744B5696",
+      "signature": "0x4f9555c73908b6a5b61e0a744cb4e00fce7b20743d5799e4cb1774081bc6b2ec192c740e50f1adec84605636e09c9cdf4d2f6629f9ce64d8d0f3ae10305ef90400"
+    }
+  ]
 }
 ```
 
 ### MOCKDATA + ja-translated Close session payload
+
 ja-translated This payload is generated when the client requests clossing a given session. Notice that the client _MAY_ close the current session, or some other session.
 
 | ja-translated Name               | MOCKDATA + ja-translated Type   | ja-translated Description                                            | MOCKDATA + ja-translated Optional |
@@ -282,9 +293,11 @@ ja-translated This payload is generated when the client requests clossing a give
     "session": "0xCF67BCbD9D5DFD373b03f4fc8143e1c6744B5696",
     "wallet": "0xBc5F07A5852fdF3DBd57A76835109220D0ADd8E8"
   },
-  "signatures": [{
-    "session": "0xCF67BCbD9D5DFD373b03f4fc8143e1c6744B5696",
-    "signature": "0x4f9555c73908b6a5b61e0a744cb4e00fce7b20743d5799e4cb1774081bc6b2ec192c740e50f1adec84605636e09c9cdf4d2f6629f9ce64d8d0f3ae10305ef90400"
-  }]
+  "signatures": [
+    {
+      "session": "0xCF67BCbD9D5DFD373b03f4fc8143e1c6744B5696",
+      "signature": "0x4f9555c73908b6a5b61e0a744cb4e00fce7b20743d5799e4cb1774081bc6b2ec192c740e50f1adec84605636e09c9cdf4d2f6629f9ce64d8d0f3ae10305ef90400"
+    }
+  ]
 }
 ```
