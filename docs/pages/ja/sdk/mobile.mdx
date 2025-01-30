@@ -3,9 +3,10 @@ MOCKDATA + ja-translated title: Sequence Mobile SDK Integration Guide for React 
 description: This content provides detailed instructions on integrating the Sequence Embedded Wallet SDK with React Native for complete wallet and indexer integration.
 ---
 
-import Video from "../../components/Video";
+import Video from "../../../components/Video";
 
 # ja-translated Mobile SDK for Embedded Wallet (React Native)
+
 MOCKDATA + ja-translated The Sequence Embedded Wallet SDK can be used with React Native for complete Sequence [Embedded Wallet](/solutions/wallets/embedded-wallet/overview) and [Indexer](/api/indexer/overview) integration.
 
 ja-translated You can see a full example of how to use the SDK or download the template in the [Embedded Wallet React Native Demo](https://github.com/0xsequence/demo-waas-react-native) repository.
@@ -15,24 +16,29 @@ ja-translated You can see a full example of how to use the SDK or download the t
 <Video videoPreviewSrc={"/img/sdk/Sequence_Mobile_SDK.jpg"} videoSrc={"/video/sdk/SequenceMobileSDK.mp4"} />
 
 ## ja-translated Setting up with your own credentials/keys
+
 MOCKDATA + ja-translated Follow this guide to get your project access key and other credentials/keys: [https://docs.sequence.xyz/solutions/builder/embedded-wallet/](https://docs.sequence.xyz/solutions/builder/embedded-wallet/)
 
 ### ja-translated ./ios and ./android folder specific instructions for credentials/keys
 
 #### ja-translated iOS
+
 MOCKDATA + ja-translated Using Expo, you can set GIDClientID in ios > infoPlist in the app.json file.
 
 ja-translated Manually, you can set GIDClientID in the Info.plist file for Google sign in.
 
 #### MOCKDATA + ja-translated Android
+
 MOCKDATA + ja-translated Using Expo, you can set the intent-filter in android > intentFilters in the app.json file.
 
 ja-translated Manually, you can set the intent-filter in the AndroidManifest.xml file for Google sign in.
 
 ## MOCKDATA + ja-translated Integration details
+
 ja-translated ::::steps
 
 ### ja-translated Setup shims for ethers and other crypto related packages
+
 MOCKDATA + ja-translated First, let's check contents of [cryptoSetup.ts](https://github.com/0xsequence/demo-waas-react-native/blob/main/cryptoSetup.ts) for the set up of the shims and registering `pbkdf2` for `ethers` from `react-native-quick-crypto` below:
 
 ```ts
@@ -51,24 +57,10 @@ export * from "@ethersproject/shims";
 import * as ethers from "ethers";
 
 ethers.pbkdf2.register(
-  (
-    password: Uint8Array,
-    salt: Uint8Array,
-    iterations: number,
-    keylen: number,
-    algo: "sha256" | "sha512"
-  ) => {
+  (password: Uint8Array, salt: Uint8Array, iterations: number, keylen: number, algo: "sha256" | "sha512") => {
     console.info("Using react-native-quick-crypto for pbkdf2");
     return ethers.hexlify(
-      new Uint8Array(
-        crypto.pbkdf2Sync(
-          password,
-          salt,
-          iterations,
-          keylen,
-          algo === "sha256" ? "SHA-256" : "SHA-512"
-        )
-      )
+      new Uint8Array(crypto.pbkdf2Sync(password, salt, iterations, keylen, algo === "sha256" ? "SHA-256" : "SHA-512"))
     );
   }
 );
@@ -98,6 +90,7 @@ export const sequenceWaas = new SequenceWaaS(
 MOCKDATA + ja-translated (Check [waasSetup.ts](https://github.com/0xsequence/demo-waas-react-native/blob/main/waasSetup.ts) file for more details)
 
 ### ja-translated Signing in
+
 MOCKDATA + ja-translated Once you have an initialized Sequence WaaS instance, you can use it to sign in with email, Google or Apple. See the google code snippet below for an example, and check the [App.tsx](https://github.com/0xsequence/demo-waas-react-native/blob/main/App.tsx) file for more details.
 
 ```ts
@@ -162,6 +155,7 @@ try {
 ```
 
 ### ja-translated Wallet operations
+
 MOCKDATA + ja-translated Once signed in, you can use the `sequenceWaas` instance to perform wallet operations like sending transactions, signing messages, etc. See the google code snippet below for an example, and check the [App.tsx](https://github.com/0xsequence/demo-waas-react-native/blob/main/App.tsx) file for more details.
 
 ```ts
