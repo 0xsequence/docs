@@ -1,0 +1,384 @@
+---
+MOCKDATA + ja-translated title: Sequence Embedded Wallet API - Response Payloads
+description: When utilizing the Sequence Embedded Wallet API, each intent payload will trigger a corresponding response payload, indicating success or prompting further action.
+---
+
+# ja-translated Response Payloads
+MOCKDATA + ja-translated When interacting with the Sequence Embedded Wallet API, each intent payload will trigger a corresponding response payload. This could be either a successful response or a prompt for a different action.
+
+## ja-translated General Response Structure
+MOCKDATA + ja-translated Regardless of the specific response type, all responses have a standard structure with the following fields:
+
+| ja-translated Name | MOCKDATA + ja-translated Type   | ja-translated Description                            | MOCKDATA + ja-translated Optional |
+| ------------------ | ------------------------------- | ---------------------------------------------------- | --------------------------------- |
+| ja-translated code | MOCKDATA + ja-translated string | ja-translated Identifies the type of response        | MOCKDATA + ja-translated No       |
+| ja-translated data | MOCKDATA + ja-translated object | ja-translated Holds content defined by response type | MOCKDATA + ja-translated No       |
+
+## MOCKDATA + ja-translated Types of Responses
+
+### ja-translated Transaction Receipt Response
+MOCKDATA + ja-translated Triggered upon successful execution of a [send transaction intent](/solutions/wallets/embedded-wallet/architecture/action-payloads#send-transaction-payload). The code for this response is `transactionReceipt`.
+
+ja-translated The `data` field contains:
+
+| ja-translated Name                     | MOCKDATA + ja-translated Type                                                                                                                             | ja-translated Description                                               | MOCKDATA + ja-translated Optional |
+| -------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------- | --------------------------------- |
+| MOCKDATA + ja-translated txHash        | MOCKDATA + ja-translated string                                                                                                                           | ja-translated Transaction hash of the Ethereum transaction              | MOCKDATA + ja-translated No       |
+| MOCKDATA + ja-translated metaTxHash    | MOCKDATA + ja-translated string                                                                                                                           | ja-translated Hash of the meta transaction                              | MOCKDATA + ja-translated No       |
+| MOCKDATA + ja-translated request       | ja-translated [SendTransactionPayload](https://docs.sequence.xyz/solutions/wallets/embedded-wallet/architecture/action-payloads#send-transaction-payload) | MOCKDATA + ja-translated The original request packet of the transaction | MOCKDATA + ja-translated No       |
+| ja-translated receipt                  | MOCKDATA + ja-translated MetaTxnReceipt                                                                                                                   | ja-translated Receipt of the meta transaction                           | MOCKDATA + ja-translated No       |
+| MOCKDATA + ja-translated nativeReceipt | ja-translated any                                                                                                                                         | MOCKDATA + ja-translated Native receipt of the Ethereum transaction     | ja-translated Yes                 |
+| MOCKDATA + ja-translated simulations   | ja-translated SimulateResult\[]                                                                                                                           | MOCKDATA + ja-translated Array of simulation results                    | ja-translated Yes                 |
+
+ja-translated `MetaTxnReceipt`:
+
+| ja-translated Name                    | MOCKDATA + ja-translated Type              | ja-translated Description                                       | MOCKDATA + ja-translated Optional                              |                   |
+| ------------------------------------- | ------------------------------------------ | --------------------------------------------------------------- | -------------------------------------------------------------- | ----------------- |
+| MOCKDATA + ja-translated id           | MOCKDATA + ja-translated string            | ja-translated Unique identifier for the receipt                 | MOCKDATA + ja-translated No                                    |                   |
+| MOCKDATA + ja-translated status       | MOCKDATA + ja-translated string            | ja-translated Status of the transaction                         | MOCKDATA + ja-translated No                                    |                   |
+| MOCKDATA + ja-translated revertReason | ja-translated string                       | null                                                            | MOCKDATA + ja-translated Reason for transaction revert, if any | ja-translated Yes |
+| ja-translated index                   | MOCKDATA + ja-translated number            | ja-translated Index number of the receipt                       | MOCKDATA + ja-translated No                                    |                   |
+| MOCKDATA + ja-translated logs         | ja-translated MetaTxnReceiptLog\[]         | MOCKDATA + ja-translated Array of logs for the meta transaction | MOCKDATA + ja-translated No                                    |                   |
+| ja-translated receipts                | MOCKDATA + ja-translated MetaTxnReceipt\[] | ja-translated Array of meta transaction receipts                | MOCKDATA + ja-translated No                                    |                   |
+| MOCKDATA + ja-translated txnReceipt   | MOCKDATA + ja-translated string            | ja-translated String representation of the transaction          | MOCKDATA + ja-translated No                                    |                   |
+
+MOCKDATA + ja-translated `MetaTxnReceiptLog`:
+
+| ja-translated Name             | MOCKDATA + ja-translated Type      | ja-translated Description                                               | MOCKDATA + ja-translated Optional |
+| ------------------------------ | ---------------------------------- | ----------------------------------------------------------------------- | --------------------------------- |
+| ja-translated address          | MOCKDATA + ja-translated string    | MOCKDATA + ja-translated The address that generated the log             | MOCKDATA + ja-translated No       |
+| ja-translated topics           | MOCKDATA + ja-translated string\[] | ja-translated List of topics associated with the log                    | MOCKDATA + ja-translated No       |
+| ja-translated data             | MOCKDATA + ja-translated string    | MOCKDATA + ja-translated Data sent with the log                         | MOCKDATA + ja-translated No       |
+| ja-translated blockNumber      | MOCKDATA + ja-translated number    | MOCKDATA + ja-translated The block number where this log was emitted    | MOCKDATA + ja-translated No       |
+| ja-translated transactionHash  | MOCKDATA + ja-translated string    | MOCKDATA + ja-translated Hash of the transaction that generated the log | MOCKDATA + ja-translated No       |
+| ja-translated transactionIndex | MOCKDATA + ja-translated number    | MOCKDATA + ja-translated Index of the transaction in the block          | MOCKDATA + ja-translated No       |
+| ja-translated blockHash        | MOCKDATA + ja-translated string    | MOCKDATA + ja-translated Hash of the block containing the log           | MOCKDATA + ja-translated No       |
+| ja-translated logIndex         | MOCKDATA + ja-translated number    | MOCKDATA + ja-translated Index of the log in the block                  | MOCKDATA + ja-translated No       |
+| ja-translated removed          | MOCKDATA + ja-translated boolean   | ja-translated Whether the log was removed due to a chain reorganization | MOCKDATA + ja-translated No       |
+
+MOCKDATA + ja-translated `SimulateResult`:
+
+| ja-translated Name      | MOCKDATA + ja-translated Type    | ja-translated Description                                     | MOCKDATA + ja-translated Optional                                 |                   |
+| ----------------------- | -------------------------------- | ------------------------------------------------------------- | ----------------------------------------------------------------- | ----------------- |
+| ja-translated executed  | MOCKDATA + ja-translated boolean | MOCKDATA + ja-translated Whether the simulation was executed  | MOCKDATA + ja-translated No                                       |                   |
+| ja-translated succeeded | MOCKDATA + ja-translated boolean | MOCKDATA + ja-translated Whether the simulation succeeded     | MOCKDATA + ja-translated No                                       |                   |
+| ja-translated result    | ja-translated string             | null                                                          | MOCKDATA + ja-translated The result of the simulation             | ja-translated Yes |
+| ja-translated reason    | ja-translated string             | null                                                          | MOCKDATA + ja-translated Reason for failure, if simulation failed | ja-translated Yes |
+| ja-translated gasUsed   | MOCKDATA + ja-translated number  | MOCKDATA + ja-translated Amount of gas used in the simulation | MOCKDATA + ja-translated No                                       |                   |
+| ja-translated gasLimit  | MOCKDATA + ja-translated number  | MOCKDATA + ja-translated Gas limit for the simulation         | MOCKDATA + ja-translated No                                       |                   |
+
+#### ja-translated Example
+
+```json
+{
+  "code": "transactionReceipt",
+  "data": {
+    "txHash": "0xf2e9f728abd65089f25efda5852e605ced377f4e2c89dbf143b124623ed09b2c",
+    "metaTxHash": "acc36ed4ef40db74137266e48d863083a5c7e85e2735d69adafcb5b362b6cfc0",
+    "nativeReceipt": {
+      "blockHash": "0x49be8c81414fae655f1f4615f5b437ca5160bdd4e4d8ce06275338ec6fe2e20b",
+      "blockNumber": "0x2f63834",
+      "contractAddress": "0x0000000000000000000000000000000000000000",
+      "cumulativeGasUsed": "0xdb374",
+      "gasUsed": "0x14a00",
+      "logs": [
+        {
+          "address": "0x4d4ee1b8583e31fe789eaf2e1b6e011c220c10b6",
+          "blockHash": "0x49be8c81414fae655f1f4615f5b437ca5160bdd4e4d8ce06275338ec6fe2e20b",
+          "blockNumber": "0x2f63834",
+          "data": "0x0000000000000000000000001119e72b4af230becebd933d0e07f0eec51d8c2a0000000000000000000000000000000000000000000000000000000000000001",
+          "logIndex": "0x14",
+          "removed": false,
+          "topics": [
+            "0x1f180c27086c7a39ea2a7b25239d1ab92348f07ca7bb59d1438fcf527568f881"
+          ],
+          "transactionHash": "0xf2e9f728abd65089f25efda5852e605ced377f4e2c89dbf143b124623ed09b2c",
+          "transactionIndex": "0x5"
+        },
+        {
+          "address": "0x4d4ee1b8583e31fe789eaf2e1b6e011c220c10b6",
+          "blockHash": "0x49be8c81414fae655f1f4615f5b437ca5160bdd4e4d8ce06275338ec6fe2e20b",
+          "blockNumber": "0x2f63834",
+          "data": "0x0000000000000000000000000000000000000000000000000000000000000000",
+          "logIndex": "0x15",
+          "removed": false,
+          "topics": [
+            "0x5c4eeb02dabf8976016ab414d617f9a162936dcace3cdef8c69ef6e262ad5ae7",
+            "0xacc36ed4ef40db74137266e48d863083a5c7e85e2735d69adafcb5b362b6cfc0"
+          ],
+          "transactionHash": "0xf2e9f728abd65089f25efda5852e605ced377f4e2c89dbf143b124623ed09b2c",
+          "transactionIndex": "0x5"
+        },
+        {
+          "address": "0x0000000000000000000000000000000000001010",
+          "blockHash": "0x49be8c81414fae655f1f4615f5b437ca5160bdd4e4d8ce06275338ec6fe2e20b",
+          "blockNumber": "0x2f63834",
+          "data": "0x000000000000000000000000000000000000000000000000001284e7c67266000000000000000000000000000000000000000000000000014c0fa753f2298415000000000000000000000000000000000000000000001386f7e2c243dcc978070000000000000000000000000000000000000000000000014bfd226c2bb71e15000000000000000000000000000000000000000000001386f7f5472ba33bde07",
+          "logIndex": "0x16",
+          "removed": false,
+          "topics": [
+            "0x4dfe1bbbcf077ddc3e01291eea2d5c70c2b422b415d95645b9adcfd678cb1d63",
+            "0x0000000000000000000000000000000000000000000000000000000000001010",
+            "0x00000000000000000000000000e91788bcb998379027d36e6407a9187d7f313c",
+            "0x000000000000000000000000959c65b72147faf3450d8b50a0de57e72ffc5e0d"
+          ],
+          "transactionHash": "0xf2e9f728abd65089f25efda5852e605ced377f4e2c89dbf143b124623ed09b2c",
+          "transactionIndex": "0x5"
+        }
+      ],
+      "logsBloom": "0x00000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000008800000002000000000001004000000000000000000000000000000000800000000000000000000100000000400000000200400000000000000000000000000000000000000080000000000000000000000000000000000000000000000000000000000000000000000000000000200000000000000000000000000002000000000000000000000000000000004000008000000000000001000000000000000000000000000000100000020000000000000000000000002000000020020002020040000000000000000040100000",
+      "root": "0x",
+      "status": "0x1",
+      "transactionHash": "0xf2e9f728abd65089f25efda5852e605ced377f4e2c89dbf143b124623ed09b2c",
+      "transactionIndex": "0x5"
+    },
+    "receipt": {
+      "id": "acc36ed4ef40db74137266e48d863083a5c7e85e2735d69adafcb5b362b6cfc0",
+      "index": 0,
+      "logs": [
+        {
+          "address": "0x4d4EE1b8583e31fe789eAF2e1b6e011C220c10B6",
+          "data": "0x0000000000000000000000001119e72b4af230becebd933d0e07f0eec51d8c2a0000000000000000000000000000000000000000000000000000000000000001",
+          "topics": [
+            "0x1f180c27086c7a39ea2a7b25239d1ab92348f07ca7bb59d1438fcf527568f881"
+          ]
+        },
+        {
+          "address": "0x4d4EE1b8583e31fe789eAF2e1b6e011C220c10B6",
+          "data": "0x0000000000000000000000000000000000000000000000000000000000000000",
+          "topics": [
+            "0x5c4eeb02dabf8976016ab414d617f9a162936dcace3cdef8c69ef6e262ad5ae7",
+            "0xacc36ed4ef40db74137266e48d863083a5c7e85e2735d69adafcb5b362b6cfc0"
+          ]
+        }
+      ],
+      "receipts": [
+        {
+          "id": "acc36ed4ef40db74137266e48d863083a5c7e85e2735d69adafcb5b362b6cfc0",
+          "index": 0,
+          "logs": null,
+          "receipts": null,
+          "revertReason": null,
+          "status": "SUCCEEDED",
+          "txnReceipt": ""
+        }
+      ],
+      "revertReason": null,
+      "status": "SUCCEEDED"
+    },
+    "request": {
+      "code": "sendTransaction",
+      "expires": 1699440762,
+      "identifier": "ts-sdk-1699440462686-0x153824576D03629b264683B430bBF9AcEA1d0975",
+      "issued": 1699440462,
+      "network": "137",
+      "transactions": [
+        {
+          "data": "0x",
+          "to": "0x4d4EE1b8583e31fe789eAF2e1b6e011C220c10B6",
+          "type": "transaction",
+          "value": "0x00"
+        }
+      ],
+      "wallet": "0x4d4EE1b8583e31fe789eAF2e1b6e011C220c10B6"
+    },
+    "simulations": [
+      {
+        "executed": true,
+        "gasLimit": 1147,
+        "gasUsed": 860,
+        "reason": null,
+        "result": "0x",
+        "succeeded": true
+      }
+    ]
+  }
+}
+```
+
+#### MOCKDATA + ja-translated How to Detect
+
+```ts
+import { payloads } from '@0xsequence/waas';
+
+const res = ... // response from the Embedded Wallet API
+
+if (payloads.responses.isSentTransactionResponse(res)) {
+  // It's a transaction receipt
+}
+```
+
+### ja-translated Failed Transaction Response
+MOCKDATA + ja-translated Triggered upon failed to execute a [send transaction intent](/solutions/wallets/embedded-wallet/architecture/action-payloads#send-transaction-payload). The code for this response is `transactionFailed`.
+
+ja-translated The `data` field contains:
+
+| ja-translated Field                  | MOCKDATA + ja-translated Type                                                                                                                                    | ja-translated Description                                                  |
+| ------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------- |
+| MOCKDATA + ja-translated error       | MOCKDATA + ja-translated string                                                                                                                                  | ja-translated The error message describing why the transaction failed.     |
+| MOCKDATA + ja-translated request     | MOCKDATA + ja-translated [SendTransactionPayload](https://docs.sequence.xyz//solutions/embedded-wallet/architecture/response-payloads/#send-transaction-payload) | ja-translated The packet of transactions that were attempted.              |
+| MOCKDATA + ja-translated simulations | ja-translated SimulateResult\[]                                                                                                                                  | MOCKDATA + ja-translated Results from the transaction simulation attempts. |
+
+MOCKDATA + ja-translated `SimulateResult`:
+
+| ja-translated Name      | MOCKDATA + ja-translated Type    | ja-translated Description                                     | MOCKDATA + ja-translated Optional                                 |                   |
+| ----------------------- | -------------------------------- | ------------------------------------------------------------- | ----------------------------------------------------------------- | ----------------- |
+| ja-translated executed  | MOCKDATA + ja-translated boolean | MOCKDATA + ja-translated Whether the simulation was executed  | MOCKDATA + ja-translated No                                       |                   |
+| ja-translated succeeded | MOCKDATA + ja-translated boolean | MOCKDATA + ja-translated Whether the simulation succeeded     | MOCKDATA + ja-translated No                                       |                   |
+| ja-translated result    | ja-translated string             | null                                                          | MOCKDATA + ja-translated The result of the simulation             | ja-translated Yes |
+| ja-translated reason    | ja-translated string             | null                                                          | MOCKDATA + ja-translated Reason for failure, if simulation failed | ja-translated Yes |
+| ja-translated gasUsed   | MOCKDATA + ja-translated number  | MOCKDATA + ja-translated Amount of gas used in the simulation | MOCKDATA + ja-translated No                                       |                   |
+| ja-translated gasLimit  | MOCKDATA + ja-translated number  | MOCKDATA + ja-translated Gas limit for the simulation         | MOCKDATA + ja-translated No                                       |                   |
+
+```json
+{
+  "code": "transactionFailed",
+  "data": {
+    "error": "This is an error message",
+    "request": {
+      "code": "sendTransaction",
+      "expires": 1699443005,
+      "identifier": "ts-sdk-1699442705965-0x153824576D03629b264683B430bBF9AcEA1d0975",
+      "issued": 1699442705,
+      "network": "137",
+      "transactions": [
+        {
+          "data": "0x",
+          "to": "0x839eE023B21f4Ffe2294025DE0AC30Ba7278D6Fd",
+          "type": "transaction",
+          "value": "0x00"
+        }
+      ],
+      "wallet": "0x4d4EE1b8583e31fe789eAF2e1b6e011C220c10B6"
+    },
+    "simulations": [
+      {
+        "executed": true,
+        "gasLimit": 7908,
+        "gasUsed": 5931,
+        "reason": "This is an error message",
+        "result": null,
+        "succeeded": false
+      }
+    ]
+  }
+}
+```
+
+#### MOCKDATA + ja-translated How to Detect
+
+```ts
+import { payloads } from '@0xsequence/waas';
+
+const res = ... // response from the Embedded Wallet API
+
+if (payloads.responses.isFailedTransactionResponse(res)) {
+  // It's a failed transaction
+}
+```
+
+### ja-translated Signed Message Response
+MOCKDATA + ja-translated Triggered after a successful [sign message intent](/solutions/wallets/embedded-wallet/architecture/action-payloads#sign-message-payload). The code is `signedMessage`.
+
+ja-translated The `data` field contains:
+
+| ja-translated Name      | MOCKDATA + ja-translated Type   | ja-translated Description                   | MOCKDATA + ja-translated Optional |
+| ----------------------- | ------------------------------- | ------------------------------------------- | --------------------------------- |
+| ja-translated message   | MOCKDATA + ja-translated string | MOCKDATA + ja-translated The signed message | MOCKDATA + ja-translated No       |
+| ja-translated signature | MOCKDATA + ja-translated string | MOCKDATA + ja-translated The signature      | MOCKDATA + ja-translated No       |
+
+#### ja-translated Example
+
+```json
+{
+  "code": "signedMessage",
+  "data": {
+    "message": "Hello World",
+    "signature": "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef"
+  }
+}
+```
+
+#### MOCKDATA + ja-translated How to Detect
+
+```ts
+import { payloads } from '@0xsequence/waas';
+
+const res = ... // response from the Embedded Wallet API
+
+if (payloads.responses.isSignedMessageResponse(res)) {
+  // It's a signed message
+}
+```
+
+### ja-translated Session Opened Response
+MOCKDATA + ja-translated Occurs after successfully executing an [open session intent](/solutions/wallets/embedded-wallet/architecture/action-payloads#open-session-payload). The code is `sessionOpened`.
+
+ja-translated The `data` field contains:
+
+| ja-translated Name      | MOCKDATA + ja-translated Type   | ja-translated Description                                   | MOCKDATA + ja-translated Optional |
+| ----------------------- | ------------------------------- | ----------------------------------------------------------- | --------------------------------- |
+| ja-translated sessionId | MOCKDATA + ja-translated string | MOCKDATA + ja-translated Session ID (resembling an address) | MOCKDATA + ja-translated No       |
+| ja-translated wallet    | MOCKDATA + ja-translated string | MOCKDATA + ja-translated The Sequence wallet address        | MOCKDATA + ja-translated No       |
+
+#### ja-translated Example
+
+```json
+{
+  "code": "sessionOpened",
+  "data": {
+    "sessionId": "0xBdeAfd3ee0550a73f615D2BaEA2E3D6d48FC857D",
+    "wallet": "0x44c2Ea42Fb006a613a7b41D142576eD6B5055902"
+  }
+}
+```
+
+#### MOCKDATA + ja-translated How to Detect
+
+```ts
+import { payloads } from '@0xsequence/waas';
+
+const res = ... // response from the Embedded Wallet API
+
+if (payloads.responses.isOpenSessionResponse(res)) {
+  // It's a session opened
+}
+```
+
+### ja-translated Validation Required Response
+MOCKDATA + ja-translated Some actions may necessitate additional validation. In such cases, the response code is `validationRequired`.
+
+ja-translated The `data` field contains:
+
+| ja-translated Name      | MOCKDATA + ja-translated Type   | ja-translated Description                                   | MOCKDATA + ja-translated Optional |
+| ----------------------- | ------------------------------- | ----------------------------------------------------------- | --------------------------------- |
+| ja-translated sessionId | MOCKDATA + ja-translated string | MOCKDATA + ja-translated Session ID (resembling an address) | MOCKDATA + ja-translated No       |
+
+#### MOCKDATA + ja-translated How to Detect
+
+```ts
+import { payloads } from '@0xsequence/waas';
+
+const res = ... // response from the Embedded Wallet API
+
+if (payloads.responses.isValidationRequiredResponse(res)) {
+  // Validation is required
+}
+```
+
+### ja-translated Note
+MOCKDATA + ja-translated Both `sendTransaction` and `signMessage` intents could require validation. Always check for a `validationRequired` response before assuming you've received a transaction receipt or a signed message.
+
+```ts
+import { payloads } from '@0xsequence/waas';
+
+const res = ... // response from the Embedded Wallet API
+
+if (payloads.responses.isValidationRequiredResponse(res)) {
+  // Handle validation
+}
+
+if (payloads.responses.isSendTransactionResponse(res)) {
+  // It's a transaction receipt
+}
+```

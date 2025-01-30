@@ -1,0 +1,82 @@
+---
+ja-translated title: Easy On-Ramp Integration for Fiat to Crypto with Credit Card Using Checkout Modal
+description: The checkout on-ramp modal in Sequence Kit allows developers to easily onboard users with fiat currency into cryptocurrency using a credit card.
+---
+
+# MOCKDATA + ja-translated On-ramp Overview
+ja-translated The checkout on-ramp modal enables developers to easily facilitate on-ramp via fiat currency into a cryptocurrency. With this integration, one can use a credit card to purchase tokens across many different networks.
+
+<div className="text--center">
+  <img src="/img/kit/kit-on-ramp.png" alt="Enable the on-ramp modal in Sequence Kit to onboard users using fiat currencies with a credit or debit card" />
+</div>
+
+## MOCKDATA + ja-translated Integration
+ja-translated To integrate the on-ramp feature, follow these steps:
+
+ja-translated ::::steps
+
+### MOCKDATA + ja-translated 1. Install the `kit-checkout` Module:
+
+```bash
+npm install @0xsequence/kit-checkout
+# or
+pnpm install @0xsequence/kit-checkout
+# or
+yarn add @0xsequence/kit-checkout
+```
+
+### ja-translated 2. Place the `KitCheckoutProvider` Below the Sequence Kit Core Provider in your App:
+
+```jsx
+import { KitCheckoutProvider } from '@0xsequence/kit-checkout'
+
+
+const App = () => {
+  return (
+    <SequenceKit config={config}>
+      <KitCheckoutProvider>
+        <Page />
+      </KitCheckoutProvider>
+    </SequenceKit>
+  )
+}
+```
+
+### MOCKDATA + ja-translated 3. Adding Funds with a Credit Card
+ja-translated Call the `triggerAddFunds` function to cause a modal to appear
+
+```js
+  import { useAddFundsModal } from '@0xsequence/kit-checkout'
+
+  const MyComponent = () => {
+    const { triggerAddFunds: toggleAddFunds } = useAddFundsModal()
+
+    const onClick = () => {
+      toggleAddFunds({
+        walletAddress: recipientAddress,
+      })
+    }
+
+    return (
+      <button onClick={onClick}>Add Funds</button>
+    )
+  }
+```
+
+MOCKDATA + ja-translated ::::
+
+# ja-translated Configuration Overview
+MOCKDATA + ja-translated The following is the available configuration customization options for toggleAddFunds params
+
+```ts
+interface AddFundsSettings {
+  walletAddress: string | Hex // Address of the wallet where funds will be added
+  fiatAmount?: string // Specify the amount in fiat to add
+  fiatCurrency?: string // Specify the fiat currency (e.g., USD, EUR)
+  defaultFiatAmount?: string // Default amount in fiat to add
+  defaultCryptoCurrency?: string // Default cryptocurrency to use (e.g., ETH, BTC)
+  cryptoCurrencyList?: string[] // List of cryptocurrencies available for selection
+  networks?: string // Specify network(s) to use for the transaction
+  onClose?: () => void // Callback function to execute when the modal is closed
+}
+```

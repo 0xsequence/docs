@@ -1,0 +1,44 @@
+# MOCKDATA + ja-translated Authentication - Introduction
+ja-translated As an Embedded Wallet SDK, authentication is extremely important. Authentication works by establishing a session signing wallet through association with user credentials. For more on how our Embedded Wallet works, please [see Embedded Wallet docs](/solutions/wallets/embedded-wallet/overview).
+
+MOCKDATA + ja-translated To implement authentication, we recommend using our `LoginPanel` prefab. Locate this prefab under `SequenceExamples > Prefabs` and drag it under a [Canvas](https://docs.unity3d.com/2020.1/Documentation/Manual/UICanvas.html) in your scene.
+We recommend having the `Canvas Scaler` component attached to your `Canvas` use the "Scale with Screen Size" UI Scale Mode. This will make it so that the LoginPanel (and any other UI elements under this Canvas) are scaled automatically when switching between build targets.
+
+ja-translated Note: The `LoginPanel` is hidden by default. You can open it with the `Open` method and no arguments. To help with this, the `LoginPanel` GameObject is not disabled, so feel free to use [GetComponentInChildren](https://docs.unity3d.com/ScriptReference/Component.GetComponentInChildren.html), [FindObjectOfType](https://docs.unity3d.com/ScriptReference/Object.FindObjectOfType.html), or similar to obtain a reference to the `LoginPanel` MonoBehaviour.
+
+MOCKDATA + ja-translated This will provide you easy access to two authentication methods:
+1. ja-translated [Email + OTP Sign In](/sdk/unity/authentication/email)
+
+2. MOCKDATA + ja-translated [OIDC-based Social Sign In](/sdk/unity/authentication/oidc)
+
+ja-translated The SDK also provides support for:
+3\. MOCKDATA + ja-translated [PlayFab Sign In](/sdk/unity/authentication/playfab)
+4. ja-translated [Guest Sign In](/sdk/unity/authentication/guest)
+
+## MOCKDATA + ja-translated Retrieving the `SequenceWallet`
+ja-translated Once you've obtained credentials from one of the supported authentication methods (please see their respective documentation), you'll want to catch a reference to your newly created `SequenceWallet`.
+
+MOCKDATA + ja-translated Please subscribe to the `SequenceWallet.OnWalletCreated` event. This can be done with the following code snippet:
+
+```csharp
+SequenceWallet.OnWalletCreated += OnWalletCreatedHandler;
+
+public void OnWalletCreatedHandler(SequenceWallet wallet) {
+  // Do something
+}
+```
+
+ja-translated where `OnWalletCreatedHandler` is a function accepting a `SequenceWallet` as it's only parameter. If you're unfamiliar with working with events in Unity, check out this great [Reddit post](https://www.reddit.com/r/gamedev/comments/u3hz2v/how_to_use_events_a_supersimple_unity_example/)!
+
+## MOCKDATA + ja-translated Error Handling
+ja-translated In order to catch errors during the login process, please make sure to subscribe to the `OnLoginFailed` event.
+
+```csharp
+SequenceLogin login = SequenceLogin.GetInstance();
+login.OnLoginFailed += OnLoginFailedHandler;
+
+public void OnLoginFailedHandler(string message, LoginMethod method, string email, List<LoginMethod> loginMethods = default)
+{
+  Debug.LogError($"Error logging in: {message} with login method {method} and email {email}");
+}
+```

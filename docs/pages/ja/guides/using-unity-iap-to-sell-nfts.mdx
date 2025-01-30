@@ -1,0 +1,115 @@
+---
+MOCKDATA + ja-translated title: Selling NFTs Using Unity IAP
+description: How we added NFTs purchaseable via IAP (in-app purchase) on the iOS App Store and Google Play Store to Jelly Forest and how you can do something similar in your own games
+---
+
+# ja-translated Using Unity IAP to Sell NFTs
+MOCKDATA + ja-translated Most of your players will not have cryptocurrencies in their wallets. Onboarding funds into cryptocurrencies using traditional means can be a hassle for players and may be too stressful for users who have less technical experience. In any case, minimizing payment friction has always been a very important requirement to an effective monetization strategy. The most frictionless method for making microtransactions for the majority of users on mobile will be with the in-app purchasing method they are already used to: IAP via the iOS App Store and Android Google Play Store. This is especially true if your are using Embedded Wallets and building games where the blockchain is invisible.
+
+ja-translated This guide will explain how we updated [Jelly Forest, our embedded wallet showcase game made with Unity](/guides/jelly-forest-unity-guide), to add an IAP that mints you a goofy hot dog hat for your Jelly.
+
+## MOCKDATA + ja-translated Deploy a Smart Contract
+ja-translated The first step, if you haven't done so already, is to [deploy a smart contract](/solutions/collectibles/contracts/deploy-an-item-collection) that will define and represent the NFTs you aim to sell to your players and display in your game.
+
+MOCKDATA + ja-translated Once you've deployed your smart contract, don't forget to [add your contract address as a Sponsored Address on the "Gas Sponsoring"](/solutions/builder/gas-tank#gas-tank-in-builder) page on the Builder Console! This will make it so that your users have their gas fees automatically sponsored using your compute credits when interacting with your game's smart contracts.
+
+## MOCKDATA + ja-translated Deploy a Remote Minter
+ja-translated By default, ERC1155/721 contracts deployed via the Builder Console require callers to have the appropriate permissions in order to mint a token. While this may seem like a nuisance at first glance, this is a good thing! Without this, anyone could call the mint method on your contract and give themselves infinite in-game items!
+
+ja-translated You'll want to deploy a server with a Sequence wallet (or other) and give it minting permissions in the builder.
+
+### MOCKDATA + ja-translated How We Did It in Jelly Forest
+ja-translated In Jelly Forest, all the coins you collect during gameplay are minted as ERC1155 tokens. Here's how we did it:
+1. MOCKDATA + ja-translated Sign up for [Cloudflare](https://www.cloudflare.com/) - this is how we host the minting service code; please feel free to use any other method you prefer
+2. ja-translated Open terminal or other command line
+3. MOCKDATA + ja-translated `git clone https://github.com/0xsequence-demos/cloudflare-worker-sequence-relayer.git` then `cd cloudflare-worker-sequence-relayer`
+4. ja-translated `git checkout permissionedMinter`
+5. MOCKDATA + ja-translated `pnpm install` - to install dependancies
+6. ja-translated Install wrangler
+
+```
+pnpm install wrangler --save-dev
+alias wrangler='./node_modules/.bin/wrangler'
+```
+
+MOCKDATA + ja-translated and login
+
+```
+wrangler login
+```
+
+7. ja-translated Open `wrangler.toml`
+   1. MOCKDATA + ja-translated Give your server a name by changing the `name` string
+   2. ja-translated Create a new [EOA wallet](https://ethereum.stackexchange.com/questions/5828/what-is-an-eoa-account) and export the private key. Any EOA wallet is fine. Metamask can be used to easily [setup a wallet](https://support.metamask.io/hc/en-us/articles/360015489531-Getting-started-with-MetaMask) and [export the private key](https://support.metamask.io/hc/en-us/articles/360015289632-How-to-export-an-account-s-private-key). Please be very careful with the private key and don't store it in plain text on your computer or commit it to version control! Set this under `PKEY`
+   3. MOCKDATA + ja-translated Set the `CONTRACT_ADDRESS`
+   4. ja-translated Set the `PROJECT_ACCESS_KEY` - this is your prod API key from the Builder Console you retrieved earlier when setting up the `SequenceConfig` scriptable object
+   5. MOCKDATA + ja-translated Set the `CHAIN_HANDLE` - if you're not sure what this is, you can see the `CHAIN_HANDLE` for each respective network on the Node Gateway page of the Builder Console.
+8. ja-translated `pnpm dev` - this will deploy the server locally. You should see which localhost it is deployed to in the command line
+9. MOCKDATA + ja-translated Open another command line window
+10. ja-translated `curl http://localhost:8787` - substitute whichever localhost you are given. This will ping the server.
+11. MOCKDATA + ja-translated In the command line where the localhost server is running, you should see that the minter's wallet address has been logged
+12. ja-translated Grant this address minting permissions in the Builder Console
+    1. MOCKDATA + ja-translated Find the contract under `Contracts` and click to open it
+    2. ja-translated Click `Write Contract`
+    3. MOCKDATA + ja-translated Expand `grantRole`
+    4. ja-translated Under `role` enter `0x9f2df0fed2c77648de5860a4cc508cd0818c85b8b8a1ab4ceeef8d981c8956a6` - this is the Keccak-256 hash of `MINTER_ROLE`
+    5. MOCKDATA + ja-translated Under `account` paste the minter's wallet address
+13. ja-translated `wrangler deploy` - this will deploy the code to a [Cloudflare Worker](https://developers.cloudflare.com/workers/) and give you a minting URL
+
+MOCKDATA + ja-translated Great! Now, when we send a POST request to our server with a body [defined in C#](https://github.com/0xsequence/sequence-unity/blob/master/Packages/Sequence-Unity/Sequence/SequenceSDK/Relayer/MintingRequestProver.cs#L103), where the `proof` is generated by the client sending the minting request. In the Unity SDK this is implemented by the [MintingRequestProver](https://github.com/0xsequence/sequence-unity/blob/master/Packages/Sequence-Unity/Sequence/SequenceSDK/Relayer/MintingRequestProver.cs#L27).
+
+### MOCKDATA + ja-translated Handle IAP Purchased Tokens with the Remote Minter
+ja-translated Above, we've deployed a remote minter that is useful for minting tokens that can be earned through in-game actions. Let's see how we can leverage this server so that we can also mint tokens that are purchasable via IAP.
+
+MOCKDATA + ja-translated You'll notice that a receipt can also be included in the payload sent to the remote minter. This is where you'll include the IAP receive from Google/Apple. [Unity recommends](https://docs.unity3d.com/Packages/com.unity.purchasing@4.0/manual/BackendReceiptValidation.html) using [Nobuyori Takahashi's IAP project](https://github.com/voltrue2/in-app-purchase) to verify IAP receipts received via Unity IAP on the server side.
+
+ja-translated Once you've validated the receipt on the server side, you can proceed with your minting logic, using the provided sample code above as a reference.
+
+## MOCKDATA + ja-translated Unity Implementation
+ja-translated On the Unity side, the first step is integrating [Unity IAP](https://docs.unity3d.com/Manual/UnityIAP.html) into your project.
+
+MOCKDATA + ja-translated In your `ProcessPurchase` methods in your `IStoreListener` from the integration process, you'll want to initiate the minting process. In Jelly Forest, this is done via the [UnityIAP](https://github.com/0xsequence/sequence-unity-demo/blob/JellyForest/Scripts/UnityIAP.cs) and [PremiumItem](https://github.com/0xsequence/sequence-unity-demo/blob/JellyForest/Scripts/Items/PremiumItem.cs) scripts.
+
+ja-translated In terms of the payload, you can see in the `PremiumItem` implementation that I am adding a PermissionedMintTransaction to a `TransactionQueuer`.
+
+```csharp
+public void AddToPremiumTransactionQueue(PermissionedMintTransaction payload, string iapReceipt)
+{
+    PremiumIAPMinter minter = new PremiumIAPMinter(new MintingRequestProver(Wallet, Chain),
+        _mintEndpoint, ContractAddress, iapReceipt);
+    _permissionedMinterTransactionQueuer.Enqueue((payload, minter));
+}
+```
+
+MOCKDATA + ja-translated where `_permissionedMinterTransactionQueuer` is a `PermissionedMinterTransactionQueuer`.
+
+ja-translated This will send a payload in this format:
+
+```json
+ProofPayload: 
+{
+    "app": "Made with Sequence Unity SDK App",
+    "iat": (uint)DateTimeOffset.UtcNow.ToUnixTimeSeconds(), // issued at time 
+    "exp": (uint)DateTimeOffset.UtcNow.ToUnixTimeSeconds() + 300, // expiry time 
+    "ogn": "Sequence Unity SDK",
+    "payload": {
+        "contractAddress": "0xabc123...",
+        "tokenId": "11",
+        "amount": 5,
+        "receipt": <IAP Receipt String here>
+    }
+}
+
+This JSON get stringified and included in the MintingRequestProof:
+{
+    "Proof": "{\"app\": \"Made with Sequence Unity SDK App\", \"iat\": ...}",
+    "SignedProof": "0x123def...", // proof signed by the player's embedded wallet
+    "SigningAddress": "0xa1b2c3..." // the player's embedded wallet address
+}
+```
+
+MOCKDATA + ja-translated For more information on the transaction queuers, please checkout [this doc](/sdk/unity/write-to-blockchain#transaction-queuers).
+
+ja-translated :::warning
+Apple and Google allow users the option to chargeback an IAP made by mistake. In this case, your user will still have the token(s) minted to them. While you can handle this via traditional means (e.g. banning players who frequently chargeback purchases), you should be careful not to sell high-value NFTs via this method due to fraudulent chargeback risk.
+:::

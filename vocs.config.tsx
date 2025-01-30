@@ -1,24 +1,25 @@
-import { defineConfig } from 'vocs'
-import { sidebar, topNav } from './nav'
-import ViteYaml from '@modyfi/vite-plugin-yaml'
+import { defineConfig } from "vocs";
+import tsconfigPaths from "vite-tsconfig-paths";
+import { sidebar, topNav } from "./nav";
+import ViteYaml from "@modyfi/vite-plugin-yaml";
 
 export default defineConfig({
-  title: 'Sequence',
+  title: "Sequence",
 
-  iconUrl: { light: '/img/favicon.ico', dark: '/img/favicon.ico' },
+  iconUrl: { light: "/img/favicon.ico", dark: "/img/favicon.ico" },
   logoUrl: {
-    light: '/img/sequence-composite-light.svg',
-    dark: '/img/sequence-composite-dark.svg',
+    light: "/img/sequence-composite-light.svg",
+    dark: "/img/sequence-composite-dark.svg",
   },
   vite: {
     ssr: {
-      noExternal: ['@docsearch/react'],
+      noExternal: ["@docsearch/react"],
     },
-    plugins: [ViteYaml()],
+    plugins: [tsconfigPaths(), ViteYaml()],
   },
 
   // rootDir: '.',
-  basePath: '/',
+  basePath: "/",
 
   topNav,
   sidebar,
@@ -28,16 +29,16 @@ export default defineConfig({
     //   light: '#442CA8',
     //   dark: '#99ADED',
     // },
-    colorScheme: 'dark',
+    colorScheme: "dark",
     variables: {
       fontFamily: {
-        default: 'Inter',
+        default: "Inter",
         // mono: 'Roboto Mono'
       },
       color: {
         background: {
-          light: '#f0f0f0',
-          dark: '#111111',
+          light: "#f0f0f0",
+          dark: "#111111",
         },
         // background5: {
         //   light: '#dddddd',
@@ -51,4 +52,4 @@ export default defineConfig({
       },
     },
   },
-})
+});
