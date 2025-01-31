@@ -20,11 +20,11 @@ Otherwise, we will walk you through the process of installing Sequence Kit, inst
 Sequence Kit is modular, allowing you to install only the necessary packages. To get started, install the `@0xsequence/kit` core package, as well as install other dependencies such as `wagmi`, `viem`, and `0xsequence`.
 
 ```bash
-npm install @0xsequence/kit @0xsequence/waas wagmi ethers@6.13.0 viem 0xsequence @0xsequence/design-system framer-motion @tanstack/react-query
+npm install @0xsequence/kit @0xsequence/waas wagmi ethers@6.13.0 viem 0xsequence @0xsequence/design-system framer-motion @tanstack/react-query @react-oauth/google react-apple-signin-auth
 # or
-pnpm install @0xsequence/kit @0xsequence/waas wagmi ethers@6.13.0 viem 0xsequence @0xsequence/design-system framer-motion @tanstack/react-query
+pnpm install @0xsequence/kit @0xsequence/waas wagmi ethers@6.13.0 viem 0xsequence @0xsequence/design-system framer-motion @tanstack/react-query @react-oauth/google react-apple-signin-auth
 # or
-yarn add @0xsequence/kit @0xsequence/waas wagmi ethers@6.13.0 viem 0xsequence @0xsequence/design-system framer-motion @tanstack/react-query
+yarn add @0xsequence/kit @0xsequence/waas wagmi ethers@6.13.0 viem 0xsequence @0xsequence/design-system framer-motion @tanstack/react-query @react-oauth/google react-apple-signin-auth
 ```
 
 # Setting Up your Dapp
@@ -117,7 +117,7 @@ Invoke the connect modal using the `useOpenConnectModal` hook.
 import { useOpenConnectModal } from '@0xsequence/kit'
 import { useDisconnect, useAccount } from 'wagmi'
 
-export const App = () => {
+const App = () => {
   const { setOpenConnectModal } = useOpenConnectModal()
 
   const { isConnected } = useAccount()
@@ -139,11 +139,24 @@ export const App = () => {
     </>
   )
 }
+
+export default App;
 ```
 
 The modal will automatically close once the user signs in. You can utilize the `useAccount` hook from wagmi to detect the user's connection status.
 
 # Setting Up Inventory
+
+First let's install the `@0xsequence/kit-wallet` package:
+
+```bash
+npm install @0xsequence/kit-wallet
+# or
+pnpm install @0xsequence/kit-wallet
+# or
+yarn add @0xsequence/kit-wallet
+```
+
 To add the optional Inventory feature, add the `KitWalletProvider` below the `SequenceKit` wrapper.
 
 ```jsx
