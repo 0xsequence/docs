@@ -1,0 +1,137 @@
+---
+title: How to sell On-Chain Items in your Unreal Project
+description: How to sell On-Chain Items in your Unreal Project
+---
+
+# How to sell On-Chain Items in your Unreal Project
+
+Accelerate your game growth by selling items directly to your players. In this guide, we will go over the steps how
+to deploy a Primary Sale contract using any custom or existing currency for an In-Game Shop that utilizes game items
+from a ERC1155 contract. We will use the following technologies from the Sequence platform:
+
+- [Primary Sales Contract](/solutions/collectibles/contracts/deploy-primary-sales-contract/): How to set up and deploy contracts for launching a primary sale — suitable for an Web Shop, NFT Drop, and more.
+- [Embedded Wallet](/solutions/wallets/embedded-wallet/overview): Use Sequence Kit and Sequence Embedded Wallet to authenticate a user.
+- [Sequence Indexer](solutions/builder/indexer): Leveraging the Sequence Indexer to query NFT metadata and user's wallet assets.
+
+## 1. Deploy your own Token- and Sale Contract in Sequence Builder
+
+In the builder you have to create your own token contract and a sale contract specific to your
+We first need a Primary Sales Contract along with an ERC1155 contract that will contain our game items we want to sell.
+To do that, please follow the [guide](/solutions/collectibles/contracts/deploy-primary-sales-contract) here.
+
+## 2. Use the Primary Sales Boilerplate
+
+To get started, clone the [Primary Sale Unreal Boilerplate](https://github.com/0xsequence/unreal-primary-sale-boilerplate) and run the Unreal Project.
+```shell
+git clone https://github.com/0xsequence/unreal-primary-sale-boilerplate.git
+```
+
+Then, navigate to the `UPrimarySaleWindowBP.cpp` widget which serves as a good reference to how it's integrated.
+
+## 3. Set your Sale Configurations in your Project
+
+To configure your sale, open the `BP_PrimarySalesWindow` Boilerplate and locate the following Blueprint functions:
+
+- SetTokenContractAddress: Enter the token contract addresses provided by Sequence's Builder.
+- SetSaleContractAddress: Enter the sale contract addresses provided by Sequence's Builder.
+- SetItemsForSale: Specify an array of TokenIds (uint64)
+
+## 4. Implement Custom Code to Interact with the SDK
+
+To explain the integration, let's create a custom class to manage the state for our sale.
+This class will gather all the necessary data, allowing us to display this information to users effectively.
+
+```cpp
+void UPrimarySaleWindowBP::NativeConstruct()
+{
+	RefreshStateButton->OnClicked.AddDynamic(this, &UPrimarySaleWindowBP::OnRefreshStateClicked);
+	ShowQrCodeButton->OnClicked.AddDynamic(this, &UPrimarySaleWindowBP::OnShowQrCodeClicked);
+
+	this->RefreshState();
+}
+```
+
+## 5. Retrieve Your Primary Sale Details
+
+Next, use the `UERC1155Sale.h` reference to obtain sale details and the payment token from the contract.
+This information can be used, for instance, to locally verify if the user has sufficient balance for the specified payment token.
+
+```csharp
+
+```
+
+## 6. Fetching Token Metadata to Display Items to Users
+
+We’ll use the Indexer API to retrieve token supplies for the specified token contract address.
+Be sure to use the address of the ERC1155 contract, not the sales contract.
+
+```csharp
+FString TokenContractAddress;
+TArray<int64> TokenIds;
+TArray<FSeqTokenMetaData> Metadata;
+
+void USequenceWalletBP::UpdateTokenSupplies(TArray<int64> TokenIds)
+{
+	TOptional<USequenceWallet*> WalletOptional = USequenceWallet::Get();
+	USequenceWallet* Wallet = WalletOptional.GetValue();
+	FString WalletAddress = Wallet->GetWalletAddress();
+
+	TArray<FSeqTokenMetaData> Metadata;
+
+	FSeqGetTokenSuppliesArgs TokenSupplyArgs;
+	TokenSupplyArgs.contractAddress = TokenContractAddress;
+	TokenSupplyArgs.includeMetaData = true;
+
+	Wallet->GetTokenSupplies(TokenSupplyArgs, [this](const FSeqGetTokenSuppliesReturn Supplies)
+	{
+		for (auto TokenSupply : Supplies.tokenIDs)
+		{
+			if (this->TokenIds.Contains(TokenSupply.tokenID))
+			{
+				this->Metadata.Push(TokenSupply.tokenMetaData);
+			}
+		}
+	}, [](FSequenceError Error)
+	{
+		UE_LOG(LogTemp, Display, TEXT("%s"), *Error.Message);
+	});
+}
+```
+
+## 7. Purchase an Item from the Store
+
+This will call the mint function from the Sales Contract. By specifying the user’s wallet address as the `to` parameter,
+the contract will mint the item to that user. You can use the `UERC1155SaleContract.h` class to create a `FRawTransaction`
+reference, which allows you to send a transaction to your sales contract using the user's wallet.
+
+```cpp
+FString SaleContractAddress;
+FString PaymentToken;
+
+void USequenceWalletBP::PurchaseItem(int32 TokenId, int32 Amount)
+{
+	TOptional<USequenceWallet*> WalletOptional = USequenceWallet::Get();
+	USequenceWallet* Wallet = WalletOptional.GetValue();
+	FString WalletAddress = Wallet->GetWalletAddress();
+
+	TArray<int32> TokenIds;
+	TokenIds.Push(TokenId);
+
+	TArray<int32> Amounts;
+	Amounts.Push(Amount);
+
+	TArray<FString> Proof;
+    Proof.Add("");
+
+	UERC1155SaleContract SaleContract = UERC1155SaleContract(SaleContractAddress, PaymentToken, 1, 0);
+	FRawTransaction Transaction = SaleContract.MakePurchaseTransaction(WalletAddress, TokenIds, Amounts, Proof);
+
+	Wallet->SendRawTransaction(Transaction, [](const FUnsizedData Result)
+	{
+		// Decode the result
+	}, [](const FSequenceError* Error)
+	{
+		UE_LOG(LogTemp, Error, TEXT("%s"), *Error.Message);
+	});
+}
+```
