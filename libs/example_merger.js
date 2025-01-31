@@ -39,18 +39,19 @@ const addExamplesToOpenAPI = (doc, examples) => {
       {
         name: 'secret',
         description:
-          'Endpoints that require a Sequence service token intended to be secret. You can manually generate one on Sequence Builder and pass it as a Bearer Token.',
+          'Endpoints that require a Sequence service token intended to be secret. You can manually generate one on [Sequence Builder](https://sequence.build/project/default/settings/apikeys) and pass it as a Bearer Token.',
       },
     ]
   }
 
+  // Add security schemes for Indexer API
   if (doc.info.title.includes('Indexer')) {
+    // Add security schemes definition
     doc.components.securitySchemes = {
       ApiKeyAuth: {
         type: 'apiKey',
         in: 'header',
-        description:
-          'Project access key for authenticating requests, get an access key at https://sequence.build',
+        description: 'Project access key for authenticating requests, get an access key at https://sequence.build',
         name: 'X-Access-Key',
       },
       BearerAuth: {
@@ -61,18 +62,28 @@ const addExamplesToOpenAPI = (doc, examples) => {
       },
     }
 
+    // Add tags definition
     doc.tags = [
       {
         name: 'public',
-        description:
-          'Endpoints accessible by passing your project-access-key in the header. This is injected whenever you login automatically.',
+        description: 'Endpoints accessible by passing your project-access-key in the header. This is injected whenever you login automatically.',
       },
       {
         name: 'secret',
-        description:
-          'Endpoints that require a Sequence service token intended to be secret. You can manually generate one on Sequence Builder and pass it as a Bearer Token.',
+        description: 'Endpoints that require a Sequence service token intended to be secret. You can manually generate one on Sequence Builder and pass it as a Bearer Token.',
       },
     ]
+
+    // Add security requirements to each path
+    for (const [path, pathObj] of Object.entries(doc.paths)) {
+      for (const [method, methodObj] of Object.entries(pathObj)) {
+        if (methodObj.tags && methodObj.tags.includes('public')) {
+          methodObj.security = [{ ApiKeyAuth: [] }]
+        } else if (methodObj.tags && methodObj.tags.includes('secret')) {
+          methodObj.security = [{ BearerAuth: [] }]
+        }
+      }
+    }
   }
 
   for (const [endpoint, example] of Object.entries(examples)) {
@@ -87,6 +98,16 @@ const addExamplesToOpenAPI = (doc, examples) => {
 
       for (const method of methods) {
         if (path[method]) {
+          // Add security based on tags from examples
+          if (ex.tag && Array.isArray(ex.tag)) {
+            path[method].tags = ex.tag
+            if (ex.tag.includes('public')) {
+              path[method].security = [{ ApiKeyAuth: [] }]
+            } else if (ex.tag.includes('secret')) {
+              path[method].security = [{ BearerAuth: [] }]
+            }
+          }
+
           if (ex.request && Object.keys(ex.request).length > 0) {
             const requestBody = path[method].requestBody
 

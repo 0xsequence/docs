@@ -50,7 +50,8 @@ function APIComponent({ specType }: any) {
             token: apiKey,
           },
         },
-        defaultOpenAllTags: true
+        defaultOpenAllTags: true,
+        hideClientButton: true
       })
     }
 
