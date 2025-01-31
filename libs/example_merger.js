@@ -51,7 +51,8 @@ const addExamplesToOpenAPI = (doc, examples) => {
       ApiKeyAuth: {
         type: 'apiKey',
         in: 'header',
-        description: 'Project access key for authenticating requests, get an access key at https://sequence.build',
+        description:
+          'Project access key for authenticating requests, get an access key at https://sequence.build',
         name: 'X-Access-Key',
       },
       BearerAuth: {
@@ -66,20 +67,22 @@ const addExamplesToOpenAPI = (doc, examples) => {
     doc.tags = [
       {
         name: 'public',
-        description: 'Endpoints accessible by passing your project-access-key in the header. This is injected whenever you login automatically.',
+        description:
+          'Endpoints accessible by passing your project-access-key in the header. This is injected whenever you login automatically.',
       },
       {
         name: 'secret',
-        description: 'Endpoints that require a Sequence service token intended to be secret. You can manually generate one on Sequence Builder and pass it as a Bearer Token.',
+        description:
+          'Endpoints that require a Sequence service token intended to be secret. You can manually generate one on Sequence Builder and pass it as a Bearer Token.',
       },
     ]
 
     // Add security requirements to each path
     for (const [path, pathObj] of Object.entries(doc.paths)) {
       for (const [method, methodObj] of Object.entries(pathObj)) {
-        if (methodObj.tags && methodObj.tags.includes('public')) {
+        if (methodObj.tags?.includes('public')) {
           methodObj.security = [{ ApiKeyAuth: [] }]
-        } else if (methodObj.tags && methodObj.tags.includes('secret')) {
+        } else if (methodObj.tags?.includes('secret')) {
           methodObj.security = [{ BearerAuth: [] }]
         }
       }
