@@ -666,7 +666,7 @@ export const sidebar = {
             { text: 'Recovering Sessions', link: '/sdk/unity/recovering-sessions' },
             { text: 'Session Management', link: '/sdk/unity/session-management' },
             { text: 'On-Ramp Funds via Credit Card', link: '/sdk/unity/onboard-user-funds' },
-            { 
+            {
               text: 'Peer to Peer Trading / Marketplace',
               collapsed: false,
               items: [
@@ -674,7 +674,7 @@ export const sidebar = {
                 { text: 'Reading Orders', link: '/sdk/unity/marketplace/reading-orders' },
                 { text: 'Filling Orders', link: '/sdk/unity/marketplace/filling-orders' },
                 { text: 'Checkout UI', link: '/sdk/unity/marketplace/checkout-ui' },
-              ]
+              ],
             },
             { text: 'Currency Swaps', link: '/sdk/unity/currency-swaps' },
             {
@@ -708,7 +708,7 @@ export const sidebar = {
             { text: 'Installation', link: '/sdk/unreal/installation' },
             { text: 'Configuration', link: '/sdk/unreal/configuration' },
             { text: 'Blueprint Subsystems', link: '/sdk/unreal/subsystems' },
-            { text: "Bootstrap your Game", link: "/sdk/unreal/bootstrap_game" },
+            { text: 'Bootstrap your Game', link: '/sdk/unreal/bootstrap_game' },
             { text: 'Sign-In UI', link: '/sdk/unreal/user_interfaces' },
             { text: 'Authenticate Users', link: '/sdk/unreal/authentication' },
             { text: 'Write to Blockchain', link: '/sdk/unreal/write-to-blockchain' },
