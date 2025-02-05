@@ -8,12 +8,14 @@ import {
   DialogHeader,
   DialogTitle,
 } from './Dialog/Dialog'
+import { Trans, useLingui } from '@lingui/react/macro'
 
 const builderURL = import.meta.env.DEV
   ? 'http://localhost:8080/https://api.sequence.build' // Routing with a cors-anywhere proxy
   : 'https://api.sequence.build' // Production URL
 
 function BuilderAuthenticationButton(): ReactElement {
+  const { t } = useLingui()
   const [isConnected, setIsConnected] = useState(false)
   const [showModal, setShowModal] = useState(false)
   const [projects, setProjects] = useState<any[]>([])
@@ -72,14 +74,16 @@ function BuilderAuthenticationButton(): ReactElement {
         className="hover-fade font-bold text-white max-w-max h-min text-center rounded-full bg-gradient-to-r from-[#4411E1] to-[#7537F9] px-[20px] py-[4px] text-[12px] top-auth-button_position"
         onClick={isConnected ? () => handleConnected() : handleConnect}
       >
-        {isConnected && selectedProjectId ? `Project: ${selectedProjectId}` : 'Login'}
+        {isConnected && selectedProjectId ? t`Project: ${selectedProjectId}` : t`Login`}
       </button>
       <Dialog open={showModal} onOpenChange={setShowModal}>
         <DialogContent className="overflow-y-auto max-h-[80vh] sm:max-w-[600px] bg-black text-white border-gray-800">
           <DialogHeader>
-            <DialogTitle className="text-2xl font-bold text-white">Select a Project</DialogTitle>
+            <DialogTitle className="text-2xl font-bold text-white">
+              <Trans id="select_project_title">Select a Project" </Trans>
+            </DialogTitle>
             <DialogDescription className="text-gray-400">
-              Choose a project from the list below.
+              <Trans id="select_project_description">Choose a project from the list below.</Trans>
             </DialogDescription>
           </DialogHeader>
 
@@ -102,7 +106,7 @@ function BuilderAuthenticationButton(): ReactElement {
                     </p>
                   </div>
                   <p className="text-themed-secondary text-sm font-medium">
-                    Project ID: {project.id}
+                    {t`Project: ${project.id}`}
                   </p>
                 </a>
               ))}

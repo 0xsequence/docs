@@ -1,106 +1,108 @@
 import clsx from 'clsx'
 import * as ICONS from '../Landing/icons'
+import { useLingui } from '@lingui/react/macro'
 
-export const PowerOverview = () => (
-  <section className="flex flex-col gap-5 border-t border-black-10">
-    <div className="flex md:flex-row flex-col gap-4">
-      <SolutionsGroup
-        theme="black"
-        heading="Contract Deployments"
-        items={[
-          {
-            icon: 'SequenceIcon',
-            title: 'ERC20',
-            body: 'Standard, audited smart contract for deploying an ERC20 fungible token through Sequence Builder.',
-            link: '/solutions/collectibles/contracts/deploy-ERC20-currency',
-          },
-          {
-            icon: 'CollectiblesIcon',
-            title: 'ERC721',
-            body: 'Deploy standard, audited non-fungible (ERC721) tokens through Sequence Builder',
-            link: '/solutions/collectibles/contracts/deploy-an-item-collection',
-          },
-          {
-            icon: 'CollectiblesIcon',
-            title: 'ERC1155',
-            body: 'Deploy standard, audited semi-fungible (ERC1155) which we helped coauthor through Sequence Builder',
-            link: '/solutions/collectibles/contracts/deploy-an-item-collection',
-          },
-          // {
-          //   icon: 'CartIcon',
-          //   title: 'Primary Sales',
-          //   body: 'Introducing Jelly Forest: a blockchain-enabled 2D runner game with social sign in, an in-game store, a backend transaction manager and more - all built in Unity using the Sequence platform.',
-          //   link: '/guides/unity-guide',
-          // },
-          {
-            icon: 'MinterIcon',
-            title: 'Link any contracts',
-            body: 'Upload any custom contract by providing the ABI and manage from Sequence Builder.',
-            link: '/solutions/builder/contracts',
-          },
-        ]}
-      />
-      <SolutionsGroup
-        theme="purple"
-        heading="Build your game"
-        items={[
-          {
-            icon: 'AnalyticsIcon',
-            title: 'Analytics',
-            body: 'Track every aspect of activity, retention, and more within your games.',
-            link: '/solutions/builder/analytics',
-          },
-          {
-            icon: 'CollectiblesIcon',
-            title: 'Metadata Management',
-            body: 'Update your collections metadata via a UI or at scale using the metadata API.',
-            link: '/solutions/builder/collections',
-          },
-          {
-            icon: 'IndexerIcon',
-            title: 'Indexer',
-            body: 'Performantly query wallets and contracts to use in your game or app.',
-            link: '/solutions/builder/indexer',
-          },
-          {
-            icon: 'AirdropperIcon',
-            title: 'Webhooks',
-            body: 'Deploy webhooks that listen to any arbitrary event across blockchains by providing an https callback',
-            link: '/solutions/builder/webhooks',
-          },
-        ]}
-      />
-    </div>
-    <div className="flex md:flex-row flex-col gap-4">
-      <div className="md:w-1/2">
+export const PowerOverview = () => {
+  const {
+    t,
+    i18n: { locale },
+  } = useLingui()
+  const lang = locale === 'en' ? '' : locale
+  return (
+    <section className="flex flex-col gap-5 border-t border-black-10">
+      <div className="flex md:flex-row flex-col gap-4">
         <SolutionsGroup
-          theme="green"
-          heading="Blockchain Utilities"
+          theme="black"
+          heading={t`Contract Deployments`}
           items={[
             {
-              icon: 'MarketplaceIcon',
-              title: 'Gas Sponsorship',
-              body: 'Utilize our gas sponsorship service in order to cover transactions fees for your endusers so they never have to think about the blockchain.',
-              link: '/solutions/builder/gas-tank',
+              icon: 'SequenceIcon',
+              title: t`ERC20`,
+              body: t`Standard, audited smart contract for deploying an ERC20 fungible token through Sequence Builder.`,
+              link: `${lang}/solutions/collectibles/contracts/deploy-ERC20-currency`,
             },
             {
-              icon: 'NodeGatewayIcon',
-              title: 'Node Gateway',
-              body: 'Leverage our autoscaling node service, automatically load balanced for your application.',
-              link: '/solutions/builder/node-gateway',
+              icon: 'CollectiblesIcon',
+              title: t`ERC721`,
+              body: t`Deploy standard, audited non-fungible (ERC721) tokens through Sequence Builder`,
+              link: `${lang}/solutions/collectibles/contracts/deploy-an-item-collection`,
             },
             {
-              icon: 'WalletIcon',
-              title: 'Transaction Manager',
-              body: 'Scalable transactions with batching, access-control, parallelization, automatic reorg management with our transactions API.',
-              link: '/solutions/transaction-manager/overview',
+              icon: 'CollectiblesIcon',
+              title: t`ERC1155`,
+              body: t`Deploy standard, audited semi-fungible (ERC1155) which we helped coauthor through Sequence Builder`,
+              link: `${lang}/solutions/collectibles/contracts/deploy-an-item-collection`,
+            },
+            {
+              icon: 'MinterIcon',
+              title: t`Link any contracts`,
+              body: t`Upload any custom contract by providing the ABI and manage from Sequence Builder.`,
+              link: `${lang}/solutions/builder/contracts`,
+            },
+          ]}
+        />
+        <SolutionsGroup
+          theme="purple"
+          heading={t`Build your game`}
+          items={[
+            {
+              icon: 'AnalyticsIcon',
+              title: t`Analytics`,
+              body: t`Track every aspect of activity, retention, and more within your games.`,
+              link: `${lang}/solutions/builder/analytics`,
+            },
+            {
+              icon: 'CollectiblesIcon',
+              title: t`Metadata Management`,
+              body: t`Update your collections metadata via a UI or at scale using the metadata API.`,
+              link: `${lang}/solutions/builder/collections`,
+            },
+            {
+              icon: 'IndexerIcon',
+              title: t`Indexer`,
+              body: t`Performantly query wallets and contracts to use in your game or app.`,
+              link: `${lang}/solutions/builder/indexer`,
+            },
+            {
+              icon: 'AirdropperIcon',
+              title: t`Webhooks`,
+              body: t`Deploy webhooks that listen to any arbitrary event across blockchains by providing an https callback`,
+              link: `${lang}/solutions/builder/webhooks`,
             },
           ]}
         />
       </div>
-    </div>
-  </section>
-)
+      <div className="flex md:flex-row flex-col gap-4">
+        <div className="md:w-1/2">
+          <SolutionsGroup
+            theme="green"
+            heading={t`Blockchain Utilities`}
+            items={[
+              {
+                icon: 'MarketplaceIcon',
+                title: t`Gas Sponsorship`,
+                body: t`Utilize our gas sponsorship service in order to cover transactions fees for your endusers so they never have to think about the blockchain.`,
+                link: `${lang}/solutions/builder/gas-tank`,
+              },
+              {
+                icon: 'NodeGatewayIcon',
+                title: t`Node Gateway`,
+                body: t`Leverage our autoscaling node service, automatically load balanced for your application.`,
+                link: `${lang}/solutions/builder/node-gateway`,
+              },
+              {
+                icon: 'WalletIcon',
+                title: t`Transaction Manager`,
+                body: t`Scalable transactions with batching, access-control, parallelization, automatic reorg management with our transactions API.`,
+                link: `${lang}/solutions/transaction-manager/overview`,
+              },
+            ]}
+          />
+        </div>
+      </div>
+    </section>
+  )
+}
 
 const SolutionsGroup = ({
   heading,
