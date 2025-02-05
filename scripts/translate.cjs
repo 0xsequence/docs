@@ -5,8 +5,17 @@ const FrenglishSDK = require('frenglish').default
 require('dotenv').config()
 
 const FRENGLISH_API_KEY = process.env.FRENGLISH_API_KEY
+const BASE_PATH = 'docs/pages'
 const ORIGIN_LANGUAGE_DIR = 'docs/pages'
-const EXCLUDED_TRANSLATION_PATH = ['docs/pages/ja', 'docs/pages/solutions/chainlist']
+const EXCLUDED_TRANSLATION_PATH = [
+  'docs/pages/ja',
+  'docs/pages/api',
+  'docs/pages/guides',
+  'docs/pages/sdk',
+  'docs/pages/solutions',
+  'docs/pages/support',
+  'docs/pages/solutions/chainlist',
+]
 
 const frenglish = new FrenglishSDK(FRENGLISH_API_KEY)
 
@@ -44,6 +53,7 @@ function getChangedFiles() {
     const files = execSync(gitCommand, { encoding: 'utf8' }).trim().split('\n').filter(Boolean) // Remove empty strings
 
     log('Files to translate:', files)
+    process.exit(1)
     return files
   } catch (error) {
     console.error('Error fetching changed files:', error.message)
@@ -86,14 +96,15 @@ async function writeTranslatedFiles(translationContent, filesToTranslate) {
         continue
       }
 
-      const translatedFilePath = originalFile.replace(
-        ORIGIN_LANGUAGE_DIR,
-        path.join(ORIGIN_LANGUAGE_DIR, language),
-      )
+      const translatedFilePath = originalFile.replace(BASE_PATH, path.join(BASE_PATH, language))
       await fs.mkdir(path.dirname(translatedFilePath), { recursive: true })
 
       if (content.length > 0) {
-        await fs.writeFile(translatedFilePath, content, 'utf8')
+        await fs.writeFile(
+          translatedFilePath,
+          content.replace('../components', '../../components'),
+          'utf8',
+        )
         log(`Translated file written: ${translatedFilePath}`)
       } else {
         console.warn(`Empty content for file: ${fileId}. Skipping.`)
