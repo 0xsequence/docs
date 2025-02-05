@@ -90,6 +90,7 @@ const addExamplesToOpenAPI = (doc, examples) => {
   }
 
   for (const [endpoint, example] of Object.entries(examples)) {
+    console.log(endpoint)
     const path = doc.paths[endpoint]
     if (!path) {
       console.warn(path, 'not defined in examples')
@@ -101,6 +102,11 @@ const addExamplesToOpenAPI = (doc, examples) => {
 
       for (const method of methods) {
         if (path[method]) {
+          // Remove the 'example' value if it exists
+          if (path[method].requestBody?.content['application/json']?.example) {
+            path[method].requestBody.content['application/json'].example = undefined
+          }
+
           // Add security based on tags from examples
           if (ex.tag && Array.isArray(ex.tag)) {
             path[method].tags = ex.tag

@@ -39,11 +39,11 @@ function APIComponent({ specType }: any) {
   useEffect(() => {
     async function setupAuth() {
       const apiKey = await retrieveProjectAccessKey()
-      const specContent = await importSpec(specType) // {{ edit_3 }}
+      const specContent = await importSpec(specType)
       setConfig({
         spec: {
           // @ts-ignore
-          content: specContent // {{ edit_4 }}
+          content: specContent
         },
         authentication: {
           apiKey: {
@@ -56,7 +56,7 @@ function APIComponent({ specType }: any) {
     }
 
     setupAuth()
-  }, [specType]) // {{ edit_5 }}
+  }, [specType])
 
   // @ts-ignore
   return <ApiReferenceReact configuration={config} />
