@@ -55,13 +55,7 @@ export const OverviewSection = () => (
             title: 'Wallet Linking',
             body: 'Enable users to link their embedded wallet in your game with an external wallet - allowing you to query assets, balances, and allow easy flow of liquidity to your game.',
             link: '/solutions/wallets/link-wallets/overview',
-          },
-          {
-            icon: 'WalletIcon',
-            title: 'Universal Wallet',
-            body: 'Easily onboard web3-native players with a complete Universal Wallet.',
-            link: '/solutions/wallets/universal-wallet/overview',
-          },
+          }
         ]}
       />
     </div>
