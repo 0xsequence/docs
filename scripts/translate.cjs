@@ -7,19 +7,16 @@ require('dotenv').config()
 const FRENGLISH_API_KEY = process.env.FRENGLISH_API_KEY
 const BASE_PATH = 'docs/pages'
 const ORIGIN_LANGUAGE_DIR = 'docs/pages'
+const COMPONENT_LOCALES_PATH = 'docs/locales/en.po'
 const EXCLUDED_TRANSLATION_PATH = [
   'docs/pages/ja',
-  'docs/pages/api',
-  'docs/pages/guides',
-  'docs/pages/sdk',
-  'docs/pages/solutions',
-  'docs/pages/support',
   'docs/pages/solutions/chainlist',
 ]
 
 const frenglish = new FrenglishSDK(FRENGLISH_API_KEY)
 
-const isVerbose = process.argv.includes('--v') || process.argv.includes('--verbose')
+const isVerbose = process.argv.includes('--verbose')
+const shouldTranslateComponents = process.argv.includes('--translate-components')
 const shouldTranslateAllFiles = process.argv.includes('--translate-all')
 
 function log(...args) {
@@ -53,7 +50,6 @@ function getChangedFiles() {
     const files = execSync(gitCommand, { encoding: 'utf8' }).trim().split('\n').filter(Boolean) // Remove empty strings
 
     log('Files to translate:', files)
-    process.exit(1)
     return files
   } catch (error) {
     console.error('Error fetching changed files:', error.message)
@@ -87,6 +83,25 @@ async function translateFiles(files) {
   }
 }
 
+const translateComponentLocales = async () => {
+  try {
+    const fileId = path.basename(COMPONENT_LOCALES_PATH)
+    const content = await fs.readFile(COMPONENT_LOCALES_PATH, 'utf-8')
+
+    const translation = await frenglish.translate([content], false, [fileId])
+    log(`Translation requested with ID: ${translation.translationId}`)
+
+    return translation.content
+  } catch (error) {
+    console.error('Error during translation process:', error)
+    if (error.response) {
+      console.error('Response status:', error.response.status)
+      console.error('Response data:', await error.response.text())
+    }
+    process.exit(1)
+  }
+}
+
 async function writeTranslatedFiles(translationContent, filesToTranslate) {
   for (const { language, files: translatedFiles } of translationContent) {
     for (const { fileId, content } of translatedFiles) {
@@ -102,7 +117,7 @@ async function writeTranslatedFiles(translationContent, filesToTranslate) {
       if (content.length > 0) {
         await fs.writeFile(
           translatedFilePath,
-          content.replace('../components', '../../components'),
+          content.replaceAll('../components', '../../components'),
           'utf8',
         )
         log(`Translated file written: ${translatedFilePath}`)
@@ -113,11 +128,41 @@ async function writeTranslatedFiles(translationContent, filesToTranslate) {
   }
 }
 
+async function writeTranslatedComponentLocales(translationContent) {
+  for (const { language, files: translatedFiles } of translationContent) {
+    for (const { fileId, content } of translatedFiles) {
+      const translatedFilePath = COMPONENT_LOCALES_PATH.replace('en.po', `${language}.po`)
+      await fs.mkdir(path.dirname(translatedFilePath), { recursive: true })
+
+      if (content.length > 0) {
+        await fs.writeFile(translatedFilePath, content, 'utf8')
+        log(`Translated file written: ${translatedFilePath}`)
+      } else {
+        console.warn(`Empty content for file: ${fileId}. Skipping.`)
+      }
+    }
+  }
+}
+
 async function main() {
+  if (shouldTranslateComponents) {
+    const translationContent = await translateComponentLocales()
+    if (translationContent) {
+      await writeTranslatedComponentLocales(translationContent)
+
+      console.warn('=========================================')
+      console.warn('Component locales translated successfully')
+      console.warn('Run `pnpm translate` to translate .mdx files with changes')
+      console.warn('Run `pnpm translate --translate-all` to translate all .mdx files')
+
+      process.exit(0)
+    }
+  }
+
   const filesToTranslate = shouldTranslateAllFiles ? getAllFiles() : getChangedFiles()
   if (filesToTranslate.length === 0) {
     console.warn('No files to translate')
-    process.exit(1)
+    process.exit(0)
   }
 
   const translationContent = await translateFiles(filesToTranslate)

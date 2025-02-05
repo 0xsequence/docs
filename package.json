@@ -11,10 +11,11 @@
     "lint": "biome lint . --write --unsafe",
     "prepare-openapi-docs": "./scripts/prepare-openapi-docs.sh",
     "openapi-security": "./scripts/security-scheme.sh",
-    "lingui:extract": "lingui extract",
+    "lingui:extract": "lingui extract --locale en",
     "lingui:compile": "lingui compile --typescript",
-    "translate": "node ./scripts/translate.cjs --verbose && pnpm build",
-    "translate:all": "node ./scripts/translate.cjs --verbose --translate-all && pnpm build"
+    "translate": "node ./scripts/translate.cjs --verbose",
+    "translate:all": "node ./scripts/translate.cjs --verbose --translate-all",
+    "translate:components": "pnpm lingui:extract && node ./scripts/translate.cjs --verbose --translate-components && pnpm lingui:compile"
   },
   "dependencies": {
     "0xsequence": "^2.0.10",
