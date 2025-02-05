@@ -32,13 +32,7 @@ export const SolutionsSection = () => (
             title: 'Ecosystem',
             body: 'Create ecosystem wallets for your entire ecosystem through Sequence as well as enable external applications to connect to your embedded ecosystem wallet - all with the same address across chains & apps.',
             link: '/solutions/wallets/ecosystem/overview',
-          },
-          {
-            icon: 'WalletIcon',
-            title: 'Universal Wallet',
-            body: 'Easily onboard web3-native players with a complete Universal Wallet.',
-            link: '/solutions/wallets/universal-wallet/overview',
-          },
+          }
         ]}
       />
       <SolutionsGroup

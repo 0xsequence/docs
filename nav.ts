@@ -265,64 +265,6 @@ export const sidebar = {
             },
           ],
         },
-        {
-          text: 'Universal Wallet',
-          collapsed: true,
-          items: [
-            { text: 'Overview', link: '/solutions/wallets/universal-wallet/overview' },
-            { text: 'Quickstart', link: '/solutions/wallets/universal-wallet/quickstart' },
-            {
-              text: 'Examples',
-              collapsed: true,
-              items: [
-                {
-                  text: 'Connect Wallet',
-                  link: '/solutions/wallets/universal-wallet/examples/connect-wallet',
-                },
-                {
-                  text: 'Authenticate Users with Message Signature',
-                  link: '/solutions/wallets/universal-wallet/examples/auth-address',
-                },
-                {
-                  text: 'Signing & Verifying Messages',
-                  link: '/solutions/wallets/universal-wallet/examples/sign-message',
-                },
-                {
-                  text: 'No-wallet confirmation signatures',
-                  link: '/solutions/wallets/universal-wallet/examples/session-keys',
-                },
-                {
-                  text: 'Sending Transactions',
-                  link: '/solutions/wallets/universal-wallet/examples/send-transaction',
-                },
-                {
-                  text: 'Sending ERC-20 Tokens',
-                  link: '/solutions/wallets/universal-wallet/examples/send-erc20',
-                },
-                {
-                  text: 'Sending ERC-721 (NFT) Tokens',
-                  link: '/solutions/wallets/universal-wallet/examples/send-erc721',
-                },
-                {
-                  text: 'Sending ERC-1155 (Collectible) Tokens',
-                  link: '/solutions/wallets/universal-wallet/examples/send-erc1155',
-                },
-                {
-                  text: 'Sending a Batch of Transactions',
-                  link: '/solutions/wallets/universal-wallet/examples/send-batch-transactions',
-                },
-                {
-                  text: 'Building Backends with Sequence',
-                  link: '/solutions/wallets/universal-wallet/examples/building-backends',
-                },
-              ],
-            },
-            //  {text: 'Sequence Kit', link: '/solutions/wallets/universal-wallet/sequence-kit'},
-            { text: 'Supported Platforms', link: '/solutions/wallets/universal-wallet/platforms' },
-            { text: 'Fiat On-Ramps', link: '/solutions/wallets/universal-wallet/fiat-on-ramps' },
-            { text: 'Key Management', link: '/solutions/wallets/universal-wallet/key-management' },
-          ],
-        },
       ],
     },
     {
@@ -783,18 +725,7 @@ export const sidebar = {
           items: [{ text: 'Overview', link: '/sdk/go/overview' }],
         },
       ],
-    },
-    {
-      text: 'Common Questions',
-      collapsed: true,
-      items: [
-        {
-          text: 'How do I do signature validation?',
-          link: '/solutions/wallets/universal-wallet/examples/auth-address',
-        },
-        // ...
-      ],
-    },
+    }
   ],
 
   // apis
