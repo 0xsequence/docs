@@ -5,19 +5,21 @@ description: Integrate the Sequence Wallet, fetch your players assets, sign mess
 
 # Intro to Cropout - Unreal Engine Game Guide
 
-Cropout is a top-down casual RTS game built with Unreal Engine, serving as a powerful showcase for its advanced features. This documentation details the integration of Sequence’s Embedded Wallet SDK into the CropOut sample project, enabling seamless blockchain functionality. With this integration, players can access features like smart contract wallets, in-game asset ownership, and transaction management—all without disruptive popups or gas fee requirements. The setup preserves the game’s intuitive experience while introducing blockchain-enabled capabilities for modern Web3 gaming.
 
-In this guide we will walk you through how to integrate Embedded Wallet features using Sequence's Unreal SDK.
+Cropout is a top-down casual RTS game built with Unreal Engine, in this guide we will walk you through how to integrate Embedded Wallet features using Sequence's Unreal SDK.
+
+With this integration, players will be able to access features like smart contract wallets, in-game asset ownership, and transaction management—all without disruptive popups or gas fee requirements. 
+
 
 Checkout the [Boilerplate for this guide.](https://github.com/0xsequence/sequence-unreal)
-
 [Learn more about Embedded Wallets.](/solutions/wallets/overview#what-are-the-differences-between-these-options)
+
 
 ## 1. Setup
 
-::::steps
 
 ### Download the game sample
+
 
 If you have the Unreal Engine installed go straight to [Unreal's Cropout page.](https://www.unrealengine.com/en-US/blog/cropout-casual-rts-game-sample-project).
 
@@ -53,23 +55,28 @@ Alternatively, [get the SDK from the Epic Games Marketplace.](/sdk/unreal/instal
 
 ### Login using the Built-In UI
 
+
 On the Main Menu level blueprint we will spawn our `Sequence Connector` Actor which will initiate and display the Login Panel. 
 
 We recommend using the Built-In UI for development purposes, here's a more [detailed explanation. ](/sdk/unreal/user_interfaces/) 
 For further customization, [learn how to create your own UI.](/sdk/unreal/authentication/)
 
-::::
 
 ## 2. Setting the Network Id and Chain
+
 
 To start our interaction with the Sequence SDK, open the *Sequence Connector* blueprint, locate the `Auth Success` event on *Event Graph > Begin Play*, and we will call `Api Update Network Id` from the SequenceWalletBP Subsystem to set the wallet to your builders project selected chain.
 In the same event, we will also call `Set Chain` from the Sequence Indexer Subsystem so we can correctly fetch the assets.
 
+
 ## 3. Get Wallet address
+
 
 To display the wallet's address we first retrieve the user's wallet reference again using the SequenceWalletBP and use it to fetch and display the wallet's address from the selected network using `Api GetWallet Address` from the SequenceWalletBP Subsystem. We will display the user address on UI_Layer_Menu.
 
+
 ## 4. Set your NFTs
+
 
 In our case we are starting with an ERC-1155 contract, for our Resource Bundle packs and Farming Boosts. To create the NFTs go to [Builder Console >  Deploy > Contracts](/solutions/builder/contracts/) and select `Web3 Game Item`.
 
@@ -77,9 +84,11 @@ Once we've made our items we will now create their respective sale contracts by 
 
 We will add to our Web 3 Game items its corresponding rewards and it's Sale contract address as a property.
 
+
 ### Fetching our NFTs 
 
 To retrieve our newly created NFTs we will use the Indexer subsystem to call Get Token Supply, which will return us the information and metadata for the given contract address. You will find this in the `CUI_Purchase` blueprint.
+
 
 ### Purchasing an NFTs
 
@@ -93,31 +102,11 @@ To retrieve the players NFTs will be using the Indexer Subsystem to call `Get To
 
 To give the player the rewards for using one of our NFTs we will use the SequenceSDK subsystem to create and send a `Burn` transaction of the desired `Web 3 Game Item` which will return us the transaction status and the contract address, to verify the success of the items burn. On Succes, we will use the contracts properties to give the players their reward. You will find this in the `CUI_VaultItem` blueprint.
 
-
 For a more detailed explanation go to [Read From Blockchain](/sdk/unreal/read-from-blockchain/) and [Write to Blockchain](/sdk/unreal/write-to-blockchain/) sections. 
+
 
 ## 5. Sign out the player
 
-To  sign out the player and terminate his session we will call Clear Session from the Sequence Sessions Subsytem, this way we will remove his stored credentials and the user will need to login again when he returns. We will be calling this method in the UI_Layer_Menu.
 
-### Sign a Message
+To  sign out the player and terminate his session we will call `Clear Session from the Sequence Sessions Subsytem, this way we will remove his stored credentials and the user will need to login again when he returns. We will be calling this method in the UI_Layer_Menu.
 
-To sign a message, first retrieve the user's wallet reference. Then, use the input message from the boilerplate
-and initiate the signing process through the wallet to generate the signature.
-
-<b>Example Use Case:</b><br/>You can use this feature to sign a message from your backend, allowing you to verify your user's wallet upon receipt.
-
-<img alt={'img'} src={'/img/unreal/unreal_boilerplate_signature.png'} style={{borderRadius: 20}}/>
-
-## 5. Send Ether to another User
-
-To send an Ether transaction, use the recipient's address and amount from the boilerplate's input fields to initiate
-the transaction with the `SequenceWalletBP` subsystem and listen to the response event.
-
-<b>Example Use Case:</b><br/>A user initiates a payment transaction to another user within your game client.
-
-<img alt={'img'} src={'/img/unreal/unreal_boilerplate_transaction.png'} style={{borderRadius: 20}}/>
-
-:::warning
-Make sure to include your own error handling. The provided code snippets are simplified.
-:::
