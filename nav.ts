@@ -482,11 +482,6 @@ export const sidebar = {
               link: '/guides/using-unity-iap-to-sell-nfts',
             },
             {
-              text: 'How to sell On-Chain Items in your Unreal Project',
-              collapsed: true,
-              link: '/guides/unreal-primary-sales',
-            },
-            {
               text: 'How to do Primary Sales for On-Chain Items in Unity',
               collapsed: true,
               link: '/guides/unity-primary-sales',
