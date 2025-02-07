@@ -2,6 +2,7 @@
 title: Creating a Custom Marketplace with Sequence Market Protocol and Embedded Wallet Integration
 description: This guide covers the creation of a custom marketplace using tools from the Sequence stack. It includes steps for minting tokens, wallet authentication, blockchain queries, multi-wallet types, request creation, order accepting, and optional integration of an embedded wallet.
 ---
+
 import { Callout } from "vocs/components";
 
 # Custom Marketplace with Sequence Market Protocol
@@ -19,9 +20,10 @@ The tools will enable you to perform:
 7. [(Optional) Enable Embedded Wallet](/guides/custom-marketplace#7-optional-enable-embedded-wallet): Add a more seamless UX experience with no-confirmation transactions
 
 <Callout type="info">
-See an example [simplified marketplace dapp](https://simple-marketplace-boilerplate.pages.dev/) that enables users to mint collectibles, sell the collectibles with the Sequence Marketplace Protocol, and make purchases with USDC on `base-sepolia` by getting a top order from the Marketplace. 
+See an example [simplified marketplace dapp](https://simple-marketplace-boilerplate.pages.dev/) that enables users to mint collectibles, sell the collectibles with the Sequence Marketplace Protocol, and make purchases with USDC on `base-sepolia` by getting a top order from the Marketplace.
 
 The code can be found [here](https://github.com/0xsequence-demos/simple-marketplace-boilerplate)
+
 </Callout>
 
 ## 1. Minting
@@ -131,23 +133,27 @@ root.render(
 And finally, add a button in the `App.tsx` to make the Sequence Kit modal appear
 
 ```js
-import { useOpenConnectModal } from "@0xsequence/kit";
-import { useDisconnect, useAccount, useConnect } from "wagmi";
+import { useOpenConnectModal, useKitWallets } from "@0xsequence/kit";
 
 function App() {
-  const { address, isConnected } = useAccount();
+  const { address } = useAccount();
   const { setOpenConnectModal } = useOpenConnectModal();
-  const { disconnect } = useDisconnect();
+  const {
+    wallets, // Array of connected wallets
+    linkedWallets, // Array of linked wallets (for embedded wallets)
+    setActiveWallet, // Function to set a wallet as active
+    disconnectWallet, // Function to disconnect a wallet
+  } = useKitWallets();
+
+  const isConnected = wallets.length;
 
   const connect = async () => {
-    disconnect();
     setOpenConnectModal(true);
   };
 
   return (
     <>
-      {!isConnected && <button onClick={() => connect()}>connect</button>}
-      {isConnected && <button onClick={() => disconnect()}>connect</button>}
+      {!isConnected && <button onClick={() => connect()}>Connect</button>}
       {address && address}
     </>
   );
@@ -200,6 +206,7 @@ console.log("collection of items:", nftBalances);
 Where the response of the indexer call, yields the follow data:
 
 :::details[Example Response]
+
 - `contractType` (string) - the type of contract type (i.e. ERC20, ERC721, or ERC1155)
 - `contractAddress` (string) - the contract address of the token
 - `accountAddress` (string) - the deploying account address
@@ -228,6 +235,7 @@ Where the response of the indexer call, yields the follow data:
     - `verifiedBy` (string) - the verifing source as to why this is not spam
 - `updatedAt` (date) - the last time the indexer was updated
 - `tokenMetadata`
+
   - `tokenId` (string) - the tokenID of the token (always 0 if ERC20)
   - `contractAddress` (string) - the contract address of the token
   - `name` (string) - token level name
@@ -268,9 +276,8 @@ function App() {
 # Orderbook Transactions
 
 <Callout type="info">
-  In the Sequence Market protocol, when you create a listing, it's
-  referred to as a `request`, and when you accept a request it's called an
-  `order`.
+  In the Sequence Market protocol, when you create a listing, it's referred to
+  as a `request`, and when you accept a request it's called an `order`.
 </Callout>
 
 ## 5. Request Creation
@@ -419,7 +426,7 @@ import { useMutex } from 'react-context-mutex';
 function App() {
   ...
   const [requestData, setRequestData] = useState<any>(null)
-  const { data: hash, sendTransaction } = useSendTransaction() 
+  const { data: hash, sendTransaction } = useSendTransaction()
   const MutexRunner = useMutex();
   const mutexApproveERC1155 = new MutexRunner('sendApproveERC1155');
 
@@ -671,7 +678,7 @@ Then in the flow for not being a sequence wallet and requiring approval, we'll i
 
 ```ts
   ...
-  const { data: hash, sendTransaction } = useSendTransaction() 
+  const { data: hash, sendTransaction } = useSendTransaction()
   ...
   useEffect(() => {
     if (acceptData && mutexApproveERC20.isLocked()) {
