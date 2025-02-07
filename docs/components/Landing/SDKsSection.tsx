@@ -3,11 +3,7 @@ import { SmartLink } from './SmartLink'
 import * as ICONS from './icons'
 
 export const SDKsSection = () => {
-  const {
-    t,
-    i18n: { locale },
-  } = useLingui()
-  const lang = locale === 'en' ? '' : locale
+  const { t } = useLingui()
   return (
     <section className="flex flex-col gap-5 border-t dark:border-white-10 border-black-10">
       <div className="flex flex-col gap-1 py-5">
@@ -26,31 +22,31 @@ export const SDKsSection = () => {
           icon="UnityIcon"
           title="Unity"
           body={t`Integrate Sequence with our native Unity library.`}
-          link={`${lang}/sdk/unity/overview`}
+          link={`/sdk/unity/overview`}
         />
         <Card
           icon="UnrealIcon"
           title="Unreal Engine"
           body={t`Integrate Sequence with our native Unreal Engine library.`}
-          link={`${lang}/sdk/unreal/introduction`}
+          link={`/sdk/unreal/introduction`}
         />
         <Card
           icon="GolangIcon"
           title="Go"
           body={t`Leverage Sequence APIs easily from your Go backend.`}
-          link={`${lang}/sdk/go/overview`}
+          link={`/sdk/go/overview`}
         />
         <Card
           icon="NodeJSIcon"
           title="Typescript"
           body={t`Integrate Sequence APIs with our TypeScript SDK.`}
-          link={`${lang}/sdk/typescript/guides/overview`}
+          link={`/sdk/typescript/guides/overview`}
         />
         <Card
           icon="ReactIcon"
           title="Mobile"
           body={t`Integrate Sequence APIs for your mobile game with our React Native SDK`}
-          link={`${lang}/sdk/mobile`}
+          link={`/sdk/mobile`}
         />
       </div>
     </section>

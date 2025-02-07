@@ -6,10 +6,13 @@ require('dotenv').config()
 
 const FRENGLISH_API_KEY = process.env.FRENGLISH_API_KEY
 const BASE_PATH = 'docs/pages'
-const ORIGIN_LANGUAGE_DIR = 'docs/pages'
+const ORIGIN_LANGUAGE_DIR = 'docs/pages/support'
 const COMPONENT_LOCALES_PATH = 'docs/locales/en.po'
 const EXCLUDED_TRANSLATION_PATH = [
   'docs/pages/ja',
+  'docs/pages/sdk',
+  'docs/pages/solutions',
+  // 'docs/pages/support',
   'docs/pages/solutions/chainlist',
 ]
 
@@ -61,7 +64,7 @@ async function translateFiles(files) {
   try {
     const fileContents = await Promise.all(
       files.map(async (file) => ({
-        fileId: path.basename(file),
+        fileId: file,
         content: await fs.readFile(file, 'utf-8'),
       })),
     )
@@ -105,7 +108,7 @@ const translateComponentLocales = async () => {
 async function writeTranslatedFiles(translationContent, filesToTranslate) {
   for (const { language, files: translatedFiles } of translationContent) {
     for (const { fileId, content } of translatedFiles) {
-      const originalFile = filesToTranslate.find((file) => path.basename(file) === fileId)
+      const originalFile = filesToTranslate.find((file) => file === fileId)
       if (!originalFile) {
         console.warn(`Original file not found for translated file: ${fileId}`)
         continue
@@ -142,6 +145,46 @@ async function writeTranslatedComponentLocales(translationContent) {
       }
     }
   }
+}
+
+function modifyNavForLocale(topNav, sidebar, locale) {
+  // Helper function to check if a link is external
+  const isExternalLink = (link) =>
+    link && (link.startsWith('http://') || link.startsWith('https://'))
+
+  // Helper function to deep clone and modify links in a nav item
+  const processNavItem = (item) => {
+    const newItem = { ...item }
+
+    // Modify link if it exists and is not external
+    if (newItem.link && !isExternalLink(newItem.link)) {
+      newItem.link = `/${locale}${newItem.link}`
+    }
+
+    // Handle match property if it exists
+    if (newItem.match) {
+      newItem.match = `/${locale}${newItem.match}`
+    }
+
+    // Recursively process items array if it exists
+    if (Array.isArray(newItem.items)) {
+      newItem.items = newItem.items.map(processNavItem)
+    }
+
+    return newItem
+  }
+
+  // Process top navigation
+  const modifiedTopNav = topNav.map(processNavItem)
+
+  // Process sidebar
+  const modifiedSidebar = {}
+  for (const [key, value] of Object.entries(sidebar)) {
+    const newKey = `/${locale}${key}`
+    modifiedSidebar[newKey] = value.map(processNavItem)
+  }
+
+  return { topNav: modifiedTopNav, sidebar: modifiedSidebar }
 }
 
 async function main() {

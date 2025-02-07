@@ -5,7 +5,7 @@ import { DocSearch } from './components/DocSearch'
 
 import { i18n } from '@lingui/core'
 import { I18nProvider } from '@lingui/react'
-import { loadCatalog } from './utils/i18n'
+import { loadCatalog } from '../i18n'
 
 const Layout = ({ children }: { children: ReactElement | string }) => {
   const searchProps = {
@@ -20,7 +20,7 @@ const Layout = ({ children }: { children: ReactElement | string }) => {
     const catalog = isJapanese ? 'ja' : 'en'
 
     loadCatalog(catalog).then(() => setLoading(false))
-  })
+  }, [])
 
   if (isLoading) return null
 

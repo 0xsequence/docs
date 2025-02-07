@@ -3,11 +3,7 @@ import * as ICONS from './icons'
 import { Trans, useLingui } from '@lingui/react/macro'
 
 export const SolutionsSection = () => {
-  const {
-    t,
-    i18n: { locale },
-  } = useLingui()
-  const lang = locale === 'en' ? '' : locale
+  const { t } = useLingui()
   return (
     <section className="flex flex-col gap-5 border-t border-black-10">
       <div className="flex flex-col gap-1 py-5">
@@ -30,25 +26,25 @@ export const SolutionsSection = () => {
               icon: 'WalletIcon',
               title: t`Embedded Wallet`,
               body: t`Gasless Transactions. No popups. Deliver a seamless experience for both web2 and web3 players with Sequence embedded into your game or app, compatible with nearly any platform or game engine.`,
-              link: `${lang}/solutions/wallets/embedded-wallet/overview`,
+              link: `/solutions/wallets/embedded-wallet/overview`,
             },
             {
               icon: 'MinterIcon',
               title: t`Sequence Kit`,
               body: t`Built on top of wagmi, onboard web2 users or native crypto users with an existing wallet to your web game or app.`,
-              link: `${lang}/solutions/wallets/sequence-kit/overview`,
+              link: `/solutions/wallets/sequence-kit/overview`,
             },
             {
               icon: 'CollectiblesIcon',
               title: t`Ecosystem`,
               body: t`Create ecosystem wallets for your entire ecosystem through Sequence as well as enable external applications to connect to your embedded ecosystem wallet - all with the same address across chains & apps.`,
-              link: `${lang}/solutions/wallets/ecosystem/overview`,
+              link: `/solutions/wallets/ecosystem/overview`,
             },
             {
               icon: 'WalletIcon',
               title: t`Universal Wallet`,
               body: t`Easily onboard web3-native players with a complete Universal Wallet.`,
-              link: `${lang}/solutions/wallets/universal-wallet/overview`,
+              link: `/solutions/wallets/universal-wallet/overview`,
             },
           ]}
         />
@@ -60,19 +56,19 @@ export const SolutionsSection = () => {
               icon: 'MarketplaceIcon',
               title: t`White-Label Marketplace`,
               body: t`Launch an in-game collectibles marketplace within minutes.`,
-              link: `${lang}/solutions/marketplaces/white-label-marketplace/overview`,
+              link: `/solutions/marketplaces/white-label-marketplace/overview`,
             },
             {
               icon: 'SequenceIcon',
               title: t`Marketplace APIs`,
               body: t`Integrate custom in-game marketplaces with our APIs.`,
-              link: `${lang}/solutions/marketplaces/orderbook/overview`,
+              link: `/solutions/marketplaces/orderbook/overview`,
             },
             {
               icon: 'CartIcon',
               title: t`Sequence Pay`,
               body: t`An integrated payment solution designed to simplify and enhance the transaction experience within Web3 games. It combines multiple payment functionalities into a cohesive SDK available for Unity, Unreal, and React.`,
-              link: `${lang}/solutions/payments/overview`,
+              link: `/solutions/payments/overview`,
             },
           ]}
         />
@@ -84,25 +80,25 @@ export const SolutionsSection = () => {
               icon: 'IndexerIcon',
               title: t`Indexer`,
               body: t`Performantly query wallets and contracts to use in your game or app.`,
-              link: `${lang}/solutions/builder/indexer`,
+              link: `/solutions/builder/indexer`,
             },
             {
               icon: 'CollectiblesIcon',
               title: t`Contracts & Collectibles`,
               body: t`Import any contract or deploy a new one with our audited smart contract suite. Manage your collection metadata at scale.`,
-              link: `${lang}/solutions/collectibles/contracts/deploy-an-item-collection`,
+              link: `/solutions/collectibles/contracts/deploy-an-item-collection`,
             },
             {
               icon: 'AnalyticsIcon',
               title: t`Analytics`,
               body: t`Track every aspect of web3 activity within your games.`,
-              link: `${lang}/solutions/builder/analytics`,
+              link: `/solutions/builder/analytics`,
             },
             {
               icon: 'MinterIcon',
               title: t`Transaction Manager`,
               body: t`Scalable transactions with batching, access-control, parallelization, automatic reorg management with our transactions API.`,
-              link: `${lang}/solutions/transactions-api/overview`,
+              link: `/solutions/transactions-api/overview`,
             },
           ]}
         />

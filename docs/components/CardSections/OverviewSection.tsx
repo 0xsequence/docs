@@ -3,11 +3,7 @@ import * as ICONS from '../Landing/icons'
 import { useLingui } from '@lingui/react/macro'
 
 export const OverviewSection = () => {
-  const {
-    t,
-    i18n: { locale },
-  } = useLingui()
-  const lang = locale === 'en' ? '' : locale
+  const { t } = useLingui()
   return (
     <section className="flex flex-col gap-5 border-t border-black-10">
       <div className="flex md:flex-row flex-col gap-4">
@@ -19,25 +15,25 @@ export const OverviewSection = () => {
               icon: 'SequenceIcon',
               title: t`Create your first project`,
               body: t`Get started with the Sequence platform by following this quick guide to create your first project and get access to all the features available to build your next game or app.`,
-              link: `${lang}/solutions/builder/getting-started`,
+              link: `/solutions/builder/getting-started`,
             },
             {
               icon: 'CollectiblesIcon',
               title: t`Embedded Wallet Demo`,
               body: t`Try out our embedded wallet in a browser with Sequence Kit. Fully customizable, brandable, and available in your favorite game engine or framework.`,
-              link: `${lang}https://0xsequence.github.io/kit/?mode=waas`,
+              link: `https://0xsequence.github.io/kit/?mode=waas`,
             },
             {
               icon: 'UnityIcon',
               title: t`End to End Unity Game Guide`,
               body: t`Introducing Jelly Forest: a blockchain-enabled 2D runner game with social sign in, an in-game store, a backend transaction manager and more - all built in Unity using the Sequence platform.`,
-              link: `${lang}/guides/jelly-forest-unity-guide`,
+              link: `/guides/jelly-forest-unity-guide`,
             },
             {
               icon: 'DiscordIcon',
               title: t`Join our Community`,
               body: t`Join our Discord for onboarding, support, share your project, and more!`,
-              link: `${lang}https://discord.com/invite/sequence`,
+              link: `https://discord.com/invite/sequence`,
             },
           ]}
         />
@@ -49,25 +45,25 @@ export const OverviewSection = () => {
               icon: 'WalletIcon',
               title: t`Embedded Wallet`,
               body: t`Gasless Transactions. No popups. Deliver a seamless experience for both web2 and web3 players with Sequence embedded into your game or app, compatible with nearly any platform or game engine.`,
-              link: `${lang}/solutions/wallets/embedded-wallet/overview`,
+              link: `/solutions/wallets/embedded-wallet/overview`,
             },
             {
               icon: 'MinterIcon',
               title: t`Sequence Kit`,
               body: t`Built on top of wagmi, onboard web2 users or native crypto users with an existing wallet to your web game or app.`,
-              link: `${lang}/solutions/wallets/sequence-kit/overview`,
+              link: `/solutions/wallets/sequence-kit/overview`,
             },
             {
               icon: 'AirdropperIcon',
               title: t`Wallet Linking`,
               body: t`Enable users to link their embedded wallet in your game with an external wallet - allowing you to query assets, balances, and allow easy flow of liquidity to your game.`,
-              link: `${lang}/solutions/wallets/link-wallets/overview`,
+              link: `/solutions/wallets/link-wallets/overview`,
             },
             {
               icon: 'WalletIcon',
               title: t`Universal Wallet`,
               body: t`Easily onboard web3-native players with a complete Universal Wallet.`,
-              link: `${lang}/solutions/wallets/universal-wallet/overview`,
+              link: `/solutions/wallets/universal-wallet/overview`,
             },
           ]}
         />
@@ -81,25 +77,25 @@ export const OverviewSection = () => {
               icon: 'MarketplaceIcon',
               title: t`White-Label Marketplace`,
               body: t`Launch an in-game collectibles marketplace within minutes.`,
-              link: `${lang}/solutions/marketplaces/white-label-marketplace/overview`,
+              link: `/solutions/marketplaces/white-label-marketplace/overview`,
             },
             {
               icon: 'SequenceIcon',
               title: t`Marketplace APIs`,
               body: t`Integrate custom in-game marketplaces with our APIs.`,
-              link: `${lang}/solutions/marketplaces/orderbook/overview`,
+              link: `/solutions/marketplaces/orderbook/overview`,
             },
             {
               icon: 'CartIcon',
               title: t`NFT Checkout`,
               body: t`Offer easy purchases with credit card, crypto, IAP support.`,
-              link: `${lang}/solutions/wallets/sequence-kit/checkout`,
+              link: `/solutions/wallets/sequence-kit/checkout`,
             },
             {
               icon: 'NodeGatewayIcon',
               title: t`Fiat On-ramps`,
               body: t`Allow players to convert from fiat to crypto globally.`,
-              link: `${lang}/solutions/payments/onramps/fiat-on-ramps`,
+              link: `/solutions/payments/onramps/fiat-on-ramps`,
             },
           ]}
         />
@@ -111,25 +107,25 @@ export const OverviewSection = () => {
               icon: 'IndexerIcon',
               title: t`Indexer`,
               body: t`Performantly query wallets and contracts to use in your game or app.`,
-              link: `${lang}/solutions/builder/indexer`,
+              link: `/solutions/builder/indexer`,
             },
             {
               icon: 'CollectiblesIcon',
               title: t`Contracts & Collectibles`,
               body: t`Import any contract or deploy a new one with our audited smart contract suite. Manage your collection metadata at scale.`,
-              link: `${lang}/solutions/collectibles/contracts/deploy-an-item-collection`,
+              link: `/solutions/collectibles/contracts/deploy-an-item-collection`,
             },
             {
               icon: 'AnalyticsIcon',
               title: t`Analytics`,
               body: t`Track every aspect of web3 activity within your games.`,
-              link: `${lang}/solutions/builder/analytics`,
+              link: `/solutions/builder/analytics`,
             },
             {
               icon: 'MinterIcon',
               title: t`Transaction Manager`,
               body: t`Scalable transactions with batching, access-control, parallelization, automatic reorg management with our transactions API.`,
-              link: `${lang}/solutions/transactions-api/overview`,
+              link: `/solutions/transactions-api/overview`,
             },
           ]}
         />

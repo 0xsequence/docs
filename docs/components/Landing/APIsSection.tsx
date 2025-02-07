@@ -3,11 +3,7 @@ import * as ICONS from './icons'
 import { Trans, useLingui } from '@lingui/react/macro'
 
 export const APIsSection = () => {
-  const {
-    t,
-    i18n: { locale },
-  } = useLingui()
-  const lang = locale === 'en' ? '' : locale
+  const { t } = useLingui()
   return (
     <section className="flex flex-col gap-5 border-t dark:border-white-10 border-black-10">
       <div className="flex flex-col gap-1 py-5">
@@ -25,37 +21,37 @@ export const APIsSection = () => {
           title={t`Marketplace API`}
           icon="MarketplaceIcon"
           body={t`Integrate sell and buy operations through our orderbook interface.`}
-          link={`${lang}/api/marketplace/overview`}
+          link={`/api/marketplace/overview`}
         />
         <Card
           title={t`Indexer API`}
           icon="IndexerIcon"
           body={t`Query wallets and contracts on Ethereum-compatible chains.`}
-          link={`${lang}/api/indexer/overview`}
+          link={`/api/indexer/overview`}
         />
         <Card
           title={t`Metadata API`}
           icon="SequenceIcon"
           body={t`Fetch token details on any collection and collectible.`}
-          link={`${lang}/api/metadata/overview`}
+          link={`/api/metadata/overview`}
         />
         <Card
           title={t`Analytics API`}
           icon="AnalyticsIcon"
           body={t`Analyze, track, and report on vital metrics with our Analytics API.`}
-          link={`${lang}/api/analytics/overview`}
+          link={`/api/analytics/overview`}
         />
         <Card
           title={t`Transactions API`}
           icon="SequenceIcon"
           body={t`Send and optimize transactions on any chain through our performant Sequence Relayer.`}
-          link={`${lang}/api/transactions/overview`}
+          link={`/api/transactions/overview`}
         />
         <Card
           title={t`Node Gateway`}
           icon="NodeGatewayIcon"
           body={t`Leverage Sequence's auto-scaling node service.`}
-          link={`${lang}/api/node-gateway`}
+          link={`/api/node-gateway`}
         />
       </div>
     </section>

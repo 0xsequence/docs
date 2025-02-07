@@ -7,7 +7,6 @@ import { lingui } from '@lingui/vite-plugin'
 
 export default defineConfig({
   title: 'Sequence',
-
   iconUrl: { light: '/img/favicon.ico', dark: '/img/favicon.ico' },
   logoUrl: {
     light: '/img/sequence-composite-light.svg',
@@ -15,53 +14,34 @@ export default defineConfig({
   },
   vite: {
     esbuild: { target: 'esnext' },
-    ssr: {
-      noExternal: ['@docsearch/react'],
-    },
+    ssr: { noExternal: ['@docsearch/react'] },
     plugins: [
       tsconfigPaths(),
       ViteYaml(),
-      react({
-        babel: {
-          plugins: ['@lingui/babel-plugin-lingui-macro'],
-        },
-      }),
+      react({ babel: { plugins: ['@lingui/babel-plugin-lingui-macro'] } }),
       lingui(),
     ],
   },
-
-  // rootDir: '.',
   basePath: '/',
-
   topNav,
   sidebar,
-
   theme: {
-    // accentColor: {
-    //   light: '#442CA8',
-    //   dark: '#99ADED',
-    // },
     colorScheme: 'dark',
-    variables: {
-      fontFamily: {
-        default: 'Inter',
-        // mono: 'Roboto Mono'
-      },
-      color: {
-        background: {
-          light: '#f0f0f0',
-          dark: '#111111',
-        },
-        // background5: {
-        //   light: '#dddddd',
-        //   dark: '#111111',
-        // }
-
-        // backgroundDark: {
-        //   light: '#dddddd',
-        //   dark: '#151515'
-        // }
-      },
+    variables: { fontFamily: { default: 'Inter' } },
+  },
+  defaultLocale: {
+    label: 'English',
+    lang: 'en',
+  },
+  locales: {
+    ja: {
+      label: '日本語',
+      lang: 'ja',
     },
+  },
+  description: {
+    '/': 'Sequence is a modern, cloud-native, and low-code platform for building and deploying data pipelines.',
+    '/ja':
+      'Sequence は、データパイプラインを構築してデプロイするためのモダンでクラウドネイティブでローコードのプラットフォームです。',
   },
 })

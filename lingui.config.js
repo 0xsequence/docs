@@ -8,5 +8,9 @@ export default defineConfig({
       path: 'docs/locales/{locale}',
       include: ['docs/components'],
     },
+    {
+      path: 'docs/locales/nav/{locale}',
+      include: ['nav.ts'],
+    }
   ],
 })

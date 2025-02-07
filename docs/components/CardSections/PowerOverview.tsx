@@ -3,11 +3,7 @@ import * as ICONS from '../Landing/icons'
 import { useLingui } from '@lingui/react/macro'
 
 export const PowerOverview = () => {
-  const {
-    t,
-    i18n: { locale },
-  } = useLingui()
-  const lang = locale === 'en' ? '' : locale
+  const { t } = useLingui()
   return (
     <section className="flex flex-col gap-5 border-t border-black-10">
       <div className="flex md:flex-row flex-col gap-4">
@@ -19,25 +15,25 @@ export const PowerOverview = () => {
               icon: 'SequenceIcon',
               title: t`ERC20`,
               body: t`Standard, audited smart contract for deploying an ERC20 fungible token through Sequence Builder.`,
-              link: `${lang}/solutions/collectibles/contracts/deploy-ERC20-currency`,
+              link: `/solutions/collectibles/contracts/deploy-ERC20-currency`,
             },
             {
               icon: 'CollectiblesIcon',
               title: t`ERC721`,
               body: t`Deploy standard, audited non-fungible (ERC721) tokens through Sequence Builder`,
-              link: `${lang}/solutions/collectibles/contracts/deploy-an-item-collection`,
+              link: `/solutions/collectibles/contracts/deploy-an-item-collection`,
             },
             {
               icon: 'CollectiblesIcon',
               title: t`ERC1155`,
               body: t`Deploy standard, audited semi-fungible (ERC1155) which we helped coauthor through Sequence Builder`,
-              link: `${lang}/solutions/collectibles/contracts/deploy-an-item-collection`,
+              link: `/solutions/collectibles/contracts/deploy-an-item-collection`,
             },
             {
               icon: 'MinterIcon',
               title: t`Link any contracts`,
               body: t`Upload any custom contract by providing the ABI and manage from Sequence Builder.`,
-              link: `${lang}/solutions/builder/contracts`,
+              link: `/solutions/builder/contracts`,
             },
           ]}
         />
@@ -49,25 +45,25 @@ export const PowerOverview = () => {
               icon: 'AnalyticsIcon',
               title: t`Analytics`,
               body: t`Track every aspect of activity, retention, and more within your games.`,
-              link: `${lang}/solutions/builder/analytics`,
+              link: `/solutions/builder/analytics`,
             },
             {
               icon: 'CollectiblesIcon',
               title: t`Metadata Management`,
               body: t`Update your collections metadata via a UI or at scale using the metadata API.`,
-              link: `${lang}/solutions/builder/collections`,
+              link: `/solutions/builder/collections`,
             },
             {
               icon: 'IndexerIcon',
               title: t`Indexer`,
               body: t`Performantly query wallets and contracts to use in your game or app.`,
-              link: `${lang}/solutions/builder/indexer`,
+              link: `/solutions/builder/indexer`,
             },
             {
               icon: 'AirdropperIcon',
               title: t`Webhooks`,
               body: t`Deploy webhooks that listen to any arbitrary event across blockchains by providing an https callback`,
-              link: `${lang}/solutions/builder/webhooks`,
+              link: `/solutions/builder/webhooks`,
             },
           ]}
         />
@@ -82,19 +78,19 @@ export const PowerOverview = () => {
                 icon: 'MarketplaceIcon',
                 title: t`Gas Sponsorship`,
                 body: t`Utilize our gas sponsorship service in order to cover transactions fees for your endusers so they never have to think about the blockchain.`,
-                link: `${lang}/solutions/builder/gas-tank`,
+                link: `/solutions/builder/gas-tank`,
               },
               {
                 icon: 'NodeGatewayIcon',
                 title: t`Node Gateway`,
                 body: t`Leverage our autoscaling node service, automatically load balanced for your application.`,
-                link: `${lang}/solutions/builder/node-gateway`,
+                link: `/solutions/builder/node-gateway`,
               },
               {
                 icon: 'WalletIcon',
                 title: t`Transaction Manager`,
                 body: t`Scalable transactions with batching, access-control, parallelization, automatic reorg management with our transactions API.`,
-                link: `${lang}/solutions/transaction-manager/overview`,
+                link: `/solutions/transaction-manager/overview`,
               },
             ]}
           />
