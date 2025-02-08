@@ -37,42 +37,92 @@ yarn add @0xsequence/wagmi-connector 0xsequence ethers
 The connector is then imported and added to the list of connectors alongside the other wagmi connectors.
 
 ```js
-import { SequenceConnector } from "@0xsequence/wagmi-connector";
+import { sequenceWallet } from '@0xsequence/wagmi-connector';
+import { configureChains, createConfig } from 'wagmi';
+import { polygon } from 'wagmi/chains';
+import { publicProvider } from 'wagmi/providers/public';
+
+const chains: [Chain] = [polygon];
 
 const connectors = [
-  new SequenceConnector({
-    chains,
-    options: {
-      defaultNetwork: "polygon",
-      connect: {
-        app: "Demo-app",
-      },
-    },
+  sequenceWallet({,
+    walletAppURL: 'wallet_app_url',
+    defaultNetwork: chains[0].id, // Polygon network ID,
+    connectOptions: {
+      app: 'Demo-app',
+      projectAccessKey: 'your_project_access_key', // Replace with your actual project access key
+    }
   }),
-  ...otherConnectors,
+  // ...other connectors
 ];
 
-const wagmiConfig = createConfig({
-  autoConnect: true,
+const config = createConfig({
+  chains,
   connectors,
-  publicClient,
-  webSocketPublicClient,
-});
+  transports: {
+    ...
+  },
+})
+
+export default ({
+    children
+}: {
+  children: React.ReactNode;
+}) => {
+  return (
+    <WagmiProvider config={config}>
+        {children}
+    </WagmiProvider>
+  )
+}
 ```
 
 ## Parameters
 
-### chains
+### `walletAppURL`
+Url of sequence wallet to connect to
 
+### `defaultNetwork`
 Chains supported by app. This is the same parameter as would be passed to other RainbowKit wallets.
 
-### options.connect (optional)
+### `connectOptions.app` (required)  
+The name of the dapp, which will be displayed to the user on the connect screen.
 
-Connection details that will be passed to Sequence upon connection, including app name, network id, etc...
+### `connectOptions.appProtocol` (optional)  
+A custom protocol used for authentication redirects, particularly for Unity and Unreal Engine integrations.
 
-### options.defaultNetwork (optional)
+### `connectOptions.origin` (optional)  
+The origin hint of the dapp’s host opening the wallet. This value is automatically determined and verified for integrity, so it can usually be omitted.
 
-The default network to connect to. Sequence will default all operations to this network. It can also be defined using a number (e.g. 1 for Mainnet, 5 for Goerli, etc...).
+### `connectOptions.projectAccessKey` (optional)  
+The access key for the project, which can be obtained from [Sequence Builder](https://sequence.build). If the key is passed in `initWallet`, this value will be automatically populated.
+
+### `connectOptions.expiry` (optional)  
+The expiration time (in seconds) used for ETHAuth proof. The default is **1 week** (604800 seconds).
+
+### `connectOptions.authorize` (optional)  
+If set to `true`, the connection process will include an ETHAuth EIP-712 signing step and return the proof to the dapp.
+
+### `connectOptions.authorizeNonce` (optional)  
+A custom nonce value for ETHAuth proof, used for replay protection.
+
+### `connectOptions.authorizeVersion` (optional)  
+The SDK version that will validate the ETHAuth proof.
+
+### `connectOptions.askForEmail` (optional)  
+If set to `true`, the dapp will prompt the user for permission to access their email address.
+
+### `connectOptions.refresh` (optional)  
+If set to `true`, forces a full re-connect by disconnecting and then reconnecting the wallet.
+
+### `connectOptions.keepWalletOpened` (optional)  
+If set to `true`, the wallet window will remain open after connecting. By default, the wallet automatically closes after a successful connection.
+
+### `connectOptions.clientVersion` (optional)  
+Specifies the version of Sequence.js used by the dapp client.
+
+### `connectOptions.settings` (optional)  
+Additional options to customize the wallet experience.
 
 ## Using older versions of Wagmi (\<\= 0.12.x)
 
