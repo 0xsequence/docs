@@ -1,16 +1,12 @@
-import { defineConfig } from '@lingui/cli'
+import { defineConfig } from "@lingui/cli";
 
 export default defineConfig({
-  sourceLocale: 'en',
-  locales: ['en', 'ja'],
+  sourceLocale: "en",
+  locales: ["en", "ja"],
   catalogs: [
     {
-      path: 'docs/locales/{locale}',
-      include: ['docs/components'],
+      path: "docs/locales/{locale}",
+      include: ["docs/components"],
     },
-    {
-      path: 'docs/locales/nav/{locale}',
-      include: ['nav.ts'],
-    }
   ],
-})
+});

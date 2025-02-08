@@ -6,13 +6,10 @@ require('dotenv').config()
 
 const FRENGLISH_API_KEY = process.env.FRENGLISH_API_KEY
 const BASE_PATH = 'docs/pages'
-const ORIGIN_LANGUAGE_DIR = 'docs/pages/support'
+const ORIGIN_LANGUAGE_DIR = 'docs/pages'
 const COMPONENT_LOCALES_PATH = 'docs/locales/en.po'
 const EXCLUDED_TRANSLATION_PATH = [
   'docs/pages/ja',
-  'docs/pages/sdk',
-  'docs/pages/solutions',
-  // 'docs/pages/support',
   'docs/pages/solutions/chainlist',
 ]
 
@@ -88,8 +85,10 @@ async function translateFiles(files) {
 
 const translateComponentLocales = async () => {
   try {
-    const fileId = path.basename(COMPONENT_LOCALES_PATH)
+    const fileId = COMPONENT_LOCALES_PATH
     const content = await fs.readFile(COMPONENT_LOCALES_PATH, 'utf-8')
+
+    console.log('Translating component locales...', fileId)
 
     const translation = await frenglish.translate([content], false, [fileId])
     log(`Translation requested with ID: ${translation.translationId}`)
