@@ -2,10 +2,12 @@ import clsx from 'clsx'
 import { type ReactNode, useEffect, useRef, useState } from 'react'
 import { TwitterIcon, GithubIcon, DiscordIcon } from './icons'
 import { SmartLink } from './SmartLink'
+import { useLingui } from '@lingui/react/macro'
 
 export const Footer = ({ logo }: { logo: ReactNode }) => {
   const [state, submitToHubspot] = useNewsletterSignup()
   const [email, setEmail] = useState('')
+  const { t } = useLingui()
 
   return (
     <footer className="border-t border-black-10 px-5 pt-15">
@@ -60,7 +62,7 @@ export const Footer = ({ logo }: { logo: ReactNode }) => {
                           />
                         </div>
                       ) : (
-                        'Join'
+                        t`Join`
                       )}
                     </div>
                   </button>
@@ -104,7 +106,6 @@ export const Footer = ({ logo }: { logo: ReactNode }) => {
             >
               <GithubIcon />
             </SmartLink>
-
           </div>
           <SmartLink href="https://horizon.io" className="hover-fade">
             <img

@@ -1,5 +1,3 @@
-import React from 'react'
-
 const TableColumn = ({ title }: any) => {
   return <th>{title}</th>
 }
@@ -22,7 +20,7 @@ const TableCell = ({ content, imgSrc }: any) => {
 
 const Table = ({ rows, columns }: any) => {
   return (
-    <table className='docs-table'>
+    <table className="docs-table">
       <thead>
         <tr>
           {columns.map((column: any, index: any) => {

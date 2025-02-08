@@ -2,74 +2,214 @@ const { execSync } = require('node:child_process')
 const fs = require('node:fs').promises
 const path = require('node:path')
 const FrenglishSDK = require('frenglish').default
+require('dotenv').config()
 
-const FRENGLISH_API_KEY =
-  process.env.FRENGLISH_API_KEY
-const ORIGIN_LANGUAGE_DIR = 'docs/pages/en' // Adjust this to your origin language directory
+const FRENGLISH_API_KEY = process.env.FRENGLISH_API_KEY
+const BASE_PATH = 'docs/pages'
+const ORIGIN_LANGUAGE_DIR = 'docs/pages'
+const COMPONENT_LOCALES_PATH = 'docs/locales/en.po'
+const EXCLUDED_TRANSLATION_PATH = [
+  'docs/pages/ja',
+  'docs/pages/solutions/chainlist',
+]
+
 const frenglish = new FrenglishSDK(FRENGLISH_API_KEY)
 
-async function getChangedFiles() {
-  // Fallback: get all files in the origin language directory
-  console.log('Getting all files from:', ORIGIN_LANGUAGE_DIR)
-  const allFiles = execSync(`find ${ORIGIN_LANGUAGE_DIR} -type f`).toString().trim().split('\n')
+const isVerbose = process.argv.includes('--verbose')
+const shouldTranslateComponents = process.argv.includes('--translate-components')
+const shouldTranslateAllFiles = process.argv.includes('--translate-all')
 
-  // Filter out files from chainlist directory
-  const filteredFiles = allFiles.filter(
-    (file) => !file.includes('/chainlist/') && file.endsWith('.mdx'),
-  )
-
-  console.log('Files to translate:', filteredFiles)
-  return filteredFiles
+function log(...args) {
+  if (isVerbose) console.log(...args)
 }
 
-async function main() {
+function getAllFiles() {
+  log('Getting all files from:', ORIGIN_LANGUAGE_DIR)
+
   try {
-    // Step 1: Prepare files
-    const filesToTranslate = await getChangedFiles()
+    const grepExcludedPaths = EXCLUDED_TRANSLATION_PATH.map((path) => `-e ${path}`).join(' ')
+    const findCommand = `find "${ORIGIN_LANGUAGE_DIR}" -type f -name "*.mdx" | grep -v ${grepExcludedPaths}`
 
-    // Skip if no files to translate
-    if (filesToTranslate.length === 0) {
-      console.log('No files to translate')
-      return
-    }
+    const files = execSync(findCommand, { encoding: 'utf8' }).trim().split('\n').filter(Boolean) // Remove empty strings
 
+    log('Files to translate:', files)
+    return files
+  } catch (error) {
+    console.error('Error fetching files:', error.message)
+    return []
+  }
+}
+
+function getChangedFiles() {
+  log('Getting changed files from git status in:', ORIGIN_LANGUAGE_DIR)
+
+  try {
+    const grepExcludedPaths = EXCLUDED_TRANSLATION_PATH.map((path) => `:!${path}`).join(' ')
+    const gitCommand = `git status --porcelain "${ORIGIN_LANGUAGE_DIR}" ${grepExcludedPaths} | awk '{print $2}'`
+
+    const files = execSync(gitCommand, { encoding: 'utf8' }).trim().split('\n').filter(Boolean) // Remove empty strings
+
+    log('Files to translate:', files)
+    return files
+  } catch (error) {
+    console.error('Error fetching changed files:', error.message)
+    return []
+  }
+}
+
+async function translateFiles(files) {
+  try {
     const fileContents = await Promise.all(
-      filesToTranslate.map(async (file) => {
-        const content = await fs.readFile(file, 'utf-8')
-        return { fileId: path.basename(file), content }
-      }),
+      files.map(async (file) => ({
+        fileId: file,
+        content: await fs.readFile(file, 'utf-8'),
+      })),
     )
 
     const filenames = fileContents.map((file) => file.fileId)
     const contents = fileContents.map((file) => file.content)
 
-    // Step 2: Request translation
-
     const translation = await frenglish.translate(contents, false, filenames)
-    console.log(`Translation requested with ID: ${translation.translationId}`)
+    log(`Translation requested with ID: ${translation.translationId}`)
 
-    // Step 3: Retrieve translated content
-    const translatedContent = translation.content
-
-    // Step 4: Save translated files
-    for (const languageData of translatedContent) {
-      const language = languageData.language
-      const translatedFiles = languageData.files
-
-      for (const translatedFile of translatedFiles) {
-        const translatedFilePath = path.join(
-          '/Users/jameslawton/Coding/docs-v2/docs/',
-          language,
-          translatedFile.fileId,
-        )
-        await fs.mkdir(path.dirname(translatedFilePath), { recursive: true })
-        await fs.writeFile(translatedFilePath, translatedFile.content)
-        console.log(`Translated file written: ${translatedFilePath}`)
-      }
-    }
+    return translation.content
   } catch (error) {
     console.error('Error during translation process:', error)
+    if (error.response) {
+      console.error('Response status:', error.response.status)
+      console.error('Response data:', await error.response.text())
+    }
     process.exit(1)
+  }
+}
+
+const translateComponentLocales = async () => {
+  try {
+    const fileId = COMPONENT_LOCALES_PATH
+    const content = await fs.readFile(COMPONENT_LOCALES_PATH, 'utf-8')
+
+    console.log('Translating component locales...', fileId)
+
+    const translation = await frenglish.translate([content], false, [fileId])
+    log(`Translation requested with ID: ${translation.translationId}`)
+
+    return translation.content
+  } catch (error) {
+    console.error('Error during translation process:', error)
+    if (error.response) {
+      console.error('Response status:', error.response.status)
+      console.error('Response data:', await error.response.text())
+    }
+    process.exit(1)
+  }
+}
+
+async function writeTranslatedFiles(translationContent, filesToTranslate) {
+  for (const { language, files: translatedFiles } of translationContent) {
+    for (const { fileId, content } of translatedFiles) {
+      const originalFile = filesToTranslate.find((file) => file === fileId)
+      if (!originalFile) {
+        console.warn(`Original file not found for translated file: ${fileId}`)
+        continue
+      }
+
+      const translatedFilePath = originalFile.replace(BASE_PATH, path.join(BASE_PATH, language))
+      await fs.mkdir(path.dirname(translatedFilePath), { recursive: true })
+
+      if (content.length > 0) {
+        await fs.writeFile(
+          translatedFilePath,
+          content.replaceAll('../components', '../../components'),
+          'utf8',
+        )
+        log(`Translated file written: ${translatedFilePath}`)
+      } else {
+        console.warn(`Empty content for file: ${fileId}. Skipping.`)
+      }
+    }
+  }
+}
+
+async function writeTranslatedComponentLocales(translationContent) {
+  for (const { language, files: translatedFiles } of translationContent) {
+    for (const { fileId, content } of translatedFiles) {
+      const translatedFilePath = COMPONENT_LOCALES_PATH.replace('en.po', `${language}.po`)
+      await fs.mkdir(path.dirname(translatedFilePath), { recursive: true })
+
+      if (content.length > 0) {
+        await fs.writeFile(translatedFilePath, content, 'utf8')
+        log(`Translated file written: ${translatedFilePath}`)
+      } else {
+        console.warn(`Empty content for file: ${fileId}. Skipping.`)
+      }
+    }
+  }
+}
+
+function modifyNavForLocale(topNav, sidebar, locale) {
+  // Helper function to check if a link is external
+  const isExternalLink = (link) =>
+    link && (link.startsWith('http://') || link.startsWith('https://'))
+
+  // Helper function to deep clone and modify links in a nav item
+  const processNavItem = (item) => {
+    const newItem = { ...item }
+
+    // Modify link if it exists and is not external
+    if (newItem.link && !isExternalLink(newItem.link)) {
+      newItem.link = `/${locale}${newItem.link}`
+    }
+
+    // Handle match property if it exists
+    if (newItem.match) {
+      newItem.match = `/${locale}${newItem.match}`
+    }
+
+    // Recursively process items array if it exists
+    if (Array.isArray(newItem.items)) {
+      newItem.items = newItem.items.map(processNavItem)
+    }
+
+    return newItem
+  }
+
+  // Process top navigation
+  const modifiedTopNav = topNav.map(processNavItem)
+
+  // Process sidebar
+  const modifiedSidebar = {}
+  for (const [key, value] of Object.entries(sidebar)) {
+    const newKey = `/${locale}${key}`
+    modifiedSidebar[newKey] = value.map(processNavItem)
+  }
+
+  return { topNav: modifiedTopNav, sidebar: modifiedSidebar }
+}
+
+async function main() {
+  if (shouldTranslateComponents) {
+    const translationContent = await translateComponentLocales()
+    if (translationContent) {
+      await writeTranslatedComponentLocales(translationContent)
+
+      console.warn('=========================================')
+      console.warn('Component locales translated successfully')
+      console.warn('Run `pnpm translate` to translate .mdx files with changes')
+      console.warn('Run `pnpm translate --translate-all` to translate all .mdx files')
+
+      process.exit(0)
+    }
+  }
+
+  const filesToTranslate = shouldTranslateAllFiles ? getAllFiles() : getChangedFiles()
+  if (filesToTranslate.length === 0) {
+    console.warn('No files to translate')
+    process.exit(0)
+  }
+
+  const translationContent = await translateFiles(filesToTranslate)
+  if (translationContent) {
+    await writeTranslatedFiles(translationContent, filesToTranslate)
   }
 }
 

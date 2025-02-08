@@ -1,3 +1,4 @@
+import { Trans } from '@lingui/react/macro'
 import { useState, useEffect, type ReactElement } from 'react'
 
 const TopNavButton = (): ReactElement => {
@@ -26,7 +27,7 @@ const TopNavButton = (): ReactElement => {
         window.open('https://sequence.build/', '_blank', 'noopener,noreferrer')
       }}
     >
-      Sign Up
+      <Trans>Sign Up</Trans>
     </a>
   )
 }

@@ -1,120 +1,150 @@
 import { SmartLink } from './Landing/SmartLink'
 
-export const GuidesOverview = () => (
-  <section className="flex flex-col gap-5 border-t dark:border-white-10 border-black-10">
-    <div className="flex flex-col gap-1 py-5">
-      <h3 className="text-3xl text-themed-primary font-bold">Guides</h3>
-      <p className="text-md leading-6 font-medium dark:text-white-80 text-black-80 mr-8">
-        Follow our step-by-step guides and open source code templates to accelerate your time to
-        market.
-      </p>
-    </div>
-    <div className="flex flex-wrap gap-4 md:flex-row flex-col">
-      <h4 className="text-2xl text-themed-primary font-bold">Game Developers</h4>
-    </div>
-    <div className="flex flex-wrap gap-4 md:flex-row flex-col">
-      <GuideCard
-        title="Build a Mobile Game with Unity + Sequence"
-        body="Learn how to build an engaging iOS and Android game that uses Sequence Embedded Wallets under the hood for an integrated marketplace and in-game currency."
-        link="/guides/jelly-forest-unity-guide"
-        image="/img/unity/jellyforest.webp"
-        demoLinkiOS="https://testflight.apple.com/join/xrnh8Vzm"
-        demoLinkAndroid="https://play.google.com/store/apps/details?id=app.sequence.jelly_forest"
-      />
-            <GuideCard
-        title="Integrate Sequence Wallets with a Telegram Mini-App"
-        body="Follow our integration guide to learn how to integrate a Sequence Embedded Wallet into a Telegram App to support your users on EVM chains."
-        link="/guides/telegram-integration"
-        image="/img/guides/telegram/telegram-miniapp.webp"
-      />
-        <GuideCard
-            title="How to build a Game with Unreal Engine"
-            body="Use Sequence's Unreal SDK to display Embedded Wallet information, sign messages, and send transactions."
-            link="/guides/unreal-ew-guide"
-            image="/img/guides/overview/unreal-ew-guide.png"
-            deployLink="https://github.com/0xsequence/unreal-embedded-wallet-boilerplate"
-        />
-      <GuideCard
-        title="Create a Dungeon Crawler Game with AI Generated Rewards"
-        body="With this tutorial, build a web-based maze where lootbox items are generated using AI and dynamically minted into the player's universal wallet."
-        link="/guides/treasure-chest-guide"
-        image="/img/guides/treasure-chest/dungeonMinter.png"
-        demoLink="https://0xsequence-demos.github.io/demo-dungeon-minter/"
-      />
-      <GuideCard
-        title="Build a WebGL Game in Typescript"
-        body="Follow a step by step guide to build a web-based game demo that leverages Sequence Embedded Wallet with custom in-game achievement tokens."
-        link="/guides/webgl-guide"
-        image="/img/aviator.png"
-        demoLink="https://0xsequence.github.io/aviator-demo/"
-      />
-      <GuideCard
-        title="Sell Game Items via a Web Shop"
-        body="Accelerate your game growth by selling items directly to your players. In this guide, we will go over the steps how to deploy a Primary Sale contract using any custom or existing currency for a webshop that utilizes game items from a ERC1155 contract."
-        link="/guides/primary-sales"
-        image="/img/guides/overview/primary-sales.png"
-        demoLink="https://primary-sale-1155-boilerplate.pages.dev/"
-      />
-        <GuideCard
-            title="How to do Primary Sales for On-Chain Items in Unity"
-            body="This guide covers the creation of a Primary Sale with Sequence's Unity SDK."
-            link="/guides/unity-primary-sales"
-            image="/img/guides/overview/unity-primary-sales.png"
-            demoLink="https://github.com/0xsequence/sequence-unity"
-        />
-    </div>
+import { Trans, useLingui } from '@lingui/react/macro'
 
-    <div className="flex flex-wrap gap-4 md:flex-row flex-col">
-      <h4 className="text-2xl text-themed-primary font-bold pt-5">Web3</h4>
-    </div>
-    <div className="flex flex-wrap gap-4 md:flex-row flex-col">
-      <GuideCard
-        title="Build a Scalable NFT Minting Service"
-        body="Leveraging Sequence's Transaction API and a serverless environment, you will build a scalable minting service for NFT mints or any other transactions that automatically handles blockchain complexities like reorgs, nonce management, and transaction parallelization."
-        link="/guides/mint-collectibles-serverless"
-        image="/img/guides/overview/sword.png"
-      />
-      <GuideCard
-        title="Creating a Custom Marketplace with Sequence"
-        body="Build an API-driven marketplace where players can mint, then sell or buy items using a custom web-based interface leveraging Sequence Orderbook APIs."
-        link="/guides/custom-marketplace"
-        image="/img/guides/overview/marketplace.png"
-        demoLink="https://template-aviator-custom-marketplace.pages.dev/"
-      />
-      <GuideCard
-        title="Sequence Analytics API in Dune"
-        body="Guide for querying information about usage from your users for your specific project leveraging a serverless Cloudflare Worker."
-        link="/guides/analytics-guide"
-        image="/img/guides/analytics/dune-analytics.jpg"
-      />
-      <GuideCard
-        title="Backend Transaction Service for NodeJS"
-        body="Guide for a scalable transaction service for your NodeJS backend to eliminate complexities around re-orgs, nonce management, parallelization, and more."
-        link="/guides/templates/building-relaying-server"
-        image="/img/guides/overview/nodejs.png"
-        deployLink="https://railway.app/template/ERJVm2"
-      />
-      <GuideCard
-        title="Creating, Storing, and Managing Collectibles Metadata"
-        body="By utilizing Sequence's Metadata API, you can programmatically create, manage, and store metadata associated with your NFTs from nearly any environment. We'll walk you through how to call these REST-APIs to organize your collections for your game or experience."
-        link="/guides/metadata-guide"
-        image="/img/guides/overview/storage.png"
-      />
-      <GuideCard
-        title="Link a Embedded Wallet associated with your game to an External Wallet"
-        body="Combine Sequence Embedded Wallets and signature verification to authorize an external wallet session in a web app, linking two verified wallet instances together."
-        link="/solutions/wallets/link-wallets/integration-guide"
-        image="/img/guides/overview/wallet_linking_guide_overview.png"
-      />
-      <GuideCard
-        title="Confirmation Free Signatures using a Universal Sequence Wallet"
-        body="This code demonstrates how to create a simple Rock Paper Scissors game using the Sequence Wallet and session keys for streamlined user interactions."
-        link="/solutions/wallets/universal-wallet/examples/session-keys"
-        image="/img/guides/confirmation-free-signatures/people-playing-paper-rock-scissors.jpg"
-      />
-    </div>
-  </section>
-)
+export const GuidesOverview = () => {
+  const {
+    t,
+    i18n: { locale },
+  } = useLingui()
+  const lang = locale === 'en' ? '' : locale
+
+  const guideCards = [
+    {
+      title: t`Build a Mobile Game with Unity + Sequence`,
+      body: t`Learn how to build an engaging iOS and Android game that uses Sequence Embedded Wallets under the hood for an integrated marketplace and in-game currency.`,
+      link: `${lang}/guides/jelly-forest-unity-guide`,
+      image: '/img/unity/jellyforest.webp',
+      demoLinkiOS: 'https://testflight.apple.com/join/xrnh8Vzm',
+      demoLinkAndroid: 'https://play.google.com/store/apps/details?id=app.sequence.jelly_forest',
+    },
+    {
+      title: t`Integrate Sequence Wallets with a Telegram Mini-App`,
+      body: t`Follow our integration guide to learn how to integrate a Sequence Embedded Wallet into a Telegram App to support your users on EVM chains.`,
+      link: `${lang}/guides/telegram-integration`,
+      image: '/img/guides/telegram/telegram-miniapp.webp',
+    },
+    {
+      title: t`How to build a Game with Unreal Engine`,
+      body: t`Use Sequence's Unreal SDK to display Embedded Wallet information, sign messages, and send transactions.`,
+      link: `${lang}/guides/unreal-ew-guide`,
+      image: '/img/guides/overview/unreal-ew-guide.png',
+      deployLink: 'https://github.com/0xsequence/unreal-embedded-wallet-boilerplate',
+    },
+    {
+      title: t`Create a Dungeon Crawler Game with AI Generated Rewards`,
+      body: t`With this tutorial, build a web-based maze where lootbox items are generated using AI and dynamically minted into the player's universal wallet.`,
+      link: `${lang}/guides/treasure-chest-guide`,
+      image: '/img/guides/treasure-chest/dungeonMinter.png',
+      demoLink: 'https://0xsequence-demos.github.io/demo-dungeon-minter/',
+    },
+    {
+      title: t`Build a WebGL Game in Typescript`,
+      body: t`Follow a step by step guide to build a web-based game demo that leverages Sequence Embedded Wallet with custom in-game achievement tokens.`,
+      link: `${lang}/guides/webgl-guide`,
+      image: '/img/aviator.png',
+      demoLink: 'https://0xsequence.github.io/aviator-demo/',
+    },
+    {
+      title: t`Sell Game Items via a Web Shop`,
+      body: t`Accelerate your game growth by selling items directly to your players. In this guide, we will go over the steps how to deploy a Primary Sale contract using any custom or existing currency for a webshop that utilizes game items from a ERC1155 contract.`,
+      link: `${lang}/guides/primary-sales`,
+      image: '/img/guides/overview/primary-sales.png',
+      demoLink: 'https://primary-sale-1155-boilerplate.pages.dev/',
+    },
+    {
+      title: t`How to do Primary Sales for On-Chain Items in Unity`,
+      body: t`This guide covers the creation of a Primary Sale with Sequence's Unity SDK.`,
+      link: `${lang}/guides/unity-primary-sales`,
+      image: '/img/guides/overview/unity-primary-sales.png',
+      demoLink: 'https://github.com/0xsequence/sequence-unity',
+    },
+  ]
+
+  const web3GuideCards = [
+    {
+      title: t`Build a Scalable NFT Minting Service`,
+      body: t`Leveraging Sequence's Transaction API and a serverless environment, you will build a scalable minting service for NFT mints or any other transactions that automatically handles blockchain complexities like reorgs, nonce management, and transaction parallelization.`,
+      link: `${lang}/guides/mint-collectibles-serverless`,
+      image: '/img/guides/overview/sword.png',
+    },
+    {
+      title: t`Creating a Custom Marketplace with Sequence`,
+      body: t`Build an API-driven marketplace where players can mint, then sell or buy items using a custom web-based interface leveraging Sequence Orderbook APIs.`,
+      link: `${lang}/guides/custom-marketplace`,
+      image: '/img/guides/overview/marketplace.png',
+      demoLink: 'https://template-aviator-custom-marketplace.pages.dev/',
+    },
+    {
+      title: t`Sequence Analytics API in Dune`,
+      body: t`Guide for querying information about usage from your users for your specific project leveraging a serverless Cloudflare Worker.`,
+      link: `${lang}/guides/analytics-guide`,
+      image: '/img/guides/analytics/dune-analytics.jpg',
+    },
+    {
+      title: t`Backend Transaction Service for NodeJS`,
+      body: t`Guide for a scalable transaction service for your NodeJS backend to eliminate complexities around re-orgs, nonce management, parallelization, and more.`,
+      link: `${lang}/guides/templates/building-relaying-server`,
+      image: '/img/guides/overview/nodejs.png',
+      deployLink: 'https://railway.app/template/ERJVm2',
+    },
+    {
+      title: t`Creating, Storing, and Managing Collectibles Metadata`,
+      body: t`By utilizing Sequence's Metadata API, you can programmatically create, manage, and store metadata associated with your NFTs from nearly any environment. We'll walk you through how to call these REST-APIs to organize your collections for your game or experience.`,
+      link: `${lang}/guides/metadata-guide`,
+      image: '/img/guides/overview/storage.png',
+    },
+    {
+      title: t`Link a Embedded Wallet associated with your game to an External Wallet`,
+      body: t`Combine Sequence Embedded Wallets and signature verification to authorize an external wallet session in a web app, linking two verified wallet instances together.`,
+      link: `${lang}/solutions/wallets/link-wallets/integration-guide`,
+      image: '/img/guides/overview/wallet_linking_guide_overview.png',
+    },
+    {
+      title: t`Confirmation Free Signatures using a Universal Sequence Wallet`,
+      body: t`This code demonstrates how to create a simple Rock Paper Scissors game using the Sequence Wallet and session keys for streamlined user interactions.`,
+      link: `${lang}/solutions/wallets/universal-wallet/examples/session-keys`,
+      image: '/img/guides/confirmation-free-signatures/people-playing-paper-rock-scissors.jpg',
+    },
+  ]
+
+  return (
+    <section className="flex flex-col gap-5 border-t dark:border-white-10 border-black-10">
+      <div className="flex flex-col gap-1 py-5">
+        <h3 className="text-3xl text-themed-primary font-bold">
+          <Trans>Guides</Trans>
+        </h3>
+        <p className="text-md leading-6 font-medium dark:text-white-80 text-black-80 mr-8">
+          <Trans>
+            Follow our step-by-step guides and open source code templates to accelerate your time to
+            market.
+          </Trans>
+        </p>
+      </div>
+      <div className="flex flex-wrap gap-4 md:flex-row flex-col">
+        <h4 className="text-2xl text-themed-primary font-bold">
+          <Trans>Game Developers</Trans>
+        </h4>
+      </div>
+      <div className="flex flex-wrap gap-4 md:flex-row flex-col">
+        {guideCards.map((guideCard, index) => (
+          <GuideCard key={index} {...guideCard} />
+        ))}
+      </div>
+
+      <div className="flex flex-wrap gap-4 md:flex-row flex-col">
+        <h4 className="text-2xl text-themed-primary font-bold pt-5">
+          <Trans>Web3</Trans>
+        </h4>
+      </div>
+      <div className="flex flex-wrap gap-4 md:flex-row flex-col">
+        {web3GuideCards.map((guideCard, index) => (
+          <GuideCard key={`web3-${index}`} {...guideCard} />
+        ))}
+      </div>
+    </section>
+  )
+}
 
 const GuideCard = ({
   title,
@@ -149,14 +179,14 @@ const GuideCard = ({
           href={link}
           className="hover-fade rounded-md dark:bg-white-15 bg-black-7 px-4 py-3 text-themed-primary text-sm font-bold w-fit"
         >
-          Read guide
+          <Trans>Read guide</Trans>
         </SmartLink>
         {demoLink && (
           <SmartLink
             href={demoLink}
             className="hover-fade rounded-md dark:bg-white-15 bg-black-7 px-4 py-3 text-themed-primary text-sm font-bold w-fit"
           >
-            Play demo
+            <Trans>Play demo</Trans>
           </SmartLink>
         )}
         {deployLink && (
@@ -164,7 +194,7 @@ const GuideCard = ({
             href={deployLink}
             className="hover-fade rounded-md dark:bg-white-15 bg-black-7 px-4 py-3 text-themed-primary text-sm font-bold w-fit"
           >
-            Deploy
+            <Trans>Deploy</Trans>
           </SmartLink>
         )}
         {demoLinkiOS && (
@@ -172,7 +202,7 @@ const GuideCard = ({
             href={demoLinkiOS}
             className="hover-fade rounded-md dark:bg-white-15 bg-black-7 px-4 py-3 text-themed-primary text-sm font-bold w-fit"
           >
-            Play on iOS
+            <Trans>Play on iOS</Trans>
           </SmartLink>
         )}
         {demoLinkAndroid && (
@@ -180,7 +210,7 @@ const GuideCard = ({
             href={demoLinkAndroid}
             className="hover-fade rounded-md dark:bg-white-15 bg-black-7 px-4 py-3 text-themed-primary text-sm font-bold w-fit"
           >
-            Play on Android
+            <Trans>Play on Android</Trans>
           </SmartLink>
         )}
       </div>
