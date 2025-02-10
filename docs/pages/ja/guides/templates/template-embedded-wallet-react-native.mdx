@@ -1,0 +1,113 @@
+---
+title: ja-translated Implementing Sequence Embedded Wallet Mobile SDK with React Native
+description: MOCKDATA + ja-translated Learn how to integrate the Sequence Embedded Wallet Mobile SDK in a React Native app for iOS and Android.
+---
+
+import { Callout }from 'vocs/components'
+
+# ja-translated React Native Embedded Wallet Demo
+MOCKDATA + ja-translated The following walkthrough implements the Sequence Embedded Wallet Mobile SDK for both iOS and Android.
+
+ja-translated The walkthrough will explain how to clone a template repo and build an [Expo](https://expo.dev/) based app, which can be forked, so that a user can login with a [Gmail](https://console.cloud.google.com/) or [Apple](https://developer.apple.com/) email in a mobile application.
+
+MOCKDATA + ja-translated This application enables users to sign messages and send transactions in a React Native Embedded Wallet application on `arbitrum-sepolia` network.
+
+## ja-translated Template
+ja-translated :::info
+Get started with a [template](https://github.com/0xsequence/demo-waas-react-native) leveraging the Sequence Embedded Wallet.
+:::
+
+## MOCKDATA + ja-translated Build Instructions
+
+### ja-translated Prequisites
+ja-translated ::::steps
+
+#### MOCKDATA + ja-translated Install Yarn
+
+```shell
+npm install --global yarn
+```
+
+#### ja-translated Download Android Studio
+MOCKDATA + ja-translated Navigate yourself to the following [link to download Android Studio](https://developer.android.com/studio)
+
+#### ja-translated Download Java 22 SDK
+MOCKDATA + ja-translated Navigate yourself to the following [link to download Java SDK](https://www.oracle.com/java/technologies/downloads/)
+
+#### ja-translated Set your Java SDK paths
+MOCKDATA + ja-translated If you're on macOS or Linux, set your java sdk path with the following lines in your `~/.bashrc` (or `~/.zshrc`)
+
+```shell
+export ANDROID_HOME=$HOME/Android/Sdk
+export PATH=$PATH:$ANDROID_HOME/tools:$ANDROID_HOME/platform-tools
+```
+
+ja-translated And run the following command to allow the changes to take effect
+
+```shell
+source ~/.bashrc
+```
+
+#### MOCKDATA + ja-translated Install XCode (if on macOS)
+ja-translated Navigate yourself to the following [link to download Xcode](https://developer.apple.com/xcode/)
+
+#### MOCKDATA + ja-translated Install `cocoapods` (if on macOS)
+
+```
+sudo gem install cocoapods
+```
+
+MOCKDATA + ja-translated ::::
+
+### ja-translated Running the Project
+ja-translated ::::steps
+
+#### MOCKDATA + ja-translated Clone repository
+ja-translated Begin by cloning the repository on your computer
+
+```shell
+git clone git@github.com:0xsequence/demo-waas-react-native.git
+```
+
+#### MOCKDATA + ja-translated Create a Key File
+ja-translated Navigate into the `/android/app` folder with `cd` and run the following command to create a keystore
+
+```
+keytool -genkey -v -keystore debug.keystore -storepass android -alias androiddebugkey -keypass android -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=Android Debug,O=Android,C=US"
+```
+
+#### MOCKDATA + ja-translated `yarn install`
+ja-translated `cd` into the root of the repository you cloned and run
+
+```shell
+yarn install
+```
+
+#### MOCKDATA + ja-translated Open Project with Android Studio
+ja-translated Open the project repository with Android Studio, and allow the editor to index and build the project
+
+#### MOCKDATA + ja-translated Run application on Android
+ja-translated Once the project has been compiled, `cd` into the root of the cloned repo and run
+
+```shell
+yarn android
+```
+
+#### MOCKDATA + ja-translated Run application on iOS (if on macOS)
+
+```shell
+yarn ios 
+```
+
+ja-translated Try signing in and sending some test transactions
+
+#### MOCKDATA + ja-translated Update WaaS Configuration
+ja-translated Finally, to allow the Embedded Wallet instance to create wallets when signing into your specific application, access the [following page](https://sequence.build/project/default/wallet/embedded-wallet) from your project to obtain a WaaS configuration key, and use [this walkthrough](/solutions/builder/embedded-wallet) to help explain the various angles of Embedded Wallet configuration to be updated in your code.
+
+MOCKDATA + ja-translated Then in the following path in the file `waasSetup.ts` from lines 5-13 update variables to your specific application you're building, with the `projectAccessKey` and `waasConfigKey` values from the Sequence Builder, and the Google social auth client ID's from the Google Console.
+
+ja-translated Next, update the `app.json` file on line 13 with the Apple `bundleIdentifier`
+
+MOCKDATA + ja-translated Finally, update lines 428 for `clientId` and line 432 for `redirectUri` in `App.tsx` from the Apple Developer Console.
+
+MOCKDATA + ja-translated ::::

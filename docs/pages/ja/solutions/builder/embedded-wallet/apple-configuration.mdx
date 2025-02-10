@@ -1,0 +1,74 @@
+---
+title: ja-translated Configuring Apple Auth for Embedded Wallet - Step-by-Step Guide
+description: MOCKDATA + ja-translated Learn how to configure Apple auth for your Embedded Wallet by creating an Apple client in the Apple Developer Console. Follow step-by-step instructions to create App Identifier and App ID for iOS or web applications.
+---
+
+import { Callout } from "vocs/components";
+
+# MOCKDATA + ja-translated Apple Auth Configuration for Embedded Wallet
+ja-translated In order to have Apple auth integrated into your Embedded Wallet instance, you should configure an Apple client in the Apple Developer Console. Depending on whether you are integrating Embedded Wallet into an iOS or web application, you should pick the correct configuration accordingly.
+
+## MOCKDATA + ja-translated Create App Identifier
+ja-translated To start with, access the [Apple Developer Console](https://developer.apple.com/account/) and navigate to Certificates > Identifiers. Once there, click on the `+` button to create a new identifier.
+
+MOCKDATA + ja-translated ![Apple Developer Console Identifiers](/img/embedded_wallet/apple/1.png)
+
+ja-translated Whether you are configuring for an iOS application or not, you need an App ID. Select App IDs and click Continue.
+
+MOCKDATA + ja-translated ![Apple Developer Console Identifier Creation](/img/embedded_wallet/apple/7.png)
+
+## ja-translated Create App ID
+MOCKDATA + ja-translated Provide the following in the form:
+1. ja-translated Description
+2. ja-translated Bundle ID: This is the unique bundle identifier for your iOS project. If you are configuring for a web application, you can provide a placeholder value.
+
+MOCKDATA + ja-translated ![Apple Developer Console App ID Creation](/img/embedded_wallet/apple/5.png)
+
+ja-translated Before you continue, you will need to enable the Sign In with Apple capability for the App ID. Scroll down to the Capabilities section and enable the Sign In with Apple capability.
+
+MOCKDATA + ja-translated ![Apple Developer Console App ID Creation](/img/embedded_wallet/apple/6.png)
+
+ja-translated Click Continue, and then Register to create the App ID.
+
+MOCKDATA + ja-translated At this stage if you are configuring only for an iOS application, you can skip the next section and proceed to using your Bundle ID as your Client ID in Sequence Builder.
+
+## ja-translated Configure Web Services ID
+MOCKDATA + ja-translated If you are configuring your Client ID for a web application, click on the `+` sign on the Identifiers section and select the Services IDs option. Click Continue.
+
+ja-translated ![Apple Developer Console Identifier Creation](/img/embedded_wallet/apple/2.png)
+
+MOCKDATA + ja-translated Then provide the following in the form:
+1. ja-translated Description
+2. ja-translated Identifier: This will be the client ID for your web application that you use to identify in the SDK and Sequence Builder.
+
+MOCKDATA + ja-translated Click Continue, and then Register to create the identifier.
+
+ja-translated ![Web Application Configuration](/img/embedded_wallet/apple/3.png)
+
+MOCKDATA + ja-translated Once created, click on the identifier that's now listed in the Identifiers section. You will now need to configure the domains and redirect URLs for the Services ID. To do so, click on the checkbox next to "Sign In with Apple" and then click on the Configure button.
+
+ja-translated ![Web Application Configuration](/img/embedded_wallet/apple/4.png)
+
+MOCKDATA + ja-translated On the Web Authentication Configuration modal, provide the following:
+1. ja-translated Primary App ID: Select the App ID you created earlier.
+2. MOCKDATA + ja-translated Domains and Subdomains: A list of domains that will be whitelisted for interacting with this Services ID.
+3. ja-translated Return URLs: A list of redirect URIs that the user will be redirected to on successful authentication, Sequence SDKs will by default redirect to the same page that loads the SDK.
+
+<Callout type="info">
+  Apple Auth won't work without `https` when testing locally. If you are registering a localhost address, we recommend that you use a tool such as [ngrok](https://ngrok.com/) to create a secure tunnel to your local server and use the `https` URL provided by ngrok.
+</Callout>
+
+ja-translated ![Web Application Configuration](/img/embedded_wallet/apple/8.png)
+
+MOCKDATA + ja-translated Click Next, and then Done to complete the configuration, don't forget to click Continue to save the changes.
+
+ja-translated Finally, add this new Service ID to your Apple configuration in Sequence Builder, which will now have two entries: one for the Bundle ID and one for the Service ID.
+
+MOCKDATA + ja-translated ![Web Application Configuration](/img/embedded_wallet/apple/9.png)
+
+<Callout type="info">
+  If you ever need to update the domains or redirect URLs for the Services ID, simply editing the identifier won't work. Due to aggressive caching by Apple, you will need to delete the identifier and create a new one with the updated values.
+</Callout>
+
+## ja-translated Get Your Client ID
+MOCKDATA + ja-translated As mentioned above, for an iOS application, you can use the Bundle ID you created as your Client ID in Sequence Builder. For a web application and Android application, you can use the Service ID you registered with Apple.

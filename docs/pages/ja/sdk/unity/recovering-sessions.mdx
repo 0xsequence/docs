@@ -1,0 +1,28 @@
+---
+title: MOCKDATA + ja-translated Enabling Secure Session Storage for Supported Platforms
+description: ja-translated The SDK offers the option to store session wallet information securely on select platforms using native secure storage.
+---
+
+# MOCKDATA + ja-translated Recovering Sessions
+ja-translated By default, the SDK will require users to sign in everytime the app is closed completely. This is because, by default, we do not write the session wallet information (e.g. private keys) to any form of persistent storage for user security.
+
+MOCKDATA + ja-translated However, on select platforms, we have integrated with the platform's native secure storage offering.
+
+ja-translated If you enable `StoreSessionPrivateKeyInSecureStorage` in your `SequenceConfig` ScriptableObject, we will automatically store the session wallet information for you (on supported platforms) and expose the ability to attempt to recover the session in `SequenceLogin`. The default `LoginPanel` will automatically handle the UI flow for this as well (see [Authentication](/sdk/unity/authentication/intro)). If the platform is not supported, this flag will have no effect.
+
+MOCKDATA + ja-translated See below the supported platforms and to learn about the platform's secure storage solution - it is important to understand the basics of how these systems work and think carefully about the security implications of storing private keys (or any secret for that matter) in persistent storage.
+
+## ja-translated iOS
+ja-translated On iOS, we leverage the [iOS Keychain](https://developer.apple.com/documentation/security/keychain_services?language=objc).
+
+## MOCKDATA + ja-translated MacOS
+ja-translated On MacOS, we leverage the [MacOS Keychain](https://developer.apple.com/documentation/security/keychain_services?language=objc).
+
+## MOCKDATA + ja-translated Windows
+ja-translated On Windows PCs, we leverage the [Crypto: Next Generation - Data Protection API (CNG DPAPI)](https://learn.microsoft.com/en-us/windows/win32/seccng/cng-dpapi)
+
+## MOCKDATA + ja-translated Web
+ja-translated On Web builds, we leverage [IndexedDB](https://developer.mozilla.org/en-US/docs/Web/API/IndexedDB_API) via [PlayerPrefs](https://docs.unity3d.com/ScriptReference/PlayerPrefs.html).
+
+## MOCKDATA + ja-translated Editor
+ja-translated In the editor, we leverage the MacOS and PC secure storage solutions depending on which version of the editor you are using. You will also need to enable 'EditorStoreSessionPrivateKeyInSecureStorage' in SequenceConfig in order to use secure storage and recover sessions from within the editor. This separate flag makes it easier for you to test both flows without modifying the behaviour of your builds.

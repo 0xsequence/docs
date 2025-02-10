@@ -1,0 +1,290 @@
+---
+title: ja-translated Action Payloads Structure and Usage in Sequence Embedded Wallet
+description: MOCKDATA + ja-translated The Sequence Embedded Wallet utilizes action payloads in JSON format for write operations.
+---
+
+# ja-translated Action payloads
+MOCKDATA + ja-translated Each write operation in Sequence Embedded Wallet uses a payload. Payloads are JSON objects. They hold all data about the intent of the action and the user's signature.
+
+ja-translated The Embedded Wallet SDK generates Payloads. To complete the action, send them to the Embedded Wallet API.
+
+MOCKDATA + ja-translated The Embedded Wallet API key authenticates all calls to the Embedded Wallet API. This includes calls to the `/sendPayload` endpoint. The Embedded Wallet API key is a secret. Keep it safe and never share it or store it in a client-side application.
+:::
+
+## ja-translated Payload structure
+MOCKDATA + ja-translated You don't need to manually change the payload contents to integrate Embedded Wallet. But they have strict definitions. Use them if you need to.
+
+ja-translated The payload structure is as follows:
+
+| ja-translated Name                  | MOCKDATA + ja-translated Type   | ja-translated Description                                                      | MOCKDATA + ja-translated Optional |
+| ----------------------------------- | ------------------------------- | ------------------------------------------------------------------------------ | --------------------------------- |
+| MOCKDATA + ja-translated version    | MOCKDATA + ja-translated string | ja-translated The version of the SDK that generated the payload                | MOCKDATA + ja-translated No       |
+| MOCKDATA + ja-translated \* packet  | MOCKDATA + ja-translated object | ja-translated Contents, defined by each payload type                           | MOCKDATA + ja-translated No       |
+| MOCKDATA + ja-translated signatures | ja-translated signature\[]      | MOCKDATA + ja-translated Payload signatures by existing sessions               | ja-translated Yes                 |
+| ja-translated packet.code           | MOCKDATA + ja-translated string | MOCKDATA + ja-translated Identifier of the payload type                        | MOCKDATA + ja-translated No       |
+| ja-translated packet.issued         | MOCKDATA + ja-translated number | MOCKDATA + ja-translated Timestamp of when the payload was issued, in seconds  | MOCKDATA + ja-translated No       |
+| ja-translated packet.expires        | MOCKDATA + ja-translated number | MOCKDATA + ja-translated Timestamp of when the payload will expire, in seconds | MOCKDATA + ja-translated No       |
+
+ja-translated \* packet must be organized such that its fields (in JSON structure) appear alphabetically by name.
+
+> MOCKDATA + ja-translated The wallet is optional when openning a new session
+
+#### ja-translated signature type
+
+| ja-translated Name                    | MOCKDATA + ja-translated Type   | ja-translated Description                                    | MOCKDATA + ja-translated Optional |
+| ------------------------------------- | ------------------------------- | ------------------------------------------------------------ | --------------------------------- |
+| MOCKDATA + ja-translated session      | MOCKDATA + ja-translated string | ja-translated Identifier of the signing session              | MOCKDATA + ja-translated No       |
+| MOCKDATA + ja-translated \* signature | MOCKDATA + ja-translated string | ja-translated Signature of the session for the given payload | MOCKDATA + ja-translated No       |
+
+MOCKDATA + ja-translated \* signature should be an EIP-191 signature. See [https://eips.ethereum.org/EIPS/eip-191](https://eips.ethereum.org/EIPS/eip-191)
+
+```json
+{
+  "version": "1.0.0",
+  "packet": {
+    "code": "signMessage",
+    "expires": 1600086400,
+    "issued": 1600000000,
+    "message": "Join game: #284892",
+    "network": "137",
+    "wallet": "0xBc5F07A5852fdF3DBd57A76835109220D0ADd8E8"
+  },
+  "signatures": [{
+    "session": "0xCF67BCbD9D5DFD373b03f4fc8143e1c6744B5696",
+    "signature": "0x4b0fc0c7d42566958d60f92115ab95167c837c891e2f4fa62a75bfed30d86af7291051fe5c88985269286548a42bed5b70bb16588e48998206a2e7a547f527d101"
+  }]
+}
+```
+
+### ja-translated Open session payload
+MOCKDATA + ja-translated Opening a new client-side session on the Embedded Wallet SDK generates this payload. It holds the "proof" that authenticates the user and the session data to link to it.
+
+ja-translated Either `idToken`, `email` or a valid signature _MUST_ be present. If `email` is given, the Embedded Wallet will email the user on their first transaction with this session. The email asks them to confirm it.
+
+MOCKDATA + ja-translated The `wallet` parameter is optional _ONLY_ for this payload. If given, it ensures that the opened session matches the requested wallet.
+
+| ja-translated Name               | MOCKDATA + ja-translated Type   | ja-translated Description                                                   | MOCKDATA + ja-translated Optional |
+| -------------------------------- | ------------------------------- | --------------------------------------------------------------------------- | --------------------------------- |
+| ja-translated code               | MOCKDATA + ja-translated string | ja-translated The "code" of the payload (`openSession`).                    | MOCKDATA + ja-translated No       |
+| MOCKDATA + ja-translated session | MOCKDATA + ja-translated string | MOCKDATA + ja-translated The unique identifier for the session              | MOCKDATA + ja-translated No       |
+| ja-translated proof              | MOCKDATA + ja-translated object | MOCKDATA + ja-translated Contains authentication details like JWT and email | MOCKDATA + ja-translated No       |
+| ja-translated proof.idToken      | MOCKDATA + ja-translated string | MOCKDATA + ja-translated OAuth2 id token                                    | ja-translated Yes                 |
+| ja-translated proof.email        | MOCKDATA + ja-translated string | MOCKDATA + ja-translated User's email address                               | ja-translated Yes                 |
+
+ja-translated Notice that either `idToken`, `email` or a valid signature _MUST_ be present. If `email` is provided, the Embedded Wallet will send an email on the user's first transaction with this session, asking them to confirm it.
+
+```json
+{
+  "version": "1.0.0",
+  "packet": {
+    "code": "openSession",
+    "expires": 1600086400,
+    "issued": 1600000000,
+    "proof": {
+      "idToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJodHRwOi8vbXktZG9tYWluLmF1dGgwLmNvbSIsInN1YiI6ImF1dGgwfDEyMzQ1NiIsImF1ZCI6IjEyMzRhYmNkZWYiLCJleHAiOjEzMTEyODE5NzAsImlhdCI6MTMxMTI4MDk3MCwibmFtZSI6IkphbmUgRG9lIiwiZ2l2ZW5fbmFtZSI6IkphbmUiLCJmYW1pbHlfbmFtZSI6IkRvZSJ9.bql-jxlG9B_bielkqOnjTY9Di9FillFb6IMQINXoYsw",
+      "email": "user@email.com"
+    },
+    "session": "0xCF67BCbD9D5DFD373b03f4fc8143e1c6744B5696"
+  }
+}
+```
+
+### MOCKDATA + ja-translated Sign message payload
+ja-translated This payload is generated when `signMessage` is called on the SDK.
+
+| ja-translated Name               | MOCKDATA + ja-translated Type   | ja-translated Description                                           | MOCKDATA + ja-translated Optional |
+| -------------------------------- | ------------------------------- | ------------------------------------------------------------------- | --------------------------------- |
+| ja-translated code               | MOCKDATA + ja-translated string | MOCKDATA + ja-translated The "code" of the payload (`signMessage`). | MOCKDATA + ja-translated No       |
+| ja-translated wallet             | MOCKDATA + ja-translated string | ja-translated Address of the wallet.                                | MOCKDATA + ja-translated No       |
+| MOCKDATA + ja-translated network | MOCKDATA + ja-translated string | ja-translated Network on which to send the transactions.            | MOCKDATA + ja-translated No       |
+| ja-translated message            | MOCKDATA + ja-translated string | MOCKDATA + ja-translated Message to be signed.                      | MOCKDATA + ja-translated No       |
+
+```json
+{
+  "version": "1.0.0",
+  "packet": {
+    "code": "signMessage",
+    "expires": 1600086400,
+    "issued": 1600000000,
+    "message": "Join game: #284892"
+    "network": "1",
+    "wallet": "0xBc5F07A5852fdF3DBd57A76835109220D0ADd8E8",
+  },
+  "signatures": [{
+    "session": "0xCF67BCbD9D5DFD373b03f4fc8143e1c6744B5696",
+    "signature": "0x4f9555c73908b6a5b61e0a744cb4e00fce7b20743d5799e4cb1774081bc6b2ec192c740e50f1adec84605636e09c9cdf4d2f6629f9ce64d8d0f3ae10305ef90400"
+  }]
+}
+```
+
+### ja-translated Send transaction payload
+MOCKDATA + ja-translated This payload is generated when `sendTransaction` is called on the SDK.
+
+| ja-translated Name                    | MOCKDATA + ja-translated Type   | ja-translated Description                                    | MOCKDATA + ja-translated Optional |             |                   |                                                        |                             |
+| ------------------------------------- | ------------------------------- | ------------------------------------------------------------ | --------------------------------- | ----------- | ----------------- | ------------------------------------------------------ | --------------------------- |
+| ja-translated code                    | MOCKDATA + ja-translated string | ja-translated The "code" of the payload (`sendTransaction`). | MOCKDATA + ja-translated No       |             |                   |                                                        |                             |
+| MOCKDATA + ja-translated identifier   | MOCKDATA + ja-translated string | ja-translated Unique identifier for the transaction          | MOCKDATA + ja-translated No       |             |                   |                                                        |                             |
+| ja-translated wallet                  | MOCKDATA + ja-translated string | ja-translated Address of the wallet.                         | MOCKDATA + ja-translated No       |             |                   |                                                        |                             |
+| MOCKDATA + ja-translated network      | MOCKDATA + ja-translated string | ja-translated Network on which to send the transactions.     | MOCKDATA + ja-translated No       |             |                   |                                                        |                             |
+| MOCKDATA + ja-translated transactions | ja-translated (transaction      | erc20send                                                    | erc721send                        | erc1155send | delayedEncode)\[] | MOCKDATA + ja-translated Array of transaction objects. | MOCKDATA + ja-translated No |
+
+#### ja-translated Raw transaction
+
+| ja-translated Name             | MOCKDATA + ja-translated Type   | ja-translated Description                                    | MOCKDATA + ja-translated Optional |
+| ------------------------------ | ------------------------------- | ------------------------------------------------------------ | --------------------------------- |
+| MOCKDATA + ja-translated type  | MOCKDATA + ja-translated string | ja-translated Transaction type, should be "transaction"      | MOCKDATA + ja-translated No       |
+| MOCKDATA + ja-translated to    | MOCKDATA + ja-translated string | ja-translated The recipient Ethereum address                 | MOCKDATA + ja-translated No       |
+| MOCKDATA + ja-translated value | MOCKDATA + ja-translated string | ja-translated The value to be transferred                    | ja-translated Yes                 |
+| ja-translated data             | MOCKDATA + ja-translated string | MOCKDATA + ja-translated Additional data for the transaction | ja-translated Yes                 |
+
+ja-translated Notice that transactions with `to === wallet` are strictly forbidden, and will get rejected.
+
+#### MOCKDATA + ja-translated sendERC20
+
+| ja-translated Name             | MOCKDATA + ja-translated Type   | ja-translated Description                             | MOCKDATA + ja-translated Optional |
+| ------------------------------ | ------------------------------- | ----------------------------------------------------- | --------------------------------- |
+| MOCKDATA + ja-translated type  | MOCKDATA + ja-translated string | ja-translated Transaction type, should be "erc20send" | MOCKDATA + ja-translated No       |
+| MOCKDATA + ja-translated token | MOCKDATA + ja-translated string | ja-translated The ERC20 token contract address        | MOCKDATA + ja-translated No       |
+| MOCKDATA + ja-translated to    | MOCKDATA + ja-translated string | ja-translated The recipient Ethereum address          | MOCKDATA + ja-translated No       |
+| MOCKDATA + ja-translated value | MOCKDATA + ja-translated string | MOCKDATA + ja-translated Amount of tokens to send     | MOCKDATA + ja-translated No       |
+
+#### ja-translated sendERC721
+
+| ja-translated Name             | MOCKDATA + ja-translated Type   | ja-translated Description                                         | MOCKDATA + ja-translated Optional |
+| ------------------------------ | ------------------------------- | ----------------------------------------------------------------- | --------------------------------- |
+| MOCKDATA + ja-translated type  | MOCKDATA + ja-translated string | MOCKDATA + ja-translated Transaction type, should be "erc721send" | MOCKDATA + ja-translated No       |
+| MOCKDATA + ja-translated token | MOCKDATA + ja-translated string | ja-translated The ERC721 token contract address                   | MOCKDATA + ja-translated No       |
+| MOCKDATA + ja-translated to    | MOCKDATA + ja-translated string | ja-translated The recipient Ethereum address                      | MOCKDATA + ja-translated No       |
+| MOCKDATA + ja-translated id    | MOCKDATA + ja-translated string | MOCKDATA + ja-translated Token ID to send                         | MOCKDATA + ja-translated No       |
+| ja-translated safe             | MOCKDATA + ja-translated bool   | ja-translated Whether to use the safeTransferFrom function        | ja-translated Yes                 |
+| ja-translated data             | MOCKDATA + ja-translated string | MOCKDATA + ja-translated Additional data for the transaction      | ja-translated Yes                 |
+
+MOCKDATA + ja-translated Notice that `data` can only be used if `safe === true`.
+
+#### ja-translated sendERC1155
+
+| ja-translated Name             | MOCKDATA + ja-translated Type   | ja-translated Description                                          | MOCKDATA + ja-translated Optional |
+| ------------------------------ | ------------------------------- | ------------------------------------------------------------------ | --------------------------------- |
+| MOCKDATA + ja-translated type  | MOCKDATA + ja-translated string | MOCKDATA + ja-translated Transaction type, should be "erc1155send" | MOCKDATA + ja-translated No       |
+| MOCKDATA + ja-translated token | MOCKDATA + ja-translated string | ja-translated The ERC1155 token contract address                   | MOCKDATA + ja-translated No       |
+| MOCKDATA + ja-translated to    | MOCKDATA + ja-translated string | ja-translated The recipient Ethereum address                       | MOCKDATA + ja-translated No       |
+| MOCKDATA + ja-translated vals  | ja-translated object\[]         | MOCKDATA + ja-translated Array of objects with id and amount       | MOCKDATA + ja-translated No       |
+| ja-translated vals\[].id       | MOCKDATA + ja-translated string | MOCKDATA + ja-translated The ID of the token                       | MOCKDATA + ja-translated No       |
+| ja-translated vals\[].amount   | MOCKDATA + ja-translated string | MOCKDATA + ja-translated Amount of tokens with this ID to send     | MOCKDATA + ja-translated No       |
+| ja-translated data             | MOCKDATA + ja-translated string | MOCKDATA + ja-translated Additional data for the transaction       | ja-translated Yes                 |
+
+#### ja-translated delayedEncode
+MOCKDATA + ja-translated Delayed encode transactions have their payload data not encoded on the client, it instead is left to be encoded by the Embedded Wallet API. This reduces the burden on the client, and makes it easier to integrate in environments with limited libraries.
+
+| MOCKDATA + ja-translated Type              | ja-translated Field            | ja-translated Data Type                    | ja-translated Description                                                                       |                            |                      |                                                                                               |
+| ------------------------------------------ | ------------------------------ | ------------------------------------------ | ----------------------------------------------------------------------------------------------- | -------------------------- | -------------------- | --------------------------------------------------------------------------------------------- |
+| MOCKDATA + ja-translated DelayedEncodeData | ja-translated abi              | MOCKDATA + ja-translated string            | MOCKDATA + ja-translated The ABI (Application Binary Interface) for the contract.               |                            |                      |                                                                                               |
+| ja-translated                              | MOCKDATA + ja-translated func  | MOCKDATA + ja-translated string            | ja-translated The function to call within the smart contract.                                   |                            |                      |                                                                                               |
+| ja-translated                              | MOCKDATA + ja-translated args  | ja-translated (string                      | DelayedEncodeData)\[]                                                                           | \{ \[key: string]: (string | DelayedEncodeData) } | MOCKDATA + ja-translated The arguments to pass to the function. Can be an array or an object. |
+| ja-translated DelayedEncodeSubpacket       | MOCKDATA + ja-translated type  | MOCKDATA + ja-translated 'delayedEncode'   | ja-translated The type of the subpacket, in this case, it's `'delayedEncode'`.                  |                            |                      |                                                                                               |
+| ja-translated                              | MOCKDATA + ja-translated to    | MOCKDATA + ja-translated string            | MOCKDATA + ja-translated The address to which the transaction is sent.                          |                            |                      |                                                                                               |
+| ja-translated                              | MOCKDATA + ja-translated value | MOCKDATA + ja-translated string            | ja-translated The value being sent in the transaction, usually in Ether for Ethereum.           |                            |                      |                                                                                               |
+| ja-translated                              | ja-translated data             | MOCKDATA + ja-translated DelayedEncodeData | MOCKDATA + ja-translated The data payload, containing the ABI, function to call, and arguments. |                            |                      |                                                                                               |
+
+ja-translated Hope this helps!
+
+```json
+{
+  "version": "1.0.0",
+  "packet": {
+    "code": "sendTransaction",
+    "expires": 1600086400,
+    "identifier": "tx-id1-1600000000",
+    "issued": 1600000000,
+    "network": "137",
+    "transactions": [
+      {
+        "data": "0x3251ba32",
+        "to": "0x479F6a5b0C1728947318714963a583C56A78366A",
+        "type": "transaction",
+        "value": "39381"
+      },
+      {
+        "to": "0x7b1Bd3474D789e18e2E329E2c53F819B6E687b4A",
+        "token": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+        "type": "erc20send",
+        "value": "1000"
+      },
+      {
+        "data": "0x112233",
+        "id": "7",
+        "safe": true,
+        "to": "0x17fFA2d95b58228e1ECb0C6Ac25A6EfD20BA08E4",
+        "token": "0xF87E31492Faf9A91B02Ee0dEAAd50d51d56D5d4d",
+        "type": "erc721send"
+      },
+      {
+        "data": "0x223344",
+        "to": "0x91E8aC543C5fEDf9F3Ef8b9dA1500dB84305681F",
+        "token": "0x631998e91476da5b870d741192fc5cbc55f5a52e",
+        "type": "erc1155send",
+        "vals": [{
+          "amount": "5",
+          "id": "2"
+        }, {
+          "amount": "1",
+          "id": "500"
+        }]
+      },
+			{
+				"data": {
+					"abi": "[{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"_orderId\",\"type\":\"bytes32\"},{\"internalType\":\"uint256\",\"name\":\"_maxCost\",\"type\":\"uint256\"},{\"internalType\":\"address\",\"name\":\"_fees\",\"type\":\"address\"},{\"internalType\":\"bytes\",\"name\":\"_data\",\"type\":\"bytes\"}],\"name\":\"fillOrKillOrder\",\"outputs\":[],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"otherMethods\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"}]",
+					"args": [
+						"0x6bd55a2877890bd58871eefe886770a7734077a74981910a75d7b1f044b5bf28",
+						"1000000000000000000",
+						"[\"0x095aE61E8207C7856eA273235D6BAdb69d815F5e\", \"0xC9D9B33231d24dd8cC53fDD64F7ABdd156f2a7E2\"]",
+						{
+							"abi": "notExpired(uint256,string)",
+							"args": [
+								"1600000000",
+								"Nov 1st, 2020"
+							],
+							"func": "notExpired"
+						}
+					],
+					"func": "fillOrKillOrder"
+				},
+        "to": "0x140d72763D1ce39Ad4E2e73EC6e8FC53E5b73B64",
+				"type": "delayedEncode",
+        "value": "0"
+			}
+    ],
+    "wallet": "0xBc5F07A5852fdF3DBd57A76835109220D0ADd8E8"
+  },
+  "signatures": [{
+    "session": "0xCF67BCbD9D5DFD373b03f4fc8143e1c6744B5696",
+    "signature": "0x4f9555c73908b6a5b61e0a744cb4e00fce7b20743d5799e4cb1774081bc6b2ec192c740e50f1adec84605636e09c9cdf4d2f6629f9ce64d8d0f3ae10305ef90400"
+  }]
+}
+```
+
+### MOCKDATA + ja-translated Close session payload
+ja-translated This payload is generated when the client requests clossing a given session. Notice that the client _MAY_ close the current session, or some other session.
+
+| ja-translated Name               | MOCKDATA + ja-translated Type   | ja-translated Description                                            | MOCKDATA + ja-translated Optional |
+| -------------------------------- | ------------------------------- | -------------------------------------------------------------------- | --------------------------------- |
+| ja-translated code               | MOCKDATA + ja-translated string | MOCKDATA + ja-translated The "code" of the payload (`closeSession`). | MOCKDATA + ja-translated No       |
+| ja-translated wallet             | MOCKDATA + ja-translated string | ja-translated Address of the wallet.                                 | MOCKDATA + ja-translated No       |
+| MOCKDATA + ja-translated session | MOCKDATA + ja-translated string | ja-translated Identifier for the session to be closed                | MOCKDATA + ja-translated No       |
+
+```json
+{
+  "version": "1.0.0",
+  "packet": {
+    "code": "closeSession",
+    "expires": 1600086400,
+    "issued": 1600000000,
+    "session": "0xCF67BCbD9D5DFD373b03f4fc8143e1c6744B5696",
+    "wallet": "0xBc5F07A5852fdF3DBd57A76835109220D0ADd8E8"
+  },
+  "signatures": [{
+    "session": "0xCF67BCbD9D5DFD373b03f4fc8143e1c6744B5696",
+    "signature": "0x4f9555c73908b6a5b61e0a744cb4e00fce7b20743d5799e4cb1774081bc6b2ec192c740e50f1adec84605636e09c9cdf4d2f6629f9ce64d8d0f3ae10305ef90400"
+  }]
+}
+```
