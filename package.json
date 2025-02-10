@@ -10,7 +10,12 @@
     "format": "biome format . --write",
     "lint": "biome lint . --write --unsafe",
     "prepare-openapi-docs": "./scripts/prepare-openapi-docs.sh",
-    "openapi-security": "./scripts/security-scheme.sh"
+    "openapi-security": "./scripts/security-scheme.sh",
+    "lingui:extract": "lingui extract --locale en",
+    "lingui:compile": "lingui compile --typescript",
+    "translate": "node ./scripts/translate.cjs --verbose",
+    "translate:all": "node ./scripts/translate.cjs --verbose --translate-all",
+    "translate:components": "pnpm lingui:extract && node ./scripts/translate.cjs --verbose --translate-components && pnpm lingui:compile"
   },
   "dependencies": {
     "0xsequence": "^2.0.10",
@@ -19,6 +24,8 @@
     "@databeat/tracker": "^0.9.1",
     "@docsearch/css": "3",
     "@docsearch/react": "3",
+    "@lingui/core": "^5.2.0",
+    "@lingui/react": "^5.2.0",
     "@radix-ui/react-dialog": "^1.1.1",
     "@radix-ui/react-tooltip": "^1.1.2",
     "@scalar/api-reference-react": "0.3.126",
@@ -39,12 +46,18 @@
     "styled-components": "^6.1.11",
     "tailwind-merge": "^2.5.2",
     "typescript": "latest",
-    "vocs": "https://github.com/0xsequence/vocs#build",
+    "vocs": "file:/Users/berkakgun/Developer/sequence/vocs/src",
     "yargs": "^17.7.2"
   },
   "packageManager": "pnpm@9.1.4",
   "devDependencies": {
+    "@lingui/cli": "^5.2.0",
+    "@lingui/vite-plugin": "^5.2.0",
     "@modyfi/vite-plugin-yaml": "^1.1.0",
-    "@types/react-syntax-highlighter": "^15.5.13"
+    "@types/react-syntax-highlighter": "^15.5.13",
+    "@vitejs/plugin-react": "^4.3.4",
+    "dotenv": "^16.4.7",
+    "frenglish": "1.11.2",
+    "vite-tsconfig-paths": "^5.1.4"
   }
 }

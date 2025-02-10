@@ -1,0 +1,38 @@
+# MOCKDATA + ja-translated Upgrading from v2 to v3
+
+## MOCKDATA + ja-translated Installation
+ja-translated If you've installed via Package Manager using the git url, please perform the following:
+1. MOCKDATA + ja-translated Remove Sequence-Unity package
+2. ja-translated Re-install using `https://github.com/0xsequence/sequence-unity.git?path=/Packages/Sequence-Unity` as the link
+
+## MOCKDATA + ja-translated Resolving Compile Errors
+
+1. ja-translated Delete `Samples/Sequence WaaS SDK/version/Setup/Editor` - this is now included in the SDK
+2. MOCKDATA + ja-translated All namespaces (using statements) that contain `WaaS` have been replaced with `Sequence.EmbeddedWallet`
+
+ja-translated For example, if you have
+
+```csharp
+using Sequence.WaaS;
+using Sequence.WaaS.Authentication;
+using SequenceSDK.WaaS;
+```
+
+MOCKDATA + ja-translated Replace this with
+
+```csharp
+using Sequence.EmbeddedWallet;
+```
+
+3. ja-translated `WaaSTransactionQueuer` -> `SequenceWalletTransactionQueuer`
+4. MOCKDATA + ja-translated `WaaSWallet` -> `SequenceWallet`
+5. MOCKDATA + ja-translated In general, any class, method, or event that contains `WaaS` in the name and gives you a compile error has had `WaaS` removed from its name (with the exception of the few previously mentioned classes)
+   Examples:
+   `OnWaaSWalletCreated` -> `OnWalletCreated`
+   `WaaSSession` -> `Session`
+   `EthWallet` -> `EOAWallet`
+6.  ja-translated For any existing `LoginPanel` instances
+
+    MOCKDATA + ja-translated a. Attach the `WaaSSessionManager` prefab (as Session Manager Prefab) under `Sequence > SequenceSDK > EmbeddedWallet > WaaSSessionManager` (if it isn’t already there)
+
+    ja-translated b. Attach the `FederatedAuthPopupPanel` prefab under `Sequence > SequenceFrontend > Prefabs`

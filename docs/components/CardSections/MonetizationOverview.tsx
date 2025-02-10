@@ -7,7 +7,7 @@ export const MonetizationOverview = () => (
       <SolutionsGroup
         theme="green"
         heading="Sequence Pay"
-        icon='CartIcon'
+        icon="CartIcon"
         items={[
           {
             title: 'Overview',
@@ -29,18 +29,12 @@ export const MonetizationOverview = () => (
             body: 'Enable users to purchase cryptocurrencies with credit or debit cards using region-optimized providers like Transak.',
             link: '/solutions/wallets/sequence-kit/on-ramp',
           },
-          // {
-          //   icon: 'CartIcon',
-          //   title: 'Primary Sales',
-          //   body: 'Introducing Jelly Forest: a blockchain-enabled 2D runner game with social sign in, an in-game store, a backend transaction manager and more - all built in Unity using the Sequence platform.',
-          //   link: '/guides/unity-guide',
-          // },
         ]}
       />
       <SolutionsGroup
         theme="purple"
         heading="White-Label Marketplace"
-        icon='MarketplaceIcon'
+        icon="MarketplaceIcon"
         items={[
           {
             title: 'Enforce Royalties',
@@ -70,7 +64,7 @@ export const MonetizationOverview = () => (
         <SolutionsGroup
           theme="black"
           heading="Custom Marketplace"
-          icon='MinterIcon'
+          icon="MinterIcon"
           items={[
             {
               title: 'Marketplace APIs',
@@ -121,11 +115,11 @@ const SolutionsGroup = ({
           })}
         />
         <div className="flex items-center gap-2 px-4">
-        {ICONS[icon]({ className: "mt-1" })}
+          {ICONS[icon]({ className: 'mt-1' })}
 
           <p className="font-bold text-themed-primary z-10">{heading}</p>
         </div>
-        
+
         {items.map((item, index) => {
           return (
             <a

@@ -1,0 +1,136 @@
+---
+title: ja-translated Sequence Wallet Configuration Parameters
+description: MOCKDATA + ja-translated The "Wallet Configuration" in Sequence Wallets defines access control, signers, and signature weight.
+---
+
+# MOCKDATA + ja-translated Wallet Configuration
+MOCKDATA + ja-translated In the context of Sequence Wallets, the "Wallet Configuration" is a set of parameters that defines the behavior of the wallet, primarily used to define the access control of the wallet, meaning who can sign transactions and how many signatures are needed.
+
+## ja-translated Top level properties
+MOCKDATA + ja-translated Sequence v2 configurations contain the following 3 properties:
+- ja-translated `threshold` - The required "weight sum" needed for a signature to be considered valid.
+- MOCKDATA + ja-translated `checkpoint` - Used as a salt and ordering mechanism for wallet updates.
+- ja-translated `tree` - Determines the signers and their weights for the wallet.
+
+### MOCKDATA + ja-translated Threshold
+MOCKDATA + ja-translated The `threshold` is a `uint16`; it can have any value between 0 and 65535. Signatures are only considered valid or invalid if the sum of the weights of the signers that signed the transaction is greater or equal to the threshold.
+
+### ja-translated Checkpoint
+MOCKDATA + ja-translated The `checkpoint` is a `uint32`. During wallet creation, a semi-random value can be provided to generate independent wallets with the same initial configuration. Then, during normal operation, the `checkpoint` is used by Light State Sync to ensure that wallet updates are applied in the correct order.
+
+### ja-translated Tree
+MOCKDATA + ja-translated The `tree` is an unbalanced binary Merkle tree, where each leaf may contain a signer, a static signature, or a subtree. The tree can represent any combination of signers and weights and can be used to create complex multi-signature wallets.
+
+ja-translated The possible leaf types are:
+
+#### MOCKDATA + ja-translated Signer
+ja-translated Signers are represented by a signer `address` and a `uint8` weight. The weight is how much the signer contributes to the threshold.
+The address can belong to either an `ERC1271` compliant contract or an `EOA` wallet.
+
+MOCKDATA + ja-translated The leaf hash is calculated as follows:
+
+```solidity
+bytes32(uint256(weight) << 160 | uint256(uint160(addr)))
+```
+
+#### ja-translated Subdigest
+MOCKDATA + ja-translated This represents a static subdigest for which any signature is valid. If a signature for this subdigest is provided, the total weight of the signature is automatically set to `Infinity`.
+
+ja-translated Notice static subdigests that exist within nested trees will have their "Infinity" weight reduced to the weight of the nested tree.
+
+MOCKDATA + ja-translated The leaf hash is calculated as follows:
+
+```solidity
+keccak256(abi.encodePacked('Sequence static digest:\n', subdigest));
+```
+
+#### MOCKDATA + ja-translated Subtree (nested configuration)
+ja-translated This represents a whole new wallet configuration, this "nested configuration" has its own:
+- MOCKDATA + ja-translated External `weight` (`uint8`)
+- ja-translated Internal `threshold` (`uint16`)
+- MOCKDATA + ja-translated Internal `tree`
+
+ja-translated The way it works is that if a signature reaches the `internal threshold` within the subtree it is considered valid, and the `external weight` is added to the parent tree. Any number of nested configurations can be created, and it is possible to create multiple nesting levels.
+
+MOCKDATA + ja-translated This pattern can be used, among other things, to express the following scenarios:
+- ja-translated Non-linear weight distribution, A and B signers can provide 1 weight each, but together they can provide 3 weight.
+- MOCKDATA + ja-translated Limited total weight contribution, A, B, and C signers can provide 1 weight each, but together they can only provide 2 weight.
+- ja-translated "Department configurations", N departments are required to sign, and each department has its own inner configuration.
+
+MOCKDATA + ja-translated The leaf hash is calculated as follows:
+
+```solidity
+keccak256(abi.encodePacked(
+  'Sequence nested config:\n',
+  imageHash(tree),
+  threshold,
+  weight
+))
+```
+
+MOCKDATA + ja-translated :::warning
+The wallet contracts have no way of validating the correctness of the configuration, the responsibility of ensuring the configuration is correct is on the SDKs interacting with the contracts.
+
+ja-translated Things like `threshold == 0` or `threshold > total weight` will result in fully unauthenticated wallets or inaccessible wallets respectively.
+:::
+
+## MOCKDATA + ja-translated ImageHash
+ja-translated The `configuration` is never stored as a whole; instead, the Merkle tree is hashed into a single `bytes32` value, this is internally called the `imageHash` of the configuration.
+
+MOCKDATA + ja-translated The `imageHash` is calculated as follows:
+
+```solidity
+imageHash := keccak256(abi.encode(
+  keccak256(abi.encode(
+    hashTree(tree),
+    threshold
+  )),
+  checkpoint
+))
+```
+
+ja-translated The `hashTree` function is a recursive function that hashes the tree into a single `bytes32` value, pseudo code for the `hashTree` function is as follows:
+
+```typescript
+export function hashTree(node: Node | Leaf): string {
+  if (isSignerLeaf(node)) {
+    return ethers.solidityPackedKeccak256(
+      ['uint96', 'address'],
+      [node.weight, node.address]
+    )
+  }
+
+  if (isSubdigestLeaf(node)) {
+    return ethers.solidityPackedKeccak256(
+      ['string', 'bytes32'],
+      ['Sequence static digest:\n', node.subdigest]
+    )
+  }
+
+  if (isNestedLeaf(node)) {
+    const nested = hashTree(node.tree)
+    return ethers.solidityPackedKeccak256(
+      ['string', 'bytes32', 'uint256', 'uint256'],
+      ['Sequence nested config:\n', nested, node.threshold, node.weight]
+    )
+  }
+
+  return ethers.solidityPackedKeccak256(
+    ['bytes32', 'bytes32'],
+    [hashTree(node.left), hashTree(node.right)]
+  )
+}
+```
+
+## MOCKDATA + ja-translated Initial Configuration
+ja-translated All Sequence Wallets have an "initial configuration", implemented by using the `imageHash` of the initial configuration as the SALT during the `CREATE2` deployment of the wallet.
+
+MOCKDATA + ja-translated Wallets are deployed by calling the `deploy` function of the `Factory` contract, which takes the following parameters:
+- ja-translated `mainModule`: The address of the initial code implementation of the wallet.
+- MOCKDATA + ja-translated `salt`: The `imageHash` of the initial configuration.
+
+ja-translated :::info
+The `MainModule` should always be used as the initial code implementation of the wallet. The `MainModule` validates the `imageHash` (during signature validation) by re-computing the counterfactual address of the wallet, hence it does not require any storage initialization.
+
+MOCKDATA + ja-translated If the `imageHash` is ever changed, `MainModule` will automatically replace the wallet code implementation with `MainModuleUpgradeable`, while handling the storage initialization.
+:::
