@@ -62,52 +62,40 @@ We have convenient utility functions for ERC1155 tokens that make it easy to con
 Here's a configuration with example varibles variables:
 
 ```jsx
-import { useAccount } from 'wagmi'
-import { useERC1155SaleContractPaymentModal } from '@0xsequence/kit-checkout'
+import { useERC1155SaleContractCheckout } from "@0xsequence/kit-checkout";
+import { useAccount } from "wagmi";
 
 const MyComponent = () => {
-  const { address } = useAccount()
-  const { openERC1155SaleContractPaymentModal } = useERC1155SaleContractPaymentModal()
-
+  const { address: userAddress } = useAccount();
+  const { openCheckoutModal } = useERC1155SaleContractCheckout({
+    chain: 80001, // chainId of the chain the collectible is on
+    contractAddress: "0x0327b2f274e04d292e74a06809bcd687c63a4ba4", // address of the contract handling the minting function
+    wallet: userAddress!, // address of the recipient
+    collectionAddress: "0x888a322db4b8033bac3ff84412738c096f87f9d0", // address of the collection contract
+    items: [
+      // array of collectibles to purchase
+      {
+        tokenId: "0",
+        quantity: "1",
+      },
+    ],
+    onSuccess: (txnHash: string) => {
+      console.log("success!", txnHash);
+    },
+    onError: (error: Error) => {
+      console.error(error);
+    },
+  });
 
   const onClick = () => {
-    if (!address) {
-      return
+    if (!userAddress) {
+      return;
     }
-    // ERC-20 contract - replace with your contracts for sales
-    const currencyAddress = '0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359'
-    const salesContractAddress = '0xe65b75eb7c58ffc0bf0e671d64d0e1c6cd0d3e5b'
-    const collectionAddress = '0xdeb398f41ccd290ee5114df7e498cf04fac916cb'
-    const price = '20000'
+    openCheckoutModal();
+  };
 
-    const chainId = 137
-
-    openERC1155SaleContractPaymentModal({
-      collectibles: [ // array of collectibles to purchase
-        {
-          tokenId: '1',
-          quantity: '1'
-        }
-      ],
-      chain: chainId, // chainId of the chain the collectible is on
-      price, // price of the collectible according to decimals of currencyAddress contract
-      targetContractAddress: salesContractAddress, // address of the contract handling the minting function
-      recipientAddress: address, // address of the recipient
-      currencyAddress, // address of the currency contract
-      collectionAddress, // address of the collection contract
-      creditCardProviders: ['sardine'], // array of credit card providers to use, i.e., Sardine
-      copyrightText: 'ⓒ2024 Sequence',
-      onSuccess: (txnHash: string) => {
-        console.log('success!', txnHash)
-      },
-      onError: (error: Error) => {
-        console.error(error)
-      }
-    })
-  }
-
-  return <button onClick={onClick}>Buy ERC-1155 collectble!</button>
-}
+  return <button onClick={onClick}>Buy ERC-1155 collectible!</button>;
+};
 ```
 
 
