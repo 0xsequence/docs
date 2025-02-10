@@ -6,12 +6,9 @@ require('dotenv').config()
 
 const FRENGLISH_API_KEY = process.env.FRENGLISH_API_KEY
 const BASE_PATH = 'docs/pages'
-const ORIGIN_LANGUAGE_DIR = 'docs/pages'
+const ORIGIN_LANGUAGE_DIR = 'docs/pages/support'
 const COMPONENT_LOCALES_PATH = 'docs/locales/en.po'
-const EXCLUDED_TRANSLATION_PATH = [
-  'docs/pages/ja',
-  'docs/pages/solutions/chainlist',
-]
+const EXCLUDED_TRANSLATION_PATH = ['docs/pages/ja', 'docs/pages/solutions/chainlist']
 
 const frenglish = new FrenglishSDK(FRENGLISH_API_KEY)
 

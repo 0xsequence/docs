@@ -1,10 +1,10 @@
-import { i18n } from "@lingui/core";
+import { i18n } from '@lingui/core'
 
-import { messages as en } from "./docs/locales/en";
-import { messages as ja } from "./docs/locales/ja";
+import { messages as en } from './docs/locales/en'
+import { messages as ja } from './docs/locales/ja'
 
-i18n.load("en", en);
-i18n.load("ja", ja);
+i18n.load('en', en)
+i18n.load('ja', ja)
 
 /**
  * Load messages for requested locale and activate it.
@@ -12,7 +12,7 @@ i18n.load("ja", ja);
  * many ways how to load messages — from REST API, from file, from cache, etc.
  */
 export async function loadCatalog(locale: string) {
-  const messages = locale === "ja" ? ja : en;
+  const messages = locale === 'ja' ? ja : en
 
-  i18n.loadAndActivate({ locale, messages });
+  i18n.loadAndActivate({ locale, messages })
 }
