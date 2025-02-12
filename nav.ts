@@ -582,6 +582,7 @@ export const sidebar = {
             { text: 'Overview', link: '/sdk/unity/overview' },
             { text: 'Installation', link: '/sdk/unity/installation' },
             { text: 'Setup', link: '/sdk/unity/setup' },
+            { text: 'Bootstrap your Game', link: '/sdk/unity/bootstrap_game' },
             {
               text: 'Authentication',
               collapsed: false,

@@ -1,0 +1,165 @@
+---
+title: Sequence - Web3 Gaming Platform - Unity SDK Overview
+description: Documentation for Unity SDK setup for the Sequence infrastructure stack for web3 gaming.
+---
+
+import {CollapsibleDetails} from "../../../components/CollapsibleDetails.tsx";
+
+# Bootstrap your Game
+
+Sequence's Unity SDK includes a range of features to help you bootstrap your game.
+You can create them as shown below or duplicate the `.prefab` files from the
+`Packages > Sequence Embedded Wallet SDK > Sequence > SequenceBoilerplates > Prefabs`
+folder and customize them to fit your needs.
+
+Ensure that your codebase has access to the `Sequence.Boilerplates.asmdef` assembly.
+
+Checkout the `BoilerplateController.cs` for more integration examples.
+
+## Login
+
+Create the `SequenceLoginWindow` prefab to authenticate users as a Guest, with Email OTP, Google- or Apple Sign In.
+
+[Checkout the Authentication section](/sdk/unity/authentication/intro) for more details on how to configure
+your project for each login option.
+
+<img alt={'img'} src={'/img/unity/unity_boilerplate_login.png'} style={{borderRadius: 15}}/>
+
+```csharp
+[SerializeField] private SequenceLoginWindow _loginWindow;
+_loginWindow.Show(loginHandler);
+```
+
+<CollapsibleDetails title={'Parameters'} items={[{
+        key: 'loginHandler (ILogin)',
+        value: "Get the login instance from SequenceLogin.GetInstance() and check if the user has a valid session. Otherwise, show this login window."
+    }]
+}/>
+
+## In-Game Shop
+
+Accelerate your game growth by selling items directly to your players. Create the `SequencePlayerProfile` prefab to
+show an In-Game Shop that utilizes game items from a ERC1155 contract, which users purchase using any custom or
+existing ERC20 currency.
+
+[Primary Sales Contract](/solutions/collectibles/contracts/deploy-primary-sales-contract/): Learn how to set up and deploy contracts for launching a primary sale.
+
+<img alt={'img'} src={'/img/unity/unity_boilerplate_shop.png'} style={{borderRadius: 15}}/>
+
+```csharp
+[SerializeField] private SequenceInGameShop _inGameShop;
+_inGameShop.Show(wallet, chain, collectionAddress, saleContractAddress, itemsForSale);
+```
+
+<CollapsibleDetails title={'Parameters'} items={[{
+        key: 'wallet (IWallet)',
+        value: "The wallet instance you receive from the SequenceWallet.OnWalletCreated event after completing the login process."
+    },
+    {
+        key: 'chain (Chain)',
+        value: "The chain type (Ethereum, Sepolia, ..) on which the specified contract is deployed."
+    },
+    {
+        key: 'collectionAddress (string)',
+        value: "ERC1155 contract address. Deploy your own contract on Builder first."
+    },
+    {
+        key: 'saleContractAddress (string)',
+        value: "ERC1155 Sale contract address when you deploy your sale on Builder."
+    },
+    {
+        key: 'itemsForSale (int[])',
+        value: "Array of token Ids which you wish to sell to your players."
+    }]
+}/>
+
+## Daily Rewards
+
+<img alt={'img'} src={'/img/unity/unity_boilerplate_daily_rewards.png'} style={{borderRadius: 15}}/>
+
+```csharp
+[SerializeField] private SequenceDailyRewards _dailyRewards;
+_dailyRewards.Show(wallet, chain, apiUrl);
+```
+
+<CollapsibleDetails title={'Parameters'} items={[{
+        key: 'wallet (IWallet)',
+        value: "The wallet instance you receive from the SequenceWallet.OnWalletCreated event after completing the login process."
+    },
+    {
+        key: 'chain (Chain)',
+        value: "The chain type (Ethereum, Sepolia, ..) on which the specified contract is deployed."
+    },
+    {
+        key: 'apiUrl (string)',
+        value: "The API url you receive after deploying the required server boilerplate."
+    }]
+}/>
+
+## Player Profile
+
+Create the `SequencePlayerProfile` prefab to manage your current profile. This includes functionalities such as Sign Out,
+linking external wallets, sending native tokens, and QR code to receive funds.
+
+<img alt={'img'} src={'/img/unity/unity_boilerplate_profile.png'} style={{borderRadius: 15}}/>
+
+```csharp
+[SerializeField] private SequencePlayerProfile _playerProfile;
+_playerProfile.Show(wallet, chain);
+```
+
+<CollapsibleDetails title={'Parameters'} items={[{
+        key: 'wallet (IWallet)',
+        value: "The wallet instance you receive from the SequenceWallet.OnWalletCreated event after completing the login process."
+    },
+    {
+        key: 'chain (Chain)',
+        value: "The chain type (Ethereum, Sepolia, ..) on which the specified contract is deployed."
+    }]
+}/>
+
+## Inventory
+
+Create the `SequenceInventory` prefab to show all items owned by a user from any ERC1155 or ERC721 contract.
+
+<img alt={'img'} src={'/img/unity/unity_boilerplate_inventory.png'} style={{borderRadius: 15}}/>
+
+```csharp
+[SerializeField] private SequenceInventory _inventory;
+_inventory.Show(wallet, chain, collectionAddress);
+```
+
+<CollapsibleDetails title={'Parameters'} items={[{
+        key: 'wallet (IWallet)',
+        value: "The wallet instance you receive from the SequenceWallet.OnWalletCreated event after completing the login process."
+    },
+    {
+        key: 'chain (Chain)',
+        value: "The chain type (Ethereum, Sepolia, ..) on which the specified contract is deployed."
+    },
+    {
+        key: 'collectionAddress (string)',
+        value: "ERC1155 or ERC721 contract address. Deploy your own contract on Builder first."
+    }]
+}/>
+
+## Sign Messages
+
+Create the `SequenceSignMessage` prefab to show a modal that lets you sign a specified text.
+
+<img alt={'img'} src={'/img/unity/unity_boilerplate_signmessage.png'} style={{borderRadius: 15}}/>
+
+```csharp
+[SerializeField] private SequenceSignMessage _signMessage;
+_signMessage.Show(wallet, chain);
+```
+
+<CollapsibleDetails title={'Parameters'} items={[{
+        key: 'wallet (IWallet)',
+        value: "The wallet instance you receive from the SequenceWallet.OnWalletCreated event after completing the login process."
+    },
+    {
+        key: 'chain (Chain)',
+        value: "The chain type (Ethereum, Sepolia, ..) on which the specified contract is deployed."
+    }]
+}/>
