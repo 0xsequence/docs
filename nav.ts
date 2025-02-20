@@ -603,6 +603,7 @@ export const sidebar = {
             { text: 'Sign Messages', link: '/sdk/unity/sign-messages' },
             { text: 'Recovering Sessions', link: '/sdk/unity/recovering-sessions' },
             { text: 'Session Management', link: '/sdk/unity/session-management' },
+            { text: 'Smart Contract Events', link: '/sdk/unity/contract-events' },
             { text: 'On-Ramp Funds via Credit Card', link: '/sdk/unity/onboard-user-funds' },
             { 
               text: 'Peer to Peer Trading / Marketplace',
