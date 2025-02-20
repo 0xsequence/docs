@@ -1,147 +1,154 @@
 ---
-title: Sequence - Web3 Gaming Platform - Unreal SDK Authentication
-description: Documentation for Unreal SDK authentication for the Sequence infrastructure stack for web3 gaming.
+title: Sequence - Web3 Gaming Platform - Unreal SDK Sequence API
+description: Documentation for Unreal SDK API to manage sessions for the Sequence infrastructure stack for web3 gaming.
 ---
 
-# Authentication
+import TabbedContent from "../../../components/TabbedContent";
 
-## Built-In UI
+# Authenticating Users
 
-### Before Starting:
+Visit our [Platform Requirements](/sdk/unreal/platforms) page for detailed information on setting up and ensuring
+that the authentication methods you choose are properly configured in your Builder project.
 
-You can simply duplicate the `[BP_CustomSpectatorPawn]` but since it and its parent class reside within the realm of the plugin, during updates all modifications you make within the plugin could potentially be lost. These are here as a reference for how things should be done. We recommend you duplicate the `BP_CustomSpectatorPawn` out of the plugin folder, then update its parent class to a C++ class of your own making that also resides outside the plugins content folder.
+## Sign In with Email OTP
 
-Some additional setup of the GameMode will need to be done prior to any UI showing up. The SequencePlugin comes bundled with an example GameMode `[GM_Sequence]` stored within `[Demonstration]` in the plugin content folder. Duplicate this GameMode and move it outside the plugin folder. Then open up `[GM_Sequence]` and set the DefaultPawn to the Pawn Blueprint you've just made.
+Sign in users with any email, and they will receive a one-time password in their inbox.
+Listen for the Email Requires Code event.
 
-Lastly in Project Settings you'll need to set this GameMode as the default GameMode. Specifically in `ProjectSettings -> Maps & Modes`
+<TabbedContent labels={["Blueprint"]}>
+    <div className="tabbed-content__content borderless">
+        <img alt={'img'} src={'/img/unreal/email_otp.png'}/>
+    </div>
+</TabbedContent>
 
-*Note: Unreal's web browser plugin uses the Chromium embedded browser. If your device does not support it, you can instead use Unreal's `Launch URL` function.*
+## Social Sign In
 
-:::tip
-Try running your project now! You should be able to log in using your social credentials if you've set everything up correctly so far!
-:::
+To initiate SSO-based authentication on desktop, you need to navigate to a browser to obtain the necessary id_token.
+On mobile, our SDK handles this process for you using integrated plugins.
 
-### Customizing the built-in UI
+On desktop platforms, listen for the `Sign in Web View Required` event and open the returned `Sign In URL`.
+On mobile platforms, listen for the `Id Token Received` event.
 
-In the folder located at *SequencePlugin Content/Core/Style* you'll find a struct `F_SequenceUIStyle`. In the default values section of this struct you'll be able to update the colours and images displayed throughout the UI. Currently we only read from `Sequence_Style_Dark_Mode`
+### Get Google Id Token
 
-## Custom UI
+<TabbedContent labels={["Blueprint"]}>
+    <div className="tabbed-content__content borderless">
+        <img alt={'img'} src={'/img/unreal/google_idtoken.png'}/>
+    </div>
+</TabbedContent>
 
-In a C++ **UObject** with a series of pass through `[UFUNCTIONS]` setup similarly to `[SequenceBackendManager.h/.cpp]`. Each of these calls are implemented in `[UAuthenticator]` you just need to pass through the data with **YOUR** UAuthenticator UObject
+### Get Apple Id Token
 
-```cpp
-/*
-   Used to initiate mobile Social Signin
-   (No other calls need to be made to complete mobile SSO)
-*/
-void InitiateMobileSSO(const ESocialSigninType& Type)
-/*
-   Optional Call,
-   Used to set a custom encryptor implementation for the Authentication Process
-*/
-void SetCustomEncryptor(UGenericNativeEncryptor * EncryptorIn);
-/*
-   This call is for generating a login URL for Desktop based Social Signin
-   the received URL is fed into a WebBrowser to begin the login process
-*/
-FString GetLoginURL(const ESocialSigninType& Type); 
-/*
-   This is call is for undergoing social login once an ID_Token has been collected.
-*/
-void SocialLogin(const FString& IDTokenIn);
-/*
-   This Call is made after you've collected the email address from the Users in the UI
-   The Delegate **[AuthRequiresCode]** will fire when a code is ready to be received
-   by the UAuthenticator
-*/
-void EmailLogin(const FString& EmailIn);
-/*
-   This is call is made after the Delegate **[AuthRequiresCode]** is fired
-   The Code collected from the User in the GUI is sent in via this call
-*/
-void EmailCode(const FString& CodeIn);
-/*
-   Optional call used to retrieve stored credentials on disk
-*/
-FStoredCredentials_BE GetStoredCredentials() const;
-/*
-   Optional call used to check if the credentials on disk are valid or not
-*/
-bool StoredCredentialsValid();
-```
+<TabbedContent labels={["Blueprint"]}>
+    <div className="tabbed-content__content borderless">
+        <img alt={'img'} src={'/img/unreal/apple_idtoken.png'}/>
+    </div>
+</TabbedContent>
 
-To start you'll want to create a `[UAuthenticator]` UObject like so ```[UAuthenticator * Auth = NewObject<UAuthenticator>()]```, this UObject manages the authentication side of Sequence.
+### Start Session with Id Token
 
-Be sure to bind to the Delegates for **[AuthSuccess]**, **[AuthFailure]**, **[AuthRequiresCode]** prior to making any signin calls You can bind to these delegates like so:
-    
-```cpp
-this->authenticator->AuthRequiresCode.AddDynamic(this, &AYourClass::YourCallReadyToReceiveCode);
-this->authenticator->AuthFailure.AddDynamic(this, &AYourClass::YourCallShowAuthFailureScreen);
-```
-    
-In the case of **[AuthSuccess]** since a parameter is also passed we bind to it like this
+Use this method to start a session using a valid Id token from Google or Apple.
 
-```cpp
-FScriptDelegate del;
-del.BindUFunction(this, "CallShowAuthSuccessScreen");
-this->authenticator->AuthSuccess.Add(del);
-```
-    
-**Note:** Replace the usage of the `SequenceBackendManager.h/.cpp` with you're own when building a custom GUI, it is only used here as a reference in the event more context is needed with these instructions. Where [CallShowAuthSuccessScreen] is defined in SequenceBackendManager.h as an example like so:
+<TabbedContent labels={["Blueprint"]}>
+    <div className="tabbed-content__content borderless">
+        <img alt={'img'} src={'/img/unreal/token_session.png'}/>
+    </div>
+</TabbedContent>
 
-```cpp
-UFUNCTION()
-void CallShowAuthSuccessScreen(const FCredentials_BE& CredentialsIn);
-And in SequenceBackendManager.cpp like so:
+## PlayFab
 
-void ASequenceBackendManager::CallShowAuthSuccessScreen(const FCredentials_BE& CredentialsIn) 
-{
-this->Credentials = CredentialsIn;
-if (this->ShowAuthSuccessDelegate.IsBound())
-  this->ShowAuthSuccessDelegate.Broadcast(Credentials);
-else
-  UE_LOG(LogTemp, Error, TEXT("**[Nothing bound to: ShowAuthSuccessDelegate]**"));
-}  
-```
+You will need to include your PlayFab Title ID in the `SequenceConfig.ini` file
+during [Configuration](/sdk/unreal/configuration) and [configure PlayFab in the Builder](/solutions/builder/embedded-wallet/playfab-configuration).
 
-## Email based Authentication With CustomUI
+### Register a new PlayFab user
 
-To start email based authentication you'll start it with this call `[EmailLogin(const FString& EmailIn)]`, supplying an email you've collected from the User in your GUI.
+<TabbedContent labels={["Blueprint"]}>
+    <div className="tabbed-content__content borderless">
+        <img alt={'img'} src={'/img/unreal/playfab_registration.png'}/>
+    </div>
+</TabbedContent>
 
-Next `[AuthRequiresCode]` will fire when the `[UAuthenticator]` is ready to receive the Code from your UI. Collect this code from your GUI and send it to the authenticator using `[EmailCode(CodeIn)]`.
+### Login with existing PlayFab user
 
-Finally `[AuthSuccess]` will fire with a `Credentials_BE` struct as a parameter. You are done Email Based Auth.
+<TabbedContent labels={["Blueprint"]}>
+    <div className="tabbed-content__content borderless">
+        <img alt={'img'} src={'/img/unreal/playfab_login.png'}/>
+    </div>
+</TabbedContent>
 
-## Social Signin based Authentication on Desktop With CustomUI
+### Custom PlayFab integration 
 
-To start **SSO based authentication** with desktop you will need to navigate to a browser in order to get the necessary id_token.
+If you have your own PlayFab integration, you are welcome to use it. Once you've received your SessionTicket from PlayFab, please pass it along for authentication with Sequence APIs using `PlayfabAuthenticateWithSessionTicket` method on your `USequenceAthenticator` object.
 
-To get the URL to navigate to you can use the UAuthenticator supplied call `[FString GetSigninURL(const ESocialSigninType& Type)]` where Type is the social login type you wish to use
+## Sign In as a Guest
 
-With whatever implementation you chose you can forward the collected id_token to the UAuthenticator object with `[SocialLogin(const FString& IDTokenIn)]`, after which `[AuthSuccess]` will fire and you're done desktop based SSO.
+You can sign in users as guests. However, note that they will lose access to their wallet if they uninstall the app or sign out.
 
-## Social Signin based Authentication on Mobile With CustomUI
+<TabbedContent labels={["Blueprint"]}>
+    <div className="tabbed-content__content borderless">
+        <img alt={'img'} src={'/img/unreal/guest_session.png'}/>
+    </div>
+</TabbedContent>
 
-To start mobile SSO you will need to make use of the `[UAuthenticator::InitiateMobileSSO(const ESocialSigninType& Type)]` where type is the Type of SSO you want to use. IE) Google or Apple, for the time being Discord & Facebook aren't supported. This function call is all that's required for Mobile SSO 
+## Federate Accounts
 
-### Android SSO Requirements
+With Federated Accounts, you can associate multiple login methods with a single account and wallet.
+If your user has signed in with as a Guest, you will definitely want to push them towards federating their
+account in order to have persistent credentials with which they can access their Sequence Embedded Wallet in subsequent sessions.
+While a user is authenticated with the Sequence API, you can add an additional login method by using the appropriate federate account call.
 
-**Google:** :In order to be able to properly use Google Auth, create and place the Keystore file by following [these instructions](https://dev.epicgames.com/documentation/en-us/unreal-engine/signing-android-projects-for-release-on-the-google-play-store-with-unreal-engine?application_version=5.1).
+<TabbedContent labels={["Blueprint"]}>
+    <div className="tabbed-content__content borderless">
+        <img alt={'img'} src={'/img/unreal/email_federation.png'}/>
+    </div>
+</TabbedContent>
 
-You will also need to generate an [Android client ID] and a [Web Application client ID] for your application. And place the [Web Application client ID] in the `[YourProject/Config/SequenceConfig.ini]`, [GoogleClientID] field.
+## Sign Out
 
-Refer to [these docs](https://developers.google.com/identity/one-tap/android/get-started#api-console) to generate [Android client ID] and [Web Application client ID].
+Clear the credentials cache and sign out the current user.
 
-[This guide](https://https://developers.google.com/android/guides/client-auth?hl=es-419) helps explain how to collect SHA-1 key fingerprints for the [Android client ID].
+<TabbedContent labels={["Blueprint", "C++"]}>
+    <div className="tabbed-content__content borderless">
+        <img alt={'img'} src={'/img/unreal/sign_out.png'}/>
+    </div>
 
-**Apple:** Please ensure you have a proper [AppleClientID] set in `[YourProject/Config/SequenceConfig.ini]`
+    <div className="tabbed-content__content borderless">
+        ```cpp
+        const TOptional<USequenceWallet*> WalletOptional = USequenceWallet::Get();
+        if (WalletOptional.IsSet() && WalletOptional.GetValue())
+        {
+            USequenceWallet * Api = WalletOptional.GetValue();
+            Api->SignOut();
+        }
+        ```
+    </div>
+</TabbedContent>
 
-### IOS SSO Requirements
+## List Sessions
 
-**Google**: Please ensure you have a proper [GoogleClientID] set in `[YourProject/Config/SequenceConfig.ini]`
+List the active sessions.
 
-**Apple**: Please ensure you have a proper [AppleClientID] set in `[YourProject/Config/SequenceConfig.ini]`, be sure you register and set your bundle identifier properly for your app
+<TabbedContent labels={["Blueprint", "C++"]}>
+    <div className="tabbed-content__content borderless">
+        <img alt={'img'} src={'/img/unreal/list_sessions.png'}/>
+    </div>
 
-*Apple Specific SSO Requirements*
-
-For Apple SSO to work please be sure to register the [RedirectUrl] in [YourProject/Config/SequenceConfig.ini] appropriately for your app.
+    <div className="tabbed-content__content borderless">
+        ```cpp
+        const TSuccessCallback<TArray<FSession>> OnSuccess = [=](TArray<FSession> Response)
+        {
+            //Response is a list of Sessions
+        };
+        const FFailureCallback OnFailure = [=](const FSequenceError& Error)
+        {
+            UE_LOG(LogTemp,Display,TEXT("Error Message: %s"),*Error.Message);
+        };
+        const TOptional<USequenceWallet*> WalletOptional = USequenceWallet::Get();
+        if (WalletOptional.IsSet() && WalletOptional.GetValue())
+        {
+            USequenceWallet * Api = WalletOptional.GetValue();
+            Api->ListSessions(OnSuccess,OnFailure);
+        }
+        ```
+    </div>
+</TabbedContent>

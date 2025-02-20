@@ -24,7 +24,7 @@ export const OverviewSection = () => (
             icon: 'UnityIcon',
             title: 'End to End Unity Game Guide',
             body: 'Introducing Jelly Forest: a blockchain-enabled 2D runner game with social sign in, an in-game store, a backend transaction manager and more - all built in Unity using the Sequence platform.',
-            link: '/guides/unity-guide',
+            link: '/guides/jelly-forest-unity-guide',
           },
           {
             icon: 'DiscordIcon',
@@ -55,13 +55,7 @@ export const OverviewSection = () => (
             title: 'Wallet Linking',
             body: 'Enable users to link their embedded wallet in your game with an external wallet - allowing you to query assets, balances, and allow easy flow of liquidity to your game.',
             link: '/solutions/wallets/link-wallets/overview',
-          },
-          {
-            icon: 'WalletIcon',
-            title: 'Universal Wallet',
-            body: 'Easily onboard web3-native players with a complete Universal Wallet.',
-            link: '/solutions/wallets/universal-wallet/overview',
-          },
+          }
         ]}
       />
     </div>
@@ -74,7 +68,7 @@ export const OverviewSection = () => (
             icon: 'MarketplaceIcon',
             title: 'White-Label Marketplace',
             body: 'Launch an in-game collectibles marketplace within minutes.',
-            link: '/solutions/marketplaces/white-label-marketplace',
+            link: '/solutions/marketplaces/white-label-marketplace/overview',
           },
           {
             icon: 'SequenceIcon',
@@ -122,7 +116,7 @@ export const OverviewSection = () => (
             icon: 'MinterIcon',
             title: 'Transaction Manager',
             body: 'Scalable transactions with batching, access-control, parallelization, automatic reorg management with our transactions API.',
-            link: '/solutions/transactions-api/overview',
+            link: '/solutions/transaction-manager/overview',
           },
           // {
           //   icon: 'MinterIcon',
@@ -136,7 +130,7 @@ export const OverviewSection = () => (
   </section>
 )
 
-const SolutionsGroup = ({
+export const SolutionsGroup = ({
   heading,
   items,
   theme,

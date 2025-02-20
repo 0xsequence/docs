@@ -20,7 +20,6 @@ export const topNav = [
         match: '/solutions/monetization-overview',
       },
       { text: 'Power', link: '/solutions/power-overview', match: '/solutions/power-overview' },
-      // { text: 'Chain Support', link: '/solutions/technical-references/chain-support', match: '/solutions/technical-references/chain-support' },
     ],
   },
   {
@@ -34,7 +33,12 @@ export const topNav = [
     text: 'SDKs',
     items: [
       { text: 'Unity', link: '/sdk/unity/overview', match: '/sdk/unity/overview' },
-      { text: 'Unreal', link: '/sdk/unreal/overview', match: '/sdk/unreal/overview' },
+      { text: 'Unreal', link: '/sdk/unreal/introduction', match: '/sdk/unreal/introduction' },
+      {
+        text: 'React',
+        link: '/solutions/wallets/sequence-kit/overview',
+        match: '/solutions/wallets/sequence-kit/overview',
+      },
       {
         text: 'Typescript',
         link: '/sdk/typescript/guides/overview',
@@ -64,6 +68,16 @@ export const topNav = [
         link: '/api/marketplace/overview',
         match: '/api/marketplace/overview',
       },
+      {
+        text: 'Infrastructure API',
+        link: '/api/infrastructure/overview',
+        match: '/api/infrastructure/overview',
+      },
+      {
+        text: 'Builder API',
+        link: '/api/builder/overview',
+        match: '/api/builder/overview',
+      },
       { text: 'Node Gateway', link: '/api/node-gateway', match: '/api/node-gateway' },
     ],
   },
@@ -72,7 +86,8 @@ export const topNav = [
     text: 'Support',
     items: [
       { text: 'Support', link: '/support' },
-      { text: 'Changelog', link: 'https://0xsequence.canny.io/changelog' },
+      { text: 'Integrated Chains', link: '/solutions/technical-references/chain-support/' },
+      { text: 'Changelog', link: 'https://0xsequence.featurebase.app/' },
       { text: 'Restricted Regions', link: '/support/restricted-regions' },
       { text: 'Token Directory', link: '/support/token-directory' },
       { text: 'FAQ', link: 'https://support.sequence.xyz' },
@@ -99,6 +114,15 @@ export const sidebar = {
       items: [
         { text: 'Overview', link: '/solutions/wallets/overview' },
         {
+          text: 'Ecosystem Wallets',
+          collapsed: false,
+          items: [
+            { text: 'Overview', link: '/solutions/wallets/ecosystem/overview' },
+            { text: 'Configuration', link: '/solutions/wallets/ecosystem/configuration' },
+            { text: 'Cross-App Integration', link: '/solutions/wallets/ecosystem/cross-app' },
+          ],
+        },
+        {
           text: 'Embedded Wallet',
           collapsed: false,
           items: [
@@ -121,6 +145,14 @@ export const sidebar = {
                   text: 'PlayFab Setup',
                   link: '/solutions/builder/embedded-wallet/playfab-configuration',
                 },
+                {
+                  text: 'Stytch Setup',
+                  link: '/solutions/builder/embedded-wallet/stytch-configuration',
+                },
+                {
+                  text: 'Guest Wallet Setup',
+                  link: '/solutions/builder/embedded-wallet/guest-wallet-configuration',
+                },
               ],
             },
             {
@@ -136,7 +168,7 @@ export const sidebar = {
                   link: '/solutions/wallets/embedded-wallet/examples/use-wallets',
                 },
                 {
-                  text: 'Account Federation',
+                  text: 'Multi-account Support',
                   link: '/solutions/wallets/embedded-wallet/examples/account-federation',
                 },
                 {
@@ -149,7 +181,7 @@ export const sidebar = {
                   link: '/solutions/wallets/embedded-wallet/examples/fee-options',
                 },
                 {
-                  text: 'Token Verification',
+                  text: 'Backend Verification',
                   link: '/solutions/wallets/embedded-wallet/examples/verification',
                 },
                 {
@@ -201,9 +233,20 @@ export const sidebar = {
           items: [
             { text: 'Overview', link: '/solutions/wallets/sequence-kit/overview' },
             { text: 'Quickstart', link: '/solutions/wallets/sequence-kit/getting-started' },
-            { text: 'Configuration', link: '/solutions/wallets/sequence-kit/configuration' },
-            { text: 'On-ramp', link: '/solutions/wallets/sequence-kit/on-ramp' },
-            { text: 'Checkout', link: '/solutions/wallets/sequence-kit/checkout' },
+            {
+              text: 'Custom Configuration',
+              link: '/solutions/wallets/sequence-kit/custom-configuration',
+            },
+            {
+              text: 'Sequence Pay',
+              collapsed: false,
+              items: [
+                { text: 'Checkout', link: '/solutions/wallets/sequence-kit/checkout' },
+                { text: 'Smart Swaps', link: '/solutions/wallets/sequence-kit/smart-swaps' },
+                { text: 'On-ramp', link: '/solutions/wallets/sequence-kit/on-ramp' },
+              ],
+            },
+
             {
               text: 'Custom Connectors',
               link: '/solutions/wallets/sequence-kit/custom-connectors',
@@ -222,64 +265,6 @@ export const sidebar = {
             },
           ],
         },
-        {
-          text: 'Universal Wallet',
-          collapsed: true,
-          items: [
-            { text: 'Overview', link: '/solutions/wallets/universal-wallet/overview' },
-            { text: 'Quickstart', link: '/solutions/wallets/universal-wallet/quickstart' },
-            {
-              text: 'Examples',
-              collapsed: true,
-              items: [
-                {
-                  text: 'Connect Wallet',
-                  link: '/solutions/wallets/universal-wallet/examples/connect-wallet',
-                },
-                {
-                  text: 'Authenticate Users with Message Signature',
-                  link: '/solutions/wallets/universal-wallet/examples/auth-address',
-                },
-                {
-                  text: 'Signing & Verifying Messages',
-                  link: '/solutions/wallets/universal-wallet/examples/sign-message',
-                },
-                {
-                  text: 'No-wallet confirmation signatures',
-                  link: '/solutions/wallets/universal-wallet/examples/session-keys',
-                },
-                {
-                  text: 'Sending Transactions',
-                  link: '/solutions/wallets/universal-wallet/examples/send-transaction',
-                },
-                {
-                  text: 'Sending ERC-20 Tokens',
-                  link: '/solutions/wallets/universal-wallet/examples/send-erc20',
-                },
-                {
-                  text: 'Sending ERC-721 (NFT) Tokens',
-                  link: '/solutions/wallets/universal-wallet/examples/send-erc721',
-                },
-                {
-                  text: 'Sending ERC-1155 (Collectible) Tokens',
-                  link: '/solutions/wallets/universal-wallet/examples/send-erc1155',
-                },
-                {
-                  text: 'Sending a Batch of Transactions',
-                  link: '/solutions/wallets/universal-wallet/examples/send-batch-transactions',
-                },
-                {
-                  text: 'Building Backends with Sequence',
-                  link: '/solutions/wallets/universal-wallet/examples/building-backends',
-                },
-              ],
-            },
-            //  {text: 'Sequence Kit', link: '/solutions/wallets/universal-wallet/sequence-kit'},
-            { text: 'Supported Platforms', link: '/solutions/wallets/universal-wallet/platforms' },
-            { text: 'Fiat On-Ramps', link: '/solutions/wallets/universal-wallet/fiat-on-ramps' },
-            { text: 'Key Management', link: '/solutions/wallets/universal-wallet/key-management' },
-          ],
-        },
       ],
     },
     {
@@ -293,22 +278,47 @@ export const sidebar = {
           items: [
             {
               text: 'White-label Marketplace',
-              link: '/solutions/marketplaces/white-label-marketplace',
+              collapsed: true,
+              items: [
+                {
+                  text: 'Overview',
+                  link: '/solutions/marketplaces/white-label-marketplace/overview',
+                  collapsed: true,
+                },
+                {
+                  text: 'Guide',
+                  link: '/solutions/marketplaces/white-label-marketplace/guide',
+                  collapsed: true,
+                },
+                {
+                  text: 'Video Walkthrough',
+                  link: '/solutions/marketplaces/white-label-marketplace/video-walkthrough',
+                  collapsed: true,
+                },
+              ],
             },
             {
               text: 'Build your Custom Marketplace',
               collapsed: true,
               items: [
                 { text: 'Overview', link: '/solutions/marketplaces/orderbook/overview' },
-                { text: 'Quickstart', link: '/solutions/marketplaces/orderbook/quickstart' },
+                { text: 'Starter Template', link: '/solutions/marketplaces/orderbook/starter' },
               ],
             },
           ],
         },
         {
-          text: 'Fiat On-ramps',
-          link: '/solutions/payments/onramps/fiat-on-ramps',
-          match: '/solutions/payments/onramps/fiat-on-ramps',
+          text: 'Sequence Pay',
+          collapsed: false,
+          items: [
+            {
+              text: 'Overview',
+              link: '/solutions/payments/overview',
+            },
+            { text: 'Checkout', link: '/solutions/wallets/sequence-kit/checkout' },
+            { text: 'Smart Swaps', link: '/solutions/wallets/sequence-kit/smart-swaps' },
+            { text: 'On-ramp', link: '/solutions/wallets/sequence-kit/on-ramp' },
+          ],
         },
       ],
     },
@@ -330,6 +340,10 @@ export const sidebar = {
             {
               text: 'Deploy an In-Game Currency (ERC20)',
               link: '/solutions/collectibles/contracts/deploy-ERC20-currency',
+            },
+            {
+              text: 'Deploy a Soulbound Token Contract',
+              link: '/solutions/collectibles/contracts/deploy-soulbound-token',
             },
             {
               text: 'Deploy a Primary Sales Contract',
@@ -443,127 +457,104 @@ export const sidebar = {
       collapsed: false,
       items: [
         {
-          text: 'Build a Game with WebGL',
+          text: 'Game Developers',
           collapsed: true,
-          link: '/guides/webgl-guide',
-          // items: [
-          //   { text: 'Introduction', link: '/guides/webgl-guide#aviator-web3-game-with-webgl' },
-          //   { text: 'Project Setup With Webpack', link: '/guides/webgl-guide#1-project-setup-with-webpack' },
-          //   { text: 'Integrate Sequence Kit With WaaS', link: '/guides/webgl-guide#2-integrate-sequence-kit' },
-          //   { text: 'Deploy a Collectibles Contract', link: '/guides/webgl-guide#3-deploy-a-collectibles-contract' },
-          //   { text: 'Deploy a Remote Minter', link: '/guides/webgl-guide#4-deploy-a-remote-minter--mint-in-game-achievement-tokens' },
-          //   { text: 'Leverage Items In-game', link: '/guides/webgl-guide#5-leverage-items-in-game' },
-          //   { text: 'Burn In-game Achievement Tokens', link: '/guides/webgl-guide#6-burn-in-game-achievement-tokens' },
-          //   { text: '(Optional) Integrate Embedded Wallet Into Sequence Kit', link: '/guides/webgl-guide#7-optional-integrate-embedded-wallet-into-sequence-kit' },
-          // ]
+          items: [
+            { text: 'Build a Game with WebGL', collapsed: true, link: '/guides/webgl-guide' },
+            {
+              text: 'Build a Unity Game',
+              collapsed: true,
+              link: '/guides/jelly-forest-unity-guide',
+            },
+            {
+              text: 'Building Transaction Heavy Games with Unity',
+              collapsed: true,
+              link: '/guides/building-transaction-heavy-games-with-unity',
+            },
+            {
+              text: 'How to build a Game with Unreal Engine',
+              collapsed: true,
+              link: '/guides/unreal-ew-guide',
+            },
+            {
+              text: 'Using Unity IAP to Sell NFTs',
+              collapsed: true,
+              link: '/guides/using-unity-iap-to-sell-nfts',
+            },
+            {
+              text: 'How to do Primary Sales for On-Chain Items in Unity',
+              collapsed: true,
+              link: '/guides/unity-primary-sales',
+            },
+            {
+              text: 'Build a Telegram Mini-Game in Unity',
+              collapsed: true,
+              link: '/guides/unity-webgl-telegram',
+            },
+            {
+              text: 'Build a Telegram Mini-App with Sequence',
+              collapsed: true,
+              link: '/guides/telegram-integration',
+            },
+          ],
         },
         {
-          text: 'Build a Unity Game',
+          text: 'Blockchain Integrations',
           collapsed: true,
-          link: '/guides/unity-guide',
-          // items: [
-          //   { text: 'Introduction', link: '/guides/unity-guide#intro-to-jelly-forest' },
-          //   { text: 'Build a Game Loop', link: '/guides/unity-guide#build-a-game-loop' },
-          //   { text: 'Integrate Embedded Wallets', link: '/guides/unity-guide#integrate-social-sign-in-and-sequences-embedded-wallet-solution' },
-          //   { text: 'Deploy Collectibles', link: '/guides/unity-guide#deploy-a-collectibles-contract' },
-          //   { text: 'Deploy Remote Minter', link: '/guides/unity-guide#deploy-a-remote-minter'},
-          //   { text: 'Minting Tokens to Inventory', link: '/guides/unity-guide#mint-in-game-tokens-to-the-players-inventory' },
-          //   { text: 'Purchase Collectibles with ERC20 Tokens', link: '/guides/unity-guide#burn-in-game-tokens-in-exchange-for-others' },
-          //   { text: 'Building an In-game Shop', link: '/guides/unity-guide#building-the-shop-pages-and-setting-the-minting-requirements' },
-          //   { text: 'Leverage Purchased Items In-game', link: '/guides/unity-guide#leverage-purchased-items-in-game' },
-          // ]
-        },
-        {
-          text: 'Build a Collectible Minting Service',
-          collapsed: true,
-          link: '/guides/mint-collectibles-serverless',
-          // items: [
-          //   { text: 'Introduction', link: '/guides/mint-collectibles-serverless#mint-collectibles-using-a-gasless-serverless-transactions-api', match: '/guides/mint-collectibles-serverless#mint-collectibles-using-a-gasless-serverless-transactions-api'},
-          //   { text: 'Setup Cloudflare Environment', link: '/guides/mint-collectibles-serverless#1-setup-cloudflare-environment-with-wrangler-cli-and-deploy-a-test', match: '/guides/mint-collectibles-serverless#1-setup-cloudflare-environment-with-wrangler-cli-and-deploy-a-test'},
-          //   { text: 'Deploy, Sponsor & Update Metadata For an ERC1155', link: '/guides/mint-collectibles-serverless#2-deploy-sponsor-and-update-metadata-for-an-erc1155-contract-with-sequence-builder'},
-          //   { text: 'Use EthAuthProof to Prevent EOA DDoS', link: '/guides/mint-collectibles-serverless#3-use-ethauthproof-to-prevent-eoa-ddos' },
-          //   { text: 'Mint a Collectible To Wallet', link: '/guides/mint-collectibles-serverless#4-mint-a-collectible-to-wallet' },
-          // ]
-        },
-        {
-          text: 'Manage Collection Metadata',
-          collapsed: true,
-          link: '/guides/metadata-guide',
-          // items: [
-          //   { text: 'Obtain a Secret API Key', link: '/guides/metadata-guide#1-obtain-a-secret-api-key'},
-          //   { text: 'Create Collection', link: '/guides/metadata-guide#2-create-collection-from-a-curl-request' },
-          //   { text: 'Create Token', link: '/guides/metadata-guide#3-create-token-using-tokenid' },
-          //   { text: 'Create Asset', link: '/guides/metadata-guide#4-create-asset-using-tokenid' },
-          //   { text: 'Store an Image', link: '/guides/metadata-guide#5-store-image-asset' },
-          //   { text: 'Update to Non-private', link: '/guides/metadata-guide#6-update-non-private-token' },
-          //   { text: 'Publish Collection', link: '/guides/metadata-guide#7-publish-collection-from-a-curl-request' },
-          //   { text: 'Render Asset from API', link: '/guides/metadata-guide#8-render-asset-from-api-publicly' },
-          // ]
-        },
-        {
-          text: 'Build a Treasure Chest with AI Minting',
-          collapsed: true,
-          link: '/guides/treasure-chest-guide',
-          // items: [
-          //   { text: 'Sequence Builder Console Signup & Project Creation', link: '/guides/lootbox-guide#1-builder-console-signup--project-creation' },
-          //   { text: 'Access Key Management', link: '/guides/lootbox-guide#2-access-key-management' },
-          //   { text: 'Sequence Kit integration', link: '/guides/lootbox-guide#3-sequence-kit-integration' },
-          //   { text: 'iframe-to-Dapp Communication', link: '/guides/lootbox-guide#4-iframe-to-dapp-communication' },
-          //   { text: 'Deploy a Contract & Sponsor Gas', link: '/guides/lootbox-guide#5-deploy-a-contract--sponsor-gas' },
-          //   { text: 'Deploy a Cloudflare Worker', link: '/guides/lootbox-guide#6-deploy-a-cloudflare-worker' },
-          //   { text: 'Generating AI Prompts & Images', link: '/guides/lootbox-guide#7-generating-ai-prompts--images' },
-          //   { text: 'Store Media To Sequence Metadata Service', link: '/guides/lootbox-guide#8-store-media-to-sequence-metadata-service' },
-          //   { text: 'Securing Your Cloudflare Worker', link: '/guides/lootbox-guide#9-securing-your-cloudflare-worker' },
-          //   { text: '(Optional) Naive Mint Restriction Per Wallet', link: '/guides/lootbox-guide#10-optional-naive-mint-restriction-per-wallet' },
-
-          // ]
-        },
-        {
+          items: [
+            {
+              text: 'Build a Collectible Minting Service',
+              collapsed: true,
+              link: '/guides/mint-collectibles-serverless',
+            },
+            { text: 'Manage Collection Metadata', collapsed: true, link: '/guides/metadata-guide' },
+            {
+              text: 'Build a Treasure Chest with AI Minting',
+              collapsed: true,
+              link: '/guides/treasure-chest-guide',
+            },
+            {
           text: 'Build On-chain Typed Data & Signature Validation',
           collapsed: true,
-          link: '/guides/typed-on-chain-signatures',
-          // items: [
-          //   { text: 'Sequence Builder Console Signup & Project Creation', link: '/guides/lootbox-guide#1-builder-console-signup--project-creation' },
-          //   { text: 'Access Key Management', link: '/guides/lootbox-guide#2-access-key-management' },
-          //   { text: 'Sequence Kit integration', link: '/guides/lootbox-guide#3-sequence-kit-integration' },
-          //   { text: 'iframe-to-Dapp Communication', link: '/guides/lootbox-guide#4-iframe-to-dapp-communication' },
-          //   { text: 'Deploy a Contract & Sponsor Gas', link: '/guides/lootbox-guide#5-deploy-a-contract--sponsor-gas' },
-          //   { text: 'Deploy a Cloudflare Worker', link: '/guides/lootbox-guide#6-deploy-a-cloudflare-worker' },
-          //   { text: 'Generating AI Prompts & Images', link: '/guides/lootbox-guide#7-generating-ai-prompts--images' },
-          //   { text: 'Store Media To Sequence Metadata Service', link: '/guides/lootbox-guide#8-store-media-to-sequence-metadata-service' },
-          //   { text: 'Securing Your Cloudflare Worker', link: '/guides/lootbox-guide#9-securing-your-cloudflare-worker' },
-          //   { text: '(Optional) Naive Mint Restriction Per Wallet', link: '/guides/lootbox-guide#10-optional-naive-mint-restriction-per-wallet' },
-
-          // ]
+          link: '/guides/typed-on-chain-signatures'
+            },
+            {
+              text: 'Build a Backend Transaction Service',
+              collapsed: true,
+              link: '/guides/building-relaying-server',
+            },
+            {
+              text: 'Leverage Sequence Analytics API in Dune',
+              collapsed: true,
+              link: '/guides/analytics-guide',
+            },
+            {
+              text: 'Build an Embedded Wallet Linking Service',
+              collapsed: true,
+              link: '/solutions/wallets/link-wallets/integration-guide',
+            },
+          ],
         },
         {
-          text: 'Build a Backend Transaction Service',
+          text: 'Marketplaces & Primary Sales',
           collapsed: true,
-          link: '/guides/building-relaying-server',
-        },
-        {
-          text: 'Leverage Sequence Analytics API in Dune',
-          collapsed: true,
-          link: '/guides/analytics-guide',
-        },
-        {
-          text: 'Build an Embedded Wallet Linking Service',
-          collapsed: true,
-          link: '/solutions/wallets/link-wallets/integration-guide',
-        },
-        {
-          text: 'Build a Custom Marketplace',
-          collapsed: true,
-          link: '/guides/custom-marketplace',
-          // items: [
-          //   { text: 'Minting', link: '/guides/custom-marketplace#1-minting' },
-          //   { text: 'Wallet Authentication', link: '/guides/custom-marketplace#2-wallet-authentication' },
-          //   { text: 'Blockchain Queries', link: '/guides/custom-marketplace#3-blockchain-queries' },
-          //   { text: 'Multi-wallet types', link: '/guides/custom-marketplace#4-multi-wallet-types' },
-          //   { text: 'Request Creation', link: '/guides/custom-marketplace#5-request-creation' },
-          //   { text: 'Order Accepting', link: '/guides/custom-marketplace#6-order-accepting' },
-          //   { text: '(Optional) Enable Embedded Wallet', link: '/guides/custom-marketplace#7-optional-integrate-embedded-wallet-into-sequence-kit' },
-          // ]
+          items: [
+            {
+              text: 'Build a Custom Marketplace',
+              collapsed: true,
+              link: '/guides/custom-marketplace',
+            },
+            {
+              text: 'Sell your ERC-1155 Game Items via a Web Shop',
+              collapsed: true,
+              link: '/guides/primary-sales',
+            },
+            {
+              text: 'Create NFT Drop Sales',
+              collapsed: true,
+              link: '/guides/primary-drop-sales-erc721',
+            },
+          ],
         },
       ],
     },
@@ -596,13 +587,14 @@ export const sidebar = {
             { text: 'Overview', link: '/sdk/unity/overview' },
             { text: 'Installation', link: '/sdk/unity/installation' },
             { text: 'Setup', link: '/sdk/unity/setup' },
+            { text: 'Bootstrap your Game', link: '/sdk/unity/bootstrap_game' },
             {
               text: 'Authentication',
               collapsed: false,
               items: [
                 { text: 'Introduction', link: '/sdk/unity/authentication/intro' },
-                { text: 'Email + OTP', link: '/sdk/unity/authentication/email' },
-                { text: 'OIDC - Social Sign In', link: '/sdk/unity/authentication/oidc' },
+                { text: 'Email OTP', link: '/sdk/unity/authentication/email' },
+                { text: 'Social Sign In', link: '/sdk/unity/authentication/oidc' },
                 { text: 'PlayFab', link: '/sdk/unity/authentication/playfab' },
                 { text: 'Guest', link: '/sdk/unity/authentication/guest' },
                 {
@@ -617,7 +609,17 @@ export const sidebar = {
             { text: 'Recovering Sessions', link: '/sdk/unity/recovering-sessions' },
             { text: 'Session Management', link: '/sdk/unity/session-management' },
             { text: 'On-Ramp Funds via Credit Card', link: '/sdk/unity/onboard-user-funds' },
-            { text: 'Marketplace', link: '/sdk/unity/marketplace' },
+            { 
+              text: 'Peer to Peer Trading / Marketplace',
+              collapsed: false,
+              items: [
+                { text: 'Introduction', link: '/sdk/unity/marketplace/intro' },
+                { text: 'Reading Orders', link: '/sdk/unity/marketplace/reading-orders' },
+                { text: 'Filling Orders', link: '/sdk/unity/marketplace/filling-orders' },
+                { text: 'Checkout UI', link: '/sdk/unity/marketplace/checkout-ui' },
+              ]
+            },
+            { text: 'Currency Swaps', link: '/sdk/unity/currency-swaps' },
             {
               text: 'Connect with External Wallets',
               link: '/sdk/unity/connecting-external-wallets',
@@ -642,20 +644,21 @@ export const sidebar = {
         {
           text: 'Unreal',
           collapsed: true,
-          match: '/sdk/unreal/overview',
+          match: '/sdk/unreal/introduction',
           items: [
-            { text: 'Overview', link: '/sdk/unreal/overview' },
+            { text: 'Introduction', link: '/sdk/unreal/introduction' },
+            { text: 'Quickstart', link: '/sdk/unreal/quickstart' },
             { text: 'Installation', link: '/sdk/unreal/installation' },
-            { text: 'Upgrading', link: '/sdk/unreal/upgrading' },
-            { text: 'Setup', link: '/sdk/unreal/setup' },
-            { text: 'Authentication', link: '/sdk/unreal/authentication' },
-            { text: 'Sequence Wallet', link: '/sdk/unreal/api' },
-            { text: 'Managing Session', link: '/sdk/unreal/managing-session' },
-            { text: 'Read from Blockchain', link: '/sdk/unreal/read-from-blockchain' },
+            { text: 'Configuration', link: '/sdk/unreal/configuration' },
+            { text: 'Blueprint Subsystems', link: '/sdk/unreal/subsystems' },
+            { text: "Bootstrap your Game", link: "/sdk/unreal/bootstrap_game" },
+            { text: 'Sign-In UI', link: '/sdk/unreal/user_interfaces' },
+            { text: 'Authenticate Users', link: '/sdk/unreal/authentication' },
             { text: 'Write to Blockchain', link: '/sdk/unreal/write-to-blockchain' },
-            { text: 'On-Ramp Funds via Credit Card', link: '/sdk/unreal/onboard-user-funds' },
-            { text: 'Advanced Blockchain Intereactions', link: '/sdk/unreal/advanced' },
-            { text: 'Packaging', link: '/sdk/unreal/packaging' },
+            { text: 'Read from Blockchain', link: '/sdk/unreal/read-from-blockchain' },
+            { text: 'On-Ramp with Credit Card', link: '/sdk/unreal/onboard-user-funds' },
+            { text: 'Advanced Blockchain Interactions', link: '/sdk/unreal/advanced' },
+            { text: 'Platform Requirements', link: '/sdk/unreal/platforms' },
           ],
         },
       ],
@@ -723,18 +726,7 @@ export const sidebar = {
           items: [{ text: 'Overview', link: '/sdk/go/overview' }],
         },
       ],
-    },
-    {
-      text: 'Common Questions',
-      collapsed: true,
-      items: [
-        {
-          text: 'How do I do signature validation?',
-          link: '/solutions/wallets/universal-wallet/examples/auth-address',
-        },
-        // ...
-      ],
-    },
+    }
   ],
 
   // apis
@@ -745,6 +737,7 @@ export const sidebar = {
       items: [
         { text: 'Overview', link: '/api/transactions/overview' },
         { text: 'Installation', link: '/api/transactions/installation' },
+        { text: 'API References', link: '/api/transactions/endpoints' },
         {
           text: 'Examples',
           collapsed: false,
@@ -765,6 +758,7 @@ export const sidebar = {
       items: [
         { text: 'Overview', link: '/api/indexer/overview' },
         { text: 'Installation', link: '/api/indexer/installation' },
+        { text: 'API References', link: '/api/indexer/endpoints' },
         {
           text: 'Examples',
           collapsed: false,
@@ -792,6 +786,7 @@ export const sidebar = {
       collapsed: false,
       items: [
         { text: 'Overview', link: '/api/analytics/overview' },
+        { text: 'API References', link: '/api/analytics/endpoints' },
         {
           text: 'Examples',
           collapsed: false,
@@ -807,6 +802,7 @@ export const sidebar = {
       collapsed: false,
       items: [
         { text: 'Overview', link: '/api/metadata/overview' },
+        { text: 'API References', link: '/api/metadata/endpoints' },
         {
           text: 'Examples',
           collapsed: false,
@@ -819,10 +815,28 @@ export const sidebar = {
       ],
     },
     {
+      text: 'Infrastructure',
+      collapsed: false,
+      items: [
+        { text: 'Overview', link: '/api/infrastructure/overview' },
+        { text: 'API References', link: '/api/infrastructure/endpoints' },
+      ],
+    },
+    {
+      text: 'Builder',
+      collapsed: false,
+      items: [
+        { text: 'Overview', link: '/api/builder/overview' },
+        { text: 'API References', link: '/api/builder/endpoints' },
+      ],
+    },
+    {
       text: 'Marketplace',
       collapsed: false,
       items: [
         { text: 'Overview', link: '/api/marketplace/overview' },
+        { text: 'API References', link: '/api/marketplace/endpoints' },
+
         // { text: 'Schema', link: '/api/marketplace/schema' },
         // { text: 'Marketplace API', link: '/api/marketplace/api' },
         {
@@ -854,7 +868,7 @@ export const sidebar = {
       text: 'Support',
       items: [
         { text: 'Support', link: '/support' },
-        { text: 'Changelog', link: 'https://0xsequence.canny.io/changelog' },
+        { text: 'Changelog', link: 'https://0xsequence.featurebase.app/' },
         { text: 'Restricted Regions', link: '/support/restricted-regions' },
         { text: 'FAQ', link: 'https://support.sequence.xyz' },
         { text: 'Token Directory', link: '/support/token-directory' },

@@ -16,11 +16,24 @@ export const GuidesOverview = () => (
       <GuideCard
         title="Build a Mobile Game with Unity + Sequence"
         body="Learn how to build an engaging iOS and Android game that uses Sequence Embedded Wallets under the hood for an integrated marketplace and in-game currency."
-        link="/guides/unity-guide"
+        link="/guides/jelly-forest-unity-guide"
         image="/img/unity/jellyforest.webp"
         demoLinkiOS="https://testflight.apple.com/join/xrnh8Vzm"
         demoLinkAndroid="https://play.google.com/store/apps/details?id=app.sequence.jelly_forest"
       />
+            <GuideCard
+        title="Integrate Sequence Wallets with a Telegram Mini-App"
+        body="Follow our integration guide to learn how to integrate a Sequence Embedded Wallet into a Telegram App to support your users on EVM chains."
+        link="/guides/telegram-integration"
+        image="/img/guides/telegram/telegram-miniapp.webp"
+      />
+        <GuideCard
+            title="How to build a Game with Unreal Engine"
+            body="Use Sequence's Unreal SDK to display Embedded Wallet information, sign messages, and send transactions."
+            link="/guides/unreal-ew-guide"
+            image="/img/guides/overview/unreal-ew-guide.png"
+            deployLink="https://github.com/0xsequence/unreal-embedded-wallet-boilerplate"
+        />
       <GuideCard
         title="Create a Dungeon Crawler Game with AI Generated Rewards"
         body="With this tutorial, build a web-based maze where lootbox items are generated using AI and dynamically minted into the player's universal wallet."
@@ -35,6 +48,20 @@ export const GuidesOverview = () => (
         image="/img/aviator.png"
         demoLink="https://0xsequence.github.io/aviator-demo/"
       />
+      <GuideCard
+        title="Sell Game Items via a Web Shop"
+        body="Accelerate your game growth by selling items directly to your players. In this guide, we will go over the steps how to deploy a Primary Sale contract using any custom or existing currency for a webshop that utilizes game items from a ERC1155 contract."
+        link="/guides/primary-sales"
+        image="/img/guides/overview/primary-sales.png"
+        demoLink="https://primary-sale-1155-boilerplate.pages.dev/"
+      />
+        <GuideCard
+            title="How to do Primary Sales for On-Chain Items in Unity"
+            body="This guide covers the creation of a Primary Sale with Sequence's Unity SDK."
+            link="/guides/unity-primary-sales"
+            image="/img/guides/overview/unity-primary-sales.png"
+            demoLink="https://github.com/0xsequence/sequence-unity"
+        />
     </div>
 
     <div className="flex flex-wrap gap-4 md:flex-row flex-col">
@@ -69,7 +96,7 @@ export const GuidesOverview = () => (
       />
       <GuideCard
         title="Creating, Storing, and Managing Collectibles Metadata"
-        body="By utilizing Sequence's Metadata API, you can programatically create, manage, and store metadata associated with your NFTs from nearly any environment. We'll walk you through how to call these REST-APIs to organize your collections for your game or experience."
+        body="By utilizing Sequence's Metadata API, you can programmatically create, manage, and store metadata associated with your NFTs from nearly any environment. We'll walk you through how to call these REST-APIs to organize your collections for your game or experience."
         link="/guides/metadata-guide"
         image="/img/guides/overview/storage.png"
       />
@@ -78,12 +105,6 @@ export const GuidesOverview = () => (
         body="Combine Sequence Embedded Wallets and signature verification to authorize an external wallet session in a web app, linking two verified wallet instances together."
         link="/solutions/wallets/link-wallets/integration-guide"
         image="/img/guides/overview/wallet_linking_guide_overview.png"
-      />
-      <GuideCard
-        title="Confirmation Free Signatures using a Universal Sequence Wallet"
-        body="This code demonstrates how to create a simple Rock Paper Scissors game using the Sequence Wallet and session keys for streamlined user interactions."
-        link="/solutions/wallets/universal-wallet/examples/session-keys"
-        image="/img/guides/confirmation-free-signatures/people-playing-paper-rock-scissors.jpg"
       />
     </div>
   </section>

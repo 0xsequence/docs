@@ -1,6 +1,6 @@
 import clsx from 'clsx'
 import { type ReactNode, useEffect, useRef, useState } from 'react'
-import { TwitterIcon, InstagramIcon, DiscordIcon } from './icons'
+import { TwitterIcon, GithubIcon, DiscordIcon } from './icons'
 import { SmartLink } from './SmartLink'
 
 export const Footer = ({ logo }: { logo: ReactNode }) => {
@@ -99,11 +99,12 @@ export const Footer = ({ logo }: { logo: ReactNode }) => {
               <DiscordIcon />
             </SmartLink>
             <SmartLink
-              href="https://www.instagram.com/0xsequence"
+              href="https://github.com/0xsequence"
               className="text-themed-secondary hover-fade"
             >
-              <InstagramIcon />
+              <GithubIcon />
             </SmartLink>
+
           </div>
           <SmartLink href="https://horizon.io" className="hover-fade">
             <img

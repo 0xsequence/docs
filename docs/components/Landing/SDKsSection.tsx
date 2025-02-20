@@ -21,7 +21,7 @@ export const SDKsSection = () => (
         icon="UnrealIcon"
         title="Unreal Engine"
         body="Integrate Sequence with our native Unreal Engine library."
-        link="/sdk/unreal/overview"
+        link="/sdk/unreal/introduction"
       />
       <Card
         icon="GolangIcon"

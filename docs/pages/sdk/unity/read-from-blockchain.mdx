@@ -9,13 +9,13 @@ Reading from the blockchain is done using Unity-Native implementation of our [Se
 
 We recommend creating an instance of the [`ChainIndexer` class](https://github.com/0xsequence/sequence-unity/blob/master/Assets/SequenceSDK/Indexer/ChainIndexer.cs). This will expose you to all the functionality offered by the [`IIndexer` interface](https://github.com/0xsequence/sequence-unity/blob/master/Assets/SequenceSDK/Indexer/IIndexer.cs).
 
-```
+```csharp
 IIndexer polygonIndexer = new ChainIndexer(Chain.Polygon);
 ```
 
 You can check if the indexer API for your given chain is up and running using the `Ping` async Task. This can be useful if a request is failing. During development, you can also check the status of our indexers on [our status page](https://status.sequence.info/).
 
-```
+```csharp
 IIndexer chainIndexer = new ChainIndexer(chain);
 bool indexerIsWorking = await chainIndexer.Ping();
 ```
@@ -24,7 +24,7 @@ bool indexerIsWorking = await chainIndexer.Ping();
 
 To check the Ether (or whatever your network's default gas currency is) balance of a user, use the `GetEtherBalance` async Task.
 
-```
+```csharp
 IIndexer chainIndexer = new ChainIndexer(chain);
 EtherBalance balance = await chainIndexer.GetEtherBalance(address);
 BigInteger balanceInWei = balance.balanceWei;
@@ -34,7 +34,7 @@ BigInteger balanceInWei = balance.balanceWei;
 
 To fetch the token balances for a user you'll want to use the `GetTokenBalances` async Task.
 
-```
+```csharp
 IIndexer chainIndexer = new ChainIndexer(chain);
 GetTokenBalancesReturn balances = await chainIndexer.GetTokenBalances(new GetTokenBalancesArgs(address));
 TokenBalance[] tokenBalances = balances.balances;
@@ -44,7 +44,7 @@ When fetched this way, you will only receive one token instance for each smart c
 
 To fetch individual balances for ERC721 or ERC1155 tokens, you'll want to specify the contract in your `GetTokenBalancesArgs`.
 
-```
+```csharp
 IIndexer chainIndexer = new ChainIndexer(chain);
 GetTokenBalancesReturn balances = await chainIndexer.GetTokenBalances(new GetTokenBalancesArgs(userAddress, contractAddress));
 TokenBalance[] tokenBalances = balances.balances;
@@ -52,7 +52,7 @@ TokenBalance[] tokenBalances = balances.balances;
 
 If the player has many tokenIds for a given contract (or owns tokens from many contracts), you'll have to deal with pagination. In this case, you'll want to check the `Page` you receive in your `GetTokenBalancesReturn` to see if it has more and then if it does make another request, including the Page.
 
-```
+```csharp
 IIndexer chainIndexer = new ChainIndexer(chain);
 GetTokenBalancesReturn balances = await chainIndexer.GetTokenBalances(new GetTokenBalancesArgs(userAddress, contractAddress));
 List<TokenBalance> finalResult = new List<TokenBalance>();
@@ -66,7 +66,7 @@ while (tokenBalances.page.more) {
 
 To simplify this operation, we've created a wrapper `GetTokenBalancesOrganizedInDictionary`. This will fetch all of the TokenBalances for a given contractAddress and userAccountAddress and organize them into a Dictionary mapping tokenID (BigInteger) to TokenBalance. In general, you'll want to use this most often.
 
-```
+```csharp
 IIndexer chainIndexer = new ChainIndexer(chain);
 Dictionary<BigInteger, TokenBalance> tokenBalancesDictionary = await chainIndexer.GetTokenBalancesOrganizedInDictionary(accountAddress, contractAddress);
 ```
@@ -77,7 +77,7 @@ This will make checking the respective balance for each token id much easier as 
 
 If you need to fetch the total token supply for a given smart contract, you can use the `GetTokenSupplies` async Task.
 
-```
+```csharp
 IIndexer chainIndexer = new ChainIndexer(chain);
 GetTokenSuppliesReturn tokenSupplies = await chainIndexer.GetTokenSupplies(new GetTokenSuppliesArgs(contractAddress))
 ```
@@ -88,7 +88,7 @@ We don't expect this to be a very common operation, but it is exposed for you ju
 
 For `GetTokenSupplies` power users, we also provide a `GetTokenSuppliesMap` async Task that allows you to fetch the supplies for multiple token contracts and token ids in a map.
 
-```
+```csharp
 IIndexer indexer = new ChainIndexer(Chain.Polygon);
 string usdcAddress = "0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359".ToLower();
 string wmaticAddress = "0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270".ToLower();
@@ -114,7 +114,7 @@ Similarly, you can expect that `suppliesMap[skyweaverAddress].Length = 3` with t
 
 To fetch the transaction history for a given account, you'll want to use the `GetTransactionHistory` method.
 
-```
+```csharp
 IIndexer chainIndexer = new ChainIndexer(chain);
 GetTransactionHistoryReturn history = await chainIndexer.GetTransactionHistory(
     new GetTransactionHistoryArgs(new TransactionHistoryFilter()

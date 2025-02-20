@@ -28,17 +28,11 @@ export const SolutionsSection = () => (
             link: '/solutions/wallets/sequence-kit/overview',
           },
           {
-            icon: 'AirdropperIcon',
-            title: 'Wallet Linking',
-            body: 'Enable users to link their embedded wallet in your game with an external wallet - allowing you to query assets, balances, and allow easy flow of liquidity to your game.',
-            link: '/solutions/wallets/link-wallets/overview',
-          },
-          {
-            icon: 'WalletIcon',
-            title: 'Universal Wallet',
-            body: 'Easily onboard web3-native players with a complete Universal Wallet.',
-            link: '/solutions/wallets/universal-wallet/overview',
-          },
+            icon: 'CollectiblesIcon',
+            title: 'Ecosystem',
+            body: 'Create ecosystem wallets for your entire ecosystem through Sequence as well as enable external applications to connect to your embedded ecosystem wallet - all with the same address across chains & apps.',
+            link: '/solutions/wallets/ecosystem/overview',
+          }
         ]}
       />
       <SolutionsGroup
@@ -49,7 +43,7 @@ export const SolutionsSection = () => (
             icon: 'MarketplaceIcon',
             title: 'White-Label Marketplace',
             body: 'Launch an in-game collectibles marketplace within minutes.',
-            link: '/solutions/marketplaces/white-label-marketplace',
+            link: '/solutions/marketplaces/white-label-marketplace/overview',
           },
           {
             icon: 'SequenceIcon',
@@ -59,15 +53,9 @@ export const SolutionsSection = () => (
           },
           {
             icon: 'CartIcon',
-            title: 'NFT Checkout',
-            body: 'Offer easy purchases with credit card, crypto, IAP support.',
-            link: '/solutions/wallets/sequence-kit/checkout',
-          },
-          {
-            icon: 'NodeGatewayIcon',
-            title: 'Fiat On-ramps',
-            body: 'Allow players to convert from fiat to crypto globally.',
-            link: '/solutions/payments/onramps/fiat-on-ramps',
+            title: 'Sequence Pay',
+            body: 'An integrated payment solution designed to simplify and enhance the transaction experience within Web3 games. It combines multiple payment functionalities into a cohesive SDK available for Unity, Unreal, and React.',
+            link: '/solutions/payments/overview',
           },
         ]}
       />
@@ -97,7 +85,7 @@ export const SolutionsSection = () => (
             icon: 'MinterIcon',
             title: 'Transaction Manager',
             body: 'Scalable transactions with batching, access-control, parallelization, automatic reorg management with our transactions API.',
-            link: '/solutions/transactions-api/overview',
+            link: '/solutions/transaction-manager/overview',
           },
           // {
           //   icon: 'MinterIcon',

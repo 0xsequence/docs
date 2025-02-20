@@ -1,21 +1,23 @@
-import { type ReactElement, useEffect, useState } from 'react'
+import type { ReactElement } from 'react'
 import TopNavButton from './components/TopNavButton'
-import FullScreenLoading from './components/FullScreenLoading'
+import BuilderAuthenticationButton from './components/BuilderAuthenticationButton'
+import { DocSearch } from './components/DocSearch'
 
 const Layout = ({ children }: { children: ReactElement | string }) => {
-  const [restartedSearch, setRestartedSearch] = useState(false)
-  useEffect(() => {
-    if (localStorage) {
-      localStorage.removeItem('filterText')
-      setRestartedSearch(true)
-    }
-  }, [])
-
-  if (!restartedSearch) return <FullScreenLoading />
+  const searchProps = {
+    appId: 'DMWSOFTW3G',
+    apiKey: 'e9c479d9f3bc64c4ba3e848097dceeeb',
+    indexName: 'sequence',
+  }
 
   return (
     <div>
-      <TopNavButton />
+      <DocSearch {...searchProps} />
+
+      <div className="container mx-auto px-4 flex justify-between items-center">
+        <TopNavButton />
+        <BuilderAuthenticationButton />
+      </div>
       {children}
     </div>
   )

@@ -7,7 +7,7 @@ description: The checkout on-ramp modal in Sequence Kit allows developers to eas
 
 The checkout on-ramp modal enables developers to easily facilitate on-ramp via fiat currency into a cryptocurrency. With this integration, one can use a credit card to purchase tokens across many different networks.
 
-<div class="text--center">
+<div className="text--center">
   <img src="/img/kit/kit-on-ramp.png" alt="Enable the on-ramp modal in Sequence Kit to onboard users using fiat currencies with a credit or debit card"/>
 </div>
 
@@ -35,15 +35,11 @@ import { KitCheckoutProvider } from '@0xsequence/kit-checkout'
 
 const App = () => {
   return (
-    <WagmiConfig config={config}>
-      <QueryClientProvider client={queryClient}> 
-        <KitProvider>
-          <KitCheckoutProvider>
-            <Page />
-          </KitCheckoutProvider>
-        </KitProvider>
-      </QueryClientProvider>
-    </WagmiConfig>
+    <SequenceKit config={config}>
+      <KitCheckoutProvider>
+        <Page />
+      </KitCheckoutProvider>
+    </SequenceKit>
   )
 }
 ```
@@ -69,3 +65,20 @@ Call the `triggerAddFunds` function to cause a modal to appear
   }
 ```
 ::::
+
+# Configuration Overview
+
+The following is the available configuration customization options for toggleAddFunds params
+
+```ts
+interface AddFundsSettings {
+  walletAddress: string | Hex // Address of the wallet where funds will be added
+  fiatAmount?: string // Specify the amount in fiat to add
+  fiatCurrency?: string // Specify the fiat currency (e.g., USD, EUR)
+  defaultFiatAmount?: string // Default amount in fiat to add
+  defaultCryptoCurrency?: string // Default cryptocurrency to use (e.g., ETH, BTC)
+  cryptoCurrencyList?: string // List of cryptocurrencies available for selection. Example: "USDT,BTC,USDC"
+  networks?: string // Specify network(s) to use for the transaction. Example: "mainnet,ethereum"
+  onClose?: () => void // Callback function to execute when the modal is closed
+}
+```

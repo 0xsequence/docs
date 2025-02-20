@@ -2,6 +2,7 @@
 title: Integrating WebGL in a Web3 Game with Aviator Theme
 description: Learn how to integrate WebGL in a game using tools from the Sequence Stack to earn achievements and use custom ERC1155's.
 ---
+
 import { Callout } from "vocs/components";
 
 # Aviator Web3 Game with WebGL
@@ -13,9 +14,10 @@ In this guide we will go through the process of integrating WebGL in a game, lev
 <Callout type="info">
   You can play a live version of the game [here](https://0xsequence.github.io/aviator-demo/)
 
-  Where the full code to this game can be found [here](https://github.com/0xsequence/aviator-demo/)
-  
-  And the full template code we'll be using for the guide can be found [here](https://github.com/0xsequence-demos/template-webgl-js-sequence-kit-starter)
+Where the full code to this game can be found [here](https://github.com/0xsequence/aviator-demo/)
+
+And the full template code we'll be using for the guide can be found [here](https://github.com/0xsequence-demos/template-webgl-js-sequence-kit-starter)
+
 </Callout>
 
 The tools will enable you to perform:
@@ -84,8 +86,8 @@ const queryClient = new QueryClient();
 function App(props) {
   const chains = [arbitrumSepolia];
   const projectAccessKey = process.env.PROJECT_ACCESS_KEY;
- 
-  const connectors = getDefaultConnectors({
+
+  const connectors = getDefaultConnectors("universal", {
     walletConnectProjectId: process.env.WALLET_CONNECT_ID,
     defaultChainId: 421614,
     appName: "demo app",
@@ -108,7 +110,7 @@ function App(props) {
     <WagmiConfig config={config}>
       <QueryClientProvider client={queryClient}>
         <KitProvider config={{ defaultTheme: "dark" }}>
-          <Login scene={props.scene}/>
+          <Login scene={props.scene} />
         </KitProvider>
       </QueryClientProvider>
     </WagmiConfig>
@@ -121,36 +123,38 @@ export default App;
 Then, in the `Login.jsx` file add the following code in order to create a button at the top of the screen to login to the application
 
 ```js
-import React, {useEffect} from "react";
-import { useOpenConnectModal } from "@0xsequence/kit";
-import { useDisconnect, useAccount, useWalletClient } from "wagmi";
+import React, { useEffect } from "react";
+import { useOpenConnectModal, useKitWallets } from "@0xsequence/kit";
+import { useWalletClient } from "wagmi";
 
 function Login(props) {
   const { setOpenConnectModal } = useOpenConnectModal();
   const { data: walletClient } = useWalletClient();
+  const {
+    wallets, // Array of connected wallets
+    linkedWallets, // Array of linked wallets (for embedded wallets)
+    setActiveWallet, // Function to set a wallet as active
+    disconnectWallet, // Function to disconnect a wallet
+  } = useKitWallets();
 
-  const { isConnected } = useAccount();
-  const { disconnect } = useDisconnect();
+  const isConnected = wallets.length;
 
   useEffect(() => {
-    if(isConnected){
-        props.scene.login()
+    if (isConnected) {
+      props.scene.login();
     } else {
-        props.scene.logout()
+      props.scene.logout();
     }
-  }, [isConnected])
+  }, [isConnected]);
 
   const sendBurnToken = async () => {
     // empty for now
-  }
+  };
 
   useEffect(() => {
-      if (isConnected && walletClient) {
-          props.scene.sequenceController.init(
-              walletClient,
-              sendBurnToken
-          );
-      }
+    if (isConnected && walletClient) {
+      props.scene.sequenceController.init(walletClient, sendBurnToken);
+    }
   }, [isConnected, walletClient]);
 
   return (
@@ -159,13 +163,13 @@ function Login(props) {
         <br />
         {isConnected && (
           <div
-            onClick={() => disconnect()}
+            onClick={() => disconnectWallet(wallets[0].address) // assuming one wallet is connected. you can also disconnect a specific wallet from useKitWallets by specifying the address}
             style={{
               cursor: "pointer",
               position: "fixed",
               top: "30px",
               right: "30px",
-              zIndex: '1'
+              zIndex: "1",
             }}
           >
             sign out
@@ -195,37 +199,40 @@ root.render(
     <App scene={mainScene}/>
 );
 ```
+
 ##### Create a Click Handler To Call The Login Modal
 
 Add the following code to `Login.jsx` component
 
 ```js
-    window.setOpenConnectModal = () => {
-        setOpenConnectModal(true);
-    };
+window.setOpenConnectModal = () => {
+  setOpenConnectModal(true);
+};
 ```
 
 And the following click handler code to `index.js`
 
 ```ts
 function handleMouseUp(event) {
-  window.setOpenConnectModal()
+  window.setOpenConnectModal();
 }
 
 document
-  .getElementById('world')
-  .addEventListener('mouseup', handleMouseUp, false);
+  .getElementById("world")
+  .addEventListener("mouseup", handleMouseUp, false);
 ```
 
 And add these elements to your `index.html`
 
 ```html
-<div id="mintBtn" class="btn" onclick="window.mintPlane()">mint plane</div>
-<div id="mintAchievementBtn" class="btn" onclick="window.mintAchievement()">mint achievement</div>
-<div id="burnBtn" class="btn"  onclick="window.burn()">burn achievement</div>
+<div id="mintBtn" className="btn" onclick="window.mintPlane()">mint plane</div>
+<div id="mintAchievementBtn" className="btn" onclick="window.mintAchievement()">
+  mint achievement
+</div>
+<div id="burnBtn" className="btn" onclick="window.burn()">burn achievement</div>
 
 <div id="login">click to login</div>
-<div class="world" id="world"></div>
+<div className="world" id="world"></div>
 ```
 
 Great, now you'll have a button that makes a modal appear
@@ -240,7 +247,7 @@ We should create 2 collections: 1 for achievement tokens and the other for the p
 
 Then, in order to send transactions to the blockchain in a seamless fashion that are gasless, implement a [Cloudflare Worker](/guides/mint-collectibles-serverless) to mint items from a contract deployed in the previous step, ensuring that the transactions API contract address is inputed as a `Minter Role`
 
-We will allow there to be multiple paths to mint collectibles: a plane collectible and an achievement collectible. 
+We will allow there to be multiple paths to mint collectibles: a plane collectible and an achievement collectible.
 
 This is accomplished in the code by adding a key/value of `isPlane` to the normal cloudflare request body, and creating an additional `if/else` in the cloudflare worker.
 
@@ -255,21 +262,23 @@ wrangler dev
 ## 5. Leverage Items In-game
 
 This section will be broken into 2 implementations of updating UI with in-game asset ownership changes:
-* Displaying Plane changes based on Wallet assets
-* Displaying UI changes based on Wallet assets
+
+- Displaying Plane changes based on Wallet assets
+- Displaying UI changes based on Wallet assets
 
 #### Displaying Plane changes based on Wallet assets
+
 To implement changes to the game based on what the wallet asset owns, you can implement a button that mints a token, then on the response, checks for indexer changes
 
 In the `index.js` we include a button attached to the `onclick` attribute of the element in index.html
 
 ```js
 window.mintPlane = () => {
-  const tokenID = 1
+  const tokenID = 1;
   mainScene.sequenceController.callContract(tokenID, true, (res) => {
-    mainScene.sequenceController.fetchPlaneTokens(tokenID)
-  })
-}
+    mainScene.sequenceController.fetchPlaneTokens(tokenID);
+  });
+};
 ```
 
 Where `callContract` takes care of the minting by calling a fetch that is wrapped in a mutex to ensure 1 mint happens at a time, to prevent click mashers, added to the `SequenceController` class in `/API/SequenceController.js`
@@ -362,15 +371,16 @@ where this time, the `isPlane` value of `callContract` is set to `false`
 ```js
 // index.js
 window.mintAchievement = () => {
-  const tokenID = 0
+  const tokenID = 0;
   mainScene.sequenceController.callContract(tokenID, false, (res) => {
-    mainScene.sequenceController.fetchTokensFromAchievementMint(tokenID)
-  })
-}
+    mainScene.sequenceController.fetchTokensFromAchievementMint(tokenID);
+  });
+};
 ```
 
 <Callout type="warning">
-  Note: in a real game, this minting of achievement token would happen based on some trigger event in the game, for simplicity we've included of button
+  Note: in a real game, this minting of achievement token would happen based on
+  some trigger event in the game, for simplicity we've included of button
 </Callout>
 
 This time, we call `fetchTokensFromAchievementMint` which is added to the `SequenceController`
@@ -398,6 +408,7 @@ This time, we call `fetchTokensFromAchievementMint` which is added to the `Seque
     }
   }
 ```
+
 This makes it so that only if there's a balance returned from the indexer, does the `display` attribute make the button appear
 
 ## 6. Burn In-Game Achievement Tokens
@@ -407,11 +418,11 @@ Finally, to burn the achievement token, we can no longer use a cloduflare worker
 ```js
 // index.js
 window.burn = () => {
-  const tokenID = 0
+  const tokenID = 0;
   mainScene.sequenceController.burnToken(tokenID, (res) => {
-    mainScene.sequenceController.fetchTokensFromBurn(tokenID)
-  })
-}
+    mainScene.sequenceController.fetchTokensFromBurn(tokenID);
+  });
+};
 ```
 
 Where `burnToken` is a passed in function from our react component that uses the similiar pattern of using mutexes, and we send the transaction using `sendTransaction` from the `wagmi` package, and wait for a transaction hash update to return the callback
@@ -452,7 +463,7 @@ function Login() {
           const contractABI = ['function burn(uint256 tokenId, uint256 amount)']; // Replace with your contract's ABI
           const contract = new ethers.Contract(ContractAddress, contractABI);
 
-          // call indexer 
+          // call indexer
           // check for achievement balance
           const indexer = new SequenceIndexer(
               'https://arbitrum-sepolia-indexer.sequence.app',
@@ -531,9 +542,9 @@ async fetchTokensFromBurn(tokenID){
       hasBeenBurned = true
       // can apply any UI logic here
       document.getElementById('burnBtn').style.display = 'none' // hide the button
-    } 
+    }
   }
-} 
+}
 ```
 
 And you're done, you can view a full example of the code [here](https://github.com/0xsequence-demos/template-webgl-js-sequence-kit-starter)
@@ -611,6 +622,7 @@ And that's it, no more integration is required for transaction flows to complete
 
 ---
 
-<Callout type='info'>
-  To learn more about In-Game Wallets, see [here](/solutions/wallets/embedded-wallet/overview)
+<Callout type="info">
+  To learn more about In-Game Wallets, see
+  [here](/solutions/wallets/embedded-wallet/overview)
 </Callout>

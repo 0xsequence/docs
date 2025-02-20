@@ -52,14 +52,14 @@ export const TemplatesOverview = () => (
       <TemplateCard
         title="Sequence Kit w/ Embedded Wallet for React Boilerplate"
         body="Example boilerplate showcasing embedded wallet integrated with Sequence Kit in a simple React application."
-        link="https://github.com/0xsequence/kit-embedded-wallet-react-boilerplate"
+        link="https://github.com/0xsequence-demos/kit-embedded-wallet-react-boilerplate"
         demolink="https://kit-embedded-wallet-react-boilerplate.pages.dev/"
         oneliner="npx sequence-cli boilerplates create-embedded-wallet-react-starter"
       />
       <TemplateCard
         title="Sequence Kit w/ Embedded Wallet for NextJS Boilerplate"
         body="Example boilerplate showcasing embedded wallet integrated with Sequence Kit in a simple NextJS application."
-        link="https://github.com/0xsequence/kit-embedded-wallet-nextjs-boilerplate"
+        link="https://github.com/0xsequence-demos/kit-embedded-wallet-nextjs-boilerplate"
         demolink="https://kit-embedded-wallet-nextjs-boilerplate.pages.dev/"
         oneliner="npx sequence-cli boilerplates create-kit-embedded-wallet-nextjs-starter"
       />
@@ -68,7 +68,11 @@ export const TemplatesOverview = () => (
         body="Example for your web application to verify the ownership of an Embedded Wallet by passing a JWT and validating against the Sequence API."
         link="https://github.com/0xsequence-demos/embedded-wallet-verify-session"
       />
-
+      <TemplateCard
+        title="Embedded Wallet Boilerplate for Unreal Engine"
+        body="Example application made with our Unreal SDK, showcasing embedded wallet integrated to sign messages and send ERC20 transactions."
+        link="https://github.com/0xsequence/unreal-embedded-wallet-boilerplate"
+      />
       <TemplateCard
         title="End to End playground for Sequence Kit"
         body="Example implementation in React & NextJS showcasing various common patterns using Sequence Kit such as signingv messages, sending transactions, displaying inventory, or minting an NFT."
@@ -89,7 +93,7 @@ export const TemplatesOverview = () => (
       <TemplateCard
         title="Custom Marketplace Boilerplate"
         body="Open-source boilerplate of our white-label marketplace leveraging our marketplace APIs that can be completely customized to fit your game or use case."
-        link="https://github.com/0xsequence/marketplace-boilerplate"
+        link="https://github.com/0xsequence-demos/marketplace-boilerplate"
         demolink="https://marketplace-boilerplate.pages.dev/"
       />
     </div>
