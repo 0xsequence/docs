@@ -514,6 +514,11 @@ export const sidebar = {
               link: '/guides/treasure-chest-guide',
             },
             {
+          text: 'Build On-chain Typed Data & Signature Validation',
+          collapsed: true,
+          link: '/guides/typed-on-chain-signatures'
+            },
+            {
               text: 'Build a Backend Transaction Service',
               collapsed: true,
               link: '/guides/building-relaying-server',
