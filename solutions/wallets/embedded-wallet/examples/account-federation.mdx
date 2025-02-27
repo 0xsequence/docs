@@ -1,0 +1,84 @@
+---
+
+title: "Embedded Wallet Account Federation"
+description: The content provides detailed information on implementing the ability to federate and link single or multiple wallets to a main embedded wallet session, describing best practices when combined with ephemeral guest wallets to be converted to permanent on-chain embedded wallets.
+sidebarTitle: Multi-account Support
+---
+
+
+
+Sequence Embedded Wallets offered enable the ability to federate multiple social accounts to a single wallet address. This enables experiences to have a single on-chain address, while allowing users to access the wallet through multiple points of identity authentication.
+
+An important feature of Embedded Wallet Account Federation is that these wallets will aggregate based on the first signed-in login provider, whether authenticated via social, email, or a guest wallet. This means the wallet address is based on the first signed-in wallet and subsequent sign-in's will link to that initial wallet. 
+
+When a federated account has been connected to a main account, logging out and individually using that previously linked account will yield the same address into the future. 
+
+## Social Provider Account Federation
+
+The following allows a developer to initiate an authentication using `initAuth` using the [same parameters as the first signed-in session on the `WaaS` object](/solutions/wallets/embedded-wallet/examples/use-wallets#authenticated-embedded-wallet) with an additional guest or social provider, where the provider `challenge` is returned and passed to the `linkAccount` function:
+
+```ts
+const challenge = await sequence.initAuth({/* same params as signIn function */})
+const linkResponse = await sequence.linkAccount(challenge)
+```
+
+## Email One-Time Password Account Federation
+
+Using the one-time password email approach to authenticate requires the password sent to the users' email to be passed into the challenge, and called via the `linkAccount` function:
+
+```ts
+const challenge = await sequence.initAuth({ email })
+
+// if the linking account is email then you need to provide the answer (code)
+const linkResponse = await sequence.linkAccount(challenge.withAnswer(code))
+```
+
+## Account Federation with Guest Wallets
+
+It is common practice for games to enable a user to sign-in within the background of an application with a [guest wallet](/solutions/wallets/embedded-wallet/examples/authentication#guest-embedded-wallet), 
+have that wallet stored in the cache by the SDK, then later prompt the user for a social login provider to link to the first initial wallet using one of the [previously explained approaches](/solutions/wallets/embedded-wallet/examples/account-federation#embedded-wallet-account-federation). 
+
+Therefore, if assets have been accumulated in the wallet, transactions performed on-chain, or signatures have been saved, the wallet can have continuity.
+
+Using a guest wallet first approach can enable a user to try a game or experience invisibly, before authenticating for the long term and smoothing the onboarding process.
+
+Developers can use the above methodologies once a guest is authenticated in order to ensure the user can reaccess their account going forward.
+
+## List Accounts
+
+Calling `listAccounts` will return an object with the following: an array of `accounts` object(s) (with `id`, `type`, and `issuer`), as well as the `currentAccountId`, for example: `"Guest:0x0104...`:
+
+```ts
+import { SequenceWaaS } from "@0xsequence/waas";
+
+const sequence = new SequenceWaaS(
+  {
+    projectAccessKey: `${process.env.VITE_PROJECT_ACCESS_KEY}`,
+    waasConfigKey: `${process.env.VITE_WAAS_CONFIG_KEY}`,
+    network: "arbitrum-nova",
+  }
+)
+
+... // authentication
+
+const response = await sequence.listAccounts()
+
+console.log(response.accounts)
+console.log(response.currentAccountId)
+```
+
+## Removing accounts
+
+You can also remove accounts from the list of accounts previously associated with your configuration:
+
+```ts
+// Call list accounts
+const accounts = await sequence.listAccounts();
+const accountId = accounts[0].id; // Get the ID of the first account
+
+try {
+    await sequence.removeAccount(accountId);
+} catch (error) {
+    console.error('Failed to remove account:', error);
+}
+```

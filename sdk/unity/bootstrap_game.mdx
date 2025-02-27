@@ -1,0 +1,173 @@
+---
+title: Bootstrap your Game
+description: Documentation for Unity SDK setup for the Sequence infrastructure stack for web3 gaming.
+---
+
+Sequence's Unity SDK includes a range of features to help you bootstrap your game.
+You can create them as shown below or duplicate the `.prefab` files from the
+`Packages > Sequence Embedded Wallet SDK > Sequence > SequenceBoilerplates > Prefabs`
+folder and customize them to fit your needs.
+
+Ensure that your codebase has access to the `Sequence.Boilerplates.asmdef` assembly.
+
+Checkout the `BoilerplateController.cs` for more integration examples.
+
+## Login
+
+Create the `SequenceLoginWindow` prefab to authenticate users as a Guest, with Email OTP, Google- or Apple Sign In.
+
+[Checkout the Authentication section](/sdk/unity/authentication/intro) for more details on how to configure
+your project for each login option.
+
+<Frame caption="Unity Boilerplate Login">
+    <img src="/images/unity/unity_boilerplate_login.png" />
+</Frame>
+
+```csharp
+[SerializeField] private SequenceLoginWindow _loginWindow;
+_loginWindow.Show(loginHandler);
+```
+
+<Accordion title="Parameters">
+  **loginHandler (ILogin)**
+
+  Get the login instance from SequenceLogin.GetInstance() and check if the user has a valid session. Otherwise, show this login window.
+</Accordion>
+
+## In-Game Shop
+
+Accelerate your game growth by selling items directly to your players. Create the `SequencePlayerProfile` prefab to
+show an In-Game Shop that utilizes game items from a ERC1155 contract, which users purchase using any custom or
+existing ERC20 currency.
+
+[Primary Sales Contract](/solutions/collectibles/contracts/deploy-primary-sales-contract/): Learn how to set up and deploy contracts for launching a primary sale.
+
+<Frame caption="Unity Boilerplate Shop">
+    <img src="/images/unity/unity_boilerplate_shop.png" />
+</Frame>
+
+```csharp
+[SerializeField] private SequenceInGameShop _inGameShop;
+_inGameShop.Show(wallet, chain, collectionAddress, saleContractAddress, itemsForSale);
+```
+
+<Accordion title="Parameters">
+  **wallet (IWallet)**
+
+  The wallet instance you receive from the SequenceWallet.OnWalletCreated event after completing the login process.
+
+  **chain (Chain)**
+
+  The chain type (Ethereum, Sepolia, ..) on which the specified contract is deployed.
+
+  **collectionAddress (string)**
+
+  ERC1155 contract address. Deploy your own contract on Builder first.
+
+  **saleContractAddress (string)**
+
+  ERC1155 Sale contract address when you deploy your sale on Builder.
+
+  **itemsForSale (int[])**
+
+  Array of token Ids which you wish to sell to your players.
+</Accordion>
+
+## Daily Rewards
+
+<Frame caption="Unity Boilerplate Daily Rewards">
+    <img src="/images/unity/unity_boilerplate_daily_rewards.png" />
+</Frame>
+
+```csharp
+[SerializeField] private SequenceDailyRewards _dailyRewards;
+_dailyRewards.Show(wallet, chain, apiUrl);
+```
+
+<Accordion title="Parameters">
+  **wallet (IWallet)**
+
+  The wallet instance you receive from the SequenceWallet.OnWalletCreated event after completing the login process.
+
+  **chain (Chain)**
+
+  The chain type (Ethereum, Sepolia, ..) on which the specified contract is deployed.
+
+  **apiUrl (string)**
+
+  The API url you receive after deploying the required server boilerplate.
+</Accordion>
+
+## Player Profile
+
+Create the `SequencePlayerProfile` prefab to manage your current profile. This includes functionalities such as Sign Out,
+linking external wallets, sending native tokens, and QR code to receive funds.
+
+<Frame caption="Unity Boilerplate Profile">
+    <img src="/images/unity/unity_boilerplate_profile.png" />
+</Frame>
+
+```csharp
+[SerializeField] private SequencePlayerProfile _playerProfile;
+_playerProfile.Show(wallet, chain);
+```
+
+<Accordion title="Parameters">
+  **wallet (IWallet)**
+
+  The wallet instance you receive from the SequenceWallet.OnWalletCreated event after completing the login process.
+
+  **chain (Chain)**
+
+  The chain type (Ethereum, Sepolia, ..) on which the specified contract is deployed.
+</Accordion>
+
+## Inventory
+
+Create the `SequenceInventory` prefab to show all items owned by a user from any ERC1155 or ERC721 contract.
+
+<Frame caption="Unity Boilerplate Inventory">
+    <img src="/images/unity/unity_boilerplate_inventory.png" />
+</Frame>
+
+```csharp
+[SerializeField] private SequenceInventory _inventory;
+_inventory.Show(wallet, chain, collectionAddress);
+```
+
+<Accordion title="Parameters">
+  **wallet (IWallet)**
+
+  The wallet instance you receive from the SequenceWallet.OnWalletCreated event after completing the login process.
+
+  **chain (Chain)**
+
+  The chain type (Ethereum, Sepolia, ..) on which the specified contract is deployed.
+
+  **collectionAddress (string)**
+
+  ERC1155 or ERC721 contract address. Deploy your own contract on Builder first.
+</Accordion>
+
+## Sign Messages
+
+Create the `SequenceSignMessage` prefab to show a modal that lets you sign a specified text.
+
+<Frame caption="Unity Boilerplate Signmessage">
+    <img src="/images/unity/unity_boilerplate_signmessage.png" />
+</Frame>
+
+```csharp
+[SerializeField] private SequenceSignMessage _signMessage;
+_signMessage.Show(wallet, chain);
+```
+
+<Accordion title="Parameters">
+  **wallet (IWallet)**
+
+  The wallet instance you receive from the SequenceWallet.OnWalletCreated event after completing the login process.
+
+  **chain (Chain)**
+
+  The chain type (Ethereum, Sepolia, ..) on which the specified contract is deployed.
+</Accordion>

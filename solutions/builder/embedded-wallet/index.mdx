@@ -1,0 +1,49 @@
+---
+
+title: "Embedded Wallet Configuration"
+description: Configure a Sequence Embedded Wallet in Builder to easily onboard users to your games by integrating OAuth accounts. Learn how to set up login providers like Google Auth and Apple Auth, specify allowed origins for security, set up a recovery wallet, create an initial configuration.
+sidebarTitle: Configuration
+---
+
+
+You can configure a [Sequence Embedded Wallet](/solutions/wallets/embedded-wallet/overview) in Builder and integrate your own OAuth accounts to enable easy onboarding to your games. Configuration page in Builder [is available here](https://sequence.build/project/default/embedded-wallet).
+
+The following sections will explain the various ways to configure using an Embedded Wallet in Builder:
+- [Login Providers](/solutions/builder/embedded-wallet#login-providers): Web2 based authentication providers
+- [Allowed Origins](/solutions/builder/embedded-wallet#allowed-origins): Specify allowed URL origins to call your Embedded Wallet instance from to prevent configuration key misuse
+- [Recovery Wallet](/solutions/builder/embedded-wallet#recovery-wallet): In the event of a wallet ownership turnover for a compromised wallet, specify a recovery wallet to obtain ownership of embedded wallet instance post Trust recovery process
+- [Initial Configuration Password](/solutions/builder/embedded-wallet#initial-configuration-password): Create a password to secure your Embedded Wallet project instance in Builder
+- [Configuration Changes](/solutions/builder/embedded-wallet#configuration-changes): Update configuration details at anypoint with password protection
+- [SDK Integrations](/solutions/builder/embedded-wallet#sdk-integrations): Sequence SDK products that allow developers to implement an Embedded Wallet across platforms
+
+## Login Providers
+Sequence Embedded Wallet supports a multitude of login providers such as email, various social logins, and guest wallets. For social logins, you must go through the configuration process for the provider to retrieve a client specific ID to pass into Sequence Builder. We recommend visiting the specific login provider's configuration page for more information on the setup process.
+
+## Allowed Origins
+This additional security measure will prevent unauthorized usage of your WaaS configuration outside of domains you whitelisted. Add any development and production URLs under Allowed Origins. By default all subpaths under theses hosts will be allowed.
+
+You must define allowed origins with a valid scheme (i.e. `https`).
+
+## Recovery Wallet
+Embedded Wallet requires the public address for a recovery wallet that you control. This recovery wallet will be used for recovering user wallets in a disaster scenario where a wallet has been compromised, so it must be controlled by you and must be kept safe at all times.
+
+We recommend that:
+
+- You use a secure, multisig wallet such as [Gnosis Safe](https://safe.global/) for setting up the wallet
+- You ensure you have at least 2, ideally 3+ signers configured and required for every transaction
+- Every signer is protected by a hardware wallet
+
+Once the recovery wallet is setup properly, provide the public address for it. Recovery wallet cannot be modified once your configuration is saved.
+
+## Initial Configuration Password
+Once you have all information prepared, go ahead and create your Embedded Wallet configuration. During initial setup, Builder will prompt you to assign a password to the Embedded Wallet. This password will be required for all subsequent modifications to your Embedded Wallet configuration, so it must be stored safely.
+
+## Configuration Changes
+To make modifications to your Embedded Wallet configuration, navigate to the Embedded Wallet section again and make the necessary changes. Then click "Save Configuration" and enter your recovery wallet password to deploy the changes.
+
+## SDK Integrations
+Now that you have your Embedded Wallet configuration up, go ahead and follow our guides on how to integrate with the SDKs:
+
+- [TypeScript SDK](/solutions/wallets/embedded-wallet/overview)
+- [Unity SDK](/sdk/unity/overview)
+- [Unreal SDK](/sdk/unreal/introduction)

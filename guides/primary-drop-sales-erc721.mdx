@@ -1,0 +1,166 @@
+---
+title: Create NFT Drop Sales with Sequence
+description: This guide covers the creation of a Primary Sales 721 of Sequence. It includes steps to create a sales contract, to create an NFT contract, to create a collection, to create unrevealed tokens, to reveal unrevealed tokens, to authenticate wallets, and to purchase and mint.
+sidebarTitle: Create NFT Drop Sales
+---
+
+Accelerate your game’s growth and add excitement by selling unrevealed tokens to your players, offering them amazing rewards when the sale period ends, as all unrevealed tokens reveal their true features that your players will love. In this guide, we’ll walk you through the steps to deploy a Primary Sale contract using any custom or existing currency for a drop sale that leverages game items from an ERC721 contract. We will use the following technologies from the Sequence platform:
+
+1. [Primary Sales Contract](/solutions/collectibles/contracts/deploy-primary-sales-contract/): How to set up and deploy contracts for launching a primary sale — suitable for an Web Shop, NFT Drop, and more.
+2. [Embedded Wallet](/solutions/wallets/embedded-wallet/overview): Use Sequence Kit and Sequence Embedded Wallet to authenticate a user.
+3. [Sequence Indexer](/solutions/builder/indexer): Leveraging the Sequence Indexer to query NFT metadata and user's wallet assets.
+4. [Sequence Metadata](/solutions/builder/collections): Updating and managing a collection or token's metadata via the Sequence Builder UI and API.
+
+## Clone the Primary Sales for Game Items boilerplate
+<Tabs>
+  <Tab title="Sequence CLI">
+        #### You can easily clone the Primary Sales repository using the [Sequence CLI](https://github.com/0xsequence/sequence-cli/)
+
+        ```bash
+        npx sequence-cli boilerplates create-primary-drop-sales-erc721-starter
+        ```
+  </Tab>
+  <Tab title="Github">
+        #### You can clone Primary Sales Repository from Github
+
+        ```shell
+        git clone https://github.com/0xsequence-demos/primary-drop-sale-721-boilerplate.git
+        ```
+
+        <br/>
+
+        Then install and run:
+
+        <br/>
+
+        ```shell
+        pnpm install && pnpm dev
+        ```
+
+        <br/>
+
+        After you install the dependencies, `.env.example` will be automatically copied to `.env`, so you can test things out with pre-provided keys.
+
+        <br/>
+
+        When you're ready, replace the contents of `.env` with your project's information.
+  </Tab>
+  <Tab title="Github Template">
+        #### You can use the Primary Sales Repository Template from Github
+
+        Go to https://github.com/0xsequence-demos/primary-drop-sale-721-boilerplate and click "Use this Template" in the top right corner.
+        <br/>
+
+        Clone your newly made repo.
+
+        <br/>
+
+        Then install and run:
+
+        <br/>
+
+        ```shell
+        pnpm install && pnpm dev
+        ```
+
+        <br/>
+        After you install the dependencies, `.env.example` will be automatically copied to `.env`, so you can test things out with pre-provided keys.
+        <br/>
+
+        When you're ready, replace the contents of `.env` with your project's information.
+  </Tab>
+</Tabs>
+
+## How to use this repository
+
+What can you do with this? The idea is to sell NFTs with hidden metadata—exciting, right? You’ll offer users tokens with a variety of properties and rarity! Swords? Shields? Paintings? Random battle passes? Maybe even a golden ticket? Imagine the suspense! Give your users a mystery, and a reward when you finally reveal their token to them.
+
+### Unrevealed Tokens Creation
+
+This step explains how to create unrevealed tokens for your NFT collection using a script. Follow the steps carefully to ensure your collection is properly configured, and make sure you have its ID copied from the URL in the collection details view.
+
+To create the unrevealed tokens, make sure to set your `collectionId` and the `number` of tokens you want to create inside the `scripts/utils/getBodyAndKeys.ts` file, which already contains an example.
+
+<Warning>
+  Make sure to configure your `JWT_SECRET_KEY`, `VITE_PROJECT_ACCESS_KEY`, and `VITE_PROJECT_ID` in your `.env` file.
+</Warning>
+
+#### Script:
+
+```bash
+pnpm create-unrevealed-tokens
+```
+
+### Project Connection Flow and ERC721 Sales Contract Setup
+
+From this point, you need to complete the entire connection flow for your project and set up the ERC721 sales contract, which will be linked to the collection containing the unrevealed tokens.
+
+#### Important Considerations:
+
+* The primary sales contract must have the same stock as the number of unrevealed tokens you created via the endpoint.
+* For example, if you generated 300 unrevealed tokens, you should configure 300 units of stock in the sales contract to ensure consistency between the contract and the unrevealed tokens.
+* Link the Collection with Unrevealed Tokens to the Contract.
+* Ensure the total supply or stock in your ERC721 sales contract matches the number of unrevealed tokens. This avoids inconsistencies between what the contract offers for sale and the unrevealed tokens available.
+
+### Configure your own Primary Sales Contracts in the repository
+
+We provide a few example contracts and variables to get you started. However, you will likely want to use your own contracts. To configure this, simply follow the steps below:
+
+<Steps>
+<Step title="Deploy a Primary Sales Contract in Sequence Builder.">
+
+We first need a Primary Sales Contract along with an ERC721 contract that will contain our game items we want to sell. To do that, please follow the [guide](/solutions/collectibles/contracts/deploy-primary-sales-contract) here.
+
+</Step>
+<Step title="Set the Sales Configurations for the project.">
+
+Once we have our sales contract deployed, we'll simply update the sales configuration on the boilerplate. Go to `src/salesConfigs.ts` and modify the salesConfigs variable by adding each contract sale in an array for your project with the networks you want to support. Example:
+
+```ts
+export const salesConfigs: SaleConfiguration[] = [
+  {
+    nftTokenAddress: "0x70a2177079877e4aae639d1abb29ffa537b94970",
+    salesContractAddress: "0xa55574c5ed4cd1dbc5feba47a204fdfb483edadd",
+    chainId: 80002, //polygonAmoy
+  }
+];
+```
+
+<Note>
+  You can see all the available chains currently supported by sequence <a href="/solutions/technical-references/chain-support" target="_blank" rel="noopener noreferrer" style={{ fontWeight: 700 }}>here</a>.
+</Note>
+
+</Step>
+<Step title="Set a default chainId for the project.">
+
+To set the default chainId, go to `src/salesConfigs.ts` and modify the defaultChainId variable with the chainId you want to display by default in the project. It must match a chainId present in your salesConfigs variable. For example:
+
+```ts
+// In this case, the chosen `defaultChainId` is 80002 (amoy), which is present in the previously declared `salesConfigs` variable.
+export const defaultChainId = 80002;
+```
+
+</Step>
+<Step title="Done!">
+
+Your primary drop sale should now appear and function correctly from this point onward. In order to make a purchase, ensure you have the corresponding token that you set as a currency for the sale in your wallet, increment the amount, and click purchase!
+</Step>
+</Steps>
+
+
+### Reveal Tokens
+
+Hey, isn’t it exciting? Your users are eagerly waiting to discover their fate—make them happy by revealing the true attributes of their NFTs! Good luck to everyone! This script will unveil all the unrevealed tokens and assign their actual values to the NFTs, which are generated randomly. Feel free to customize this script to create the metadata exactly how you want!
+
+To reveal the unrevealed tokens, make sure to set your `collectionId` inside the `scripts/utils/getBodyAndKeys.ts` file, which already contains an example.
+
+<Warning>
+  Make sure to configure your `JWT_SECRET_KEY`, `VITE_PROJECT_ACCESS_KEY`, and `VITE_PROJECT_ID` in your `.env` file.
+	Before this step, you should disable your primary sales by setting an expiration date and/or waiting for the stock in the contract to run out (required).
+</Warning>
+
+#### Script:
+
+```bash
+pnpm reveal-tokens
+```

@@ -1,0 +1,31 @@
+---
+title: Setup
+description: Documentation for Unity SDK setup for the Sequence infrastructure stack for web3 gaming.
+---
+
+1. Navigate to the Resources folder imported via the `Setup` sample and locate the `SequenceConfig` ScriptableObject
+    
+    a) If you imported the SDK manually, you will need to create a Resources folder and SequenceConfig
+
+    b) Create a `Resources` folder located at `Assets/Resources`. The SDK uses [Resources.Load](https://docs.unity3d.com/ScriptReference/Resources.Load.html) to load the config `ScriptableObject` we'll create in the next step.
+    
+    c) On the top bar, click `Assets > Create > Sequence > SequenceConfig` and place the newly created `ScriptableObject` at the root of your `Resources` folder.
+2. Fill in `SequenceConfig` with the appropriate values for your project.
+
+    a) `Url Scheme` - You must replace this with a string that is unique to your application. This is very important. Failure to do so will cause unexpected behaviour when signing in with social sign in and it will not work.
+
+    b) `Builder API Keys` - These are found in the [Sequence Builder](https://sequence.build/) under `Settings > API Keys`
+
+    c) `WaaS Config Key` - You can get this key in [Sequence Builder](https://sequence.build/) under `Onboard > Embedded Wallet`
+
+    d) `StoreSessionPrivateKeyInSecureStorage` - Available on select platforms: we have integrated with the platform's native secure storage system. If enabled, we will store session wallet info (including the private key) in secure storage and automatically attempt to recover the session for the user after closing the app (so they won't need to login again). With this disabled (default) or on an unsupported platform, the session wallet's private keys never leave the application's runtime memory; however, your user will need to sign in again anytime they close the app. The default `LoginPanel` UI (see [Recovering Sessions](/sdk/unity/recovering-sessions)) will handle this behaviour for you automatically, navigating to the appropriate page.
+
+    e) `EnableMultipleAccountsPerEmail` - By default, the SDK will only allow users to create one account per email. The account is initially associated with the login method used (email + OTP, PlayFab, Google, etc.); the user can associate additional login methods with their account (more on this in the [Authentication section](/sdk/unity/authentication/federated-accounts)). If `EnableMultipleAccountsPerEmail` is enabled, users have the option to create multiple accounts per email address (associated with different login methods). While we have enabled this functionality, we, in general, feel this behaviour may be confusing to end-users and recommend integrators keep this option in the default disabled status.
+
+<Warning>
+Before proceeding, please make sure you have properly configured the Embedded Wallet in the Builder. See this [guide](/solutions/builder/embedded-wallet).
+</Warning>
+
+<Warning>
+Please double check that you have copy and pasted the configuration keys from the Builder correctly! This is the most common issue reported when integrating our SDK. If you receive an "invalid tenant" response, you have messed up your configuration! See this [guide](/solutions/builder/embedded-wallet).
+</Warning>

@@ -1,0 +1,101 @@
+---
+
+title: "Webhooks in Sequence Builder"
+description: The content discusses the use of webhooks in Sequence Builder for game builders to listen to events on multiple blockchains.
+sidebarTitle: Webhooks 
+---
+
+
+
+Sequence Builder equips game builders with an indexer that listens to events across the many blockchains that we offer by providing an https callback
+
+<Warning>
+	If you prefer a programmatic way to add webhooks that uses cURL, TypeScript or Go, check out [this walkthrough](/api/indexer/examples/webhook-listener).
+</Warning>
+
+#### What data can I listen to for my game?
+- Mints from a contract
+- TokenID transfers
+- Transactions by an account address
+- Event topics emitted by a contract
+- Event topic hashes emitted by a contract
+
+## Creating Webhooks
+
+The following steps guide you through creating your webhook
+
+1. Select Project and go to Webhooks Section
+2. Select Network and Add New Webhook
+2. Complete Webhook Details
+
+<Steps>
+<Step title="Select Project and go to Webhooks Section">
+
+Select your project in the top left hand corner, select the `Indexer` section in the sidebar, and select the `Webhooks` tab.
+<Frame>
+![indexer webhooks select](/images/builder/builder_indexer_webhooks_select.png)
+</Frame>
+ 
+</Step>
+<Step title="Select Network and Add New Webhook">
+
+In the dropdown beneath the webhooks tab, select the network you're looking to create a webhook for based on the ones in your project. If you don't see the network you're looking for, you can always [add a network](/support/builder/project-settings#3-network-settings), then `+ Add New Webhook`
+<Frame>
+![indexer webhooks add new webhook](/images/builder/builder_indexer_webhooks_add_new_webhook.png)
+ </Frame>
+</Step>
+<Step title="Complete Webhook Details">
+Complete the required details like webhook `URL`, `Contract Address(es)`, and 'Events'. 
+
+For the Events field, we are able to parse any arbitrary contract event, however you must input the event exactly as written in your smart contract. For example, for detecting transfer events you would input: `Transfer(address indexed from, address indexed to, uint256 amount)` with the `indexed` keyword. You can find an example of general event types [here](/api/indexer/examples/webhook-listener#on-chain-token-event-types) for common use cases along with Sequence specific ones.
+
+ 
+ 
+Once your desired fields are input, select `Add Webhook`. 
+
+
+
+<Note>
+    If you require a webhook endpoint you can use [webhook.site](https://webhook.site/)
+    
+    Or, you can use template code with one of the following:
+
+    [Nodejs TypeScript Webhook](https://github.com/0xsequence-demos/template-nodejs-webhook-server) (combined with [ngrok](https://ngrok.com/))
+</Note>
+<Frame>
+![add a webhook with details](/images/builder/builder_indexer_webhooks_add_webhook.png)
+</Frame>
+And you're done!
+</Step>
+</Steps>
+
+## Removing or Updating Webhooks
+
+The following steps guide you through creating your updating or removing your webhook
+
+1. Select Project and go to Webhooks Section
+2. Select the Gear to Update or Remove your Webhook
+2. Update or Remove Webhook
+
+<Steps>
+<Step title="Select Project and go to Webhooks Section">
+
+Select your project in the top left hand corner, select the `Indexer` section in the sidebar, and select the `Webhooks` tab.
+<Frame>
+![indexer webhooks select](/images/builder/builder_indexer_webhooks_select.png)
+</Frame>
+</Step>
+<Step title="Select the Gear to Update or Remove your Webhook">
+In the webhooks screen, select the gear `⚙` for the webhook you want to remove or update
+<Frame>
+![click update webhook](/images/builder/builder_indexer_webhook_select.png)
+</Frame>
+</Step>
+<Step title="Update or Remove Webhook">
+
+Then you can either `Update Webhook` or `Remove` your webhook by selecting either option
+<Frame>
+![update or remove](/images/builder/builder_indexer_webhooks_update_or_remove.png)
+</Frame>
+</Step>
+</Steps>

@@ -1,0 +1,40 @@
+---
+title: "Upgrading from v2 to v3"
+---
+
+
+
+## Installation
+
+If you've installed via Package Manager using the git url, please perform the following:
+
+1. Remove Sequence-Unity package
+2. Re-install using `https://github.com/0xsequence/sequence-unity.git?path=/Packages/Sequence-Unity` as the link
+
+## Resolving Compile Errors
+
+1. Delete `Samples/Sequence WaaS SDK/version/Setup/Editor` - this is now included in the SDK
+2. All namespaces (using statements) that contain `WaaS` have been replaced with `Sequence.EmbeddedWallet`
+
+For example, if you have 
+```csharp 
+using Sequence.WaaS;
+using Sequence.WaaS.Authentication;
+using SequenceSDK.WaaS;
+```
+Replace this with 
+```csharp
+using Sequence.EmbeddedWallet;
+```
+3. `WaaSTransactionQueuer` -> `SequenceWalletTransactionQueuer`
+4. `WaaSWallet` -> `SequenceWallet`
+5. In general, any class, method, or event that contains `WaaS` in the name and gives you a compile error has had `WaaS` removed from its name (with the exception of the few previously mentioned classes)
+    Examples:
+    `OnWaaSWalletCreated` -> `OnWalletCreated`
+    `WaaSSession` -> `Session`
+    `EthWallet` -> `EOAWallet`
+6. For any existing `LoginPanel` instances
+    
+    a. Attach the `WaaSSessionManager` prefab (as Session Manager Prefab) under `Sequence > SequenceSDK > EmbeddedWallet > WaaSSessionManager` (if it isn’t already there)
+    
+    b. Attach the `FederatedAuthPopupPanel` prefab under `Sequence > SequenceFrontend > Prefabs`

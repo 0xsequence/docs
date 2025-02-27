@@ -1,0 +1,77 @@
+---
+title: How to build a Game with Unreal Engine
+description: Use Sequence's Unreal SDK to display Embedded Wallet information, sign messages, and send transactions.
+sidebarTitle: How to build a Game with Unreal Engine
+---
+
+In this guide we will walk you through how to integrate Embedded Wallet features using Sequence's Unreal SDK.
+Checkout the [Boilerplate for this guide.](https://github.com/0xsequence/sequence-unreal)
+
+[Learn more about Embedded Wallets.](/solutions/wallets/overview#what-are-the-differences-between-these-options)
+
+## 1. Setup
+
+<Steps>
+<Step title="Installation">
+
+To get started, download the [latest version](https://github.com/0xsequence/sequence-unreal/releases)
+of the Sequence SDK and put the `SequencePlugin` folder into your Unreal project's `Plugin` folder.
+
+Alternatively, [learn how to get the SDK from the Epic Games Marketplace.](/sdk/unreal/installation#using-epic-games-marketplace)
+
+</Step>
+<Step title="Configure your Project">
+
+Now create the `SequenceConfig.ini` file, [based on this format](/sdk/unreal/configuration/), in your project's `Config/` directory and include the
+WaaS- and Project Key from the [Sequence Builder.](https://sequence.build/) Generate a 32-character encryption key. This key will be used to securely store your user credentials.
+The remaining values can be filled in later or whenever new authentication options are needed.
+
+</Step>
+<Step title="Include the Built-In UI">
+
+Let's build on top of the Pawn `BP_CustomSpectatorPawn` and GameMode `GM_Sequence` included with the SDK by duplicating them into our project.
+This will allow us to customize them as needed.
+
+We recommend using the Built-In UI for development purposes, [learn how to create your own UI.](/sdk/unreal/authentication/)
+
+</Step>
+</Steps>
+
+## 2. Interact with the SDK
+To enable interaction with the Sequence SDK, start by creating a widget blueprint for your project.
+Open the Sequence Pawn, locate the `Auth Success` event, and create a reference of your new UserWidget.
+Finally, use our subsystems like the `SequenceWalletBP` to access our features from the following sections.
+
+## 3. Display Wallet Information
+
+To display the wallet's address and balance, first retrieve the user's wallet reference.
+Then, use it to fetch and display the wallet's address and current balance directly from the connected blockchain.
+
+<b>Example Use Case:</b><br/>Build a UserWidget for your users Web3 profile.
+<Frame>
+<img alt={'img'} src={'/images/unreal/unreal_boilerplate_address.png'} style={{borderRadius: 20}}/>
+</Frame>
+<Frame>
+<img alt={'img'} src={'/images/unreal/unreal_boilerplate_balance.png'} style={{borderRadius: 20}}/>
+</Frame>
+## 4. Sign a Message
+
+To sign a message, first retrieve the user's wallet reference. Then, use the input message from the boilerplate
+and initiate the signing process through the wallet to generate the signature.
+
+<b>Example Use Case:</b><br/>You can use this feature to sign a message from your backend, allowing you to verify your user's wallet upon receipt.
+<Frame>
+<img alt={'img'} src={'/images/unreal/unreal_boilerplate_signature.png'} style={{borderRadius: 20}}/>
+</Frame>
+## 5. Send Ether to another User
+
+To send an Ether transaction, use the recipient's address and amount from the boilerplate's input fields to initiate
+the transaction with the `SequenceWalletBP` subsystem and listen to the response event.
+
+**Example Use Case:**<br/>A user initiates a payment transaction to another user within your game client.
+<Frame>
+<img alt={'img'} src={'/images/unreal/unreal_boilerplate_transaction.png'} style={{borderRadius: 20}}/>
+</Frame>
+<Warning>
+Make sure to include your own error handling. The provided code snippets are simplified.
+</Warning>

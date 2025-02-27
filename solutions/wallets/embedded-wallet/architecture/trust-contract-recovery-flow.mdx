@@ -1,0 +1,25 @@
+---
+
+title: "Trust Contract Recovery Flow"
+description: The Trust Contract Recovery Flow document details the architecture of Trust contracts, which safeguard Sequence WaaS accounts.
+sidebarTitle: Trust Contract Recovery Flow
+---
+
+
+Trust, a disaster recovery contract, protects Sequence WaaS accounts. This document explains the Trust contract's function and the recovery flow during a disaster.
+
+## Trust Contract Architecture
+
+Trust, a time lock contract, has two instances for each WaaS tenant project. One instance lies with the project's recovery wallet, the other with the Sequence recovery wallet. Trust contracts start in a locked state, denying access to WaaS accounts under the tenant configuration.
+
+A controlling party can unlock a Trust contract by calling the setUnlocksAt method on the other party's Trust contract instance. This action turns the Trust contract instance into a countdown state, starting a 90-day countdown that is publicly visible.
+
+After the countdown, the party that called setUnlocksAt can control the other's Trust instance. With control over both instances, they can access all accounts created with the WaaS tenant configuration.
+
+## Unlock State Monitoring
+
+Sequence monitors the unlock state of all Trust contract instances. This service operates under the existing Sequence WaaS deployed on AWS Nitro Secure Enclave instances. The monitoring system checks every Trust contract instance and alerts both the Sequence team and the project owner when an unlock state is detected on a contract. This prevents one party from calling setUnlocksAt on the other's contract without their knowledge.
+
+## Disaster Recovery Flow
+
+Trust contracts recover accounts if a party vanishes and access to the WaaS configuration accounts is lost. In this case, the counterparty can start the recovery flow by calling the setUnlocksAt method on the other's Trust contract instance. This triggers unlock notifications for both parties until the countdown ends. After the 90-day countdown, it's possible to recover the created accounts and the tokens in the accounts.

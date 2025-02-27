@@ -1,0 +1,125 @@
+---
+title: Sell your Game Items via a Web Shop
+description: This guide covers the creation of a Primary Sales of Sequence. It includes steps for create sales contract, create nft contract, create collection, wallet authentication, purchase and mint.
+sidebarTitle: Sell your ERC-1155 Game Items via Web Shop
+---
+
+Accelerate your game growth by selling items directly to your players. In this guide, we will go over the steps how to deploy a Primary Sale contract using any custom or existing currency for a webshop that utilizes game items from a ERC1155 contract. We will use the following technologies from the Sequence platform:
+
+1. [Primary Sales Contract](/solutions/collectibles/contracts/deploy-primary-sales-contract/): How to set up and deploy contracts for launching a primary sale — suitable for an Web Shop, NFT Drop, and more.
+2. [Embedded Wallet](/solutions/wallets/embedded-wallet/overview): Use Sequence Kit and Sequence Embedded Wallet to authenticate a user.
+3. [Sequence Indexer](/solutions/builder/indexer): Leveraging the Sequence Indexer to query NFT metadata and user's wallet assets.
+4. [Sequence Metadata](/solutions/builder/collections): Updating and managing a collection or token's metadata via the Sequence Builder UI and API.
+
+## Clone the Primary Sales for Game Items boilerplate
+<Tabs>
+  <Tab title="Sequence CLI">
+        #### You can easily clone the Primary Sales repository using the [Sequence CLI](https://github.com/0xsequence/sequence-cli/)
+
+        ```bash
+        npx sequence-cli boilerplates create-primary-drop-sale-starter
+        ```
+  </Tab>
+  <Tab title="Github">
+        #### You can clone Primary Sales Repository from Github
+
+        ```shell
+        git clone https://github.com/0xsequence-demos/primary-sale-1155-boilerplate.git
+        ```
+
+        <br/>
+
+        Then install and run:
+
+        <br/>
+
+        ```shell
+        pnpm install && pnpm dev
+        ```
+
+        <br/>
+
+        After you install the dependencies, `.env.example` will be automatically copied to `.env`, so you can test things out with pre-provided keys.
+
+        <br/>
+
+        When you're ready, replace the contents of `.env` with your project's information.
+  </Tab>
+  <Tab title="Github Template">
+        #### You can use the Primary Sales Repository Template from Github
+
+        Go to https://github.com/0xsequence-demos/primary-sale-1155-boilerplate and click "Use this Template" in the top right corner.
+        <br/>
+
+        Clone your newly made repo.
+
+        <br/>
+
+        Then install and run:
+
+        <br/>
+
+        ```shell
+        pnpm install && pnpm dev
+        ```
+
+        <br/>
+        After you install the dependencies, `.env.example` will be automatically copied to `.env`, so you can test things out with pre-provided keys.
+        <br/>
+
+        When you're ready, replace the contents of `.env` with your project's information.
+  </Tab>
+</Tabs>
+
+## Configure your own Primary Sales Contracts in the repository
+
+We provide a few example contracts and variables in order to get you started. However, you will likely want to use your own contracts. In order to configure this simply following the steps below:
+
+<Steps>
+<Step title="Deploy a Primary Sales Contract in Sequence Builder.">
+
+We first need a Primary Sales Contract along with an ERC1155 contract that will contain our game items we want to sell. To do that, please follow the [guide](/solutions/collectibles/contracts/deploy-primary-sales-contract) here.
+
+</Step>
+<Step title="Set the Sales Configurations for the project.">
+
+Once we have our sales contract deployed, we'll simply update the sales configuration on the boilerplate. Go to `src/salesConfigs.ts` and modify the salesConfigs variable by adding each contract sale in an array for your project with the networks you want to support. Example:
+
+```ts
+export const salesConfigs: SaleConfiguration[] = [
+  {
+    nftTokenAddress: "0x888a322db4b8033bac3ff84412738c096f87f9d0",
+    salesContractAddress: "0x0327b2f274e04d292e74a06809bcd687c63a4ba4",
+    chainId: 80002, //polygonAmoy
+    // Modify here to show different items
+    itemsForSale: ["0", "1"],
+  },
+  {
+    nftTokenAddress: "0xd4bb59d0ba1f7b2beea4c6d9b9f151ee1da02665",
+    salesContractAddress: "0x326d2fbe4808dd2a3e205aecc5e25a6322ad0a81",
+    chainId: 421614, //arbitrumSepolia,
+    // Modify here to show different items
+    itemsForSale: ["0"],
+  },
+];
+```
+
+<Note>
+  You can see all the available chains currently supported by sequence <a href="/solutions/technical-references/chain-support" target="_blank" rel="noopener noreferrer" style={{ fontWeight: 700 }}>here</a>.
+</Note>
+
+</Step>
+<Step title="Set a default chainId for the project.">
+
+To set the default chainId, go to `src/salesConfigs.ts` and modify the defaultChainId variable with the chainId you want to display by default in the project. It must match a chainId present in your salesConfigs variable. For example:
+
+```ts
+// In this case, the chosen `defaultChainId` is 80002 (amoy), which is present in the previously declared `salesConfigs` variable.
+export const defaultChainId = 80002;
+```
+
+### Done!
+
+Your primary sales should now appear and function correctly from this point onward. In order to make a purchase, ensure you have the corresponding token that you set as a currency for the sale in your wallet, increment the amount, and click purchase!
+</Step>
+</Steps>

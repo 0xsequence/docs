@@ -1,0 +1,116 @@
+---
+
+title: "Integrating Sequence Kit with Telegram Mini-apps"
+description: Learn how to integrate Sequence Kit with your Telegram Mini-app or Game for seamless web3 functionality.
+sidebarTitle: Build a Telegram Mini-App with Sequence
+---
+
+
+
+This guide will walk you through setting up Sequence Kit with your Telegram Mini-app or Game, enabling web3 functionality on EVM chains for your users for email and guest authentication methods.
+
+## Prerequisites
+
+Before starting, ensure you have:
+- A Telegram account
+- Account and Access to [Cloudflare Dashboard](https://dash.cloudflare.com)
+
+## Integration Steps
+
+<Steps>
+<Step title="Create a Telegram Bot with BotFather">
+
+1. Open Telegram and search for "@BotFather"
+2. Start a conversation by clicking "Start" or typing `/start`
+3. Create a new bot by typing `/newbot`
+4. Follow the prompts:
+   - Enter a name for your bot
+   - Choose a username (must end in 'bot')
+
+</Step>
+<Step title="Obtain Required Tokens">
+
+After creating your bot, BotFather will provide:
+- Bot Token (HTTP API Token)
+- Bot Username
+
+Save these credentials - you'll need them for the next steps.
+
+<Warning>
+  Never share or commit your bot token. It should be treated as a secret.
+</Warning>
+
+</Step>
+<Step title="Install and Configure Your Project">
+
+1. Clone the Sequence Telegram starter:
+
+```shell
+git clone https://github.com/0xsequence-demos/telegram-kit-embedded-wallet-react-boilerplate
+```
+
+2. Copy the example files in your project root:
+
+```shell
+cp .env.example .env && cp example.wrangler.toml wrangler.toml
+```
+
+Update the `.env` file with the `VITE_PROJECT_ACCESS_KEY` and `VITE_WAAS_CONFIG_KEY` with your keys from [Sequence Builder](https://sequence.build/project/default/embedded-wallet) after configuration.
+
+3. Install dependencies:
+
+```shell
+pnpm install
+```
+
+4. Build the app:
+
+```shell
+pnpm run build
+```
+
+4. Update the `VARS` in the `wrangler.toml` file with a user provided secret for `BOT_SECRET` and the bot token from BotFather for `BOT_TOKEN`.
+
+</Step>
+<Step title="Authenticate with Cloudflare Account">
+Deploy the app and functions logic to Cloudflare
+
+1. Run `pnpm wrangler pages deploy`
+
+This will prompt you to authenticate with Cloudflare if not already logged in. On successful deploy, copy the URL where your application is now hosted.
+
+</Step>
+<Step title="Register Webhook with Telegram">
+
+Now we call our `registerWebhook` endpoint on our app to register the webhook function with the URL of your deployed application to enable access for the Telegram API.
+
+```shell
+curl -X POST \
+     "<YOUR_CLOUDFLARE_DEPLOYED_URL>/api/registerWebhook"
+```
+
+</Step>
+<Step title="Update Allowed Origins">
+Ensure in your wallet configuration you have added the URL of your deployed application as an allowed origin through the configuration page on [Sequence Builder](https://sequence.build/project/default/embedded-wallet).
+
+</Step>
+<Step title="Test out the Bot!">
+Send a message to your bot on Telegram and see if it responds! It should answer you with the ability to share, play and get more info on bot.
+</Step>
+</Steps>
+
+From here, you have a fully functional Telegram bot that can interact with Sequence Embedded wallets for all integrated EVM chains. You can customize the bot responses and the client side application with functionalities specific to your game or app - simply redeploy and update the allowed origins!
+
+
+## Going to production
+For your `BOT_TOKEN`, you can encrypt and store it in Cloudflare via the following command to prevent data leaks:
+
+```shell
+pnpm wrangler pages secret put BOT_TOKEN
+```
+
+Enter in your bot token when prompted.
+
+
+
+

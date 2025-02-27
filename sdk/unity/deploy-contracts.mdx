@@ -1,0 +1,37 @@
+---
+title: "Contract Deployment"
+sidebarTitle: Deploy Contracts
+description: Contract deployment from Unity or a Made-With-Unity application can be achieved by sending a transaction asynchronously using WaaSWallet.DeployContract.
+---
+
+While, in general, we would recommend deploying your smart contracts via the [Builder](https://sequence.build/), we recognize that there are some use cases where deploying a smart contract from Unity (or a Made-With-Unity application) is useful.
+
+Contract deployment involves sending a transaction, which is done via an [asynchronous Task](https://medium.com/@sonusprocks/async-await-in-c-unity-explained-in-easy-words-571ebb6a9369). You can use `await` when calling `SequenceWallet.DeployContract` from within an async Task if you wish to obtain the `ContractDeploymentReturn` object directly. Or, you can take the recommended approach which is to setup handler functions for the `SequenceWallet.OnDeployContractComplete` and `SequenceWallet.OnDeployContractFailed` events and call the `SequenceWallet.DeployContract` method from anywhere (without await).
+
+`SequenceWallet.DeployContract` is essentially a wrapper for a very special `SequenceWallet.SendTransaction` call and therefore, you can expect to still receive the `SequenceWallet.OnSendTransactionComplete` or `SequenceWallet.OnSendTransactionFailed` events in addition.
+
+```csharp
+public void OnDeployContractCompleteHandler(SuccessfulContractDeploymentReturn result) {
+    Address newlyDeployedContractAddress = result.DeployedContractAddress;
+
+    // Do something
+}
+
+public void OnDeployContractFailedHandler(FailedContractDeploymentReturn result) {
+    // Do something
+}
+
+public void OnWalletCreatedHander(SequenceWallet wallet) {
+    wallet.OnDeployContractComplete += OnDeployContractCompleteHandler;
+    wallet.OnDeployContractFailed += OnDeployContractFailedHandler;
+}
+```
+If you're unfamiliar with working with events in Unity, check out this great [Reddit post](https://www.reddit.com/r/gamedev/comments/u3hz2v/how_to_use_events_a_supersimple_unity_example/)!
+
+To deploy a contract you'll need to first [compile your smart contract code into bytecode](https://medium.com/coinmonks/compiling-the-smart-contracts-8dcda8071638) and add the bytecode as a hexadecimal string in one of your C# scripts. 
+
+To deploy a smart contract, you can use this code snippet:
+```csharp
+string bytecode = "Here you'll paste your compiled bytecode"
+_wallet.DeployContract(Chain.Polygon, bytecode);
+```

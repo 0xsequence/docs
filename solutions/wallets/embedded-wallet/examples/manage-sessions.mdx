@@ -1,0 +1,119 @@
+---
+
+title: "Session Management"
+description: The Session Management feature in Auth + Embedded Wallet simplifies account management, authentication, and session control for your application.
+sidebarTitle: Manage Sessions
+---
+
+
+A valid session is opened during the Authentication process.
+
+Sequence Auth and Embedded Wallet handles the following aspects of your application:
+
+- [Check Valid Session](/solutions/wallets/embedded-wallet/examples/manage-sessions#validation-status): Manage blockchain accounts to sign up or sign in users.
+- [Control Session Validation](/solutions/wallets/embedded-wallet/examples/manage-sessions#control-session-validation): Authentication sessions to return important details to be consumed by your application to enhance the experience of games and applications.
+- [Close Session](/solutions/wallets/embedded-wallet/examples/manage-sessions#close-session): Manage the listing and dropping of sessions handled by the WaaS stack.
+
+## Validation status
+
+To check the validation status of the current session, use the `isSessionValid` method. This returns `true` for email login and trusted social logins and `false` for custom logins until email validation is complete.
+
+```ts
+const isValid = await sequence.isSessionValid();
+console.log(isValid);
+```
+
+```
+true
+```
+
+### Trigger session validation
+
+Manually trigger a session validation with the `validateSession` method. This will send a code to the user's email. If validated within 10 minutes, the method returns `true`; otherwise, it returns `false`.
+
+```ts
+const result = await sequence.validateSession();
+```
+
+```
+true
+```
+
+Once user receives the code, he can validate the session with the `finishValidateSession` method that takes the code as an argument. If the code is valid, the method returns `true`; otherwise, it returns `false`.
+
+```ts
+const result = await sequence.finishValidateSession("123456");
+```
+
+```
+true
+```
+
+### **Control Session Validation**
+The **`onValidationRequired`** callback is used to determine the need for session validation during actions like sending transactions or signing messages. If the callback returns **`true`**, it triggers session validation. If it returns **`false`**, the related action is cancelled. This mechanism ensures that only validated sessions can proceed with sensitive operations.
+
+```ts
+const tx = await sequence.sendERC20({
+  validation: {
+    onValidationRequired: () => true,
+  },
+  chainId: 42161,
+  token: "0x6b175474e89094c44da98b954eedeac495271d0f", // DAI
+  to: "0x27CabC9700EE6Db2797b6AC1e1eCe81C72A2cD8D", // Recipient
+  value: "200000000000000000000", // 200 DAI
+});
+```
+
+### Listen for session validations
+
+Events like transaction sends may silently prompt session validation. Use the `onValidationRequired` hook to catch such instances.
+
+```ts
+sequence.onValidationRequired(() => {
+  console.log("Session has been triggered for validation");
+});
+
+await sequence.sendTransaction({ chainId: 1 }, { to: "0x...", value: "1" });
+```
+
+```
+Session has been triggered for validation
+```
+
+## Manage Automatic session validation
+Automatic session validation occurs during actions that require validation. Manage this process using the onValidationRequired hook.  
+
+```ts
+const tx = await sequence.sendTransaction({
+  chainId: 1,
+  validation: {
+    onValidationRequired: () => {
+      console.log("Session has been triggered for validation");
+      return true;
+    },
+  },
+  to: "0x061150e5574716DBb1a2cdf54b3DcE9F94395f65",
+  value: "1",
+});
+```
+
+By returning `true` or `false` from the `onValidationRequired` hook, you either continue or cancel the action, respectively.
+
+## Close Session
+
+A session can be closed using the `id` of the session. Any session can be closed from any device with an active session.
+
+```ts
+import { SequenceWaaS } from '@0xsequence/waas'
+
+const sequence = new SequenceWaaS({
+  projectAccessKey: `${process.env.VITE_PROJECT_ACCESS_KEY}`,
+  waasConfigKey: `${process.env.VITE_WAAS_CONFIG_KEY}`,
+  network: 'arbitrum-nova'
+})
+
+await sequence.signIn({ idToken }, "MacBook Pro - Chrome")
+
+const sessions = await sequence.listSessions()
+await sequence.dropSession({ sessionId: sessions[0].id })
+```

@@ -1,0 +1,19 @@
+---
+title: "Checkout UI"
+---
+
+
+
+The SDK comes with a default Checkout UI that you are welcome to use.
+
+## Using the Default UI
+
+The SDK provides `CheckoutPanel` and `CheckoutPage` scripts, easily accessible via the `CheckoutPanel` prefab located at `/Sequence/SequenceFrontend/Prefabs/Marketplace/CheckoutPanel.prefab`.
+
+Once you've added the `CheckoutPanel` prefab to your scene, you can open it via the `Open()` method. When opening the `CheckoutPanel`, you'll need to provide an `ICheckoutHelper`. 
+
+The `ICheckoutHelper` interface is implemented by `NftCheckout` and `Cart`. In general, `NftCheckout` will be more versatile and should be preferred for most use cases; in future updates, `NftCheckout` will support credit/debit card based payment flows. `Cart` on the other hand, is useful if you plan on only supporting crypto payments as it allows for purchasing multiple collectibles at once.
+
+## Building Your Own UI 
+
+If you'd like to build your own UI, it is recommended to check out the `CheckoutPage` implementation as an example. The `CheckoutPage` uses the `ICheckoutHelper` interface rather heavily; it handles the majority of the logic when it comes to selecting Currencies, estimating prices, and checking out. You may also find it worthwhile to extend `CheckoutPage` and modify its behaviour as you see fit.

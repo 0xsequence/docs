@@ -1,0 +1,22 @@
+---
+
+title: "Sending Transactions"
+description: Documentation for how to use Typescript to send transactions for the Sequence infrastructure stack for web3 gaming.
+---
+
+
+
+Signing a transaction will only retrieve the signed payload.
+If you want the wallet to actually dispatch the transaction to the network as well, that requires only a small modification to the previous example (note the change from `signTransactions` to `sendTransaction`):
+
+```ts
+const transaction = {
+  to: recipientAddress,
+  value: 1000000000000000000
+}
+
+const signer = wallet.getSigner()
+const txnResponse = await signer.sendTransaction(transaction)
+console.log(txnResponse)
+
+```

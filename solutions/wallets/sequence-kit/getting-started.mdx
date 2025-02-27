@@ -1,0 +1,200 @@
+---
+
+title: "Getting Started with Sequence Kit"
+description: Learn how to get started with Sequence Kit by installing the necessary packages and using the wagmi connectors to utilize an Embedded Wallet or Native EOA Wallet for authentication.
+sidebarTitle: Getting Started
+---
+
+
+
+To spin up a quick boilerplate that leverages Sequence Kit, you can run the following command from your terminal to install the Sequence-CLI and create a react app:
+
+```bash
+npx sequence-cli boilerplates create-embedded-wallet-react-starter
+```
+
+Otherwise, we will walk you through the process of installing Sequence Kit, instantiating the connection modal, and displaying the Inventory in your application.
+
+## Installing Sequence Kit Packages
+
+Sequence Kit is modular, allowing you to install only the necessary packages. To get started, install the `@0xsequence/kit` core package, as well as install other dependencies such as `wagmi`, `viem`, and `0xsequence`.
+
+```bash
+npm install @0xsequence/kit @0xsequence/waas wagmi ethers@6.13.0 viem 0xsequence @0xsequence/design-system framer-motion @tanstack/react-query
+# or
+pnpm install @0xsequence/kit @0xsequence/waas wagmi ethers@6.13.0 viem 0xsequence @0xsequence/design-system framer-motion @tanstack/react-query
+# or
+yarn add @0xsequence/kit @0xsequence/waas wagmi ethers@6.13.0 viem 0xsequence @0xsequence/design-system framer-motion @tanstack/react-query
+```
+
+# Setting Up your Dapp
+
+To utilize the core kit wrapper for connecting web3 wallets to your application, follow these steps:
+
+<Note>
+  Sequence Kit is built on top of wagmi, so for advanced configurations, sending
+  transactions, calling contracts, etc., please refer to the [wagmi
+  documentation](https://wagmi.sh/react/WagmiConfig).
+</Note>
+
+<Steps>
+<Step title="Create a React Project with Vite">
+
+We will start by creating a [React](https://react.dev/) project with [vite](https://vitejs.dev/):
+
+```sh
+npm create vite
+# or
+pnpm create vite
+# or
+yarn create vite
+```
+
+</Step>
+<Step title="Create a Config">
+
+Next, a configuration variable for Sequence Kit will need to be created as either a `waas` (meaning an [Embedded Wallet](/solutions/wallets/embedded-wallet/overview)) or `universal` (meaning a [Universal Wallet](/solutions/wallets/embedded-wallet/overview)) wallet type.
+
+For `waas`, first obtain a [WaaS Config Key from the Sequence Builder](/solutions/builder/embedded-wallet/), [Wallet Connect ID](https://cloud.reown.com/sign-in), and setup other [Login Provider configuration](/solutions/builder/embedded-wallet/#login-providers). For both wallet type options, [obtain and use a project access key](/solutions/builder/getting-started).
+
+```typescript [config.ts]
+import { createConfig } from "@0xsequence/kit";
+
+export const config: any = createConfig("waas" /*or, 'universal'*/, {
+  projectAccessKey: "<your-project-access-key>",
+  chainIds: [1, 137],
+  defaultChainId: 1,
+  appName: "Demo Dapp",
+  waasConfigKey: "<your-waas-config-key>", // for waas
+  google: {
+    clientId: "<your-google-client-id>",
+  },
+  walletConnect: {
+    projectId: "<your-wallet-connect-project-id>",
+  },
+});
+```
+
+In order to customize further, [you can view additional configuration parameters.](/solutions/wallets/sequence-kit/custom-configuration)
+
+</Step>
+<Step title="Setup Provider Component">
+
+The configuration we created in [step 2](/solutions/wallets/sequence-kit/getting-started#create-a-config) needs to be passed into the providers below in the `main.tsx`, as well as the inclusion of the Sequence Design System `styles.css` stylesheet:
+
+```typescript [main.tsx]
+import React from "react";
+import ReactDOM from "react-dom/client";
+
+import App from "./App";
+import "@0xsequence/design-system/styles.css";
+import { config } from "./config";
+
+function Dapp() {
+  return (
+    <SequenceKit config={config}>
+      <App />
+    </SequenceKit>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")!).render(
+  <React.StrictMode>
+    <Dapp />
+  </React.StrictMode>
+);
+```
+</Step>
+</Steps>
+
+For web3 interactions, wagmi exposes a set of React hooks that make it convenient for common functions like sending transactions. Please check out our [Embedded Wallet boilerplate with Sequence Kit](https://github.com/0xsequence/kit-embedded-wallet-react-boilerplate) for more examples of interactions.
+
+# Toggling the Connect Modal
+<Frame>
+![Toggle the Connect Modal in Sequence Kit](/images/kit/sign-in-modal.png)
+</Frame>
+
+Invoke the connect modal using the `useOpenConnectModal` hook. (This can be called again to connect more wallets)
+Use `useKitWallets` hook to see connected wallets, change the active wallet if you have multiple active ones, and disconnect wallets.
+You can also see the linked wallets of the embedded wallet with `linkedWallets` of `useKitWallets`.
+
+```jsx
+import { useOpenConnectModal, useKitWallets } from "@0xsequence/kit";
+
+export const App = () => {
+  const { setOpenConnectModal } = useOpenConnectModal();
+  const {
+    wallets, // Array of connected wallets
+    linkedWallets, // Array of linked wallets (for embedded wallets)
+    setActiveWallet, // Function to set a wallet as active
+    disconnectWallet, // Function to disconnect a wallet
+  } = useKitWallets();
+
+  const isConnected = wallets.length;
+
+  return (
+    <>
+      <button onClick={() => setOpenConnectModal(true)}>
+        Sign in or connect another wallet
+      </button>
+
+      {isConnected && (
+        <button onClick={() => disconnectWallet(wallets[0].address)}>
+          Disconnect the first wallet in the list
+        </button>
+      )}
+    </>
+  );
+};
+```
+
+The modal will automatically close once the user signs in. You can utilize the `useAccount` hook from wagmi to detect the user's connection status.
+
+# Setting Up Inventory
+
+To add the optional Inventory feature, add the `KitWalletProvider` below the `SequenceKit` wrapper.
+
+```jsx
+import { KitWalletProvider } from '@0xsequence/kit-wallet'
+
+// ...
+
+const Dapp = () => {
+  return (
+    <SequenceKit config={config}>
+      <KitWalletProvider> // <-- Added code
+        <App />
+      </KitWalletProvider>
+    </SequenceKit>
+  )
+}
+```
+
+# Invoking the Inventory modal
+<Frame>
+![Invoke the Inventory Modal from Sequence Kit to display collectibles in the user's wallet](/images/kit/inventory-modal.png)
+</Frame>
+
+Open the Inventory using the `useOpenWalletModal` react hook.
+
+```jsx
+import { useOpenWalletModal } from "@0xsequence/kit-wallet";
+
+const MyComponent = () => {
+  const { setOpenWalletModal } = useOpenWalletModal();
+
+  return (
+    <button onClick={() => setOpenWalletModal(true)}>open inventory</button>
+  );
+};
+```
+
+Users can then select on the collectible in order to send to another address.
+<Frame>
+![Send a collectible to another address with Sequence Kit](/images/kit/sequence-kit-nft-send.png)
+</Frame>
+
+
+# React Example
+
+The Sequence Kit [Github repository](https://github.com/0xsequence/kit) contains an [example app](https://github.com/0xsequence/kit/tree/master/examples/react) that you can use for learning and testing.

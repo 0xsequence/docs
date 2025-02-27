@@ -1,0 +1,113 @@
+---
+
+title: "Overview"
+description: Sequence Smart Swaps leveraging currencies in player wallets to another currency on the same chain. Developers can define the target currency and Sequence will handle everything, including the UI and flow through Sequence Kit.
+sidebarTitle: Smart Swaps
+---
+
+
+
+Sequence Smart Swaps leveraging currencies in player wallets to another currency on the same chain. Developers can define the target currency and Sequence will handle everything, including the UI and flow through Sequence Kit.
+
+The power of smart swaps is intelligently detecting the currencies available to the user as well as batching multiple transactions together to if the user is utilizing a Sequence wallet to simplify the UX. You can say goodbye to separate `approve` and `transfer` transactions!
+<Frame>
+![](/images/kit/swap-modal.png)
+</Frame>
+
+<Note>
+If you intend to use smart swaps with your custom token, please ensure you provide sufficient liquidity for your token as a USDC on a supported DEX such as Uniswap.
+</Note>
+
+We support the following chains for swaps:
+
+- Ethereum (Mainnet)
+- Ethereum (Sepolia)
+- Arbitrum
+- Avalanche
+- Base
+- Blast
+- BSC
+- Optimism
+- Polygon
+
+# Installation and Setup
+To integrate the Swap feature with Kit, follow these steps:
+
+<Steps>
+<Step title="Install the `kit-checkout` module:">
+
+```bash
+npm install @0xsequence/kit-checkout
+# or
+pnpm install @0xsequence/kit-checkout
+# or
+yarn add @0xsequence/kit-checkout
+```
+
+</Step>
+<Step title="Place the `KitCheckoutProvider` below the Sequence Kit Core Provider in your App:">
+
+```jsx
+import { KitCheckoutProvider } from '@0xsequence/kit-checkout'
+
+const App = () => {
+  return (
+    <SequenceKit config={config}>
+      <KitCheckoutProvider>
+        <Page />
+      </KitCheckoutProvider>
+    </SequenceKit>
+  )
+}
+```
+
+</Step>
+<Step title="Import Swap Dependencies and Logic">
+
+- `currencyAddress`: The address of the token to swap from (e.g., USDC).
+- `currencyAmount`: The amount to swap.
+- `postSwapTransactions`: An optional array of transactions to be executed after the swap, using the swapped tokens.
+- `title`: The modal's title.
+- `description`: A description of the swap and payment process.
+
+```jsx
+import { useSwapModal, type SwapModalSettings } from '@0xsequence/kit-checkout'
+
+const MyComponent = () => {
+  const { openSwapModal } = useSwapModal()
+
+  const onClick = () => {
+    const chainId = 137
+    const currencyAddress = '0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359'
+    const currencyAmount = '20000'
+
+    const contractAbiInterface = new ethers.Interface(['function demo()']) // Optionally, replace with your contract's abi interface
+
+    const data = contractAbiInterface.encodeFunctionData('demo', []) as `0x${string}` // Optionally, replace 'demo' with the function you want to call,
+
+    const swapModalSettings: SwapModalSettings = {
+      onSuccess: () => {
+        console.log('swap successful!')
+      },
+      chainId,
+      currencyAddress,
+      currencyAmount,
+      postSwapTransactions: [ // Optionally, replace with the transaction you would like to execute after the swap has taken place.
+        {
+          to: '0x37470dac8a0255141745906c972e414b1409b470',
+          data
+        }
+      ],
+      title: 'Swap and Pay',
+      description: 'Select a token in your wallet to swap to 0.2 USDC.'
+    }
+
+    openSwapModal(swapModalSettings)
+  }
+
+  return <button onClick={onClick}>Swap and Pay</button>
+}
+```
+</Step>
+</Steps>
+
