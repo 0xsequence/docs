@@ -125,3 +125,14 @@ GetTransactionHistoryReturn history = await chainIndexer.GetTransactionHistory(
 ```
 
 The `TransactionHistoryFilter` object allows you to specify how you want to filter your transaction history query, e.g. by account address(es), contract address(es), etc. More info [here](/api/indexer/examples/transaction-history).
+
+## Get Token Prices 
+
+To fetch the price of a given token, you'll want to use the `PriceFeed`:
+
+```
+PriceFeed priceFeed = new PriceFeed();
+TokenPrice[] prices = await priceFeed.GetCoinPrices(
+    new PriceFeed.Token(Chain.Polygon, polygonUSDCContractAddress), 
+    new PriceFeed.Token(Chain.ArbitrumNova, arbitrumNovaUSDCContractAddress));
+```
