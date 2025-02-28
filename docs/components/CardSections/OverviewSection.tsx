@@ -114,9 +114,9 @@ export const OverviewSection = () => (
           },
           {
             icon: 'MinterIcon',
-            title: 'Transaction Manager',
+            title: 'Sequence Sidekick',
             body: 'Scalable transactions with batching, access-control, parallelization, automatic reorg management with our transactions API.',
-            link: '/solutions/transaction-manager/overview',
+            link: '/solutions/sequence-sidekick/overview',
           },
           // {
           //   icon: 'MinterIcon',

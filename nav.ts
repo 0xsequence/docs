@@ -364,8 +364,12 @@ export const sidebar = {
           ],
         },
         {
-          text: 'Transaction Manager',
-          link: '/solutions/transaction-manager/overview',
+          text: 'Sequence Sidekick',
+          link: '/solutions/sequence-sidekick/overview',
+          collapsed: false,
+          items: [
+            { text: 'Mint Game Items', link: '/solutions/sequence-sidekick/guides/mint-game-items' },
+          ],
         },
         {
           text: 'Analytics',
