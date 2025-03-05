@@ -24,6 +24,12 @@ export const APIsSection = () => (
         link="/api/indexer/overview"
       />
       <Card
+        title="Indexer Gateway API"
+        icon="IndexerIcon"
+        body="A gateway for Indexer API to run queries on multiple Ethereum-compatible chains."
+        link="/api/indexer-gateway/overview"
+      />
+      <Card
         title="Metadata API"
         icon="SequenceIcon"
         body="Fetch token details on any collection and collectible."

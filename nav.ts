@@ -62,6 +62,7 @@ export const topNav = [
       },
       { text: 'Analytics API', link: '/api/analytics/overview', match: '/api/analytics/overview' },
       { text: 'Indexer API', link: '/api/indexer/overview', match: '/api/indexer/overview' },
+      { text: 'Indexer Gateway API', link: '/api/indexer-gateway/overview', match: '/api/indexer-gateway/overview' },
       { text: 'Metadata API', link: '/api/metadata/overview', match: '/api/metadata/overview' },
       {
         text: 'Marketplace API',
@@ -614,7 +615,7 @@ export const sidebar = {
             { text: 'Session Management', link: '/sdk/unity/session-management' },
             { text: 'Smart Contract Events', link: '/sdk/unity/contract-events' },
             { text: 'On-Ramp Funds via Credit Card', link: '/sdk/unity/onboard-user-funds' },
-            { 
+            {
               text: 'Peer to Peer Trading / Marketplace',
               collapsed: false,
               items: [
@@ -782,6 +783,26 @@ export const sidebar = {
             { text: 'Metadata Tips', link: '/api/indexer/metadata-tips' },
             { text: 'Webhooks', link: '/api/indexer/examples/webhook-listener' },
             { text: 'Subscriptions', link: '/api/indexer/examples/subscriptions' },
+          ],
+        },
+      ],
+    },
+    {
+      text: 'Indexer Gateway',
+      collapsed: false,
+      items: [
+        { text: 'Overview', link: '/api/indexer-gateway/overview' },
+        { text: 'Installation', link: '/api/indexer-gateway/installation' },
+        { text: 'API References', link: '/api/indexer-gateway/endpoints' },
+        {
+          text: 'Examples',
+          collapsed: false,
+          items: [
+            { text: 'Fetch Tokens', link: '/api/indexer/examples/get-token-balances' },
+            { text: 'Fetch Native Balances', link: '/api/indexer/examples/get-native-token-balances' },
+            { text: 'Fetch Balance updates', link: '/api/indexer/examples/get-balance-updates' },
+            { text: 'Advanced token filtering', link: '/api/indexer/examples/get-token-balances-details' },
+            { text: 'Fetch by contract', link: '/api/indexer/examples/get-token-balances-by-contract' },
           ],
         },
       ],
