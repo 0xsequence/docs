@@ -1,12 +1,7 @@
-# Mintlify Starter Kit
+![Sequence: Build the best web3 games and experiences](images/sequence-header.jpg)
 
-Click on `Use this template` to copy the Mintlify starter kit. The starter kit contains examples including
-
-- Guide pages
-- Navigation
-- Customizations
-- API Reference pages
-- Use of popular components
+# Sequence Documentation
+Welcome to the Sequence docs! Your infrastructure for chains, games, and apps.
 
 ### Development
 
@@ -22,11 +17,26 @@ Run the following command at the root of your documentation (where docs.json is)
 mintlify dev
 ```
 
-### Publishing Changes
+We use Mintlify as the documentation framework. For more information on what components are available to structure your content, please refer to their [documentation](https://mintlify.com/docs/page).
 
-Install our Github App to auto propagate changes from your repo to your deployment. Changes will be deployed to production automatically after pushing to the default branch. Find the link to install on your dashboard. 
 
-#### Troubleshooting
+We also recommend running `mintlify broken-links` after adding your changes and before creating a PR to validate any broken-links.
 
-- Mintlify dev isn't running - Run `mintlify install` it'll re-install dependencies.
-- Page loads as a 404 - Make sure you are running in a folder with `docs.json`
+### Contributing
+
+We welcome contributions from the community to help improve our documentation! Here's how you can contribute:
+
+1. **Fork the repository** and create your branch from `main`.
+2. **Make your changes** to the documentation.
+3. **Test your changes** locally using the Mintlify CLI.
+4. **Submit a pull request** with a clear description of your changes.
+
+Our team reviews pull requests regularly and will provide feedback as needed. For substantial changes, please open an issue first to discuss what you'd like to change.
+
+If you find any errors or have suggestions for improvements but don't want to contribute directly, please open an issue describing the problem or enhancement.
+
+Thank you for helping make Sequence documentation better for everyone!
+
+### Troubleshooting
+
+- For large files such as high quality images or videos, we recommend deploying these first to a CDN in order to serve them.
