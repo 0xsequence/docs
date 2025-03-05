@@ -39,4 +39,4 @@ Thank you for helping make Sequence documentation better for everyone!
 
 ### Troubleshooting
 
-- For large files such as high quality images or videos, we recommend deploying these first to a CDN in order to serve them.
+Mintlify has a max capacity for large files such as high quality images or videos. If you deploy and your video or image is not showing on the preview link in your PR, we recommend deploying these first to a CDN in order to serve them.
