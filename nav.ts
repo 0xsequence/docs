@@ -233,7 +233,18 @@ export const sidebar = {
           collapsed: false,
           items: [
             { text: 'Overview', link: '/solutions/wallets/sequence-kit/overview' },
-            { text: 'Quickstart', link: '/solutions/wallets/sequence-kit/getting-started' },
+            { 
+              text: 'Quickstart', 
+              link: '/solutions/wallets/sequence-kit/getting-started',
+              collapsed: false,
+              items: [
+                { text: 'Toggling the Connect Modal', link: '/solutions/wallets/sequence-kit/quickstart_examples/toggling_the_connect_modal', sidebar_position: 1 },
+                { text: 'Sponsor transactions', link: '/solutions/wallets/sequence-kit/quickstart_examples/sponsored_transactions', sidebar_position: 2 },
+                { text: 'Pay gas in ERC20', link: '/solutions/wallets/sequence-kit/quickstart_examples/pay_gas_in_erc20', sidebar_position: 3 },
+                { text: 'Inventory', link: '/solutions/wallets/sequence-kit/quickstart_examples/inventory', sidebar_position: 4 },
+              ]
+
+             },
             {
               text: 'Custom Configuration',
               link: '/solutions/wallets/sequence-kit/custom-configuration',
