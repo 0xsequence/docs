@@ -1,0 +1,143 @@
+---
+title: Reading Orders
+---
+
+Reading orders from the marketplace API is done with the `IMarketplaceReader` interface, implemented by `MarketplaceReader`.
+
+The IMarketplaceReader interface has IntelliSense summaries to help you understand what each method is used for, but, we'll call out a few of them here as well.
+
+## Usage
+
+All IMarketplaceReader methods are asynchronous Tasks and can be awaited directly and/or you can subscribe to the associated events.
+
+## Methods
+
+### ListCurrencies
+
+Fetch an array of whitelisted [Currencies](/sdk/unity/monetization/secondary-sales/intro#currencies) that can be used in your game's marketplace.
+
+```
+IMarketplaceReader reader = new MarketplaceReader(_chain);
+
+// optionally subscribe to callback events
+reader.OnListCurrenciesReturn += OnCurrenciesFetched; 
+reader.OnListCurrenciesError += OnCurrencyFetchError;
+
+Currency[] currencies = await reader.ListCurrencies();
+// or if only listening to event handlers
+reader.ListCurrencies();
+...
+
+
+private void OnCurrenciesFetched(Currency[] fetchedCurrencies) {
+    // Do something
+}
+
+private void OnCurrencyFetchError(string error) {
+    // Do something
+}
+```
+
+### Fetching Listings
+
+There are a few different ways to fetch listings.
+
+1. `ListCollectibleListingsWithLowestPricedListingsFirst` is used to get the listings associated with a given contract address. The listings will be ordered with the lowest priced listings first. In addition, only the lowest priced listing for each collectible (i.e. each token id) will be returned.
+
+```
+IMarketplaceReader reader = new MarketplaceReader(_chain);
+ListCollectiblesReturn collectiblesReturn = await reader.ListCollectibleListingsWithLowestPricedListingsFirst(myCollectionContractAddress);
+CollectibleOrder[] orders = collectiblesReturn.collectibles;
+```
+Optionally, you can provide a `CollectiblesFilter` to apply filters on your query.
+
+This request uses pagination. If you're dealing with a rather small collection and don't want to deal with pagination, you can use the `ListAllCollectibleListingsWithLowestPricedListingsFirst` helper function; this will handle the pagination for you and continue to make requests until all the relevant `CollectibleOrder`s have been retrieved.
+
+You can also optionally subscribe to the `OnListCollectibleOrdersReturn` and `OnListCollectibleOrdersError` events in order to handle the responses elsewhere.
+
+2. `GetLowestPriceListingForCollectible` and `GetHighestPriceListingForCollectible` can be used to fetch the lowest and highest priced listing for a collectible respectively.
+
+```
+IMarketplaceReader reader = new MarketplaceReader(_chain);
+Order lowestPricedListing = await reader.GetLowestPriceListingForCollectible(collectionContractAddress, tokenId);
+Order highestPricedListing = await reader.GetHighestPriceListingForCollectible(collectionContractAddress, tokenId);
+```
+Optionally, you can provide an `OrderFilter` to apply filters on your query.
+
+Additionally, you have the option to subscribe to the `OnGetCollectibleOrderReturn` and `OnGetCollectibleOrderError` events in order to handle the response elsewhere.
+
+3. `ListListingsForCollectible` is used to get all of the listings for a given Collectible.
+
+```
+IMarketplaceReader reader = new MarketplaceReader(_chain);
+ListCollectibleListingsReturn listingsReturn = await reader.ListListingsForCollectible(collectionContractAddress, tokenId);
+Order[] listings = listingsReturn.listings;
+```
+Optionally, you can provide an `OrderFilter` to apply filters on your query.
+
+This request uses pagination. If you're dealing with a rather small set of listings and don't want to deal with pagination, you can use the `ListAllListingsForCollectible` helper function; this will handle the pagination for you and continue to make requests until all the relevant `Order`s have been retrieved.
+
+Additionally, you have the option to subscribe to the `OnListCollectibleListingsReturn` and `OnListCollectibleListingsError` events in order to handle the response elsewhere.
+
+4. `ListAllPurchasableListings` is a convenience helper method that can be used to `ListAllCollectibleListingsWithLowestPricedListingsFirst`, filtering for listings not created by `purchasableBy`. Then, using a `ChainIndexer` for the configured Chain to fetch `purchasableBy`'s token balances and removing any listings they cannot afford to purchase without swapping.
+
+```
+IMarketplaceReader reader = new MarketplaceReader(_chain);
+CollectibleOrder[] purchasableListings = await reader.ListAllPurchasableListings(userWalletAddress, collectionContractAddress);
+```
+
+This method will handle pagination for you, continuing to make requests until all `CollectibleOrder`s have been fetched. Be careful to use it on collections with a small amount of listings (as with other helper methods that handle pagination for you) so that you do not use too much memory. This method's implementation can also serve as an example for how you can work with the [Indexer](/sdk/unity/power/read-from-blockchain) in conjunction with the peer to peer marketplaces.
+
+### Fetching Offers
+
+There are a few different ways to fetch offers. They all function similarly to their listing-equivalent methods.
+
+1. `ListCollectibleOffersWithHighestPricedOfferFirst` is used to get the offers associated with a given contract address. The listings will be ordered with the highest priced offer first. In addition, only the highest priced offer for each collectible (i.e. each token id) will be returned.
+
+```
+IMarketplaceReader reader = new MarketplaceReader(_chain);
+ListCollectiblesReturn collectiblesReturn = await reader.ListCollectibleOffersWithHighestPricedOfferFirst(myCollectionContractAddress);
+CollectibleOrder[] orders = collectiblesReturn.collectibles;
+```
+Optionally, you can provide a `CollectiblesFilter` to apply filters on your query.
+
+This request uses pagination. If you're dealing with a rather small collection and don't want to deal with pagination, you can use the `ListAllCollectibleOffersWithHighestPricedOfferFirst` helper function; this will handle the pagination for you and continue to make requests until all the relevant `CollectibleOrder`s have been retrieved.
+
+You can also optionally subscribe to the `OnListCollectibleOrdersReturn` and `OnListCollectibleOrdersError` events in order to handle the responses elsewhere.
+
+2. `GetLowestPriceOfferForCollectible` and `GetHighestPriceOfferForCollectible` can be used to fetch the lowest and highest priced offer for a collectible respectively.
+
+```
+IMarketplaceReader reader = new MarketplaceReader(_chain);
+Order lowestPricedOffer = await reader.GetLowestPriceOfferForCollectible(collectionContractAddress, tokenId);
+Order highestPricedOffer = await reader.GetHighestPriceOfferForCollectible(collectionContractAddress, tokenId);
+```
+Optionally, you can provide an `OrderFilter` to apply filters on your query.
+
+Additionally, you have the option to subscribe to the `OnGetCollectibleOrderReturn` and `OnGetCollectibleOrderError` events in order to handle the response elsewhere.
+
+3. `ListOffersForCollectible` is used to get all of the offers for a given Collectible.
+
+```
+IMarketplaceReader reader = new MarketplaceReader(_chain);
+ListCollectibleOffersReturn offersReturn = await reader.ListOffersForCollectible(collectionContractAddress, tokenId);
+Order[] offers = offersReturn.offers;
+```
+Optionally, you can provide an `OrderFilter` to apply filters on your query.
+
+This request uses pagination. If you're dealing with a rather small set of offers and don't want to deal with pagination, you can use the `ListAllOffersForCollectible` helper function; this will handle the pagination for you and continue to make requests until all the relevant `Order`s have been retrieved.
+
+Additionally, you have the option to subscribe to the `OnListCollectibleOffersReturn` and `OnListCollectibleOffersError` events in order to handle the response elsewhere.
+
+4. `ListAllSellableOffers` is a convenience helper method that can be used to `ListAllCollectibleOffersWithHighestPricedOfferFirst`, filtering for offers not created by `sellableBy` and where `sellableBy` has at least one of the collectibles being requested.
+
+```
+IMarketplaceReader reader = new MarketplaceReader(_chain);
+CollectibleOrder[] sellableOffers = await reader.ListAllSellableOffers(userWalletAddress, collectionContractAddress);
+```
+
+This method will handle pagination for you, continuing to make requests until all `CollectibleOrder`s have been fetched. Be careful to use it on collections with a small amount of offers (as with other helper methods that handle pagination for you) so that you do not use too much memory. This method's implementation can also serve as an example for how you can work with `CollectiblesFilter`s.
+
+## Conclusion
+
+Using the IMarketplaceReader, you should have sufficient means to query the marketplace API and assemble a marketplace UI for your users to browse. In general, most marketplaces will rely primarily on the `ListCollectibleListingsWithLowestPricedListingsFirst` and `ListCollectibleOffersWithHighestPricedOfferFirst` methods and `CollectiblesFilter` for querying/filtering listings and orders respectively, with the remaining methods being primarily useful during the checkout process.
