@@ -1,0 +1,51 @@
+---
+title: Toggling the Connect Modal
+description: Learn how to toggle the connect modal in Sequence Kit
+sidebar_label: Toggling the Connect Modal
+sidebar_position: 1
+---
+
+# Toggling the Connect Modal
+
+<div className="text--center">
+  <img
+    src="/img/kit/sign-in-modal.png"
+    alt="Toggle the Connect Modal in Sequence Kit"
+  />
+</div>
+
+Invoke the connect modal using the `useOpenConnectModal` hook. (This can be called again to connect more wallets)
+Use `useKitWallets` hook to see connected wallets, change the active wallet if you have multiple active ones, and disconnect wallets.
+You can also see the linked wallets of the embedded wallet with `linkedWallets` of `useKitWallets`.
+
+```jsx
+import { useOpenConnectModal, useKitWallets } from "@0xsequence/kit";
+
+export const App = () => {
+  const { setOpenConnectModal } = useOpenConnectModal();
+  const {
+    wallets, // Array of connected wallets
+    linkedWallets, // Array of linked wallets (for embedded wallets)
+    setActiveWallet, // Function to set a wallet as active
+    disconnectWallet, // Function to disconnect a wallet
+  } = useKitWallets();
+
+  const isConnected = wallets.length;
+
+  return (
+    <>
+      <button onClick={() => setOpenConnectModal(true)}>
+        Sign in or connect another wallet
+      </button>
+
+      {isConnected && (
+        <button onClick={() => disconnectWallet(wallets[0].address)}>
+          Disconnect the first wallet in the list
+        </button>
+      )}
+    </>
+  );
+};
+```
+
+The modal will automatically close once the user signs in. You can utilize the `useAccount` hook from wagmi to detect the user's connection status.

@@ -1,0 +1,58 @@
+---
+title: Inventory
+description: Learn how to add the optional Inventory feature to your Sequence Kit application
+sidebar_label: Inventory
+sidebar_position: 4
+---
+
+# Setting Up Inventory
+
+To add the optional Inventory feature, add the `KitWalletProvider` below the `SequenceKit` wrapper.
+
+```jsx
+import { KitWalletProvider } from '@0xsequence/kit-wallet'
+
+// ...
+
+const Dapp = () => {
+  return (
+    <SequenceKit config={config}>
+      <KitWalletProvider> // <-- Added code
+        <App />
+      </KitWalletProvider>
+    </SequenceKit>
+  )
+}
+```
+
+# Invoking the Inventory modal
+
+<div className="text--center">
+  <img
+    src="/img/kit/inventory-modal.png"
+    alt="Invoke the Inventory Modal from Sequence Kit to display collectibles in the user's wallet"
+  />
+</div>
+
+Open the Inventory using the `useOpenWalletModal` react hook.
+
+```jsx
+import { useOpenWalletModal } from "@0xsequence/kit-wallet";
+
+const MyComponent = () => {
+  const { setOpenWalletModal } = useOpenWalletModal();
+
+  return (
+    <button onClick={() => setOpenWalletModal(true)}>open inventory</button>
+  );
+};
+```
+
+Users can then select on the collectible in order to send to another address.
+
+<div className="text--center">
+  <img
+    src="/img/kit/sequence-kit-nft-send.png"
+    alt="Send a collectible to another address with Sequence Kit"
+  />
+</div>
