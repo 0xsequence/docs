@@ -1,0 +1,27 @@
+---
+title: Onboard User Funds
+---
+
+Once your user's have a sufficient balance of cryptocurrencies in their wallet, purchasing collectibles is super easy! But, on-ramping user funds into cryptocurrencies hasn't always been easy, until now!
+
+The Sequence SDK integrates a variety of payment service providers, like [Transak](https://transak.com/#onramp) and [Sardine](https://docs.payments.sardine.ai/guides/integration/OnOffRamps/quickstart), to facilitate on-ramping user funds via a user friendly web-based flow using their credit/debit card.
+
+While you can work with either integration directly, it is recommended to work with them via `SequencePay` so that the appropriate (based on geographic availability and other factors) provider implementation is used.
+
+## On-Ramp User Funds via Credit/Debit Card
+
+To generate a link for your user's on-ramping:
+
+```csharp
+SequencePay pay = new SequencePay(wallet, chain);
+string onRampLink = pay.GetOnRampLink(); 
+```
+
+From here, you can open the `onRampLink` via `Application.OpenURL` or similar. Or, you can also use:
+
+```csharp
+SequencePay pay = new SequencePay(wallet, chain);
+pay.OnRamp();
+```
+
+This will automatically call `Application.OpenURL` on the generated On-Ramp link.

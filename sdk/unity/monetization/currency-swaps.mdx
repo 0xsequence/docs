@@ -1,0 +1,50 @@
+---
+title: Currency Swaps
+---
+
+Swapping between different ERC20/native token currencies on a given Chain is made easy by Sequence's Smart Swap API.
+
+## GetSwapPrice
+
+This method can be used to get the current `SwapPrice` for a given buyCurrency and buyAmount using a given sellCurrency.
+
+```
+ISwap swapper = new CurrencySwap(_chain);
+SwapPrice swapPrice = await swapper.GetSwapPrice(buyCurrencyTokenAddress, usdcAddress, "1000"); // where USDC is an example sell currency
+```
+You can optionally subscribe to the `OnSwapPriceReturn` and `OnSwapPriceError` events in order to handle the response elsewhere.
+
+You can optionally provide a maximum allowable slippagePercentage.
+
+## GetSwapPrices
+
+This method is similar to `GetSwapPrice`, it can be used to get the current `SwapPrice` for a given buyCurrency and buyAmount. Except, instead of providing a sellCurrency, you instead provide the user's wallet address.
+
+This method will detect the eligible currencies (ERC20s or native tokens) that can be swapped for buyAmount of the buyCurrency and will return a `SwapPrice[]`.
+
+```
+ISwap swapper = new CurrencySwap(_chain);
+SwapPrice[] swapPrices = await swapper.GetSwapPrices(userWalletAddress, buyCurrencyTokenAddress, "1000");
+```
+You can optionally subscribe to the `OnSwapPricesReturn` and `OnSwapPricesError` events in order to handle the response elsewhere.
+
+You can optionally provide a maximum allowable slippagePercentage.
+
+## GetSwapQuote
+
+This method is used to get an executable `SwapQuote` for a given userWallet address to buy buyAmount of buyCurrency using sellCurrency.
+
+```
+ISwap swapper = new CurrencySwap(_chain);
+SwapQuote quote = await swapper.GetSwapQuote(userWalletAddress, buyCurrencyTokenAddess, usdcAddress, "1000", true); // where USDC is an example sell currency
+```
+
+Once you've obtained a `SwapQuote`, you can transform it into a `Transaction[]` that can be submitted via your EmbeddedWallet to execute the swap.
+
+```
+Transaction[] swapTransactions = quote.AsTransactionArray();
+
+_wallet.SendTransaction(_chain, swapTransactions);
+```
+
+If `includeApprove = true` the SwapQuote response will also include the information required to create the required spend approval transaction(s). These will also be added to the `Transaction[]` created above via `SwapQuote.AsTransactionArray()`. As usual, with our embedded smart contract wallets, all of these transactions can be submitted at once in a bundle; significantly improving the UX for your players who would usually need to make separate transactions to approve and swap.

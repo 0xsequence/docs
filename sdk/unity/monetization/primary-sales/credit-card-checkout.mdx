@@ -1,0 +1,28 @@
+---
+title: Credit Card Checkout 
+---
+
+Credit card checkout on Primary Sales Contracts is currently facilitated by Sardine and Transak (with other payment service provider(s) support coming soon).
+
+## Setup 
+
+Once you've deployed your primary sales contract, please reach out to the Sequence team and provide your primary sales contract address, chain, chosen price currency, and an audit report (if not using our primary sales contracts) for whitelisting. Once we've heard back from our payment service providers on your whitelist request, we'll let you know and provide you with any relevant information (such as your `TransakContractId`).
+
+### Transak 
+
+Once you've received your Transak `ContractId` from the Sequence team, you'll want to create an instance of `TransakContractId`.
+
+```
+TransakContractId contractId = new TransakContractId(contractIdStringFromSequenceTeam, saleContractAddress, chain, priceTokenSymbol);
+```
+
+You'll want to call `ConfigureSaleContractId` on your `IFiatPay` instance and provide your `TransakContractId` from the snippet above before `GetNftCheckoutLink`.
+
+## How it Works
+
+At a high-level, the way it works is that the payment service provider's APIs/contracts are given the appropriate permissions to mint collectibles from the collection contract.
+
+When the user is directed to the web-based checkout payment flow, we include the required transaction calldata for the payment service provider to execute. Upon completion of payment by the user, the payment service provider signs and executes the provided calldata - minting your user the collectible(s).
+
+![Sequence Diagram](/images/unity/SequenceDiagram-PrimarySalesCheckoutFlow.png)
+[Source](https://github.com/0xsequence/sequence-unity/blob/Feature/marketplaceCheckout/Packages/Sequence-Unity/Sequence/SequenceSDK/Pay/SD_PrimarySalesCheckoutFlow.mmd)

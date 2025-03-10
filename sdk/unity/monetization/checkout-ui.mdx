@@ -1,0 +1,32 @@
+---
+title: Checkout UI
+---
+
+The SDK comes with a default Checkout UI that we recommend starting with and customizing for your game.
+
+## Working with the Built-in Checkout UI 
+
+We've provided a `CheckoutPanel` as part of our Boilerplates assembly. As with the rest of the boilerplates, these are accessed via our `BoilerplatesFactory`, see [Bootstrap Your Game](sdk/unity/bootstrap_game) for more info.
+
+In short, with the `CheckoutPanel` prefab located at `Assets/**/Resources/Checkout/CheckoutPanel`, you can easily open the `CheckoutPanel` using the `BoilerplateFactory`:
+
+```
+(CheckoutPanel, CheckoutPage) checkoutUi = BoilerplateFactory.OpenCheckoutPanel(parentTransform, checkoutHelperInstance, fiatCheckoutInstance, optionalOnCloseAction);
+```
+
+where checkoutHelperInstance implements the `ICheckoutHelper` interface and fiatCheckoutInstance implements the `IFiatCheckout` interface.
+
+There are currently two implementations of `ICheckoutHelper` available to you, `NftCheckout` and `ERC1155SaleCheckout` for Secondary Sales Marketplaces and ERC1155 Primary Sales respectively. An implementation for ERC721 Primary Sales is coming soon.
+
+`SequenceCheckout` is currently the only implementation of `IFiatCheckout` available; it supports both Secondary Sales Marketplaces and ERC1155 Primary Sales; ERC721 Primary Sales support is coming soon to `SequenceCheckout`.
+
+## How it Works 
+
+It can be helpful to understand how the Checkout ecosystem fits together, especially if you want to build your own custom checkout panel/modal logic.
+
+This diagram should help you reason about how the system is laid out.
+
+![ERG Diagram](/images/unity/ERG_SequencePayModal.png)
+[Source](https://github.com/0xsequence/sequence-unity/blob/Feature/marketplaceCheckout/Packages/Sequence-Unity/Sequence/SequenceSDK/Marketplace/ERG_CheckoutModal.mmd)
+
+This, along with the `CheckoutPage` (and related) source code should serve as a great reference should you choose to write your own custom UI logic.

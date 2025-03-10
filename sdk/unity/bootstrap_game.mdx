@@ -1,12 +1,15 @@
 ---
-title: Bootstrap your Game
-description: Documentation for Unity SDK setup for the Sequence infrastructure stack for web3 gaming.
+title: Boostrap your Game
+description: Using the provided boilerplates to quickly get your integration up and running.
 ---
 
+import {CollapsibleDetails} from "../../../components/CollapsibleDetails.tsx";
+
+# Bootstrap your Game
+
 Sequence's Unity SDK includes a range of features to help you bootstrap your game.
-You can create them as shown below or duplicate the `.prefab` files from the
-`Packages > Sequence Embedded Wallet SDK > Sequence > SequenceBoilerplates > Prefabs`
-folder and customize them to fit your needs.
+Import our boilerplates from the [samples in Unity's Package Manager](sdk/unity/installation#samples)
+and can create them using the `BoilerplateFactory` as shown below. Feel free to adjust the UI and logic inside the samples to fit your needs.
 
 Ensure that your codebase has access to the `Sequence.Boilerplates.asmdef` assembly.
 
@@ -16,23 +19,21 @@ Checkout the `BoilerplateController.cs` for more integration examples.
 
 Create the `SequenceLoginWindow` prefab to authenticate users as a Guest, with Email OTP, Google- or Apple Sign In.
 
-[Checkout the Authentication section](/sdk/unity/authentication/intro) for more details on how to configure
+[Checkout the Authentication section](/sdk/unity/onboard/authentication/intro) for more details on how to configure
 your project for each login option.
 
-<Frame caption="Unity Boilerplate Login">
-    <img src="/images/unity/unity_boilerplate_login.png" />
-</Frame>
+<img alt={'img'} src={'/images/unity/unity_boilerplate_login.png'} style={{borderRadius: 15}}/>
 
 ```csharp
-[SerializeField] private SequenceLoginWindow _loginWindow;
-_loginWindow.Show(loginHandler);
+BoilerplateFactory.OpenSequenceLoginWindow(parent);
 ```
 
-<Accordion title="Parameters">
-  **loginHandler (ILogin)**
-
-  Get the login instance from SequenceLogin.GetInstance() and check if the user has a valid session. Otherwise, show this login window.
-</Accordion>
+<CollapsibleDetails title={'Parameters'} items={[
+    {
+        key: 'parent (Transform)',
+        value: "Transform inside of a Canvas object."
+    }]
+}/>
 
 ## In-Game Shop
 
@@ -42,132 +43,167 @@ existing ERC20 currency.
 
 [Primary Sales Contract](/solutions/collectibles/contracts/deploy-primary-sales-contract/): Learn how to set up and deploy contracts for launching a primary sale.
 
-<Frame caption="Unity Boilerplate Shop">
-    <img src="/images/unity/unity_boilerplate_shop.png" />
-</Frame>
+<img alt={'img'} src={'/images/unity/unity_boilerplate_shop.png'} style={{borderRadius: 15}}/>
 
 ```csharp
-[SerializeField] private SequenceInGameShop _inGameShop;
-_inGameShop.Show(wallet, chain, collectionAddress, saleContractAddress, itemsForSale);
+BoilerplateFactory.OpenSequenceLoginWindow(parent, wallet, chain, collectionAddress, saleContractAddress, itemsForSale, onClose);
 ```
 
-<Accordion title="Parameters">
-  **wallet (IWallet)**
-
-  The wallet instance you receive from the SequenceWallet.OnWalletCreated event after completing the login process.
-
-  **chain (Chain)**
-
-  The chain type (Ethereum, Sepolia, ..) on which the specified contract is deployed.
-
-  **collectionAddress (string)**
-
-  ERC1155 contract address. Deploy your own contract on Builder first.
-
-  **saleContractAddress (string)**
-
-  ERC1155 Sale contract address when you deploy your sale on Builder.
-
-  **itemsForSale (int[])**
-
-  Array of token Ids which you wish to sell to your players.
-</Accordion>
+<CollapsibleDetails title={'Parameters'} items={[
+    {
+        key: 'parent (Transform)',
+        value: "Transform inside of a Canvas object."
+    },
+    {
+        key: 'wallet (IWallet)',
+        value: "The wallet instance you receive from the SequenceWallet.OnWalletCreated event after completing the login process."
+    },
+    {
+        key: 'chain (Chain)',
+        value: "The chain type (Ethereum, Sepolia, ..) on which the specified contract is deployed."
+    },
+    {
+        key: 'collectionAddress (string)',
+        value: "ERC1155 contract address. Deploy your own contract on Builder first."
+    },
+    {
+        key: 'saleContractAddress (string)',
+        value: "ERC1155 Sale contract address when you deploy your sale on Builder."
+    },
+    {
+        key: 'itemsForSale (int[])',
+        value: "Array of token Ids which you wish to sell to your players."
+    },
+    {
+        key: 'onClose (Action)',
+        value: "Optional. Callback when the user closes this window."
+    }]
+}/>
 
 ## Daily Rewards
 
-<Frame caption="Unity Boilerplate Daily Rewards">
-    <img src="/images/unity/unity_boilerplate_daily_rewards.png" />
-</Frame>
+Reward users with NFTs or Collectibles for playing your game for consecutive days. Deploy our server boilerplate
+which performs the mint transaction whenever they claim their reward.
+
+Make sure to deploy our [Daily Rewards Server Boilerplate](https://github.com/0xsequence-demos/daily-rewards-server-boilerplate)
+
+<img alt={'img'} src={'/images/unity/unity_boilerplate_daily_rewards.png'} style={{borderRadius: 15}}/>
 
 ```csharp
-[SerializeField] private SequenceDailyRewards _dailyRewards;
-_dailyRewards.Show(wallet, chain, apiUrl);
+BoilerplateFactory.OpenSequenceDailyRewards(parent, wallet, chain, apiUrl, onClose);
 ```
 
-<Accordion title="Parameters">
-  **wallet (IWallet)**
-
-  The wallet instance you receive from the SequenceWallet.OnWalletCreated event after completing the login process.
-
-  **chain (Chain)**
-
-  The chain type (Ethereum, Sepolia, ..) on which the specified contract is deployed.
-
-  **apiUrl (string)**
-
-  The API url you receive after deploying the required server boilerplate.
-</Accordion>
+<CollapsibleDetails title={'Parameters'} items={[
+    {
+        key: 'parent (Transform)',
+        value: "Transform inside of a Canvas object."
+    },
+    {
+        key: 'wallet (IWallet)',
+        value: "The wallet instance you receive from the SequenceWallet.OnWalletCreated event after completing the login process."
+    },
+    {
+        key: 'chain (Chain)',
+        value: "The chain type (Ethereum, Sepolia, ..) on which the specified contract is deployed."
+    },
+    {
+        key: 'apiUrl (string)',
+        value: "The API url you receive after deploying the required server boilerplate."
+    },
+    {
+        key: 'onClose (Action)',
+        value: "Optional. Callback when the user closes this window."
+    }]
+}/>
 
 ## Player Profile
 
 Create the `SequencePlayerProfile` prefab to manage your current profile. This includes functionalities such as Sign Out,
 linking external wallets, sending native tokens, and QR code to receive funds.
 
-<Frame caption="Unity Boilerplate Profile">
-    <img src="/images/unity/unity_boilerplate_profile.png" />
-</Frame>
+<img alt={'img'} src={'/images/unity/unity_boilerplate_profile.png'} style={{borderRadius: 15}}/>
 
 ```csharp
-[SerializeField] private SequencePlayerProfile _playerProfile;
-_playerProfile.Show(wallet, chain);
+BoilerplateFactory.OpenSequencePlayerProfile(parent, wallet, chain, onClose);
 ```
 
-<Accordion title="Parameters">
-  **wallet (IWallet)**
-
-  The wallet instance you receive from the SequenceWallet.OnWalletCreated event after completing the login process.
-
-  **chain (Chain)**
-
-  The chain type (Ethereum, Sepolia, ..) on which the specified contract is deployed.
-</Accordion>
+<CollapsibleDetails title={'Parameters'} items={[
+    {
+        key: 'parent (Transform)',
+        value: "Transform inside of a Canvas object."
+    },
+    {
+        key: 'wallet (IWallet)',
+        value: "The wallet instance you receive from the SequenceWallet.OnWalletCreated event after completing the login process."
+    },
+    {
+        key: 'chain (Chain)',
+        value: "The chain type (Ethereum, Sepolia, ..) on which the specified contract is deployed."
+    },
+    {
+        key: 'onClose (Action)',
+        value: "Optional. Callback when the user closes this window."
+    }]
+}/>
 
 ## Inventory
 
 Create the `SequenceInventory` prefab to show all items owned by a user from any ERC1155 or ERC721 contract.
 
-<Frame caption="Unity Boilerplate Inventory">
-    <img src="/images/unity/unity_boilerplate_inventory.png" />
-</Frame>
+<img alt={'img'} src={'/images/unity/unity_boilerplate_inventory.png'} style={{borderRadius: 15}}/>
 
 ```csharp
-[SerializeField] private SequenceInventory _inventory;
-_inventory.Show(wallet, chain, collectionAddress);
+BoilerplateFactory.OpenSequenceInventory(parent, wallet, chain, collectionAddress, onClose);
 ```
 
-<Accordion title="Parameters">
-  **wallet (IWallet)**
-
-  The wallet instance you receive from the SequenceWallet.OnWalletCreated event after completing the login process.
-
-  **chain (Chain)**
-
-  The chain type (Ethereum, Sepolia, ..) on which the specified contract is deployed.
-
-  **collectionAddress (string)**
-
-  ERC1155 or ERC721 contract address. Deploy your own contract on Builder first.
-</Accordion>
+<CollapsibleDetails title={'Parameters'} items={[
+    {
+        key: 'parent (Transform)',
+        value: "Transform inside of a Canvas object."
+    },
+    {
+        key: 'wallet (IWallet)',
+        value: "The wallet instance you receive from the SequenceWallet.OnWalletCreated event after completing the login process."
+    },
+    {
+        key: 'chain (Chain)',
+        value: "The chain type (Ethereum, Sepolia, ..) on which the specified contract is deployed."
+    },
+    {
+        key: 'collectionAddress (string)',
+        value: "ERC1155 or ERC721 contract address. Deploy your own contract on Builder first."
+    },
+    {
+        key: 'onClose (Action)',
+        value: "Optional. Callback when the user closes this window."
+    }]
+}/>
 
 ## Sign Messages
 
 Create the `SequenceSignMessage` prefab to show a modal that lets you sign a specified text.
 
-<Frame caption="Unity Boilerplate Signmessage">
-    <img src="/images/unity/unity_boilerplate_signmessage.png" />
-</Frame>
+<img alt={'img'} src={'/images/unity/unity_boilerplate_signmessage.png'} style={{borderRadius: 15}}/>
 
 ```csharp
-[SerializeField] private SequenceSignMessage _signMessage;
-_signMessage.Show(wallet, chain);
+BoilerplateFactory.OpenSequenceSignMessage(parent, wallet, chain, onClose);
 ```
 
-<Accordion title="Parameters">
-  **wallet (IWallet)**
-
-  The wallet instance you receive from the SequenceWallet.OnWalletCreated event after completing the login process.
-
-  **chain (Chain)**
-
-  The chain type (Ethereum, Sepolia, ..) on which the specified contract is deployed.
-</Accordion>
+<CollapsibleDetails title={'Parameters'} items={[
+    {
+        key: 'parent (Transform)',
+        value: "Transform inside of a Canvas object."
+    },
+    {
+        key: 'wallet (IWallet)',
+        value: "The wallet instance you receive from the SequenceWallet.OnWalletCreated event after completing the login process."
+    },
+    {
+        key: 'chain (Chain)',
+        value: "The chain type (Ethereum, Sepolia, ..) on which the specified contract is deployed."
+    },
+    {
+        key: 'onClose (Action)',
+        value: "Optional. Callback when the user closes this window."
+    }]
+}/>
