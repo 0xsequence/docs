@@ -365,7 +365,7 @@ export const sidebar = {
           ],
         },
         {
-          text: 'Sequence Sidekick',
+          text: 'Sidekick',
           link: '/solutions/sequence-sidekick/overview',
           collapsed: false,
           items: [
