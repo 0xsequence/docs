@@ -91,7 +91,7 @@ export const PowerOverview = () => (
             },
             {
               icon: 'WalletIcon',
-              title: 'Sequence Sidekick',
+              title: 'Sidekick',
               body: 'Scalable transactions with batching, access-control, parallelization, automatic reorg management with our transactions API.',
               link: '/solutions/sequence-sidekick/overview',
             },
