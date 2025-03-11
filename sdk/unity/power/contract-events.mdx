@@ -1,0 +1,72 @@
+---
+title: Smart Contract Events
+---
+
+## Subscribe to Custom Events
+
+Use the `SubscribeEvents` call to listen for custom or existing events from any contract. Make sure that the `event`
+string matches the event signature in Solidity and define the contract address that you want to listen to. You can define
+additional filters to only receive events from specific wallets or token Ids.
+
+The `OnEventReceived` function provides a `SubscribeEventsReturn` object that includes
+any information such as contract type, transaction hash and more. When you want to retrieve the emitted event values,
+use `EventDecoded` object at  `SubscribeEventsReturn > EventLog > EventDecoded`.
+
+```csharp
+var indexer = new ChainIndexer(Chain.TestnetArbitrumSepolia);
+var streamOptions = new WebRPCStreamOptions<SubscribeEventsReturn>(
+    OnEventReceived,
+    OnWebRPCErrorReceived);
+
+var eventFilter = new EventFilter
+{
+    accounts = Array.Empty<string>(),
+    contractAddresses = new[] {"0x4ab3b16e9d3328f6d8025e71cefc64305ae4fe9c"},
+    tokenIDs = new[] {"0"},
+    events = new[] {"Transfer(address indexed from, address indexed to, uint256 value)"}
+};
+
+indexer.SubscribeEvents(new SubscribeEventsArgs(eventFilter), streamOptions);
+```
+
+## Subscribe to Balance Updates
+
+Listen to balance updates for wallets on a specified contract. The `OnBalanceUpdateReceived` function provides
+a `SubscribeBalanceUpdatesReturn` object that includes the current balance of the wallet address you specified.
+
+```csharp
+var indexer = new ChainIndexer(Chain.TestnetArbitrumSepolia);
+var streamOptions = new WebRPCStreamOptions<SubscribeBalanceUpdatesReturn>(
+    OnBalanceUpdateReceived,
+    OnWebRPCErrorReceived);
+
+var contractAddress = "0x4ab3b16e9d3328f6d8025e71cefc64305ae4fe9c";
+indexer.SubscribeBalanceUpdates(new SubscribeBalanceUpdatesArgs(contractAddress), streamOptions);
+```
+
+## Subscribe to Receipts
+
+Listen to receipt updates on a specified contract. The `OnSubscribeReceiptsMessageReceived` function provides
+a `SubscribeReceiptsReturn` object that includes the current receipt information.
+
+```csharp
+var indexer = new ChainIndexer(Chain.TestnetArbitrumSepolia);
+var streamOptions = new WebRPCStreamOptions<SubscribeReceiptsReturn>(
+    OnSubscribeReceiptsMessageReceived,
+    OnWebRPCErrorReceived);
+
+var filter = new TransactionFilter
+{
+    contractAddress = "0x4ab3b16e9d3328f6d8025e71cefc64305ae4fe9c"
+};
+
+indexer.SubscribeReceipts(new SubscribeReceiptsArgs(filter), streamOptions);
+```
+
+## Abort Streams
+
+Make sure to cancel streams when you don't want to receive events anymore. This will abort all running listeners in your game.
+
+```csharp
+new ChainIndexer(Chain.TestnetArbitrumSepolia).AbortStreams();
+```

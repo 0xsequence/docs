@@ -1,0 +1,144 @@
+---
+title: Smart Contracts
+---
+
+Creating a `Contract` object for an already deployed contract is rather straightforward.
+
+```csharp
+Contract contract = new Contract(contractAddress, abi);
+```
+While it is not strictly required, it is <i>highly</i> recommended to provide the contract ABI as a string when creating a contract object. Failure to do so will make it so that you cannot fully take advantage of our ABI encoding and decoding.
+If you do chose to go down this route, you will need to provide the entire function signature (function name + parameter types in brackets - e.g. transfer(address,uint256) for the ERC20 transfer method) when calling a function or querying the contract and you will only ever receive a string as a response to queries.
+
+## Calling Smart Contract Functions
+
+To call a smart contract, you'll use the `CallFunction` method to create a `CallContractFunction` object which will determine the appropriate gasPrice, gasLimit, nonce, and data to include in a newly assembled `EthTransaction` when provided with a client and a `ContractCall` object to the `Create` async Task
+
+An example of calling a smart contract would look like:
+```csharp
+Contract erc20Contract = new Contract(contractAddress, contractAbi); // We'll use the well-known ERC20 contract as our example case
+TransactionReceipt receipt = await erc20Contract.CallFunction("transfer", toAddress, amountAsBigInteger).SendTransactionMethodAndWaitForReceipt(wallet, client);
+```
+Note: if you don't want to wait for the receipt, you can use `SendTransactionMethod` instead.
+
+Alternatively, if you want to simply create the `EthTransaction` and send it at a later time, you can use the `CallContractFunction` object from `CallFunction` directly.
+```csharp
+Contract erc20Contract = new Contract(contractAddress, contractAbi); // We'll use the well-known ERC20 contract as our example case
+EthTransaction transaction = await erc20Contract.CallFunction("transfer", toAddress, amountAsBigInteger).Create(client, new ContractCall(wallet.GetAddress()));
+TransactionReceipt receipt = await wallet.SendTransactionAndWaitForReceipt(client, transaction);
+
+// or 
+CallContractFunction transactionCreator = erc20Contract.CallFunction("transfer", toAddress, amountAsBigInteger);
+EthTransaction transaction = await transactionCreator.Create(client, new ContractCall(wallet.GetAddress()));
+TransactionReceipt receipt = await wallet.SendTransactionAndWaitForReceipt(client, transaction);
+
+// or 
+CallContractFunction transactionCreator = erc20Contract.CallFunction("transfer", toAddress, amountAsBigInteger);
+TransactionReceipt receipt = await transactionCreator.SendTransactionMethodAndWaitForReceipt(wallet, client);
+```
+
+You'll notice that the `CallFunction` method accepts an arbitrary number of arguments. You'll want to provide the arguments in the order they are provided in the ABI/function signature.
+
+## Understanding Data Type Mappings
+
+When interacting with smart contracts, it is important to understand how EVM datatypes are mapped to C# datatypes in the SequenceEthereum library.
+
+If you were to, for example, provide a string where the ABI expects an Integer, you will receive an exception, even if that string could be converted into an integer.
+
+### Address
+
+In C# you can either use a `string` type or create an instance of `Address`. Ensure that your string is a hexadecimal
+string starting with `0x` and a fixed length of 42 characters.
+
+```csharp
+Address address = new Address("0x123...");
+```
+
+### Integers
+
+For integer types such as `int256`, `uint8`, or `uint256` you use the `BigInteger` type from System.Numerics.
+
+```csharp
+// Simple number
+BigInteger number = new BigInteger(10000);
+
+// From hex
+string hexString = "0x0000000...01";
+BigInteger number = hexString.HexStringToBigInteger();
+```
+
+### Bytes
+
+To define byte data types from Solidity in C#, you have the options to create a `FixedByte` for types such as `byte16` or `byte32`.
+When your contract requires `bytes` you can convert any value into a `byte[]` of any length.
+
+If your data is represented as a hex string in C#, make sure to use our `HexStringToByteArray()` function to convert
+the hex value back to the original byte array.
+
+For byte arrays such as `byte32[]`, you simply create a `FixedByte[]` in C#.
+
+```csharp
+// byte16 or byte32
+new FixedByte(16, new byte[] {});
+
+// bytes
+string someString = "abc0123456789";
+byte[] bytes = someString.ToByteArray();
+
+// signature
+string signature = "0x0ab123...";
+byte[] bytes = signature.HexStringToByteArray();
+```
+
+### Structs
+
+You use Tuples to call an on-chain function with a struct. Here is an example Solidity struct and how to define it
+using Sequence's Unity SDK and pass it as an arg in a `Contract.CallFunction` function.
+
+Solidity Struct
+```solidity
+struct ExampleStruct {
+    address wallet;
+    uint256 amount;
+    byte32 data;
+}
+```
+
+C# Equivalent
+```csharp
+Address wallet = new Address("0x...");
+BigInteger amount = new BigInteger(10000);
+FixedByte data = new FixedByte(32, byteArrayData);
+var arg = new Tuple<Address, BigInteger, FixedByte>(wallet, amount, data);
+```
+
+### Other Types
+
+For traditional data types in Solidity like `string` or `bool`, you can use the same data types in C#.
+
+## Querying Contracts
+
+To query a smart contract (read data from it), you'll use the `SendQuery<T>` method to query the contract and return the result as type T (if possible).
+An example of querying a smart contract would look like:
+```csharp
+Contract erc20Contract = new Contract(contractAddress, contractAbi); // We'll use the well-known ERC20 contract as our example case
+BigIntegar balance = await erc20Contract.SendQuery<BigIntegar>(client, "balanceOf", address);
+```
+
+Alternatively, if you wish to simply construct the query and send it at a later time, you can use `QueryContract<T>` to create a delegate.
+```csharp
+Contract erc20Contract = new Contract(contractAddress, contractAbi); // We'll use the well-known ERC20 contract as our example case
+QueryContractMessageSender<BigIntegar> balanceQuery = erc20Contract.QueryContract<BigIntegar>("balanceOf", address);
+BigIntegar balance = await balanceQuery(client);
+// or
+BigIntegar balance = await balanceQuery.SendQuery(client);
+```
+
+## Deploying Contracts
+
+If you want to deploy a contract, you can use the `ContractDeployer`
+
+```csharp
+ContractDeploymentResult deploymentResult = await ContractDeployer.Deploy(client, wallet, contractBytecodeAsString);
+string newlyDeployedContractAddress = deploymentResult.Receipt.contractAddress;
+```
