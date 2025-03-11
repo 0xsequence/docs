@@ -2322,8 +2322,14 @@
       "ApiKeyAuth": {
         "type": "apiKey",
         "in": "header",
-        "description": "Project access key for authenticating requests, get an access key at https://sequence.build",
+        "description": "Public project access key for authenticating requests obtained on Sequence Builder. Example Test Key: AQAAAAAAAEGvyZiWA9FMslYeG_yayXaHnSI",
         "name": "X-Access-Key"
+      },
+      "BearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "description": "Secret JWT token for authenticating requests obtained from Sequence Builder - should not be exposed publicly."
       }
     }
   },
@@ -2431,7 +2437,14 @@
               }
             }
           }
-        }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "AQAAAAAAAEGvyZiWA9FMslYeG_yayXaHnSI"
+            ]
+          }
+        ]
       }
     },
     "/rpc/API/IsValidMessageSignature": {
@@ -2536,7 +2549,14 @@
               }
             }
           }
-        }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "AQAAAAAAAEGvyZiWA9FMslYeG_yayXaHnSI"
+            ]
+          }
+        ]
       }
     },
     "/rpc/API/IsValidTypedDataSignature": {
@@ -2641,7 +2661,14 @@
               }
             }
           }
-        }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "AQAAAAAAAEGvyZiWA9FMslYeG_yayXaHnSI"
+            ]
+          }
+        ]
       }
     },
     "/rpc/API/IsValidETHAuthProof": {
@@ -2746,7 +2773,14 @@
               }
             }
           }
-        }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "AQAAAAAAAEGvyZiWA9FMslYeG_yayXaHnSI"
+            ]
+          }
+        ]
       }
     },
     "/rpc/API/LinkWallet": {
@@ -2862,7 +2896,14 @@
               }
             }
           }
-        }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "AQAAAAAAAEGvyZiWA9FMslYeG_yayXaHnSI"
+            ]
+          }
+        ]
       }
     },
     "/rpc/API/GetLinkedWallets": {
@@ -2974,7 +3015,14 @@
             }
           }
         },
-        "description": "Query all wallets that are linked"
+        "description": "Query all wallets that are linked",
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "AQAAAAAAAEGvyZiWA9FMslYeG_yayXaHnSI"
+            ]
+          }
+        ]
       }
     },
     "/rpc/API/RemoveLinkedWallet": {
@@ -3089,7 +3137,14 @@
             }
           }
         },
-        "description": "Send a Payload to link a user wallet, this would require a signed message from both parent wallet (Embedded Wallet) and a linking wallet like an EOA."
+        "description": "Send a Payload to link a user wallet, this would require a signed message from both parent wallet (Embedded Wallet) and a linking wallet like an EOA.",
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "AQAAAAAAAEGvyZiWA9FMslYeG_yayXaHnSI"
+            ]
+          }
+        ]
       }
     },
     "/rpc/API/GetSwapPrice": {
@@ -3195,7 +3250,14 @@
               }
             }
           }
-        }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "AQAAAAAAAEGvyZiWA9FMslYeG_yayXaHnSI"
+            ]
+          }
+        ]
       }
     },
     "/rpc/API/GetSwapPrices": {
@@ -3307,7 +3369,14 @@
             }
           }
         },
-        "description": "Retrieve swap prices for the specified ERC20 token at the address provided as 'buyCurrencyAddress'. The result will be 'null' if the user lacks sufficient funds or if there is insufficient pool liquidity."
+        "description": "Retrieve swap prices for the specified ERC20 token at the address provided as 'buyCurrencyAddress'. The result will be 'null' if the user lacks sufficient funds or if there is insufficient pool liquidity.",
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "AQAAAAAAAEGvyZiWA9FMslYeG_yayXaHnSI"
+            ]
+          }
+        ]
       }
     },
     "/rpc/API/GetSwapQuote": {
@@ -3421,13 +3490,15 @@
             }
           }
         },
-        "description": "After selecting a swap price from 'GetSwapPrices', use this API to retrieve the transaction data needed to execute the swap on-chain."
+        "description": "After selecting a swap price from 'GetSwapPrices', use this API to retrieve the transaction data needed to execute the swap on-chain.",
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "AQAAAAAAAEGvyZiWA9FMslYeG_yayXaHnSI"
+            ]
+          }
+        ]
       }
     }
-  },
-  "security": [
-    {
-      "ApiKeyAuth": []
-    }
-  ]
+  }
 }
