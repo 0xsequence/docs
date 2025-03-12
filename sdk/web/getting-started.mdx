@@ -76,4 +76,34 @@ export const config: any = createConfig("waas" /*or, 'universal'*/, {
 
 In order to customize further, [you can view additional configuration parameters.](/sdk/web/custom-configuration)
 
+
+## Setup Provider Component
+
+The configuration we created in [step 2](/sdk/web/getting-started#create-a-config) needs to be passed into the providers below in the `main.tsx`, as well as the inclusion of the Sequence Design System `styles.css` stylesheet:
+
+```typescript [main.tsx]
+import React from "react";
+import ReactDOM from "react-dom/client";
+
+import App from "./App";
+import "@0xsequence/design-system/styles.css";
+import { config } from "./config";
+
+function Dapp() {
+  return (
+    <SequenceKit config={config}>
+      <App />
+    </SequenceKit>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")!).render(
+  <React.StrictMode>
+    <Dapp />
+  </React.StrictMode>
+);
+```
+
+For web3 interactions, wagmi exposes a set of React hooks that make it convenient for common functions like sending transactions. Please check out our [Embedded Wallet boilerplate with Sequence Kit](https://github.com/0xsequence/kit-embedded-wallet-react-boilerplate) for more examples of interactions.
+
 </Step>
