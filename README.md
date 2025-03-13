@@ -19,56 +19,6 @@ mintlify dev
 
 We use Mintlify as the documentation framework. For more information on what components are available to structure your content, please refer to their [documentation](https://mintlify.com/docs/page).
 
-## Update Security Schemas Script
-
-This repository includes a script to update the security schemas in all JSON files in the api-references directory and its subdirectories.
-
-### Requirements
-
-- Node.js (v12 or higher)
-- npm
-
-### Installation
-
-Install dependencies:
-
-```bash
-npm install
-```
-
-### Usage
-
-Run the script:
-
-```bash
-npm start
-```
-
-Or directly:
-
-```bash
-node update_security_schemas.js
-```
-
-### What the Script Does
-
-The script:
-
-1. Finds all JSON files in the api-references directory and its subdirectories
-2. For each file, it determines if the endpoint is public or secret based on its path
-   - If the file path contains '/secret/', it's considered a secret endpoint
-   - Otherwise, it's considered a public endpoint
-3. Updates the security schemas accordingly:
-   - For public endpoints, it sets the ApiKeyAuth schema with the key "AQAAAAAAAEGvyZiWA9FMslYeG_yayXaHnSI"
-   - For secret endpoints, it sets the BearerAuth schema with the token "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhY2NvdW50IjoiMHhiZWU3NGU3ZmZkNzdkMThhZDJhOTg2ODEyZGE2MTc5ODk0MDY4ODZjIiwiaWF0IjoxNzQxNjg3NDg4LCJwcm9qZWN0IjoxNjgxNX0.LvTwKf0T6IBK9HuRFboXCNh2YY9d6EwDoQAlGYC80KQ"
-4. Updates the global security section for each file
-
-### Output
-
-The script will print:
-- Each file it updates and whether it's a public or secret endpoint
-- A summary of how many files were updated out of the total number of JSON files found
-
 ## Contributing
 
 We welcome contributions from the community to help improve our documentation! Here's how you can contribute:
