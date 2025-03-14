@@ -1,0 +1,18 @@
+---
+title: Creating Offers
+---
+
+When building your marketplace, you may want to give your users the opportunity to place offers to buy collectibles. You'll likely want to display a UI showcasing the collectibles that are sellable on your marketplace.
+
+Once your user has selected the collectible, amount, and price they'd like to offer for purchase, you'll want to create the offer.
+
+```
+ICheckout checkout = new Checkout(_wallet, _chain);
+Step[] steps = await checkout.GenerateOfferTransaction(collectionContractAddress, tokenId, amount, ContractType.ERC1155, currencyTokenAddress, pricePerTokenInstance, expiryDateTime);
+TransactionReturn result = await steps.SubmitAsTransactions(_wallet, _chain);
+if (result is SuccessfulTransactionReturn successTransaction) {
+    // Handle success case
+}else {
+    // Handle fail case
+}
+```

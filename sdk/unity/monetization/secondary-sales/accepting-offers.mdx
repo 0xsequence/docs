@@ -1,0 +1,33 @@
+---
+title: Accepting Offers
+---
+
+If there are outstanding offers, users can be enabled to "accept" offers, selling their collectible(s) to the user who made the offer.
+
+You can read the outstanding offers using `ListCollectibleOffersWithHighestPricedOfferFirst`:
+
+```csharp
+IMarketplaceReader reader = new MarketplaceReader(chain);
+ListCollectibleListingsReturn collectiblesResponse = await reader.ListCollectibleOffersWithHighestPricedOfferFirst(collectibleContractAddress, optionalCollectiblesFilter);
+```
+
+or, if you want to get all the sellable offers for your user, you can use the `ListAllSellableOffers` helper method (or just provide the `CollectiblesFilter` below):
+
+```csharp
+IMarketplaceReader reader = new MarketplaceReader(chain);
+CollectibleOrder[] sellableOffers = await reader.ListAllSellableOffers(userAddress, collectionContractAddress, optionalCollectiblesFilter);
+```
+This will append the user's address (seller's address) to the `inAccounts` and `ordersNotCreatedBy` filters in the CollectiblesFilter object. This method will also handle pagination for you - continually making requests until there are no more pages - so use it with caution if you expect a large number of offers. If you do expect a large number of offers, simply use `ListCollectibleOffersWithHighestPricedOfferFirst` and provide the described `CollectiblesFilter`.
+
+Once the user has selected the offer they wish to accept and the amount of collectible instances they want to sell, you can fill the offer/sell the collectible(s):
+
+```csharp
+ICheckout checkout = new Checkout(_wallet, _chain);
+Step[] steps = await checkout.GenerateSellTransaction(selectedOrders, amount);
+TransactionReturn result = await steps.SubmitAsTransactions(_wallet, _chain);
+if (result is SuccessfulTransactionReturn successTransaction) {
+    // Handle success case
+}else {
+    // Handle fail case
+}
+```
