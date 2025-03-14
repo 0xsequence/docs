@@ -1,0 +1,129 @@
+---
+title: Sequence Sidekick Guide
+description: The Sequence Sidekick simplifies dispatching transactions on Ethereum-compatible networks for games and apps, scaling to millions of users.
+---
+
+import {Callout} from 'vocs/components'
+
+# Sequence Sidekick 👷‍♂️
+
+Sequence Sidekick provides a fully equipped backend, leveraging Sequence's infrastructure to streamline blockchain interactions for developers. With Sidekick, you can programmatically perform the following operations using your own backend wallet:
+
+- Pre-configured backend services: Redis, PostgreSQL, Transaction API, and an Indexer—all set up and ready to use.
+- Effortless deployment: Spin up your backend in minutes with a single command to create a Docker container.
+- Flexible wallet options: Use a Sequence Smart Wallet with locally managed private keys or securely integrate AWS/GCP KMS for enhanced security.
+- Seamless contract deployment: Deploy ERC20, ERC721, ERC1155, or custom smart contracts via API calls.
+- Reliable transaction management: Read from and write to any contract for your game or app, with automatic nonce management, gas bumping, and other optimizations ensuring efficient execution.
+- Webhook integration: Leverage our high-performance indexer to fully manage webhooks.
+- Optimized gas pricing: Transactions are submitted at optimal gas prices, with automatic resubmission if not included in the mempool within three blocks.
+- Built-in user rewards system: Set up self-claimed or recurring user rewards (ERC20, ERC721, ERC1155) with a single API call.
+- Built-in Bull MQ Dashboard: Monitor and manage your background jobs.
+- Swagger UI: Explore the API documentation and test the endpoints with the Swagger UI
+- Contract utilities: Easily check contract deployments on different chains.
+- Seamless Sequence Builder integration: Import all your Sequence Builder contracts into the Sidekick backend with one API call, or manually add custom contracts.
+
+## About the backend wallet
+All transactions executed through Sidekick use a Sequence smart wallet, which is [automatically created](https://github.com/0xsequence-demos/sequence-sidekick/blob/e76a47d0b9ef19f23736c1e8f863ed4795b855a8/src/utils/wallet.ts#L25) for the externally owned account (EOA) specified by you, leveraging our infrastructure for optimized and performant execution.
+
+To configure the backend wallet, you can:
+- Declare your [EVM_PRIVATE_KEY](https://github.com/0xsequence-demos/sequence-sidekick/blob/e76a47d0b9ef19f23736c1e8f863ed4795b855a8/.env.example#L16) in the .env file for a local setup (not recommended for production)
+- Use the recommended method: setting up [AWS](https://aws.amazon.com/kms/) or [GCP](https://cloud.google.com/kms) KMS and adding the necessary credentials in the .env file. 
+
+<Note>
+To find out what are the required credentials for local, AWS, or GCP wallet configurations, please refer to the [env.example](https://github.com/0xsequence-demos/sequence-sidekick/blob/master/.env.example) file.
+</Note>
+
+<Note>
+Make sure you choose the correct key types in AWS KMS and GCP KMS.
+- AWS KMS: `ECC_NIST_P256_KEY_ALIAS`
+- GCP KMS: `GCP_KEY_RING_NAME`
+</Note>
+
+Sidekick is built to integrate seamlessly with AWS and GCP KMS, allowing you to use your KMS signer. We've developed [adapters](https://github.com/orgs/0xsequence/repositories?q=kms) that make AWS/GCP KMS compatible with the ethers signer type, ensuring compatibility with the latest version.
+
+Sequence Sidekick empowers developers with a scalable, plug-and-play backend solution for blockchain-based applications, allowing you to focus on building without backend complexities.
+
+<Callout type="warning">
+When using the Sequence Sidekick:
+- `msg.sender` will be the Sequence Wallet address of your EOA, not your EOA address
+- `tx.origin` will be one of the Sequence Relayer addresses
+- Ensure proper permissions are granted for contract function calls to the Sequence Wallet address
+- View active relayer addresses in the [mainnet status page](https://mainnet-relayer.sequence.app/status)
+</Callout>
+
+## Steps to start your Sidekick backend
+
+<Steps>
+<Step title="Clone the Sidekick repository">
+
+```shell
+git clone https://github.com/0xsequence/sidekick
+```
+</Step>
+
+<Step title="Setup the required environment variables">
+
+### Required Environment Variables
+
+| Variable | Description 
+|----------|-------------
+| PROJECT_ACCESS_KEY | Access key from Sequence Builder API Keys 
+| SECRET_KEY | Your custom secret Sidekick key 
+| SEQUENCE_RPC_URL | RPC URL from Sequence 
+| BUILDER_API_SECRET_KEY | Secret key from Sequence Builder API Keys | `eyJh...` |
+| INDEXER_URL | Indexer URL based on network 
+| SIGNER_TYPE | Type of signer to use 
+
+### Wallet Configuration Variables
+
+Choose one of the following configurations:
+
+##### Local Wallet:
+| Variable | Description |
+|----------|-------------|
+| EVM_PRIVATE_KEY | Private key for the EOA used to sign transactions |
+
+##### AWS KMS Configuration:
+| Variable | Description |
+|----------|-------------|
+| AWS_REGION | AWS account region |
+| AWS_ACCESS_KEY_ID | AWS access key ID |
+| AWS_SECRET_ACCESS_KEY | AWS secret access key |
+| AWS_KMS_KEY_ID | ID of the KMS key to use |
+
+##### GCP KMS Configuration:
+| Variable | Description |
+|----------|-------------|
+| PROJECT | GCP project name |
+| LOCATION | GCP project location |
+| KEY_RING | Key ring name |
+| CRYPTO_KEY | Crypto key name |
+| CRYPTO_KEY_VERSION | Crypto key version |
+</Step>
+
+<Step title="Make sure you have Docker installed">
+
+Get it from [here](https://www.docker.com/get-started/)
+
+</Step>
+
+<Step title="Start Sidekick in a Docker container">
+
+```shell
+pnpm docker:start
+```
+</Step>
+
+<Step title="Make your first API call to get back smart wallet address">
+
+```shell
+curl -X GET 'http://localhost:3000/sidekick/smart-account-address'
+```
+</Step>
+</Steps>
+
+## Dev mode without Docker
+If you want to make changes to the codebase and test them without Docker, you can run the backend locally by following the instructions in the [README](https://github.com/0xsequence-demos/sequence-sidekick/blob/master/README.md).
+
+## Gas Sponsorship
+On testnet, we sponsor all the transactions. However, on mainnet - you will want to ensure that you sponsor the transactions in order to ensure that they process correctly by sponsoring the contract itself. You can take a deeper look at our [Gas Sponsorship](/solutions/builder/gas-tank) solution to learn how to do this.
