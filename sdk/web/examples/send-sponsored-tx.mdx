@@ -1,0 +1,69 @@
+---
+
+title: "Send a sponsored transaction"
+description: In this tutorial, we'll learn how to send sponsored transactions using Sequence Kit.
+sidebarTitle: Sponsor transactions
+---
+
+<Steps>
+<Step title="Setup Sequence Kit">
+
+Make sure you completed the [Getting Started](/solutions/wallets/sequence-kit/getting-started) guide.
+</Step>
+
+<Step title="Setup your Gas Tank (for Mainnet only)">
+
+If you plan to send transactions on mainnet, you need to setup your gas tank. Go to [Gas Sponsorhip](/solutions/builder/gas-tank) to learn how to setup your gas tank.
+
+<Note>
+All Sequence smart wallet transactions are sponsored by default on testnets.
+</Note>
+</Step>
+
+<Step title="Send a sponsored transaction">
+
+Next, we'll create a simple component to send a sponsored transaction.
+
+```typescript
+import React, { useState, useEffect } from 'react';
+import { Box, Button, Card, Select, Text } from '@0xsequence/design-system';
+import { useAccount, useSendTransaction } from 'wagmi';
+
+export const SponsoredTransactionExample = () => {
+  const { address } = useAccount();
+
+  const {
+    sendTransaction,
+    isPending,
+    isSuccess,
+    data: txHash
+  } = useSendTransaction();
+
+  const sendSponsoredTx = () => {
+    if (!address) return;
+    // Sending a dummy tx
+    sendTransaction({
+      to: address,
+      value: BigInt(0),
+      gas: null
+    });
+  };
+
+  return (
+    <>
+      <Box>
+        <Text>Address: {address}</Text>
+        <Button onClick={sendSponsored}>Send Sponsored</Button>
+        {isPending && <Text>Pending...</Text>}
+        {isSuccess && <Text>Success! Tx Hash: {txHash}</Text>}
+      </Box>
+    </>
+  )
+}
+```
+</Step>
+</Steps>
+
+Congratulations! You've just learned how to send a sponsored transaction using Sequence Kit. 
+
+
