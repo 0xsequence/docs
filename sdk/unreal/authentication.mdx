@@ -116,6 +116,34 @@ While a user is authenticated with the Sequence API, you can add an additional l
   </Tab>
 </Tabs>
 
+## Get Id Token
+
+A common use case is to verify the user identity on your backend after the user has finished the login process in your app client.
+Get a Sequence Id Token from your users to send it to your backend for verification using any JWKS library.
+Read our [Backend Verification Guide](/sdk/headless-wallet/verification) for more information.
+
+<Tabs>
+    <Tab title="Blueprint">
+        <Frame>
+            <img src="/images/unreal/get_id_token.png" />
+        </Frame>
+    </Tab>
+
+    <Tab title="C++">
+        ```cpp
+        const TFunction<void (FSeqIdTokenResponse_Data)> OnSuccess = [this](const FSeqIdTokenResponse_Data& Data) { };
+        const TFunction<void (FSequenceError)> OnFailure = [this](const FSequenceError& Err){ };
+
+        const TOptional<USequenceWallet*> WalletOptional = USequenceWallet::Get();
+        if (WalletOptional.IsSet() && WalletOptional.GetValue())
+        {
+            const USequenceWallet* Wallet = WalletOptional.GetValue();
+            Wallet->GetIdToken(Nonce, OnSuccess, OnFailure);
+        }
+        ```
+    </Tab>
+</Tabs>
+
 ## Sign Out
 
 Clear the credentials cache and sign out the current user.
