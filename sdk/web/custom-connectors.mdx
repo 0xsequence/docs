@@ -32,55 +32,6 @@ The `createConnector` function from wagmi should return an initialized connector
 
 For more details on creating custom connectors, refer to [Wagmi's guide on Custom Connectors](https://wagmi.sh/examples/custom-connector).
 
-# Using Custom Connectors
-When using custom connectors, you can't rely on the `getDefaultConnectors` utility function. Instead, you need to pass custom configurations to Sequence Connect.
-
-First, create a list of connectors, including your custom connector, and provide it to the Wagmi configuration:
-
-```tsx
-import { getKitConnectWallets } from '@0xsequence/kit';
-import { createConfig } from 'wagmi';
-
-const connectors = getKitConnectWallets([
-  google({
-    defaultNetwork: 137,
-    connect: {
-      app: 'my-app',
-      projectAccessKey: '<access-key>'
-    }
-  }),
-  // ... other connectors
-  myCustomConnector({ appName: 'my-app' }),
-]);
-
-const config = createConfig({
-  transports,
-  connectors,
-  chains
-})
-```
-
-Next, use your custom connector by specifying its `id` in either the `socialAuthOptions` or `walletAuthOptions` field of the Sequence Kit configuration:
-
-```tsx
-const kitConfig = {
-  signIn: {
-    socialAuthOptions: ['google', 'facebook'],
-    walletAuthOptions: ['metamask', 'my-custom-connector'],
-  }
-};
-
-return (
-  <WagmiProvider config={wagmiConfig}>
-    <QueryClientProvider client={queryClient}>
-      <SequenceConnect config={connectConfig}>
-        <App />
-      </SequenceConnect>
-    </QueryClientProvider>
-  </WagmiProvider>
-);
-```
-
 # Share Your Custom Connectors
 
 Feel free to contribute your custom connectors by creating a [pull request](https://github.com/0xsequence/web-sdk/pulls). This way, others can benefit from your work and enjoy seamless integration with Sequence WEB SDK's.
