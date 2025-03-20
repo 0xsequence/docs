@@ -1,7 +1,7 @@
 ---
 
 title: "Smart Swaps"
-description: Sequence Smart Swaps leveraging currencies in player wallets to another currency on the same chain. Developers can define the target currency and Sequence will handle everything, including the UI and flow through Sequence Kit.
+description: Sequence Smart Swaps leveraging currencies in player wallets to another currency on the same chain. Developers can define the target currency and Sequence will handle everything, including the UI and flow through Web SDK.
 sidebarTitle: Smart Swaps
 ---
 
@@ -27,32 +27,34 @@ We support the following chains for swaps:
 - Polygon
 
 # Installation and Setup
-To integrate the Swap feature with Kit, follow these steps:
+To integrate the Swap feature with Web SDK, follow these steps:
 
 <Steps>
-<Step title="Install the `kit-checkout` module:">
+<Step title="Install the @0xsequence/checkout library">
 
 ```bash
-npm install @0xsequence/kit-checkout
+npm install @0xsequence/checkout
 # or
-pnpm install @0xsequence/kit-checkout
+pnpm install @0xsequence/checkout
 # or
-yarn add @0xsequence/kit-checkout
+yarn add @0xsequence/checkout
 ```
 
 </Step>
-<Step title="Place the `KitCheckoutProvider` below the Sequence Kit Core Provider in your App:">
+<Step title="Place the `SequenceCheckoutProvider` below the `SequenceConnect` Provider in your App:">
 
 ```jsx
-import { KitCheckoutProvider } from '@0xsequence/kit-checkout'
+import { SequenceCheckoutProvider } from '@0xsequence/checkout'
+import { SequenceConnect } from '@0xsequence/connect'
+import { config } from './config'
 
 const App = () => {
   return (
-    <SequenceKit config={config}>
-      <KitCheckoutProvider>
+    <SequenceConnect config={config}>
+      <SequenceCheckoutProvider>
         <Page />
-      </KitCheckoutProvider>
-    </SequenceKit>
+      </SequenceCheckoutProvider>
+    </SequenceConnect>
   )
 }
 ```
@@ -67,7 +69,7 @@ const App = () => {
 - `description`: A description of the swap and payment process.
 
 ```jsx
-import { useSwapModal, type SwapModalSettings } from '@0xsequence/kit-checkout'
+import { useSwapModal, type SwapModalSettings } from '@0xsequence/checkout'
 
 const MyComponent = () => {
   const { openSwapModal } = useSwapModal()
@@ -107,5 +109,5 @@ const MyComponent = () => {
 </Step>
 </Steps>
 
-Congratulations! You’ve just learned how to use smart swaps with Sequence Kit.
+Congratulations! You’ve just learned how to use smart swaps with Web SDK.
 

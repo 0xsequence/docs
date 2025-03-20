@@ -1,7 +1,7 @@
 ---
 
 title: "On-ramp Overview"
-description: The checkout on-ramp modal in Sequence Kit allows developers to easily onboard users with fiat currency into cryptocurrency using a credit card.
+description: The checkout on-ramp modal in Web SDK allows developers to easily onboard users with fiat currency into cryptocurrency using a credit card.
 sidebarTitle: On-ramp
 ---
 
@@ -14,37 +14,37 @@ With this integration, one can use a credit card to purchase tokens across many 
 ## Integration
 To integrate the on-ramp feature, follow these steps:
 
-
 <Steps>
 
-<Step title="Setup Sequence Kit">
+<Step title="Connect with Web SDK">
   Make sure you completed the [Getting Started](/sdk/web/getting-started) guide.
 </Step>
 
-<Step title="1. Install the `kit-checkout` Module:">
+<Step title="1. Install the @0xsequence/checkout library">
 
 ```bash
-npm install @0xsequence/kit-checkout
+npm install @0xsequence/checkout
 # or
-pnpm install @0xsequence/kit-checkout
+pnpm install @0xsequence/checkout
 # or
-yarn add @0xsequence/kit-checkout
+yarn add @0xsequence/checkout
 ```
 
 </Step>
-<Step title="2. Place the `KitCheckoutProvider` Below the Sequence Kit Core Provider in your App:">
+<Step title="2. Place the `SequenceCheckoutProvider` Below the `SequenceConnect` Provider in your App:">
 
 ```jsx
-import { KitCheckoutProvider } from '@0xsequence/kit-checkout'
-
+import { SequenceCheckoutProvider } from '@0xsequence/checkout'
+import { SequenceConnect } from '@0xsequence/connect'
+import { config } from './config'
 
 const App = () => {
   return (
-    <SequenceKit config={config}>
-      <KitCheckoutProvider>
+    <SequenceConnect config={config}>
+      <SequenceCheckoutProvider>
         <Page />
-      </KitCheckoutProvider>
-    </SequenceKit>
+      </SequenceCheckoutProvider>
+    </SequenceConnect>
   )
 }
 ```
@@ -54,9 +54,11 @@ const App = () => {
 Call the `triggerAddFunds` function to cause a modal to appear
 
 ```js
-  import { useAddFundsModal } from '@0xsequence/kit-checkout'
+  import { useAddFundsModal } from '@0xsequence/checkout'
+  import { useAccount } from 'wagmi'
 
   const MyComponent = () => {
+    const { address: recipientAddress } = useAccount()
     const { triggerAddFunds: toggleAddFunds } = useAddFundsModal()
 
     const onClick = () => {
@@ -73,7 +75,7 @@ Call the `triggerAddFunds` function to cause a modal to appear
 </Step>
 </Steps>
 
-Congratulations! You’ve just learned how to add funds to your wallet using Sequence Kit.
+Congratulations! You’ve just learned how to add funds to your wallet using Web SDK.
 
 # Configuration Overview
 

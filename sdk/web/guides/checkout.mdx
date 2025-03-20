@@ -1,18 +1,17 @@
 ---
 
-title: "Checkout"
+title: "Checkout Modal"
 description: The Checkout Modal provides developers with a easy way to implement cryptocurrency payments.
-sidebarTitle: Checkout
+sidebarTitle: Checkout Modal
 ---
-
 
 Sequence Checkout allows users to easily purchase an ERC721 or ERC1155 token with a primary or secondary sales contract such as a marketplace, with the following payment options:
   - Purchase with any cryptocurrency in the wallet.
-  - Transfer funds from another wallet to a Sequence wallet and purchase.
+  - Receive funds from another wallet to a Sequence wallet and purchase.
   - Pay using a credit or debit card which will intelligently detect the correct provider for each region, chain and currency.
   - Pay with another cryptocurrency in a wallet by doing an automated swap and purchase.
 
-We have an integrated checkout flow within Sequence Kit that you can leverage by installing the dedicated sub-module `kit-checkout`.
+We have an integrated checkout flow that you can leverage by installing the dedicated library `@0xsequence/checkout` and using it in conjunction with `@0xsequence/connect`.
 <Frame>
 ![](/images/kit/checkout-modal.png)
 </Frame>
@@ -25,29 +24,31 @@ In order to enable credit card payments for checkout, please get in touch with t
 To integrate the checkout feature, follow these steps:
 
 <Steps>
-<Step title="Install the `kit-checkout` module:">
+<Step title="Install the `@0xsequence/checkout` library:">
 
 ```bash
-npm install @0xsequence/kit-checkout
+npm install @0xsequence/checkout
 # or
-pnpm install @0xsequence/kit-checkout
+pnpm install @0xsequence/checkout
 # or
-yarn add @0xsequence/kit-checkout
+yarn add @0xsequence/checkout
 ```
 
 </Step>
-<Step title="Place the `KitCheckoutProvider` below the Sequence Kit Core Provider in your App:">
+<Step title="Place the `SequenceCheckoutProvider` below the SequenceConnect Provider in your App:">
 
 ```jsx
-import { KitCheckoutProvider } from '@0xsequence/kit-checkout'
+import { SequenceCheckoutProvider } from '@0xsequence/checkout'
+import { SequenceConnect } from '@0xsequence/connect'
+import { config } from './config'
 
 const App = () => {
   return (
-    <SequenceKit config={config}>
-      <KitCheckoutProvider>
+    <SequenceConnect config={config}>
+      <SequenceCheckoutProvider>
         <Page />
-      </KitCheckoutProvider>
-    </SequenceKit>
+      </SequenceCheckoutProvider>
+    </SequenceConnect>
   )
 }
 ```
@@ -63,7 +64,7 @@ We have convenient utility functions for ERC1155 tokens that make it easy to con
 Here's a configuration with example variables:
 
 ```jsx
-  import { useERC1155SaleContractCheckout } from "@0xsequence/kit-checkout";
+  import { useERC1155SaleContractCheckout } from "@0xsequence/checkout";
   import { useAccount } from "wagmi";
 
   const MyComponent = () => {
@@ -99,14 +100,12 @@ Here's a configuration with example variables:
   };
   ```
 
-
-
   ## Custom Contract
   We instantiate the `useSelectPaymentModal` hook to open the checkout modal and pass a settings object. In addition, for custom contracts, you can specify a contract ABI along with encoding the call data, in this case we are using `ethers` and `viem`'s `encodeFunctionData` utility.
 
   ```tsx
   import { useAccount } from 'wagmi'
-  import { useSelectPaymentModal, type SelectPaymentSettings } from '@0xsequence/kit-checkout'
+  import { useSelectPaymentModal, type SelectPaymentSettings } from '@0xsequence/checkout'
   import { toHex } from 'viem'
   import { encodeFunctionData } from 'viem'
 
@@ -196,5 +195,5 @@ Here's a configuration with example variables:
   }
 ```
 
-Congratulations! You’ve just learned how to use the Checkout Modal with Sequence Kit.
+Congratulations! You’ve just learned how to use the Checkout Modal with Web SDK.
 
