@@ -1,0 +1,111 @@
+---
+
+title: "useAddFundsModal"
+description: Hook for managing the add on-ramp modal
+sidebarTitle: useAddFundsModal
+---
+
+## Import
+
+```tsx
+import { useAddFundsModal } from '@0xsequence/checkout'
+```
+
+## Usage
+
+```tsx
+import { useAddFundsModal } from '@0xsequence/checkout'
+
+function App() {
+  const { triggerAddFunds } = useAddFundsModal()
+  const walletAddress = '0x123...' // User's wallet address
+  
+  const handleAddFunds = () => {
+    triggerAddFunds({
+      walletAddress,
+      defaultFiatAmount: '50',
+      defaultCryptoCurrency: 'USDC',
+      onOrderSuccessful: (data) => {
+        console.log('Order successful!', data)
+      }
+    })
+  }
+  
+  return (
+    <button onClick={handleAddFunds}>
+      Add Funds
+    </button>
+  )
+}
+```
+
+## Return Type: `UseAddFundsModalReturnType`
+
+The hook returns an object with the following properties:
+
+```tsx
+type UseAddFundsModalReturnType = {
+  triggerAddFunds: (settings: AddFundsSettings) => void
+  closeAddFunds: () => void
+  addFundsSettings: AddFundsSettings | undefined
+}
+```
+
+### Properties
+
+#### triggerAddFunds
+
+`(settings: AddFundsSettings) => void`
+
+Opens the On-ramp modal with the specified parameters.
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --------- | ---- | ----------- |
+| `walletAddress` | `string \| Hex` | The address of the wallet to receive funds |
+| `fiatAmount` | `string` |  (Optional) The exact fiat amount to be used |
+| `fiatCurrency` | `string` | (Optional) The currency for the fiat amount (e.g., 'USD', 'EUR') |
+| `defaultFiatAmount` | `string` | (Optional) The default fiat amount to display |
+| `defaultCryptoCurrency` | `string` | (Optional) The default cryptocurrency to purchase |
+| `cryptoCurrencyList` | `string` | (Optional) Comma-separated list of available cryptocurrencies |
+| `networks` | `string` | (Optional) Comma-separated list of available networks |
+| `onClose` | `() => void` | (Optional) Callback when the modal is closed |
+| `onOrderCreated` | `(data: any) => void` | (Optional) Callback when a new order is created |
+| `onOrderSuccessful` | `(data: any) => void` | (Optional) Callback when order completes successfully |
+| `onOrderFailed` | `(data: any) => void` | (Optional) Callback when order fails |
+
+#### closeAddFunds
+
+`() => void`
+
+Closes the On-ramp modal.
+
+#### addFundsSettings
+
+`AddFundsSettings | undefined`
+
+**AddFundsSettings Interface:**
+
+```tsx
+interface AddFundsSettings {
+  walletAddress: string | Hex
+  fiatAmount?: string
+  fiatCurrency?: string
+  defaultFiatAmount?: string
+  defaultCryptoCurrency?: string
+  cryptoCurrencyList?: string
+  networks?: string
+  onClose?: () => void
+  onOrderCreated?: (data: any) => void
+  onOrderSuccessful?: (data: any) => void
+  onOrderFailed?: (data: any) => void
+}
+```
+
+The current settings configuration for the On-ramp modal.
+
+## Notes
+
+This hook provides methods to control the On-ramp modal powered by Transak, allowing users to buy cryptocurrency with a credit/debit card directly within your application.
+

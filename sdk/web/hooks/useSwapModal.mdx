@@ -1,0 +1,130 @@
+---
+
+title: "useSwapModal"
+description: Hook for opening the swap modal
+sidebarTitle: useSwapModal
+---
+
+## Import
+
+```tsx
+import { useSwapModal } from '@0xsequence/checkout'
+```
+
+## Usage
+
+```tsx
+import { useSwapModal } from '@0xsequence/checkout'
+import { encodeFunctionData, parseAbi } from 'viem'
+
+function App() {
+  const { openSwapModal } = useSwapModal()
+  
+  const handleSwap = () => {
+    // Target token information
+    const chainId = 137 // Polygon
+    const currencyAddress = '0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359' // USDC on Polygon
+    const currencyAmount = '20000' // 0.02 USDC (in smallest units)
+    
+    // Optional: Transaction to execute after swap is completed
+    const data = encodeFunctionData({ 
+      abi: parseAbi(['function demo()']), 
+      functionName: 'demo', 
+      args: [] 
+    })
+    
+    // Open the swap modal
+    openSwapModal({
+      onSuccess: () => {
+        console.log('swap successful!')
+      },
+      chainId,
+      currencyAddress,
+      currencyAmount,
+      postSwapTransactions: [
+        {
+          to: '0x37470dac8a0255141745906c972e414b1409b470',
+          data
+        }
+      ],
+      title: 'Swap and Pay',
+      description: 'Select a token in your wallet to swap to 0.2 USDC.'
+    })
+  }
+  
+  return (
+    <button onClick={handleSwap}>
+      Swap with Sequence Pay
+    </button>
+  )
+}
+```
+
+## Return Type: `UseSwapModalReturnType`
+
+The hook returns an object with the following properties:
+
+```tsx
+type UseSwapModalReturnType = {
+  openSwapModal: (settings: SwapModalSettings) => void
+  closeSwapModal: () => void
+  swapModalSettings: SwapModalSettings | undefined
+}
+```
+
+### Properties
+
+#### openSwapModal
+
+`(settings: SwapModalSettings) => void`
+
+Function to open the Swap modal with the specified settings.
+
+**Parameters:**
+
+The `settings` object can include the following properties:
+
+| Parameter | Type | Description |
+| --------- | ---- | ----------- |
+| `chainId` | `number` | Blockchain network ID where the swap will occur |
+| `currencyAddress` | `string` | Address of the target token contract |
+| `currencyAmount` | `string` | Amount of the target token in smallest units |
+| `postSwapTransactions` | `Array<{to: string, data: string}>` | (Optional) Transactions to execute after the swap completes |
+| `disableMainCurrency` | `boolean` | (Optional) If true, disables swapping using the main currency of the chain |
+| `title` | `string` | (Optional) Custom title for the swap modal |
+| `description` | `string` | (Optional) Custom description for the swap modal |
+| `onSuccess` | `() => void` | (Optional) Callback when swap is successful |
+| `onError` | `(error: Error) => void` | (Optional) Callback when an error occurs |
+| `onClose` | `() => void` | (Optional) Callback when the modal is closed |
+| `blockConfirmations` | `number` | (Optional) Number of block confirmations to wait for the swap to complete |
+
+#### closeSwapModal
+
+`() => void`
+
+Function to close the Swap modal.
+
+#### swapModalSettings
+
+`SwapModalSettings | undefined`
+
+The current settings configuration for the Swap modal.
+
+```tsx
+export interface SwapModalSettings {
+  chainId: number
+  currencyAddress: string
+  currencyAmount: string
+  title?: string
+  description?: string
+  disableMainCurrency?: boolean
+  postSwapTransactions?: Transaction[]
+  blockConfirmations?: number
+  onSuccess?: (txHash: string) => void
+}
+```
+
+## Notes
+
+This hook provides methods to control the Swap modal that allows users to swap tokens in their wallet to a target currency. The Swap modal enables users to select tokens from their wallet to swap to a specified target token, with the option to execute additional transactions after the swap completes.
+
