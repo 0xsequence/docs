@@ -1,0 +1,312 @@
+---
+title: 'Backend Integration'
+description: 'Learn how to integrate Sequence with your backend services'
+---
+
+# Backend Integration
+
+This guide demonstrates how to integrate Sequence in your backend services to create authenticated sessions and send blockchain transactions.
+
+## Prerequisites
+
+Before getting started, ensure you have:
+
+- A Sequence project with an access key from [Sequence Builder](https://sequence.build)
+- Node.js environment
+- Required packages installed:
+
+```bash
+npm install @0xsequence/auth @0xsequence/network ethers
+```
+
+For hardware security module (HSM) support, install the relevant package:
+
+```bash
+# For Google Cloud KMS
+npm install @0xsequence/google-kms-signer
+
+# For AWS KMS
+npm install @0xsequence/aws-kms-signer
+```
+
+## Creating a Sequence Session
+
+A Sequence session allows you to create and authenticate a smart account. In backend environments, you'll typically use a single signer approach.
+
+### Setting Up the Provider
+
+First, create a provider to connect to the blockchain:
+
+```typescript
+import { findSupportedNetwork } from "@0xsequence/network";
+import type { NetworkConfig } from "@0xsequence/network";
+import { ethers } from "ethers";
+
+export const getProvider = async (chainConfig: NetworkConfig) => {
+    const provider = new ethers.JsonRpcProvider(process.env.SEQUENCE_RPC_URL, chainConfig.chainId);
+    return provider;
+};
+```
+
+### Signer Options
+
+Sequence supports multiple signer types for backend integration:
+
+#### 1. Local Private Key Signer
+
+Use this approach for development or when you need a simple setup:
+
+```typescript
+import { Session } from "@0xsequence/auth";
+import { ethers } from "ethers";
+
+export const getLocalSigner = async (chainHandle: string) => {
+    const chainConfig = findSupportedNetwork(chainHandle);
+    if (!chainConfig) {
+        throw new Error(`Chain config not found for chain handle: ${chainHandle}`);
+    }
+
+    const provider = await getProvider(chainConfig);
+    const walletEOA = new ethers.Wallet(process.env.EVM_PRIVATE_KEY ?? '', provider);
+    
+    const smartAccount = await Session.singleSigner({
+        signer: walletEOA,
+        projectAccessKey: process.env.PROJECT_ACCESS_KEY ?? ''
+    });
+
+    return smartAccount.account.getSigner(chainConfig.chainId);
+};
+```
+
+#### 2. Google Cloud KMS Signer
+
+For production environments, using Google Cloud KMS provides enhanced security:
+
+```typescript
+import { GoogleKmsSigner } from "@0xsequence/google-kms-signer";
+
+export const getGoogleKmsSigner = async (chainHandle: string) => {
+    const chainConfig = findSupportedNetwork(chainHandle);
+    if (!chainConfig) {
+        throw new Error(`Chain config not found for chain handle: ${chainHandle}`);
+    }
+
+    const googleKmsSigner = new GoogleKmsSigner({
+        project: process.env.PROJECT ?? '',
+        location: process.env.LOCATION ?? '',
+        keyRing: process.env.KEY_RING ?? '',
+        cryptoKey: process.env.CRYPTO_KEY ?? '',
+        cryptoKeyVersion: process.env.CRYPTO_KEY_VERSION ?? ''
+    });
+
+    const smartAccount = await Session.singleSigner({
+        signer: googleKmsSigner,
+        projectAccessKey: process.env.PROJECT_ACCESS_KEY ?? ''
+    });
+
+    return smartAccount.account.getSigner(chainConfig.chainId);
+};
+```
+
+#### 3. AWS KMS Signer
+
+If you use AWS for your infrastructure, the AWS KMS integration provides secure key management:
+
+```typescript
+import { AwsKmsSigner } from "@0xsequence/aws-kms-signer";
+
+export const getAwsKmsSigner = async (chainHandle: string) => {
+    const chainConfig = findSupportedNetwork(chainHandle);
+    if (!chainConfig) {
+        throw new Error(`Chain config not found for chain handle: ${chainHandle}`);
+    }
+
+    const awsKmsSigner = new AwsKmsSigner(
+        process.env.AWS_REGION ?? '',
+        process.env.AWS_KMS_KEY_ID ?? ''
+    );
+
+    const smartAccount = await Session.singleSigner({
+        signer: awsKmsSigner,
+        projectAccessKey: process.env.PROJECT_ACCESS_KEY ?? ''
+    });
+
+    return smartAccount.account.getSigner(chainConfig.chainId);
+};
+```
+
+### Factory Pattern for Signer Selection
+
+You can create a factory function to select the appropriate signer based on environment configuration:
+
+```typescript
+export const getSigner = async (chainHandle: string) => {
+    if (process.env.SIGNER_TYPE === 'google_kms') { 
+        return getGoogleKmsSigner(chainHandle);
+    } 
+    if (process.env.SIGNER_TYPE === 'aws_kms') {
+        return getAwsKmsSigner(chainHandle);
+    }
+    // Default to local signer
+    return getLocalSigner(chainHandle);
+};
+```
+
+## Sending Transactions
+
+Once you have a signer, you can use it to send transactions. Here's how to send ERC20 tokens:
+
+```typescript
+import { ethers } from "ethers";
+
+// Standard ERC20 ABI for the transfer function
+const erc20Abi = [
+  "function transfer(address to, uint256 amount) returns (bool)",
+  "function balanceOf(address owner) view returns (uint256)",
+  "function decimals() view returns (uint8)"
+];
+
+async function sendERC20Tokens(
+    chainId: string, 
+    tokenAddress: string, 
+    recipientAddress: string, 
+    amount: string
+) {
+    // Get the signer for the specified chain
+    const signer = await getSigner(chainId);
+    
+    // Create a contract instance
+    const tokenContract = new ethers.Contract(tokenAddress, erc20Abi, signer);
+    
+    // Get token decimals
+    const decimals = await tokenContract.decimals();
+    
+    // Convert the amount to the correct units based on decimals
+    const amountInSmallestUnit = ethers.parseUnits(amount, decimals);
+    
+    // Send the transaction
+    const tx = await tokenContract.transfer(recipientAddress, amountInSmallestUnit);
+    
+    // Wait for the transaction to be mined
+    const receipt = await tx.wait();
+    
+    if (receipt?.status === 0) {
+        throw new Error('Transaction reverted');
+    }
+    
+    return {
+        txHash: receipt?.hash,
+        txUrl: `https://${chainId}.etherscan.io/tx/${receipt?.hash}`
+    };
+}
+```
+
+## API Integration Example
+
+Here's how to integrate the ERC20 transfer function in a Fastify API endpoint:
+
+```typescript
+import { FastifyInstance } from "fastify";
+import { getSigner } from "../utils/wallet";
+import { ethers } from "ethers";
+
+// ERC20 token transfer API route
+export async function erc20TransferRoute(fastify: FastifyInstance) {
+    fastify.post('/transfer/erc20/:chainId', async (request, reply) => {
+        try {
+            const { chainId } = request.params;
+            const { tokenAddress, recipient, amount } = request.body;
+
+            // Validate inputs
+            if (!tokenAddress || !ethers.isAddress(tokenAddress)) {
+                return reply.code(400).send({ error: 'Invalid token address' });
+            }
+            
+            if (!recipient || !ethers.isAddress(recipient)) {
+                return reply.code(400).send({ error: 'Invalid recipient address' });
+            }
+            
+            if (!amount || isNaN(parseFloat(amount)) || parseFloat(amount) <= 0) {
+                return reply.code(400).send({ error: 'Invalid amount' });
+            }
+
+            // Get the signer for the specified chain
+            const signer = await getSigner(chainId);
+            
+            // Create a contract instance
+            const erc20Abi = [
+                "function transfer(address to, uint256 amount) returns (bool)",
+                "function balanceOf(address owner) view returns (uint256)",
+                "function decimals() view returns (uint8)"
+            ];
+            
+            const tokenContract = new ethers.Contract(tokenAddress, erc20Abi, signer);
+            
+            // Get token decimals
+            const decimals = await tokenContract.decimals();
+            
+            // Convert the amount to the correct units based on decimals
+            const amountInSmallestUnit = ethers.parseUnits(amount, decimals);
+            
+            // Send the transaction
+            const tx = await tokenContract.transfer(recipient, amountInSmallestUnit);
+            
+            // Wait for the transaction to be mined
+            const receipt = await tx.wait();
+            
+            return {
+                success: receipt?.status === 1,
+                txHash: receipt?.hash,
+                txUrl: `https://${chainId}.etherscan.io/tx/${receipt?.hash}`
+            };
+        } catch (error) {
+            request.log.error(error);
+            return reply.code(500).send({
+                success: false,
+                error: error instanceof Error ? error.message : 'Failed to transfer tokens'
+            });
+        }
+    });
+}
+```
+
+## Best Practices
+
+1. **Environment Variables**: Store all sensitive information (private keys, API keys) in environment variables.
+
+2. **Error Handling**: Implement robust error handling around blockchain transactions.
+
+3. **Security**: For production environments, use HSM solutions like Google KMS or AWS KMS instead of raw private keys.
+
+4. **Transaction Monitoring**: Implement a system to monitor transaction status, especially for transactions that might take time to confirm.
+
+5. **Retry Mechanism**: Implement retry logic for failed transactions, especially in cases of network congestion.
+
+6. **Chain Selection**: Use the `findSupportedNetwork` utility to ensure you're connecting to supported networks.
+
+## Configuration Example
+
+A typical `.env` file for your backend might look like:
+
+```
+# Common configuration
+PROJECT_ACCESS_KEY=your-sequence-project-access-key
+SEQUENCE_RPC_URL=https://mainnet-sequencer.sequence.app
+SIGNER_TYPE=local|google_kms|aws_kms
+
+# Local signer configuration
+EVM_PRIVATE_KEY=your-private-key
+
+# Google KMS configuration
+PROJECT=your-gcp-project
+LOCATION=us-central1
+KEY_RING=your-keyring
+CRYPTO_KEY=your-key
+CRYPTO_KEY_VERSION=1
+
+# AWS KMS configuration
+AWS_REGION=us-east-1
+AWS_KMS_KEY_ID=your-key-id
+```
+
+With this setup, you can securely connect to multiple blockchain networks and perform transactions from your backend services using Sequence. 
