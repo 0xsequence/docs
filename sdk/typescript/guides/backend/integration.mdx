@@ -1,5 +1,5 @@
 ---
-title: 'Connect and send a transaction'
+title: 'Connect and send transactions'
 description: 'Learn how to integrate Sequence with your backend services'
 ---
 
@@ -177,7 +177,7 @@ If you want to learn more about the KMS Signer libraries, you can read our blog 
 
 ## Sending Transactions
 
-Once you have a signer, you can use it to send transactions. Here's how to send a transaction:
+Once you have a signer, you can use it to send transactions.
 
 ```typescript
 import { getSigner } from "./signer";
@@ -188,6 +188,27 @@ async function sendTransaction(chainId: string, to: string, value: string, data:
     
     // Send the transaction
     const tx = await signer.sendTransaction({ to, value, data });
+    
+    // Wait for the transaction to be mined
+    const receipt = await tx.wait();
+    
+    if (receipt?.status === 0) {
+        throw new Error('Transaction reverted');
+    }
+    
+    return {
+        txHash: receipt?.hash,
+        contractAddress: receipt?.contractAddress,
+        txUrl: `https://${chainId}.etherscan.io/tx/${receipt?.hash}`
+    };
+}
+
+async function sendTransactionBatch(chainId: string, transactions: { to: string, value: string, data: string }[]) {
+    // Get the signer for the specified chain
+    const signer = await getSigner(chainId);
+    
+    // Send the transaction batch
+    const tx = await signer.sendTransaction(transactions);
     
     // Wait for the transaction to be mined
     const receipt = await tx.wait();
