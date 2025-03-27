@@ -1,0 +1,179 @@
+---
+title: "useGetTransactionHistory"
+description: Hook for fetching and paginating through transaction history
+sidebarTitle: useGetTransactionHistory
+---
+
+## Import
+
+```tsx
+import { useGetTransactionHistory } from '@0xsequence/hooks'
+```
+
+## Usage
+
+```tsx
+import { useGetTransactionHistory } from '@0xsequence/hooks'
+
+function TransactionList() {
+  const {
+    data,
+    fetchNextPage,
+    hasNextPage,
+    isLoading,
+    isFetchingNextPage
+  } = useGetTransactionHistory({
+    chainId: 1,
+    accountAddress: '0x123...',
+    // Optional filters:
+    // contractAddress: '0x456...',
+    // tokenId: '1'
+  })
+
+  if (isLoading) return <div>Loading...</div>
+
+  return (
+    <div>
+      {data?.pages.map(page => 
+        page.transactions.map(tx => (
+          <div key={tx.txnHash}>
+            Transaction: {tx.txnHash}
+            Block: {tx.blockNumber}
+            Time: {tx.timestamp}
+          </div>
+        ))
+      )}
+      
+      {hasNextPage && (
+        <button 
+          onClick={() => fetchNextPage()}
+          disabled={isFetchingNextPage}
+        >
+          {isFetchingNextPage ? 'Loading more...' : 'Load more'}
+        </button>
+      )}
+    </div>
+  )
+}
+```
+
+## Return Type: `UseGetTransactionHistoryReturnType`
+
+The hook returns an object with the following properties:
+
+```tsx
+type UseGetTransactionHistoryReturnType = {
+  data?: {
+    pages: {
+      transactions: Array<{
+        txnHash: string
+        blockNumber: number
+        timestamp: string
+        // ... other transaction properties
+      }>
+      page: {
+        page: number
+        more: boolean
+      }
+    }[]
+  }
+  fetchNextPage: () => Promise<unknown>
+  hasNextPage: boolean
+  isLoading: boolean
+  isFetching: boolean
+  isFetchingNextPage: boolean
+  error: Error | null
+}
+```
+
+### Properties
+
+#### data
+
+`object | undefined`
+
+The paginated transaction history data containing multiple pages. Each page includes:
+- `transactions`: Array of transaction objects with properties like `txnHash`, `blockNumber`, and `timestamp`
+- `page`: Pagination information including current page number and whether more results exist
+
+#### fetchNextPage
+
+`() => Promise<unknown>`
+
+Function to load the next page of transactions.
+
+#### hasNextPage
+
+`boolean`
+
+Boolean indicating if more transactions are available to load.
+
+#### isLoading
+
+`boolean`
+
+Loading state for the initial data fetch.
+
+#### isFetching
+
+`boolean`
+
+Loading state for any data fetch (initial or subsequent).
+
+#### isFetchingNextPage
+
+`boolean`
+
+Loading state specifically for next page fetch.
+
+#### error
+
+`Error | null`
+
+Any error that occurred during data fetching.
+
+## Parameters
+
+The hook accepts two parameters:
+
+### args: `UseGetTransactionHistoryArgs`
+
+```tsx
+interface UseGetTransactionHistoryArgs {
+  chainId: number
+  accountAddress: string
+  contractAddress?: string
+  tokenId?: string
+  page?: {
+    page: number
+  }
+}
+```
+
+| Parameter | Type | Description |
+| --------- | ---- | ----------- |
+| `chainId` | `number` | The chain ID to fetch transactions from |
+| `accountAddress` | `string` | The address to fetch transaction history for |
+| `contractAddress` | `string` | (Optional) Filter transactions by contract address |
+| `tokenId` | `string` | (Optional) Filter transactions by token ID |
+| `page` | `object` | (Optional) Pagination configuration |
+
+### options: `HooksOptions`
+
+```tsx
+interface HooksOptions {
+  disabled?: boolean
+  retry?: boolean
+}
+```
+
+| Parameter | Type | Description |
+| --------- | ---- | ----------- |
+| `disabled` | `boolean` | (Optional) Disable the query from automatically running |
+| `retry` | `boolean` | (Optional) Whether to retry failed queries |
+
+## Notes
+
+This hook provides methods to fetch transaction history with support for infinite scrolling. It can filter transactions by contract address and token ID, making it useful for both general account history and specific asset history views.
+
+The hook uses `@tanstack/react-query` internally for data fetching and caching, with a stale time of 30 seconds.
