@@ -1,0 +1,199 @@
+---
+title: 'Databeat Integration Guide'
+description: 'Learn how to use Databeat tracking with Sequence applications'
+---
+
+# Databeat Integration
+
+This guide explains how to use Databeat tracking, which is already integrated into the Sequence documentation site.
+
+## Automatic Tracking
+
+The Sequence docs automatically track page views using Databeat. This tracking is implemented using vanilla JavaScript and is completely client-side.
+
+## Manual Event Tracking
+
+You can also manually track custom events using Databeat in your own applications. Here's how to do it:
+
+```javascript
+// Track a custom event
+databeat.track({
+  event: 'BUTTON_CLICK',
+  source: window.location.pathname,
+  props: {
+    button_id: 'login-button',
+    page: 'login'
+  }
+});
+
+// Track a view (shorthand method)
+databeat.trackView({
+  section: 'user-profile',
+  page_number: 1
+});
+
+// Set a custom user session
+databeat.session('user-123', { hash: true, agentSalt: true });
+```
+
+## Implementation Details
+
+Our Databeat integration is implemented using vanilla JavaScript. Here's how it works:
+
+1. We load the Databeat script asynchronously
+2. We initialize it with our host endpoint and auth token
+3. We automatically track page views
+4. We set up listeners for SPA navigation events
+
+You can see the full implementation in the [databeat-tracker.js](/scripts/databeat-tracker.js) file.
+
+## Using Databeat in Your Application
+
+To integrate Databeat into your own application:
+
+1. Install the package:
+```bash
+npm install @databeat/tracker@0.9.3
+```
+
+2. Initialize in your JavaScript:
+```javascript
+// Using ES modules
+import { Databeat } from '@databeat/tracker';
+
+// Initialize with your host endpoint and auth token
+const databeat = new Databeat(
+  'https://databeat.sequence.app',  // Host endpoint
+  'your-auth-token',  // Auth token
+  {
+    flushInterval: 1000,  // Flush the event queue every 1000ms
+    defaultEnabled: true,
+    sessionIds: { hash: true, agentSalt: true },
+    initProps: () => {
+      // Add any default properties for all events
+      return {
+        app: 'your-app-name',
+        environment: window.location.hostname.includes('localhost') ? 'development' : 'production'
+      };
+    }
+  }
+);
+
+// Track events
+databeat.track({
+  event: 'VIEW',
+  source: window.location.pathname,
+  props: {
+    title: document.title
+  }
+});
+```
+
+3. For vanilla JS without build tools (using CDN):
+```html
+<!-- Option 1: Using unpkg CDN -->
+<script src="https://unpkg.com/@databeat/tracker@0.9.3/dist/databeat-tracker.js"></script>
+
+<!-- Option 2: Using jsDelivr CDN (often faster) -->
+<script src="https://cdn.jsdelivr.net/npm/@databeat/tracker@0.9.3/dist/databeat-tracker.js"></script>
+
+<script>
+  // Initialize with your host endpoint and auth token
+  const databeat = new Databeat(
+    'https://databeat.sequence.app',  // Host endpoint  
+    'your-auth-token',  // Auth token
+    {
+      flushInterval: 1000,
+      defaultEnabled: true
+    }
+  );
+  
+  // Track events
+  databeat.trackView({
+    page: window.location.pathname
+  });
+</script>
+```
+
+## Tracking Custom Events
+
+You can track any custom events that are relevant to your application:
+
+```javascript
+// Track game events
+databeat.track({
+  event: 'GAME_STARTED',
+  source: 'game-client',
+  props: { 
+    level: 1, 
+    character: 'warrior'
+  }
+});
+
+databeat.track({
+  event: 'LEVEL_COMPLETED',
+  source: 'game-client',
+  props: { 
+    level: 1, 
+    score: 1000, 
+    time_spent: 120
+  }
+});
+
+// Track marketplace interactions
+databeat.track({
+  event: 'ITEM_VIEWED',
+  source: 'marketplace',
+  props: { 
+    item_id: '123', 
+    item_name: 'Rare Sword', 
+    category: 'weapons'
+  }
+});
+
+databeat.track({
+  event: 'PURCHASE_COMPLETED',
+  source: 'marketplace',
+  props: { 
+    transaction_id: 'tx-abc123',
+    amount: 100,
+    currency: 'USD',
+    items: [{ id: '123', name: 'Rare Sword', price: 100 }]
+  }
+});
+```
+
+## Session Management
+
+Databeat allows you to manage user sessions:
+
+```javascript
+// Set a custom session ID (will be hashed for privacy)
+databeat.session('user@example.com');
+
+// Check if tracking is enabled
+const isEnabled = databeat.isEnabled();
+
+// Enable tracking
+databeat.enable();
+
+// Disable tracking
+databeat.disable();
+
+// Get the current session ID
+const sessionId = databeat.getSessionId();
+
+// Check if the session is anonymous
+const isAnon = databeat.isAnon();
+```
+
+## Manually Flushing Events
+
+Databeat batches events and sends them periodically, but you can manually flush the event queue:
+
+```javascript
+// Manually flush the event queue
+await databeat.flush();
+```
+
+This will help you verify that events are being tracked correctly during development. 
