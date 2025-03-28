@@ -1,13 +1,13 @@
 ---
 title: Sequence Wallet Linking Integration - Embedded Wallet Authentication & External Wallet Sign-in
-description: This guide demonstrates how to integrate a parent Embedded Wallet with web2 authentication methods for wallet linking purposes. It covers signing into a social login provider and linking using signatures from an external wallet signed in via Sequence Kit stored privately and securely.
+description: This guide demonstrates how to integrate a parent Embedded Wallet with web2 authentication methods for wallet linking purposes. It covers signing into a social login provider and linking using signatures from an external wallet signed in via Web SDK stored privately and securely.
 ---
 
 # Integrating Wallet Linking
 
 Time to complete: 25-35 minutes
 
-In this guide, we will showcase how to sign into an [Embedded Wallet](/solutions/wallets/embedded-wallet/overview) using traditional authentication like email or social login. Then, in order to link an external wallet address using Sequence Kit (now Web SDK) to your Embedded Wallet, we will sign a message which creates a queryable set of addresses for a single user profile stored off-chain privately. Finally, other features of the API will be delved into, like listing total wallets linked and removal of the state of linked wallets, both using signatures for privacy preserving means.
+In this guide, we will showcase how to sign into an [Embedded Wallet](/solutions/wallets/embedded-wallet/overview) using traditional authentication like email or social login. Then, in order to link an external wallet address using Web SDK (now Web SDK) to your Embedded Wallet, we will sign a message which creates a queryable set of addresses for a single user profile stored off-chain privately. Finally, other features of the API will be delved into, like listing total wallets linked and removal of the state of linked wallets, both using signatures for privacy preserving means.
 
 # Demo 
 Give a [try of an example demo](https://demo-waas-wallet-link.pages.dev/) or [view the full source code](https://github.com/0xsequence-demos/demo-embedded-wallet-linking).
@@ -60,7 +60,7 @@ const api = new API("https://dev-api.sequence.app", fetch);
 
 ## 2. Link an external wallet to an embedded wallet
 
-In order to link an external wallet (e.g. EOA, Sequence Universal Wallet, etc.) to an Embedded Wallet, we first need to authenticate the user with an embedded wallet which is categorized as the `parent` wallet. Once authenticated, we would then authenticate them again using Sequence Kit where the user signs a message after authentication to validate ownership of that wallet. That message will be passed to the `linkWallet` API endpoint, with the following typed arguments and return types (negating the optional values):
+In order to link an external wallet (e.g. EOA, Sequence Universal Wallet, etc.) to an Embedded Wallet, we first need to authenticate the user with an embedded wallet which is categorized as the `parent` wallet. Once authenticated, we would then authenticate them again using Web SDK where the user signs a message after authentication to validate ownership of that wallet. That message will be passed to the `linkWallet` API endpoint, with the following typed arguments and return types (negating the optional values):
  
 ```typescript
 interface LinkWalletArgs {
@@ -83,7 +83,7 @@ linkWallet(args: LinkWalletArgs, headers?: object, signal?: AbortSignal): Promis
 
 ### Sign Message to Attest to Owning an Address
 
-There are two signatures required: one for the Embedded Wallet signing the Sequence Kit wallet address (linked wallet), and the linked wallet (from Sequence Kit) signing the parent wallet address (Embedded Wallet). You can sign any message presented to the user, as long as the message and signature are consistent with what is passed to the API later. For example, using the following code in React with Wagmi to obtain this information using Sequence:
+There are two signatures required: one for the Embedded Wallet signing the Web SDK wallet address (linked wallet), and the linked wallet (from Web SDK) signing the parent wallet address (Embedded Wallet). You can sign any message presented to the user, as long as the message and signature are consistent with what is passed to the API later. For example, using the following code in React with Wagmi to obtain this information using Sequence:
 
 ```typescript
 import {
@@ -135,7 +135,7 @@ function App(){
         const connectorName = connections[0]?.connector.name;
 
         const response = await api.linkWallet({
-            signatureChainId: "137", // network chosen for both embedded wallet and sequence kit
+            signatureChainId: "137", // network chosen for both embedded wallet and Web SDK
             linkedWalletType: connectorName,
             parentWalletAddress,
             parentWalletMessage: parentMessage,
@@ -199,7 +199,7 @@ const getLinkedWallets = async () => {
 ```
 
 ## 4. Removing Linked Wallets
-Finally, if you no longer want to keep a wallet linked off-chain to a parent wallet, you can perform a signature by both wallet instances (Embedded Wallet & Sequence Kit linked wallet), and pass in the linked wallet address, [like in step 6](/solutions/wallets/link-wallets/integration-guide#6-link-sequence-kit-signed-in-wallet) in order to remove the linked state:
+Finally, if you no longer want to keep a wallet linked off-chain to a parent wallet, you can perform a signature by both wallet instances (Embedded Wallet & Web SDK linked wallet), and pass in the linked wallet address, [like in step 6](/solutions/wallets/link-wallets/integration-guide#6-link-sequence-kit-signed-in-wallet) in order to remove the linked state:
 
 ### Sign Message to Attest to Removing a Linked Address
 
@@ -248,7 +248,7 @@ function App(){
         const { parentWalletAddress, linkedWalletAddress, parentMessage, linkingMessage, parentSignature, linkedSignature } = signaturesResult;
 
         const response = await api.removeLinkedWallet({
-            signatureChainId: "137", // network chosen for both Embedded Wallet and Sequence Kit
+            signatureChainId: "137", // network chosen for both Embedded Wallet and Web SDK
             parentWalletAddress,
             parentWalletMessage: parentMessage,
             parentWalletSignature: parentSignature,
