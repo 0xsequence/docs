@@ -1,0 +1,76 @@
+---
+title: "useSignInEmail"
+description: Hook to retrieve the email address associated with the connected wallet
+sidebarTitle: useSignInEmail
+---
+
+## Import
+
+```tsx
+import { useSignInEmail } from '@0xsequence/connect'
+```
+
+## Usage
+
+```tsx
+import { useSignInEmail } from '@0xsequence/connect'
+
+function App() {
+  const email = useSignInEmail()
+  
+  return (
+    <div>
+      <h2>User Information</h2>
+      {email ? (
+        <div>
+          <p>Connected with email: {email}</p>
+        </div>
+      ) : (
+        <p>No email associated with connected wallet</p>
+      )}
+    </div>
+  )
+}
+```
+
+## Return Type
+
+```tsx
+string | null
+```
+
+The hook returns:
+- A `string` containing the email address when a wallet is connected and has an associated email
+- `null` when:
+  - No wallet is connected
+  - The connected wallet has no associated email
+  - The wallet has been disconnected
+
+## State Management
+
+The hook manages the email state by:
+1. Monitoring the wallet connection status
+2. Retrieving the stored email when a wallet connects
+3. Clearing the email when the wallet disconnects
+4. Persisting the email in local storage using the `WaasSignInEmail` key
+
+## Notes
+
+This hook is designed to work with both:
+- Sequence WaaS (Wallet-as-a-Service) wallets
+- Universal wallet types
+
+Key features:
+- Automatic email retrieval on wallet connection
+- Persistent storage of email addresses
+- Automatic cleanup on wallet disconnection
+- Real-time connection status monitoring
+
+Common use cases:
+- Displaying user information in UI
+- User identification
+- Personalized experiences
+- Account management interfaces
+- Email verification flows
+
+The hook integrates with Sequence's storage system to maintain email persistence across sessions while ensuring proper cleanup when wallets are disconnected.
