@@ -52,7 +52,7 @@ function TokenPriceDisplay() {
           {prices.map((price, index) => (
             <li key={`${tokens[index].chainId}-${tokens[index].contractAddress}`}>
               Chain {tokens[index].chainId}:{' '}
-              {price.floorPrice.value} {price.floorPrice.currency}
+              {price.price.value} {price.price.currency}
             </li>
           ))}
         </ul>
@@ -95,17 +95,19 @@ interface HooksOptions {
 The hook returns a React Query result object:
 
 ```tsx
+interface Price {
+  value: number
+  currency: string
+}
+
 {
   data: {
     token: Token,
     price?: Price,
     price24hChange?: Price,
-    floorPrice: {
-      value: string
-      currency: string
-    },
-    buyPrice: Price,
-    sellPrice: Price,
+    floorPrice?: Price,
+    buyPrice?: Price,
+    sellPrice?: Price,
     updatedAt: string
   }[]
   isLoading: boolean    // Whether the initial request is in progress
