@@ -1,0 +1,223 @@
+---
+title: "Marketplace Actions"
+description: The action hooks are essential for interacting with the Marketplace in your application. Useful for making listings, making offers, and performing buy and sell actions.
+sidebarTitle: "Marketplace Actions"
+---
+
+## useCreateListingModal
+
+The useCreateListingModal hook is used to list an item for sale on the Marketplace. It provides the necessary functionality to create and manage a new listing.
+
+```ts
+import { useCreateListingModal } from "@0xsequence/marketplace-sdk/react";
+
+## Into your React component:
+
+const { show: showListModal } = useCreateListingModal({ onError });
+
+const onClickList = () => {
+	showListModal({
+		collectionAddress,
+		chainId,
+		collectibleId,
+		orderbookKind,
+	});
+};
+
+return <button onClick={onClickList}>List</button>
+```
+
+<ResponseField name="useCreateListingModal">
+	<ResponseField name="* params"/>
+  <Expandable>
+		```ts
+		interface useCreateListingModal {
+			onSuccess?: ({ hash, orderId }: {
+			hash?: Hash; 
+				orderId?: string; 
+			}) => void;
+			onError?: (error: Error) => void;
+		}
+		```
+  </Expandable>
+	<ResponseField name="* return properties"/>
+  <Expandable>
+    <ResponseField name="show" type="(args: ShowCreateListingModalArgs) => void">
+		```ts
+		interface ShowCreateListingModalArgs {
+			collectionAddress: Hex;
+			chainId: string;
+			collectibleId: string;
+			orderbookKind?: OrderbookKind;
+			callbacks?: ModalCallbacks;
+		}
+		```
+		</ResponseField>
+    <ResponseField name="close" type="() => void"></ResponseField>
+  </Expandable>
+</ResponseField>
+
+## useBuyModal
+
+The useBuyModal hook allows users to purchase an NFT that is listed for sale on the Marketplace. It handles the buying process and transaction execution.
+
+```ts
+import { useBuyModal } from "@0xsequence/marketplace-sdk/react";
+
+## Into your React component:
+
+const { show: showBuyModal } = useBuyModal({
+	onSuccess(hash) {
+		console.log("Buy transaction sent with hash: ", hash);
+	},
+	onError,
+});
+
+const onClickBuy = () => {
+	showBuyModal({
+		chainId,
+		collectionAddress,
+		tokenId,
+		order,
+	});
+};
+
+return <button onClick={onClickBuy}>Buy</button>
+```
+
+<ResponseField name="useBuyModal">
+	<ResponseField name="* params"/>
+  <Expandable>
+		```ts
+		interface useBuyModal {
+			onSuccess?: ({ hash, orderId }: {
+					hash?: Hash;
+					orderId?: string;
+			}) => void;
+			onError?: (error: Error) => void;
+		}
+		```
+  </Expandable>
+	<ResponseField name="* return properties"/>
+  <Expandable>
+    <ResponseField name="show" type="(args: ShowBuyModalArgs) => void">
+		```ts
+		interface ShowBuyModalArgs {
+			chainId: string;
+			collectionAddress: Hex;
+			tokenId: string;
+			order: Order;
+		}
+		```
+		</ResponseField>
+    <ResponseField name="close" type="() => void"></ResponseField>
+  </Expandable>
+</ResponseField>
+
+## useMakeOfferModal
+
+The useMakeOfferModal hook enables users to place an offer on an NFT. It facilitates creating and submitting offers within the Marketplace.
+
+```ts
+import { useMakeOfferModal } from "@0xsequence/marketplace-sdk/react";
+
+## Into your React component:
+
+const { show: showOfferModal } = useMakeOfferModal({
+	onError,
+});
+
+const onClickOffer = () => {
+	showOfferModal({
+		collectionAddress,
+		chainId,
+		collectibleId,
+		orderbookKind,
+	});
+};
+
+return <button onClick={onClickOffer}>Make Offer</button>
+```
+
+<ResponseField name="useMakeOfferModal">
+	<ResponseField name="* params"/>
+  <Expandable>
+		```ts
+		interface useMakeOfferModal {
+			onSuccess?: ({ hash, orderId }: {
+					hash?: Hash;
+					orderId?: string;
+			}) => void;
+			onError?: (error: Error) => void;
+		}
+		```
+  </Expandable>
+	<ResponseField name="* return properties"/>
+  <Expandable>
+    <ResponseField name="show" type="(args: ShowMakeOfferModalArgs) => void">
+		```ts
+		interface ShowMakeOfferModalArgs {
+			collectionAddress: Hex;
+			chainId: string;
+			collectibleId: string;
+			orderbookKind?: OrderbookKind;
+			callbacks?: ModalCallbacks;
+		}
+		```
+		</ResponseField>
+    <ResponseField name="close" type="() => void"></ResponseField>
+  </Expandable>
+</ResponseField>
+
+## useSellModal
+
+The useSellModal hook is used to sell an NFT by accepting an existing offer. It provides the necessary functionality to complete the selling process.
+
+```ts
+import { useSellModal } from "@0xsequence/marketplace-sdk/react";
+
+## Into your React component:
+
+const { show: showSellModal } = useSellModal({ onError });
+
+const onAcceptOffer = () => {
+	showSellModal({
+		collectionAddress,
+		chainId,
+		tokenId,
+		order,
+	});
+};
+
+return <button onClick={onAcceptOffer}>Accept Offer</button>
+```
+
+<ResponseField name="useSellModal">
+	<ResponseField name="* params"/>
+  <Expandable>
+		```ts
+		interface useSellModal {
+			onSuccess?: ({ hash, orderId }: {
+				hash?: Hash;
+				orderId?: string;
+			}) => void;
+			onError?: (error: Error) => void;
+		}
+		```
+  </Expandable>
+	<ResponseField name="* return properties"/>
+  <Expandable>
+    <ResponseField name="show" type="(args: ShowSellModalArgs) => void">
+		```ts
+		interface ShowSellModalArgs {
+			collectionAddress: Hex;
+			chainId: string;
+			tokenId: string;
+			order: Order;
+			callbacks?: ModalCallbacks;
+		}
+		```
+		</ResponseField>
+    <ResponseField name="close" type="() => void"></ResponseField>
+  </Expandable>
+</ResponseField>
