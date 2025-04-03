@@ -10,7 +10,6 @@
   s.src = '/snippets/dist/databeat-tracker.umd.js';
   s.async = true;
   s.onload = function() {
-    console.log('Databeat: Script loaded successfully');
     console.log('Available global objects:', Object.keys(window).filter(key => key.includes('ata')));
     initDatabeat();
   };
