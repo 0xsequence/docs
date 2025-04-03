@@ -52,7 +52,25 @@
     // Track initial pageview
     trackPageview();
     
+    // Listen for browser back/forward navigation
     window.addEventListener('popstate', () => setTimeout(trackPageview, 300));
+    
+    // Override History API methods to track programmatic navigation
+    const originalPushState = history.pushState;
+    const originalReplaceState = history.replaceState;
+    
+    history.pushState = function() {
+      originalPushState.apply(this, arguments);
+      setTimeout(trackPageview, 300); // Delay to ensure DOM is updated
+    };
+    
+    history.replaceState = function() {
+      originalReplaceState.apply(this, arguments);
+      setTimeout(trackPageview, 300); // Delay to ensure DOM is updated
+    };
+    
+    // Also track on hash changes for SPAs that use hash-based routing
+    window.addEventListener('hashchange', () => setTimeout(trackPageview, 300));
   }
   
   // Helper function to track pageviews
