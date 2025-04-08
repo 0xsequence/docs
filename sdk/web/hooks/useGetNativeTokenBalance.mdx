@@ -1,0 +1,140 @@
+---
+title: "useGetNativeTokenBalance"
+description: Hook for fetching native token balances across multiple chains
+sidebarTitle: useGetNativeTokenBalance
+---
+
+## Import
+
+```tsx
+import { useGetNativeTokenBalance } from '@0xsequence/hooks'
+```
+
+## Usage
+
+```tsx
+import { useGetNativeTokenBalance } from '@0xsequence/hooks'
+import { useAccount } from 'wagmi'
+
+function NativeBalances() {
+  const { address } = useAccount()
+  
+  const {
+    data: balances,
+    isLoading,
+    isError,
+    error
+  } = useGetNativeTokenBalance({
+    accountAddress: address || '',
+    chainIds: [1, 137] // Fetch ETH on Ethereum and POL on Polygon
+  })
+
+  if (isLoading) return <div>Loading...</div>
+  if (isError) return <div>Error: {error.message}</div>
+
+  return (
+    <div>
+      {balances?.map(balance => (
+        <div key={balance.chainId}>
+          <h3>Chain {balance.chainId}</h3>
+          <p>Balance: {balance.balance}</p>
+          <p>Token: {balance.contractAddress}</p>
+        </div>
+      ))}
+    </div>
+  )
+}
+```
+
+## Return Type: `UseQueryResult<TokenBalance[]>`
+
+The hook returns all properties from React Query's `UseQueryResult` with token balance data. Here's the detailed structure:
+
+```tsx
+interface TokenBalance {
+    contractType: ContractType;
+    contractAddress: string;
+    accountAddress: string;
+    tokenID?: string;
+    balance: string;
+    blockHash: string;
+    blockNumber: number;
+    chainId: number;
+    uniqueCollectibles: string;
+    isSummary: boolean;
+    contractInfo?: ContractInfo;
+    tokenMetadata?: TokenMetadata;
+}
+```
+
+### Properties
+
+#### data
+
+`TokenBalance[] | undefined`
+
+Array of token balance objects containing:
+
+- `chainId`: The chain ID where the balance was fetched from
+- `accountAddress`: The address whose balance was queried
+- `contractAddress`: The address of the native token (typically zero address)
+- `balance`: The balance amount in the token's base units
+- `contractType`: The type of contract (e.g., ERC20, ERC721, ERC1155)
+- `contractInfo`: Additional contract information
+- `tokenMetadata`: Metadata about the token
+- `blockHash`: The hash of the block in which the balance was recorded
+- `blockNumber`: The number of the block in which the balance was recorded
+- `uniqueCollectibles`: The number of unique collectibles
+- `isSummary`: Whether the balance is a summary
+- `tokenID`: The ID of the token (for ERC721 and ERC1155 tokens)
+
+#### isLoading
+
+`boolean`
+
+Loading state for the data fetch.
+
+#### isError
+
+`boolean`
+
+Error state indicating if the query failed.
+
+#### error
+
+`Error | null`
+
+Any error that occurred during data fetching.
+
+## Parameters
+
+The hook accepts two parameters:
+
+### args: `GetNativeTokenBalanceArgs`
+
+```tsx
+interface GetNativeTokenBalanceArgs {
+    chainIds?: Array<number>;
+    networks?: Array<string>;
+    accountAddress?: string;
+}
+```
+
+| Parameter | Type | Description |
+| --------- | ---- | ----------- |
+| `accountAddress` | `string` | The address to fetch balances for |
+| `chainIds` | `number[]` | Array of chain IDs to fetch balances from |
+| `networks` | `string[]` | Array of network names to fetch balances from |
+### options: `HooksOptions`
+
+```tsx
+interface HooksOptions {
+  disabled?: boolean
+  retry?: boolean
+}
+```
+
+| Parameter | Type | Description |
+| --------- | ---- | ----------- |
+| `disabled` | `boolean` | (Optional) Disable the query from automatically running |
+| `retry` | `boolean` | (Optional) Whether to retry failed queries |
