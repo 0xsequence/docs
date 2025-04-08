@@ -1,0 +1,216 @@
+---
+title: "useGetTokenMetadata"
+description: Hook for fetching token-specific metadata for individual tokens within a contract
+sidebarTitle: useGetTokenMetadata
+---
+
+## Import
+
+```tsx
+import { useGetTokenMetadata } from '@0xsequence/hooks'
+```
+
+## Usage
+
+```tsx
+import { useGetTokenMetadata } from '@0xsequence/hooks'
+
+// Example 1: Single NFT Details
+function NFTDetails({ contractAddress, tokenId }) {
+  const {
+    data: tokensMetadata,
+    isLoading,
+    isError
+  } = useGetTokenMetadata({
+    chainID: "1", // Ethereum mainnet
+    contractAddress, 
+    tokenIDs: [tokenId]
+  })
+
+  if (isLoading) return <div>Loading NFT details...</div>
+  if (isError) return <div>Error loading NFT</div>
+
+  const nft = tokensMetadata?.[0]
+  if (!nft) return <div>NFT not found</div>
+
+  return (
+    <div className="nft-details">
+      <img 
+        src={nft.image}
+        alt={nft.name}
+        className="nft-image"
+      />
+      <div className="nft-info">
+        <h1>{nft.name}</h1>
+        <p>{nft.description}</p>
+        
+        <div className="attributes-grid">
+          {nft.attributes?.map(attr => (
+            <div key={attr.trait_type} className="attribute-card">
+              <span className="trait-type">{attr.trait_type}</span>
+              <span className="trait-value">{attr.value}</span>
+              {attr.rarity && (
+                <span className="trait-rarity">{attr.rarity}%</span>
+              )}
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// Example 2: Batch NFT Collection Display
+function NFTCollectionGrid({ contractAddress, tokenIds }) {
+  const {
+    data: tokensMetadata,
+    isLoading,
+    isError
+  } = useGetTokenMetadata({
+    chainID: "1",
+    contractAddress,
+    tokenIDs: tokenIds // Will automatically chunk into batches of 50
+  })
+
+  if (isLoading) return <div>Loading collection...</div>
+  if (isError) return <div>Error loading collection</div>
+
+  return (
+    <div className="nft-grid">
+      {tokensMetadata?.map(token => (
+        <div key={token.tokenId} className="nft-tile">
+          <img 
+            src={token.image}
+            alt={token.name}
+            loading="lazy"
+          />
+          <div className="nft-tile-info">
+            <h3>{token.name}</h3>
+            {token.attributes && (
+              <div className="trait-pills">
+                {token.attributes.slice(0, 3).map(attr => (
+                  <span key={attr.trait_type} className="trait-pill">
+                    {attr.trait_type}: {attr.value}
+                  </span>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      ))}
+    </div>
+  )
+}
+```
+
+## Return Type: `UseQueryResult<TokenMetadata[]>`
+
+The hook returns all properties from React Query's `UseQueryResult` with token metadata. Here's the detailed structure:
+
+```tsx
+interface TokenMetadata {
+    tokenId: string;
+    source: string;
+    name: string;
+    description?: string;
+    image?: string;
+    video?: string;
+    audio?: string;
+    properties?: {
+        [key: string]: any;
+    };
+    attributes: Array<{
+        [key: string]: any;
+    }>;
+    image_data?: string;
+    external_url?: string;
+    background_color?: string;
+    animation_url?: string;
+    decimals?: number;
+    updatedAt?: string;
+    assets?: Array<Asset>;
+    status: ResourceStatus;
+    queuedAt?: string;
+    lastFetched?: string;
+}
+```
+
+### Properties
+
+#### data
+
+`TokenMetadata[] | undefined`
+
+Array of objects containing metadata for each requested token:
+
+- `tokenId`: ID of the specific token
+- `source`: Source/origin of the token metadata (e.g. "sequence", "opensea")
+- `name`: Name of the specific token (e.g., "Bored Ape #1234") 
+- `description`: Description of the specific token
+- `image`: Token image URL (automatically proxied through image service)
+- `video`: Video URL if token has video content
+- `audio`: Audio URL if token has audio content
+- `properties`: Additional metadata properties as key-value pairs
+- `attributes`: Array of trait objects for NFTs
+- `image_data`: Raw SVG/image data if provided
+- `external_url`: External URL associated with the token
+- `background_color`: Background color in hex format
+- `animation_url`: URL for animated content
+- `decimals`: Token decimals (for ERC1155 fungible tokens)
+- `updatedAt`: ISO timestamp of last metadata update
+- `assets`: Array of additional asset files
+- `status`: Current status of the metadata ("READY", "PENDING", "ERROR")
+- `queuedAt`: ISO timestamp when metadata indexing was queued
+- `lastFetched`: ISO timestamp of last successful fetch
+
+#### isLoading
+
+`boolean`
+
+Loading state for the data fetch.
+
+#### isError
+
+`boolean`
+
+Error state indicating if the query failed.
+
+#### error
+
+`Error | null`
+
+Any error that occurred during data fetching.
+
+## Parameters
+
+The hook accepts two parameters:
+
+### args: `GetTokenMetadataArgs`
+
+```tsx
+interface GetTokenMetadataArgs {
+  chainID: string
+  contractAddress: string
+  tokenIDs: string[]
+}
+```
+
+| Parameter | Type | Description |
+| --------- | ---- | ----------- |
+| `chainID` | `string` | Chain ID as string (e.g., "1" for Ethereum mainnet) |
+| `contractAddress` | `string` | Contract address of the token/NFT |
+| `tokenIDs` | `string[]` | Array of token IDs to fetch metadata for |
+
+### options: `HooksOptions`
+
+```tsx
+interface HooksOptions {
+  disabled?: boolean
+  retry?: boolean
+}
+```
+
+| Parameter | Type | Description |
+| --------- | ---- | ----------- |
+| `disabled` | `boolean` | (Optional) Disable the query from automatically running |
+| `retry` | `boolean` | (Optional) Whether to retry failed queries |
