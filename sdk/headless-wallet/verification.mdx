@@ -20,7 +20,15 @@ A common use case is that you authenticate the user on the client, but you want 
 
 Once a user has authenticated with an embedded wallet on the client, simply call the corresponding function in order get a JWT from Sequence.
 ```typescript
+// Using Sequence.js
 const { idToken } = await sequence.getIdToken();
+``` 
+
+```typescript
+// Using Web-SDK in React
+const { connector } = useAccount()
+
+const { idToken, expiry } = await connector.sequenceWaas.getIdToken()
 ``` 
 
 </Step>
@@ -56,8 +64,8 @@ const client = jwksClient({
   cacheMaxAge: 86400000, // 1 day
 });
 
-// Should be equal to the audience claim in the JWT that you want to verify which will be of the form https://api.sequence.build/project/*projectID*
-const EXPECTED_AUDIENCE = "https://api.sequence.build/project/*PROJECT_ID*"
+// Should be equal to the audience claim in the JWT that you want to verify which will be of the form https://sequence.build/project/*projectID*
+const EXPECTED_AUDIENCE = "https://sequence.build/project/*PROJECT_ID*"
 ```
 
 </Step>
