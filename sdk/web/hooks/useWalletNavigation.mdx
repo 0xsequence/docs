@@ -1,22 +1,22 @@
 ---
-title: "useNavigation"
+title: "useWalletNavigation"
 description: Hook for managing navigation state and history within the wallet widget
-sidebarTitle: useNavigation
+sidebarTitle: useWalletNavigation
 ---
 
 ## Import
 
 ```tsx
-import { useNavigation } from '@0xsequence/hooks'
+import { useWalletNavigation } from '@0xsequence/wallet-widget' 
 ```
 
 ## Usage
 
 ```tsx
-import { useNavigation } from '@0xsequence/hooks'
+import { useWalletNavigation } from '@0xsequence/wallet-widget'
 
 function SendView() {
-  const { setNavigation, goBack } = useNavigation()
+  const { setNavigation, goBack } = useWalletNavigation() 
 
   const handleSend = () => {
     // Navigate to confirmation view
@@ -40,12 +40,12 @@ function SendView() {
 }
 ```
 
-## Return Type: `UseNavigation`
+## Return Type: `useWalletNavigation`
 
 The hook returns an object with navigation controls and state:
 
 ```tsx
-interface UseNavigation {
+interface useWalletNavigation {
   setNavigation: (navigation: Navigation) => void
   setHistory?: (history: History) => void
   history: History
@@ -116,7 +116,7 @@ When using `setNavigation`, you provide a `Navigation` object with:
 
 ```tsx
 function HomeView() {
-  const { setNavigation } = useNavigation()
+  const { setNavigation } = useWalletNavigation()
 
   return (
     <button onClick={() => setNavigation({ 
@@ -132,7 +132,7 @@ function HomeView() {
 
 ```tsx
 function TokenList() {
-  const { setNavigation } = useNavigation()
+  const { setNavigation } = useWalletNavigation()
 
   const viewToken = (tokenId: string) => {
     setNavigation({
@@ -160,7 +160,7 @@ function TokenList() {
 
 ```tsx
 function SettingsView() {
-  const { goBack } = useNavigation()
+  const { goBack } = useWalletNavigation()
 
   return (
     <div>
@@ -177,7 +177,7 @@ function SettingsView() {
 
 ```tsx
 function NavigationBreadcrumbs() {
-  const { history } = useNavigation()
+  const { history } = useWalletNavigation()
 
   return (
     <div>
