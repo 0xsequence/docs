@@ -1,0 +1,35 @@
+---
+title: トランザクションレシートの取得
+sidebarTitle: トランザクションレシートの取得
+---
+
+トランザクションAPIを通じて送信された任意のトランザクションのレシートを取得するには、`/GetMetaTxnReceipt`エンドポイントを呼び出します。
+`metaTxID`は`txnHash`からのレスポンスの`/SendMetaTxn`エンドポイントです。
+
+<CodeGroup>
+  ```sh cURL
+  curl -s -X POST -H 'Content-Type: application/json' \
+    -d '{"metaTxID":"462de2756e45c93698b89ada5ba4a3c9d1bfb9fb354ad2e7f36f1a9fefbc550b"}' \
+    https://polygon-relayer.sequence.app/rpc/Relayer/GetMetaTxnReceipt | jq
+
+  {
+    "receipt": {
+      "id": "462de2756e45c93698b89ada5ba4a3c9d1bfb9fb354ad2e7f36f1a9fefbc550b",
+      "status": "SUCCEEDED",
+      "revertReason": null,
+      "index": 0,
+      "logs": []
+    }
+  }
+
+  ...
+  ```
+
+  ```typescript TypeScript
+  const { receipt } = await session.account.relayer(config.chainId).wait('462de2756e45c93698b89ada5ba4a3c9d1bfb9fb354ad2e7f36f1a9fefbc550b')
+  ```
+
+  ```go Go
+  status, receipt, _ := relayer.Wait(ctx, "462de2756e45c93698b89ada5ba4a3c9d1bfb9fb354ad2e7f36f1a9fefbc550b")
+  ```
+</CodeGroup>

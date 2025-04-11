@@ -1,0 +1,128 @@
+---
+title: ブロックチェーンからの読み取り
+description: ブロックチェーンからデータを読み取るには、Sequence Indexerの
+  Unity用ネイティブ実装を使用します。
+---
+
+# ブロックチェーンからの読み取り
+
+ブロックチェーンからの読み取りは、私たちのUnityネイティブ実装を使用して行われます[Sequence Indexer](/api-references/indexer/overview)。
+
+インスタンスの作成をお勧めします[`ChainIndexer`クラス](https://github.com/0xsequence/sequence-unity/blob/master/Assets/SequenceSDK/Indexer/ChainIndexer.cs)。これにより、以下が提供する全ての機能にアクセスできます[`IIndexer`インターフェース](https://github.com/0xsequence/sequence-unity/blob/master/Assets/SequenceSDK/Indexer/IIndexer.cs)。
+
+```csharp
+IIndexer polygonIndexer = new ChainIndexer(Chain.Polygon);
+```
+
+指定したチェーンのインデクサーAPIが稼働しているかどうかを確認するには、以下を使用します`Ping`非同期タスク。これはリクエストが失敗した場合に役立ちます。開発中は、以下で私たちのインデクサーのステータスを確認することもできます[ステータスページ](https://status.sequence.info/)。
+
+```csharp
+IIndexer chainIndexer = new ChainIndexer(chain);
+bool indexerIsWorking = await chainIndexer.Ping();
+```
+
+## 残高の取得
+
+ユーザーのEther（またはネットワークのデフォルトガス通貨）の残高を確認するには、以下を使用します`GetEtherBalance`非同期タスク。
+
+```csharp
+IIndexer chainIndexer = new ChainIndexer(chain);
+EtherBalance balance = await chainIndexer.GetEtherBalance(address);
+BigInteger balanceInWei = balance.balanceWei;
+```
+
+## トークン残高の取得
+
+ユーザーのトークン残高を取得するには、以下を使用します`GetTokenBalances`非同期タスク。
+
+```csharp
+IIndexer chainIndexer = new ChainIndexer(chain);
+GetTokenBalancesReturn balances = await chainIndexer.GetTokenBalances(new GetTokenBalancesArgs(address));
+TokenBalance[] tokenBalances = balances.balances;
+```
+
+この方法で取得すると、各スマートコントラクトにつき1つのトークンインスタンスのみを受け取ります。アドレスを指定せずに取得することは、プレイヤーがどのコントラクトからトークンを所有しているか、またどのERC20をウォレットに持っているかを判断するのに役立ちます。
+
+ERC721またはERC1155トークンの個別の残高を取得するには、以下でコントラクトを指定する必要があります`GetTokenBalancesArgs`。
+
+```csharp
+IIndexer chainIndexer = new ChainIndexer(chain);
+GetTokenBalancesReturn balances = await chainIndexer.GetTokenBalances(new GetTokenBalancesArgs(userAddress, contractAddress));
+TokenBalance[] tokenBalances = balances.balances;
+```
+
+プレイヤーが特定のコントラクトに対して多くのトークンIDを持っている場合（または多くのコントラクトからトークンを所有している場合）、ページネーションを処理する必要があります。この場合、以下を確認する必要があります`Page`あなたが受け取る`GetTokenBalancesReturn`でさらにデータがあるかどうかを確認し、ある場合はページを含めて別のリクエストを行います。
+
+```csharp
+IIndexer chainIndexer = new ChainIndexer(chain);
+GetTokenBalancesReturn balances = await chainIndexer.GetTokenBalances(new GetTokenBalancesArgs(userAddress, contractAddress));
+List<TokenBalance> finalResult = new List<TokenBalance>();
+TokenBalance[] tokenBalances = balances.balances;
+AddItemsFromArrayToList(tokenBalances, finalResult);
+while (tokenBalances.page.more) {
+    tokenBalances = await GetTokenBalances(new GetTokenBalancesArgs(accountAddress, contractAddress, tokenBalances.page));
+    AddItemsFromArrayToList(tokenBalances, finalResult);
+}
+```
+
+この操作を簡素化するために、ラッパーを作成しました`GetTokenBalancesOrganizedInDictionary`。これは、指定されたcontractAddressとuserAccountAddressに対するすべてのTokenBalanceを取得し、tokenID（BigInteger）からTokenBalanceへのマッピングをDictionaryとして整理します。一般的に、これを最も頻繁に使用することになるでしょう。
+
+```csharp
+IIndexer chainIndexer = new ChainIndexer(chain);
+Dictionary<BigInteger, TokenBalance> tokenBalancesDictionary = await chainIndexer.GetTokenBalancesOrganizedInDictionary(accountAddress, contractAddress);
+```
+
+これにより、各トークンIDの残高確認がより簡単になります。
+
+## トークン供給量の取得
+
+特定のスマートコントラクトの総トークン供給量を取得する必要がある場合は、以下を使用できます`GetTokenSupplies`非同期タスク。
+
+```csharp
+IIndexer chainIndexer = new ChainIndexer(chain);
+GetTokenSuppliesReturn tokenSupplies = await chainIndexer.GetTokenSupplies(new GetTokenSuppliesArgs(contractAddress))
+```
+
+これは一般的な操作になるとは予想していませんが、必要な場合に備えて公開しています。
+
+### トークン供給量マップの取得
+
+上級`GetTokenSupplies`ユーザー向けに、`GetTokenSuppliesMap`非同期タスクも提供しており、これにより複数のトークンコントラクトとトークンIDの供給量をマップとして取得できます。
+
+```csharp
+IIndexer indexer = new ChainIndexer(Chain.Polygon);
+string usdcAddress = "0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359".ToLower();
+string wmaticAddress = "0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270".ToLower();
+string skyweaverAddress = "0x631998e91476da5b870d741192fc5cbc55f5a52e".ToLower();
+string skyweaverTokenId1 = "68657";
+string skyweaverTokenId2 = "66669";
+string skyweaverTokenId3 = "66668";
+GetTokenSuppliesMapReturn suppliesMapReturn = await indexer.GetTokenSuppliesMap(new GetTokenSuppliesMapArgs(
+    new Dictionary<string, string[]>()
+    {
+        { usdcAddress, new string[] { } },
+        { wmaticAddress, new string[] { "0" } },
+        { skyweaverAddress, new string[] { skyweaverTokenId1, skyweaverTokenId2, skyweaverTokenId3 } },
+    }));
+Dictionary<string, TokenSupply[]> suppliesMap = suppliesMapReturn.supplies;
+```
+
+ここでは、以下を期待できます`suppliesMap[usdcAddress].Length = 1`ERC20トークンの供給量に関連するTokenSupplyオブジェクトと共に。
+
+同様に、以下を期待できます`suppliesMap[skyweaverAddress].Length = 3`指定されたトークンIDに関連するTokenSupplyオブジェクトと共に。
+
+## トランザクション履歴の取得
+
+特定のアカウントのトランザクション履歴を取得するには、以下のメソッドを使用します`GetTransactionHistory`メソッド。
+
+```csharp
+IIndexer chainIndexer = new ChainIndexer(chain);
+GetTransactionHistoryReturn history = await chainIndexer.GetTransactionHistory(
+    new GetTransactionHistoryArgs(new TransactionHistoryFilter()
+    {
+        accountAddress = userAccountAddress;
+    })
+);
+```
+
+この`TransactionHistoryFilter`オブジェクトを使用すると、アカウントアドレスやコントラクトアドレスなどでトランザクション履歴クエリをフィルタリングする方法を指定できます。詳細は[こちら](/api-references/indexer/examples/transaction-history)。

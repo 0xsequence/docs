@@ -1,0 +1,139 @@
+---
+title: Sequence Builderでゲーム内通貨をデプロイする方法
+description: ERC20コントラクトをデプロイしミントすることで、独自のゲーム内通貨を
+  作成する方法を学びます。代替可能トークンと非代替性トークンの違いを
+  理解しましょう。
+sidebarTitle: ゲーム内通貨のデプロイ（ERC20）
+---
+
+## はじめに
+
+このガイドでは、ERC20コントラクトのデプロイとミントを通じて、独自のゲーム内通貨を作成するプロセスをご案内します。
+
+通貨トークンは、ゲーム内経済、取引、プレイヤー間のインタラクションに新しい興味深い側面を加え、価値を解放し分配します。
+
+#### ERC20トークンとは？
+
+ERC20トークンはデジタルコインです - 特別なのは[ERC20と呼ばれる一連のルール](https://ethereum.org/en/developers/docs/standards/tokens/erc-20/)に従っているため、インターネット上の様々な場所で簡単に使用できることです。これらのトークンは多くの場合、価値を表したり特定の目的に使用されたりします。もう一つの一般的なトークンであるNFTとは異なり、これらのトークンは代替可能です。
+
+#### 代替性 vs 非代替性
+
+これが理解すべき重要な違いです。
+
+代替可能トークン（ERC20トークンなど）は互換性があり、各単位はドルやユーロのように他のすべての単位と同じです。異なる数量に簡単に分割または結合することができます。
+
+非代替トークン（ERC721トークンなど）は、デジタルアートやコレクティブルなど、個別の特性を持つユニークなアイテムを表します。各トークンは固有であり、一対一で直接交換することはできません。
+
+<Warning>
+  前提条件：プロジェクトの作成
+
+  このガイドは、すでに[Builderにサインアップしてプロジェクトを作成している](/solutions/builder/getting-started)ことを前提としています。
+</Warning>
+
+## ステップ1：コントラクトへ移動
+
+左上で`project`通貨を作成したいプロジェクトを選択し、`contracts`セクションを選択します`+ Deploy new contract`
+
+<Frame>
+  ![select project and new contract](/images/collectibles/select_project_new_contract.png)
+</Frame>
+
+## ステップ2：通貨トークンを選択
+
+クリック`View more contracts`
+
+<Frame>
+  ![view more contracts](/images/collectibles/view_more_contracts.png)
+</Frame>
+
+通貨トークンコントラクトを選択し、`deploy`をクリックしてSequenceの監査済みコントラクトをデプロイします
+
+<Frame>
+  ![select currency and deploy button](/images/collectibles/select_currency_deploy.png)
+</Frame>
+
+## ステップ3：コントラクトの詳細を指定
+
+コントラクトの詳細を`name`と`symbol`を指定して完了します。
+
+<Frame>
+  ![select currency and deploy button](/images/collectibles/currency_contract_details.png)
+</Frame>
+
+<Warning>
+  注意：
+
+  後でbuilderインターフェースで`name`と`symbol`を変更することができ、sequenceスタック全体で更新されますが、一般的なエクスプローラーは情報を再インデックス化しないため、最初に入力した内容が残ります
+</Warning>
+
+## ステップ4：コントラクトをデプロイ
+
+ポップアップウィンドウから[http://sequence.app/sign-transaction](http://sequence.app/sign-transaction)でコントラクトをデプロイし、`confirm`
+
+<Frame>
+  <img src="/images/collectibles/sign_deploy_transaction.png" width="200" />
+</Frame>
+
+<Note>
+  すべてのテストネットは無料で取引できます
+</Note>
+
+## ステップ5：コントラクトにミンターロールを追加
+
+まず、`contracts`セクションで先ほどデプロイしたコントラクトを選択します
+
+<Frame>
+  ![select contract](/images/collectibles/select_contract.png)
+</Frame>
+
+次に、`Write Contract`セクションに移動します
+
+<Frame>
+  ![write contract](/images/collectibles/select_write_contract.png)
+</Frame>
+
+書き込みコントラクトタブナビゲーションの`grantRole`セクションで、以下の詳細を入力します：
+
+`bytes32 role`:`0x9f2df0fed2c77648de5860a4cc508cd0818c85b8b8a1ab4ceeef8d981c8956a6`
+
+`address account`:`<Wallet Address>`
+
+ウォレットアドレスは、トークンをウォレットに送信できるように右上からコピーしただけです
+
+<Frame>
+  ![copy address](/images/collectibles/copy_address.png)
+</Frame>
+
+<Frame>
+  ![grant role](/images/collectibles/grant_role.png)
+</Frame>
+
+最後に`write`を選択し、以前と同様にポップアップウィンドウでトランザクションに署名します
+
+確認メッセージが表示されます`Response Success`
+
+<Note>
+  入力されたロール文字列は`solidityPackedKeccak256("MINTER_ROLE")`のSolidityでの結果、または`ethers.solidityPackedKeccak256(ethers.toUtf8Bytes("MINTER_ROLE"))`のJavaScriptでの結果です
+</Note>
+
+<Tip>
+  トランザクションを送信するリレーヤーウォレットを持つCloudflare Workerのようなオフチェーンコンピュートを使用するのが一般的なパターンで、これはアカウントフィールドに入力されます。これを実現する方法の詳細については[こちら](/guides/mint-collectibles-serverless#mint-collectibles-using-a-gasless-serverless-transactions-api)
+</Tip>
+
+## ステップ6：ウォレットアドレスにトークンをミント
+
+次の場所に移動します：`mint`カードの`Write Contract`セクションで、トークンを受け取りたいウォレットアドレスと18桁のトークン数を入力します。100トークンの場合は以下のように入力します：`100000000000000000000`
+
+<Frame>
+  ![mint tokens](/images/collectibles/mint_currency.png)
+</Frame>
+
+## ステップ7：ミントされた通貨を確認する
+
+これで完了です！
+
+ウォレットアドレスのブロックチェーンに送信されたトランザクションは`Transactions`タブナビゲーション
+
+<Frame>
+  ![view currency transactions](/images/collectibles/view_currency_transactions.png)
+</Frame>

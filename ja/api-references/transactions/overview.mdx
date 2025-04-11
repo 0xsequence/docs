@@ -1,0 +1,99 @@
+---
+title: Transactions API
+sidebarTitle: Overview
+---
+
+Sequence Transactions API（または技術用語ではRelayerサービス）は、Ethereum互換ネットワーク上でメタトランザクションを配信するためのシンプルなインターフェースを提供します。
+
+メタトランザクションとは、トランザクション内のトランザクションという考え方です。Sequenceメタトランザクションの利点は以下を可能にすることです：
+
+## 利点
+
+* ガス抽象化 -- ユーザーが様々なトークン（USDC、DAIなど）でネットワークガスを支払うことができます
+* スポンサードガス -- プロジェクトが特定のコントラクトのガスをスポンサーして、ユーザーに無料のガスを提供できます
+* バッチトランザクション -- 複数の独立したトランザクションをグループ化し、単一のトランザクションとしてマイニングすることができます
+* 並列トランザクション -- 場合によってはトランザクションの配信を並列化できます
+* ファイア＆フォーゲットモデル -- トランザクションAPIに簡単にトランザクションを送信でき、ノンス管理、ガス価格の調整、迅速な配信を確保する他の機能を自動的に管理します
+* トランザクションの最適なガス価格設定 -- 一度試行され、3ブロック以内にメンプールから含まれない場合、トランザクションは再送信されます
+
+最も良い点：Sequence Transactions APIを使用したトランザクションは、既存/デプロイ済みのEthereumコントラクトと互換性があり、そのため、Sequence Relayerの統合にはコントラクトやdappの変更は必要ありません。
+
+Sequence Transactions APIはフロントエンドのdapp、またはバックエンドでも使用できます。お好みの言語に対応するSDKをインストールしてください。例えば[Typescript](/sdk/typescript/overview)または[Go](/sdk/go/overview)。
+
+## Sequenceトランザクションバンドルの構造
+
+Sequenceトランザクションバンドルは3つの要素で構成されています：
+
+1. Sequenceトランザクションのリスト
+2. Sequenceノンス
+3. Sequenceシグネチャ
+
+Ethereumアカウントと同様に、Sequenceウォレットはトランザクションの順序付けとリプレイ攻撃からの保護のためにノンスを使用します。
+Ethereumアカウントとは異なり、Sequenceウォレットは事実上無制限の独立したノンスを持っており、複数の独立したトランザクションを並列に実行することができます。
+Sequenceノンスは、160ビットのノンススペースとそのノンススペースの96ビットのノンスをビッグエンディアンでエンコードしています。
+
+```
+|<------------------------- uint256 -------------------------->|
+|<------ nonce space (160 bits) ------>||<- nonce (96 bits) -->|
+ssssssssssssssssssssssssssssssssssssssssnnnnnnnnnnnnnnnnnnnnnnnn
+```
+
+## ガススポンサーシップと手数料
+
+トランザクションAPIは以下のトランザクションのみを配信します：
+
+1. Sequence Builderのプロジェクトでスポンサーされている、または
+2. トランザクションAPIへの手数料支払いトランザクションを含む。
+
+以下をスポンサーできます：
+
+1. Sequenceウォレット - 手数料を支払う必要なくトランザクションを送信できるようにする
+2. トークンアドレス - どのユーザーでもそれらのトークンを無料で送信できるようにする
+3. コントラクト - どのユーザーでも無料でそれらと対話できるようにする
+4. 任意のアドレス - どのユーザーでもネイティブトークンを無料で送信できるようにする
+
+トランザクションのスポンサーを開始するには、[https://sequence.build](https://sequence.build)にサインインし、トランザクションを行いたいネットワーク用の新しいプロジェクトを作成してください。
+
+また、バンドルにリレーヤーへの追加の手数料支払いトランザクションを含めることで、トランザクションAPIに直接支払ってトランザクションを配信することもできます。
+受け入れられる手数料トークンのリストは、`/FeeTokens`対象のネットワークのエンドポイントを呼び出すことで取得できます：
+
+```sh [cURL]
+$ curl -s -X POST -H 'Content-Type: application/json' -d '{}' \
+  https://mainnet-relayer.sequence.app/rpc/Relayer/FeeTokens | jq
+
+{
+  "isFeeRequired": true,
+  "tokens": [
+    {
+      "chainId": 1,
+      "name": "Matic",
+      "symbol": "MATIC",
+      "type": "ERC20_TOKEN",
+      "decimals": 18,
+      "logoURL": "https://raw.githubusercontent.com/spothq/cryptocurrency-icons/master/128/color/matic.png",
+      "contractAddress": "0x7D1AfA7B718fb893dB30A3aBc0Cfc608AaCfeBB0",
+      "tokenID": "0"
+    },
+    {
+      "chainId": 1,
+      "name": "USDC",
+      "symbol": "USDC",
+      "type": "ERC20_TOKEN",
+      "decimals": 6,
+      "logoURL": "https://logos.covalenthq.com/tokens/0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48.png",
+      "contractAddress": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+      "tokenID": "0"
+    },
+    {
+      "chainId": 1,
+      "name": "Wrapped Ether",
+      "symbol": "WETH",
+      "type": "ERC20_TOKEN",
+      "decimals": 18,
+      "logoURL": "https://logos.covalenthq.com/tokens/0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2.png",
+      "contractAddress": "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
+      "tokenID": "0"
+    }
+  ]
+}
+```

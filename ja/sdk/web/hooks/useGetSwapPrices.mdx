@@ -1,0 +1,197 @@
+---
+title: useGetSwapPrices
+description: スワップ価格と通貨情報を取得するためのフック
+sidebarTitle: useGetSwapPrices
+---
+
+## インポート
+
+```tsx
+import { useGetSwapPrices } from '@0xsequence/hooks'
+```
+
+## 使用方法
+
+```tsx
+import { useGetSwapPrices } from '@0xsequence/hooks'
+
+function SwapComponent() {
+  const { data: swapPrices, isLoading } = useGetSwapPrices({
+    userAddress: '0x123...',
+    buyCurrencyAddress: '0x456...',
+    buyAmount: '1000000000000000000', 
+    chainId: 1,
+    withContractInfo: true
+  })
+
+  if (isLoading) return <div>Loading...</div>
+
+  return (
+    <div>
+      {swapPrices?.map(swap => (
+        <div key={swap.info?.address}>
+          Token: {swap.info?.symbol}
+          Price: {swap.price.price}
+          Balance: {swap.balance.balance}
+        </div>
+      ))}
+    </div>
+  )
+}
+```
+
+## 戻り値の型: `UseQueryResult<SwapPricesWithCurrencyInfo[]>`
+
+このフックはReact Queryの`UseQueryResult`のすべてのプロパティとスワップ価格データを返します。以下が詳細な構造です：
+
+```tsx
+interface SwapPrice {
+    currencyAddress: string;
+    currencyBalance: string;
+    price: string;
+    maxPrice: string;
+    transactionValue: string;
+}
+
+interface Balance {
+  balance: string
+}
+
+interface ContractInfo {
+    chainId: number;
+    address: string;
+    source: string;
+    name: string;
+    type: string;
+    symbol: string;
+    decimals?: number;
+    logoURI: string;
+    deployed: boolean;
+    bytecodeHash: string;
+    extensions: ContractInfoExtensions;
+    updatedAt: string;
+    notFound: boolean;
+    queuedAt?: string;
+    status: ResourceStatus;
+}
+
+enum ResourceStatus {
+    NOT_AVAILABLE = "NOT_AVAILABLE",
+    STALE = "STALE",
+    AVAILABLE = "AVAILABLE"
+}
+
+interface ContractInfoExtensions {
+    link: string;
+    description: string;
+    categories: Array<string>;
+    ogImage: string;
+    ogName: string;
+    originChainId: number;
+    originAddress: string;
+    blacklist: boolean;
+    verified: boolean;
+    verifiedBy: string;
+    featured: boolean;
+}
+
+type SwapPricesWithCurrencyInfo = {
+  price: SwapPrice
+  info: ContractInfo | undefined
+  balance: Balance
+}
+```
+
+### プロパティ
+
+#### データ
+
+`SwapPricesWithCurrencyInfo[] | undefined`
+
+以下を含むスワップ価格オブジェクトの配列：
+
+##### 価格 (SwapPrice)
+
+* `currencyAddress`: 通貨のアドレス
+* `currencyBalance`: 通貨の残高
+* `price`: スワップ価格
+* `maxPrice`: スワップの最大価格
+* `transactionValue`: トランザクションの値
+
+##### 情報 (ContractInfo)
+
+* `chainId`: トークンが存在するチェーンID
+* `address`: トークンコントラクトアドレス
+* `source`: トークン情報のソース
+* `name`: トークン名
+* `type`: トークンタイプ
+* `symbol`: トークンシンボル
+* `decimals`: トークンの小数点
+* `logoURI`: トークンのロゴURL
+* `deployed`: トークンがデプロイされているかどうか
+* `bytecodeHash`: トークンのバイトコードのハッシュ
+* `extensions`: 追加のトークンメタデータ
+* `updatedAt`: 最終更新タイムスタンプ
+* `notFound`: トークンが見つからなかったかどうか
+* `queuedAt`: トークンが更新のためにキューに入れられた時期
+* `status`: トークンリソースのステータス
+
+##### 残高 (Balance)
+
+* `balance`: 基本単位でのユーザーの通貨残高
+
+#### ローディング中
+
+`boolean`
+
+データ取得のローディング状態。
+
+#### エラー状態
+
+`boolean`
+
+クエリが失敗したことを示すエラー状態。
+
+#### エラー
+
+`Error | null`
+
+データ取得中に発生したエラー。
+
+## パラメータ
+
+このフックは2つのパラメータを受け取ります：
+
+### 引数: `UseGetSwapPricesArgs`
+
+```tsx
+interface UseGetSwapPricesArgs {
+  userAddress: string
+  buyCurrencyAddress: string
+  buyAmount: string
+  chainId: number
+  withContractInfo?: boolean
+}
+```
+
+| パラメータ                | 型         | 説明                               |
+| -------------------- | --------- | -------------------------------- |
+| `userAddress`        | `string`  | ユーザーのウォレットアドレス                   |
+| `buyCurrencyAddress` | `string`  | 購入する通貨のアドレス                      |
+| `buyAmount`          | `string`  | 購入する通貨の量（基本単位）                   |
+| `chainId`            | `number`  | スワップが行われるチェーンID                  |
+| `withContractInfo`   | `boolean` | (オプション) 各通貨の追加のコントラクト情報を取得するかどうか |
+
+### オプション: `HooksOptions`
+
+```tsx
+interface HooksOptions {
+  disabled?: boolean
+  retry?: boolean
+}
+```
+
+| パラメータ      | 型         | 説明                        |
+| ---------- | --------- | ------------------------- |
+| `disabled` | `boolean` | (オプション) クエリの自動実行を無効にする    |
+| `retry`    | `boolean` | (オプション) 失敗したクエリを再試行するかどうか |

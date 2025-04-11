@@ -1,0 +1,130 @@
+---
+title: ウォレット設定
+description: Sequenceウォレットの設定には、閾値と署名者のリストおよびその重みが含まれます。
+sidebarTitle: ウォレット設定
+---
+
+すべてのSequenceウォレットには、閾値と署名者のリストおよびそれぞれの重みによって定義される設定があります。
+
+## 設定のレイアウト
+
+| 名前  | タイプ        | 範囲             | 説明                             |
+| --- | ---------- | -------------- | ------------------------------ |
+| 閾値  | `uint16`   | 1 - 65535      | 署名が有効とみなされるために必要な署名者の「重み」の合計値。 |
+| 署名者 | `signer[]` | 無制限 - ガスによって制限 | それぞれの「重み」を持つ署名者のリスト。           |
+
+### 署名者のレイアウト
+
+| 名前        | タイプ         | 範囲      | 説明                                                         |
+| --------- | ----------- | ------- | ---------------------------------------------------------- |
+| "weight"  | `uint8`     | 0 - 255 | 署名者の各署名の「重み」。                                              |
+| "address" | `"address"` | --      | 署名者の「アドレス」。EOAまたはEIP-1271をサポートする他のスマートコントラクトウォレットの場合があります。 |
+
+#### 例
+
+```json
+{
+  "threshold": 5,
+  "signers": [
+    {
+      "address": "0x4fbf69aa2a75f9942a768dc8da7804ec965f7bea",
+      "weight": 2
+    },
+    {
+      "address": "0x596af90cecdbf9a768886e771178fd5561dd27ab",
+      "weight": 3
+    },
+    {
+      "address": "0x6192e0fdcd868b3de01c7fbc0ad98baebd7330c1",
+      "weight": 2
+    },
+    {
+      "address": "0xec9a7204a43d3f4a82c84fde92d25bfc9110981e",
+      "weight": 1
+    }
+  ]
+}
+```
+
+この例では、閾値が5で4人の署名者がいます。
+
+#### 有効な署名者の組み合わせは以下の通りです：
+
+```
+- 0x4fbf69aa2a75f9942a768dc8da7804ec965f7bea & 0x596af90cecdbf9a768886e771178fd5561dd27ab - combined weight of 2 + 3 = 5
+- 0x6192e0fdcd868b3de01c7fbc0ad98baebd7330c1 & 0x596af90cecdbf9a768886e771178fd5561dd27ab - combined weight of 2 + 3 = 5
+- 0x4fbf69aa2a75f9942a768dc8da7804ec965f7bea, 0x6192e0fdcd868b3de01c7fbc0ad98baebd7330c1 & 0xec9a7204a43d3f4a82c84fde92d25bfc9110981e - combined weight of 2 + 2 + 1 = 5
+```
+
+閾値未満の重みを持つ署名者の組み合わせは無効とみなされます。閾値を超える追加の署名者は無視されます。
+
+### 設定のハッシュ - ImageHash
+
+設定は直接コントラクトに保存されることはなく、代わりにハッシュ化され、署名が検証されるたびにチェックされます。これにより、ウォレットコントラクトはストレージの使用を削減し、ガスコストを抑えることができます。
+
+一度も更新されていないウォレットは直接`imageHash`を保存せず、代わりに`imageHash`がコントラクト作成時の`salt`として使用され、署名はウォレットのアドレスに対して検証されます。
+
+#### イメージハッシュの計算
+
+<CodeGroup>
+  ```solidity twoslash solidity
+    keccak256(abi.encode( uint8 weight_1, address signer_1,
+    keccak256(abi.encode( uint8 weight_2, address signer_2,
+    keccak256(abi.encode( uint8 weight_3, address signer_3,
+    keccak256(abi.encode( uint256 threshold )) )) )) )) 
+  ```
+
+  ```js twoslash TypeScript
+    let tmp = ethers.solidityPackedKeccak256(['uint256'], [configuration.threshold])
+
+    for (const signer of configuration.signers) {
+      tmp = ethers.solidityPackedKeccak256(
+        AbiCoder.defaultAbiCoder().encode(
+          ['bytes32', 'uint8', 'address'],
+          [tmp, signer.weight, signer.address]
+        )
+      )
+    }
+
+    const imageHash = tmp
+  ```
+</CodeGroup>
+
+## 初期ウォレット設定
+
+初期ウォレット設定によってウォレットのアドレスが決定され、その後の更新ではアドレスは変更されません。
+
+ウォレットのアドレスは`imageHash`、`factory`および`mainModule`を使用して計算できます。
+
+#### ウォレットアドレスの計算
+
+```js
+// The code of the wallet proxy contract
+const WalletProxyBytecode =
+"0x603a600e3d39601a805130553df3363d3d373d3d3d363d30545af43d82803e903d91601857fd5bf3";
+
+// These values are defined by the wallet context
+// they must be known in order to validate the counter-factual wallet imageHash
+const factory = "0xf9D09D634Fb818b05149329C1dcCFAeA53639d96";
+const mainModule = "0xd01F11855bCcb95f88D7A48492F66410d4637313";
+
+// Append the `mainModule` to the `WalletProxyBytecode`
+// this completed the creation code of the proxy contract
+// used for computing the wallet address as defined by the CREATE2 opcode
+const codeHash = ethers.solidityPackedKeccak256(
+ethers.solidityPackedKeccak256(
+["bytes", "bytes32"],
+[WalletContractBytecode, ethers.hexZeroPad(mainModule, 32)]
+)
+);
+
+// Compute the wallet address
+const hash = ethers.solidityPackedKeccak256(
+ethers.solidityPackedKeccak256(
+["bytes1", "address", "bytes32", "bytes32"],
+["0xff", factory, salt, codeHash]
+)
+);
+
+const address = ethers.getAddress(ethers.dataSlice(hash, 12));
+```

@@ -1,0 +1,202 @@
+---
+title: Databeatインテグレーションガイド
+description: Sequenceアプリケーションでのデータビートトラッキングの使用方法を学ぶ
+---
+
+# Databeatインテグレーション
+
+このガイドでは、Sequenceドキュメントサイトに既に統合されているDatabeatトラッキングの使用方法について説明します。
+
+## 自動トラッキング
+
+Sequenceドキュメントは、Databeatを使用してページビューを自動的にトラッキングします。このトラッキングは純粋なJavaScriptを使用して実装され、完全にクライアントサイドで動作します。
+
+## 手動イベントトラッキング
+
+また、自身のアプリケーションでDatabeatを使用してカスタムイベントを手動でトラッキングすることもできます。方法は以下の通りです：
+
+```javascript
+// Track a custom event
+databeat.track({
+  event: 'BUTTON_CLICK',
+  source: window.location.pathname,
+  props: {
+    button_id: 'login-button',
+    page: 'login'
+  }
+});
+
+// Track a view (shorthand method)
+databeat.trackView({
+  section: 'user-profile',
+  page_number: 1
+});
+
+// Set a custom user session
+databeat.session('user-123', { hash: true, agentSalt: true });
+```
+
+## 実装の詳細
+
+私たちのDatabeatインテグレーションは純粋なJavaScriptを使用して実装されています。以下がその仕組みです：
+
+1. Databeatスクリプトを非同期で読み込む
+2. ホストエンドポイントと認証トークンで初期化する
+3. ページビューを自動的にトラッキングする
+4. SPAナビゲーションイベントのリスナーを設定する
+
+完全な実装は[databeat-tracker.js](/snippets/databeat-tracker.js)ファイルで確認できます。
+
+## アプリケーションでのDatabeatの使用
+
+自身のアプリケーションにDatabeatを統合するには：
+
+1. パッケージをインストール：
+
+```bash
+npm install @databeat/tracker@0.9.3
+```
+
+2. JavaScriptで初期化：
+
+```javascript
+// Using ES modules
+import { Databeat } from '@databeat/tracker';
+
+// Initialize with your host endpoint and auth token
+const databeat = new Databeat(
+  'https://databeat.sequence.app',  // Host endpoint
+  'your-auth-token',  // Auth token
+  {
+    flushInterval: 1000,  // Flush the event queue every 1000ms
+    defaultEnabled: true,
+    sessionIds: { hash: true, agentSalt: true },
+    initProps: () => {
+      // Add any default properties for all events
+      return {
+        app: 'your-app-name',
+        environment: window.location.hostname.includes('localhost') ? 'development' : 'production'
+      };
+    }
+  }
+);
+
+// Track events
+databeat.track({
+  event: 'VIEW',
+  source: window.location.pathname,
+  props: {
+    title: document.title
+  }
+});
+```
+
+3. ビルドツールを使用しない純粋なJS（CDN使用）の場合：
+
+```html
+<!-- Option 1: Using unpkg CDN -->
+<script src="https://unpkg.com/@databeat/tracker@0.9.3/dist/databeat-tracker.js"></script>
+
+<!-- Option 2: Using jsDelivr CDN (often faster) -->
+<script src="https://cdn.jsdelivr.net/npm/@databeat/tracker@0.9.3/dist/databeat-tracker.js"></script>
+
+<script>
+  // Initialize with your host endpoint and auth token
+  const databeat = new Databeat(
+    'https://databeat.sequence.app',  // Host endpoint  
+    'your-auth-token',  // Auth token
+    {
+      flushInterval: 1000,
+      defaultEnabled: true
+    }
+  );
+  
+  // Track events
+  databeat.trackView({
+    page: window.location.pathname
+  });
+</script>
+```
+
+## カスタムイベントのトラッキング
+
+アプリケーションに関連する任意のカスタムイベントをトラッキングできます：
+
+```javascript
+// Track game events
+databeat.track({
+  event: 'GAME_STARTED',
+  source: 'game-client',
+  props: { 
+    level: 1, 
+    character: 'warrior'
+  }
+});
+
+databeat.track({
+  event: 'LEVEL_COMPLETED',
+  source: 'game-client',
+  props: { 
+    level: 1, 
+    score: 1000, 
+    time_spent: 120
+  }
+});
+
+// Track marketplace interactions
+databeat.track({
+  event: 'ITEM_VIEWED',
+  source: 'marketplace',
+  props: { 
+    item_id: '123', 
+    item_name: 'Rare Sword', 
+    category: 'weapons'
+  }
+});
+
+databeat.track({
+  event: 'PURCHASE_COMPLETED',
+  source: 'marketplace',
+  props: { 
+    transaction_id: 'tx-abc123',
+    amount: 100,
+    currency: 'USD',
+    items: [{ id: '123', name: 'Rare Sword', price: 100 }]
+  }
+});
+```
+
+## セッション管理
+
+Databeatではユーザーセッションを管理できます：
+
+```javascript
+// Set a custom session ID (will be hashed for privacy)
+databeat.session('user@example.com');
+
+// Check if tracking is enabled
+const isEnabled = databeat.isEnabled();
+
+// Enable tracking
+databeat.enable();
+
+// Disable tracking
+databeat.disable();
+
+// Get the current session ID
+const sessionId = databeat.getSessionId();
+
+// Check if the session is anonymous
+const isAnon = databeat.isAnon();
+```
+
+## イベントの手動フラッシュ
+
+Databeatはイベントをバッチ処理して定期的に送信しますが、イベントキューを手動でフラッシュすることもできます：
+
+```javascript
+// Manually flush the event queue
+await databeat.flush();
+```
+
+これにより、開発中にイベントが正しく追跡されているかを確認することができます。

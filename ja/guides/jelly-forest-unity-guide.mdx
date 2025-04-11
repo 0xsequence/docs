@@ -1,0 +1,363 @@
+---
+title: Jelly Forest入門 - Unityゲームガイド
+description: Jelly Forest入門 - Unityゲームガイドでは、ソーシャルサインイン、アップグレード、スマートコントラクトウォレットに保存されるコスメティックアイテムなどのブロックチェーン機能を備えた2Dランナーゲームを紹介します。
+sidebarTitle: Unityゲームを作る
+---
+
+Jelly Forestはブロックチェーンを活用した2Dランナーゲームです。このゲームには、ソーシャルサインイン、多層的なアップグレード（上位層のアップグレードには下位層のアップグレードが入力として必要）、コスメティックアップグレードなどの機能があり、これらはすべて組み込みの非カストディアルスマートコントラクトウォレットに保存されます。プレイヤーにトランザクション署名のポップアップやガス料金の支払いは要求されません。
+
+<Frame>
+  <video controls className="w-full aspect-video" src="https://pub-f048362b915448c9b012a2e03c189024.r2.dev/JellyForest.mp4" />
+</Frame>
+
+Google Playからダウンロード[こちら](https://play.google.com/store/apps/details?id=app.sequence.jelly_forest)！
+
+詳しく[スマートコントラクトウォレットについてはこちら](/solutions/technical-references/wallet-contracts/why)
+
+詳しく[組み込みウォレットについてはこちら](/solutions/wallets/overview#what-are-the-differences-between-these-options)
+
+このガイドでは、Jelly Forestの作り方と、あなたも[Sequence's Unity SDK](/sdk/unity/overview/)を使って独自のweb3ゲームを作る方法をご紹介します！
+
+## 1. ゲームループを作る
+
+最初のステップは基本的なゲームループを作ることです。収益化戦略とweb3要素の活用方法を最初に考えることを忘れないでください！
+
+私たちのゲームループでは、[Infinite Runner Engine](https://assetstore.unity.com/packages/templates/systems/2d-3d-infinite-runner-engine-51328)をUnity Asset Storeから購入しました。アセット内にデモシーン`JellyForest`があり、いくつかの調整を加えることで、iOSとAndroidで動作する機能的なビルドを作ることができました。
+
+## 2. ソーシャルサインインとSequenceの組み込みウォレットソリューションを統合する
+
+### 設定
+
+1. [パッケージマネージャーを使用してSequenceのUnity SDKをインストール](/sdk/unity/installation#package-manager---recommended)
+2. [Sequence Builder Consoleにサインイン](/solutions/builder/getting-started)
+3. [Builder Consoleでゲーム用のプロジェクトを作成](/support/builder/project-management)
+4. Builder Consoleで[Embedded Walletをセットアップ](/solutions/builder/embedded-wallet#embedded-wallet-in-builder)
+5. あなたの`SequenceConfig` [scriptable object](https://docs.unity3d.com/Manual/class-ScriptableObject.html)（パッケージマネージャーのSamplesメニューからインポートした[インストール段階](/sdk/unity/installation#package-manager---recommended)で）に、BuilderにすでにあるGoogleとAppleのクライアントIDと、Configuration Keyの下にある`WaaSConfigKey`
+   * AndroidとiOSのクライアントIDをそれぞれのプラットフォームの下に入れることを忘れないでください！
+6. Builder Consoleから[Builder API Keyを追加](/solutions/builder/getting-started#claim-an-api-access-key)の下に`Settings > API Access Keys` - あなたが必要なのは`prod`キーです
+
+### ソーシャルサインイン
+
+1. プレイヤーがログインする基本的なシーンを作成します。
+   * 私たちの場合、[新しいシーンを作成し](https://docs.unity3d.com/Manual/scenes-working-with.html#creating-a-new-scene)、背景画像を追加しました
+2. 作成する`Canvas`、アタッチする`Canvas Scaler`コンポーネントと「Scale with Screen Size」UIスケールモードを使用します。これにより、LoginPanel（およびこのCanvas下の他のUI要素）がビルドターゲットを切り替えるときに自動的にスケーリングされます。
+3. Canvasの下のシーンヒエラルキーに`LoginPanel`プレハブをドラッグします。これはプロジェクトウィンドウの`Packages > Sequence Embedded Wallet SDK > SequenceFrontend > Prefabs`で見つけることができます。
+4. UIマネージャーを作成して`Open`を呼び出す`LoginPanel`。[私たちの実装](https://github.com/0xsequence/sequence-unity-demo/blob/JellyForest/Scripts/UI/LoginScreenUIManager.cs)を以下に示します：
+
+```csharp
+private void Start()
+{
+    LoginPanel loginPanel = GetComponentInChildren<LoginPanel>();
+    if (loginPanel == null)
+    {
+        Debug.LogError("LoginPanel not found!");
+    }
+    loginPanel.Open();
+}
+```
+
+5. ヒエラルキーの`LoginPanel`プレハブへの参照を解除して、シーンビューで自由に編集できるようにします
+   1. ヒエラルキーで`LoginPanel`GameObjectを選択
+   2. ヒエラルキーで`LoginPanel`GameObjectを右クリック
+   3. `Prefab > Unpack Completely`
+6. LoginPanelをあなたのゲームのテーマに合わせてカスタマイズ
+
+LoginPanelはすべてのソーシャルサインインのロジックを処理します。実装の詳細が気になる場合は、`LoginPage`と`OpenIdAuthenticator`の実装をチェックできます。
+認証は[Open ID Connect Implicit Flow](https://auth0.com/docs/authenticate/login/oidc-conformant-authentication/oidc-adoption-implicit-flow)を通じて動作します。
+
+### Sequence APIでのセッション登録
+
+ソーシャルサインインが完了すると、自動的にSequence WaaS（Wallet as a Service）APIでセッション登録リクエストが行われます。以下がその仕組みです：
+
+ソーシャルサインインが完了すると、`OpenIdAuthenticator.SignedIn`イベントが発火します。これにより、`SequenceLogin.ConnectToWaaS`.
+
+### ユーザーのウォレットの取得
+
+ウォレットを取得するには、`SequenceWallet.OnWalletCreated`イベントをサブスクライブする必要があります。
+
+```csharp
+SequenceWallet.OnWalletCreated += OnWalletCreatedHandler;
+public void OnWalletCreatedHandler(SequenceWallet wallet) {
+  // Do something
+}
+```
+
+私たちは強く推奨します`SequenceConnector`を「Sequence Embedded Wallet SDK」のパッケージマネージャーページの「Useful Scripts」からインポートすることを。[デフォルトで、多くの役立つ開始コードが含まれています](https://github.com/0xsequence/sequence-unity/blob/master/Packages/Sequence-Unity/Sequence/Samples~/Scripts/SequenceConnector.cs)そしてSDKと通信するための便利なインターフェースとして機能します。私たちはこれを[JellyForestとの統合で大いに活用しました](https://github.com/0xsequence/sequence-unity-demo/blob/JellyForest/Scripts/SequenceConnector.cs)。
+
+JellyForestでは、[LevelLoader](https://github.com/0xsequence/sequence-unity-demo/blob/JellyForest/Scripts/LevelLoader.cs) MonoBehaviourも作成し、`SequenceWallet.OnWalletCreated`イベントが発生したときに次のシーンを読み込みます。
+
+```csharp
+private void Awake()
+{
+    SequenceWallet.OnWalletCreated += OnWalletCreated;
+}
+
+private void OnWalletCreated(SequenceWallet wallet)
+{
+    SceneManager.LoadScene("MenuScene");
+}
+```
+
+Sequenceの組み込みウォレットソリューションでの認証の詳細については、[ドキュメント](/solutions/wallets/embedded-wallet/overview/)と[ブログ記事](https://sequence.xyz/blog/sequence-embedded-wallets)をご覧ください。
+
+## 3. コレクティブルコントラクトのデプロイ
+
+プレイヤーがサインインしてウォレットを取得できるようになったので、コレクティブルを追加しましょう！
+
+私たちは強く推奨します[ERC1155](https://eips.ethereum.org/EIPS/eip-1155)コントラクトの使用を。これらはゲームに適した柔軟なトークン規格です。Builder Consoleを通じて、監査済みのERC1155実装を簡単にデプロイできます：
+
+<Frame>
+  <video controls className="w-full aspect-video" src="/video/builder/03_Contracts.mp4" />
+</Frame>
+
+これがJelly Forestで私たちが行ったことです。
+
+スマートコントラクトをデプロイしたら、忘れずに[Builder Consoleの「Gas Sponsoring」ページでコントラクトアドレスをスポンサードアドレスとして追加してください](/solutions/builder/gas-tank#gas-tank-in-builder)！これにより、ユーザーがゲームのスマートコントラクトと対話する際に、あなたのコンピュートクレジットを使用して自動的にガス料金がスポンサーされるようになります。
+
+## 4. リモートミンターのデプロイ
+
+デフォルトでは、Builder Consoleを通じてデプロイされたERC1155コントラクトは、トークンをミントするために適切な権限を持っている呼び出し元を必要とします。一見面倒に見えるかもしれませんが、これは良いことです！これがないと、誰でもあなたのコントラクトのミントメソッドを呼び出して、無限のゲームアイテムを自分に与えることができてしまいます！
+
+Sequenceウォレット（または他の）を持つサーバーをデプロイし、ビルダーでミント権限を与える必要があります。
+
+### Jelly Forestでの実装方法
+
+Jelly Forestでは、ゲームプレイ中に収集するすべてのコインがERC1155トークンとしてミントされます。以下が私たちの実装方法です：
+
+1. サインアップ：[Cloudflare](https://www.cloudflare.com/) - これは私たちがミンティングサービスコードをホストする方法です。他の方法を使用することももちろん可能です
+2. ターミナルまたは他のコマンドラインを開く
+3. `git clone https://github.com/0xsequence-demos/cloudflare-worker-sequence-relayer.git`その後`cd cloudflare-worker-sequence-relayer`
+4. `git checkout permissionedMinter`
+5. `pnpm install` - 依存関係をインストールするため
+6. wranglerをインストール
+
+```
+pnpm install wrangler --save-dev
+alias wrangler='./node_modules/.bin/wrangler'
+```
+
+そしてログイン
+
+```
+wrangler login
+```
+
+7. 開く`wrangler.toml`
+   1. 文字列を変更してサーバーに名前を付ける`name`文字列
+   2. 新しい[EOAウォレット](https://ethereum.stackexchange.com/questions/5828/what-is-an-eoa-account)を作成し、秘密鍵をエクスポートします。どのEOAウォレットでも構いません。Metamaskを使用すると簡単に[ウォレットをセットアップ](https://support.metamask.io/hc/en-us/articles/360015489531-Getting-started-with-MetaMask)し[秘密鍵をエクスポート](https://support.metamask.io/hc/en-us/articles/360015289632-How-to-export-an-account-s-private-key)できます。秘密鍵の取り扱いには十分注意し、コンピュータ上にプレーンテキストで保存したり、バージョン管理にコミットしたりしないでください！これを以下で設定します：`PKEY`
+   3. 設定：`CONTRACT_ADDRESS`
+   4. 設定：`PROJECT_ACCESS_KEY` - これは先ほど`SequenceConfig`スクリプタブルオブジェクト
+   5. 設定：`CHAIN_HANDLE` - これが何か分からない場合は、`CHAIN_HANDLE`Builder ConsoleのNode Gatewayページで各ネットワークの情報を確認できます。
+8. `pnpm dev` - これによりサーバーがローカルにデプロイされます。コマンドラインにデプロイされたlocalhostが表示されるはずです
+9. 別のコマンドラインウィンドウを開く
+10. `curl http://localhost:8787` - 与えられたlocalhostに置き換えてください。これによりサーバーにpingを送信します。
+11. localhostサーバーが実行されているコマンドラインで、ミンターのウォレットアドレスがログに表示されているはずです
+12. Builder Consoleでこのアドレスにミント権限を付与する
+    1. コントラクトを`Contracts`で見つけてクリックして開く
+    2. クリック`Write Contract`
+    3. 展開`grantRole`
+    4. 以下で`role` 入力 `0x9f2df0fed2c77648de5860a4cc508cd0818c85b8b8a1ab4ceeef8d981c8956a6` - これはKeccak-256ハッシュです `MINTER_ROLE`
+    5. 下の `account` ミンターのウォレットアドレスを貼り付けます
+13. `wrangler deploy` - これによりコードが [Cloudflare Worker](https://developers.cloudflare.com/workers/) にデプロイされ、ミンティングURLが提供されます
+
+素晴らしい！これで、サーバーにPOSTリクエストを送信する際に、[C#で定義された](https://github.com/0xsequence/sequence-unity/blob/master/Packages/Sequence-Unity/Sequence/SequenceSDK/Relayer/MintingRequestProver.cs#L103)、ここで`proof` はミンティングリクエストを送信するクライアントによって生成されます。Unity SDKではこれは [MintingRequestProver](https://github.com/0xsequence/sequence-unity/blob/master/Packages/Sequence-Unity/Sequence/SequenceSDK/Relayer/MintingRequestProver.cs#L27)。
+
+## 5. プレイヤーのインベントリにゲーム内トークンをミントする
+
+パーミッションドミンターサーバーのセットアップが完了したので、クライアント側（Made With Unityアプリ）を接続して、ゲームプレイを通じてプレイヤーにトークンを付与できるようにする必要があります。Unity SDKを使用して `PermissionedMinter.MintToken` メソッドを呼び出すことで、パーミッションドミンターにリクエストを送信できます。
+
+Jelly Forestでは、プレイヤーがレベルを進むにつれて多くのコインを集めますが、これらはすべてERC1155トークンです。プレイヤーに優れたUXを提供するために解決すべき課題がまだいくつかあります。
+
+1. ユーザーのインベントリにあるトークン/権限を知るためにチェーンをどのように読み取りますか？
+2. ブロックチェーントランザクションは、Arbitrumなどのチェーンでは高速ですが、即時ではありません。コイン（または他のアイテム）を収集してから、ゲーム内のインベントリに表示されるまで数秒待つ必要があるのは、一般的に良いエンドユーザー体験とは言えません。
+3. 一見すると、ユーザーがゲームでトークンを獲得するたびにトランザクションを送信したくなるかもしれません。しかし、ほとんどのゲーム、特にJelly Forestのようなプレイヤーが多くのコイン（トークン）を集めるゲームでは、大量のトランザクションが発生し、[ガス代](https://ethereum.org/en/developers/docs/gas/)が莫大になってしまいます！
+
+Unity SDKを使用してJelly Forestでこれらの問題をどのように解決したか見てみましょう！
+
+### 1. チェーンの読み取り
+
+特定のユーザーのウォレット内のトークンを読み取ることは複雑なプロセスですが、[Sequence's Indexer](/api-references/indexer/overview) を使用することで[Unity SDKが実装している](/sdk/unity/power/read-from-blockchain)ため、はるかに簡単になります。
+
+以下は、Jelly ForestでIndexerを使用してゲームのERC1155コントラクトからプレイヤーのウォレット内のすべてのトークンを読み取るコードスニペットです。
+
+```csharp
+private Dictionary<BigInteger, TokenBalance> _tokenBalances = new Dictionary<BigInteger, TokenBalance>();
+private async Task GetTokenBalances(Page page = null)
+{
+    if (page == null)
+    {
+        page = new Page();
+    }
+    GetTokenBalancesReturn balances = await _indexer.GetTokenBalances(new GetTokenBalancesArgs(_userAddress, SequenceConnector.ContractAddress, false, page));
+    int uniqueTokens = balances.balances.Length;
+    for (int i = 0; i < uniqueTokens; i++)
+    {
+        _tokenBalances[balances.balances[i].tokenID] = balances.balances[i];
+    }
+    if (balances.page.more)
+    {
+        await GetTokenBalances(balances.page);
+    }
+}
+```
+
+### 2. キャッシュの構築
+
+ブロックチェーントランザクションは即時ではありませんが、ユーザーに即時のフィードバックを提供したいため、シンプルなインメモリキャッシュを使用します。
+
+最初に`SequenceWallet` をJelly Forestで受け取ったとき、[SequenceConnector](https://github.com/0xsequence/sequence-unity-demo/blob/JellyForest/Scripts/SequenceConnector.cs)（ゲーム内でSequence SDKとの通信に使用する主要なインターフェース）は`Inventory`を作成します。
+
+```csharp
+private void OnWalletCreated(SequenceWallet wallet)
+{
+    Wallet = wallet;
+    Wallet.OnSendTransactionComplete += OnSendTransactionCompleteHandler;
+    Wallet.OnSendTransactionFailed += OnSendTransactionFailedHandler;
+    Wallet.OnSignMessageComplete += OnSignMessageCompleteHandler;
+    Wallet.OnDeployContractComplete += OnDeployContractCompleteHandler;
+    Wallet.OnDeployContractFailed += OnDeployContractFailedHandler;
+    Wallet.OnDropSessionComplete += OnDropSessionCompleteHandler;
+    Wallet.OnSessionsFound += OnSessionsFoundHandler;
+
+    Inventory = new Inventory(Indexer, Wallet.GetWalletAddress(), ItemCatalogue); // [!code focus]
+
+    _transactionQueuer.Setup(Wallet, Chain);
+    _permissionedMinterTransactionQueuer.Setup(Wallet, Chain, "https://sequence-relayer-jelly-forest2.tpin.workers.dev/", ContractAddress);
+}
+```
+
+この`Inventory`はゲーム内でシンプルなキャッシュとして使用されます。最初に作成され、プロンプトが表示されたとき、Indexerを使用してユーザーのウォレット内のすべてのトークンを取得します。ここから、ユーザーがトークンを獲得するたびに、キャッシュ（`Inventory`）とオンチェーンデータを更新します。
+
+完全な`Inventory` [実装はこちら](https://github.com/0xsequence/sequence-unity-demo/blob/JellyForest/Scripts/Inventory.cs)
+
+### 3. トランザクションキューの使用
+
+SequenceのUnity SDKは非常に柔軟な[トランザクションキューイングシステム](https://github.com/0xsequence/sequence-unity/blob/master/Packages/Sequence-Unity/Sequence/SequenceSDK/Relayer/TransactionQueuer.cs)を提供します。
+
+Jelly Forestでは、[PermissionedMinterTransactionQueuer](https://github.com/0xsequence/sequence-unity/blob/master/Packages/Sequence-Unity/Sequence/SequenceSDK/Relayer/PermissionedMinterTransactionQueuer.cs) MonoBehaviourを`SequenceConnector` GameObjectに付加し、[Awakeで参照を取得します](https://github.com/0xsequence/sequence-unity-demo/blob/JellyForest/Scripts/SequenceConnector.cs#L59)。
+
+![PermissionedMinterTransactionQueuer](/images/guides/making-of-jelly-forest/TransactionQueuer.png)
+
+一度[これがセットアップされれば](https://github.com/0xsequence/sequence-unity-demo/blob/JellyForest/Scripts/SequenceConnector.cs#L78)、トークンが収集されたときに「トークンをミント」を呼び出すだけで済みます。
+
+```csharp
+public class CollectibleToken : Coin
+{
+    protected override void ObjectPicked()
+    {
+        base.ObjectPicked();
+        if (SequenceConnector.Instance == null || SequenceConnector.Instance.Wallet == null)
+        {
+            Debug.LogWarning("No minting will happen. Make sure SequenceConnector is in the scene and user is logged in.");
+            return;
+        }
+        SequenceConnector.Instance.MintFungibleToken(); // [!code focus]
+    }
+}
+```
+
+これにより`Inventory`が更新され、`PermissionedMinterTransactionQueuer`のキューにミントトランザクションが追加されます。`PermissionedMinterTransactionQueuer`は可能な限りトランザクションを自動的にマージし、ガス代を最小限に抑えます。
+
+Jelly Forestでは、トランザクションキューアを設定して、プレイヤーがゲームオーバーになるたびに、ただし30秒以上の間隔でトランザクションを送信するようにしています。
+
+#### トランザクションの送信頻度をどのように決定しますか？
+
+Unity SDKを使用することで、これは技術的な問題というよりもゲームデザインの問題となります。
+
+私たちの`TransactionQueuers` X秒ごとに自動的にトランザクションを送信するように設定できます。また、関数呼び出しによって要求された場合（ただしY秒より早くない）、あるいは設定された最小時間閾値（Y秒）を無視して要求された場合にも送信できます。
+
+トランザクションキューの設定を決める際に考慮すべき点は以下の通りです：
+
+* トランザクションの送信頻度が高いほど、ガス代が多くかかります。もちろん、選択するEVM互換ブロックチェーンによって、コストが法外になる前に送信できるトランザクションの数と複雑さが大きく影響を受けます。
+* トランザクションの送信頻度が低いほど、ゲームの状態（キャッシュ）とブロックチェーン上の情報との同期が取れなくなります。トランザクションが失敗した場合、プレイヤーのゲーム体験を損なうことなく、この状況から回復する方法が必要になります。
+
+Jelly Forestの例を挙げると：私たちはショップのトランザクションがエンドユーザーにとって非常に重要だと考えました。ユーザーがアップグレード/帽子を所持していると思い込んでいるのに、トランザクションが失敗して、アップグレード/帽子を取り消すか、プレイヤーが正当に獲得していない可能性のある追加のアイテムを発行する必要が生じるリスクを避けたかったのです。そのため、購入トランザクション（およびTransactionQueuerの他のすべてのトランザクション）が成功するまで、ユーザーがショップページで待機するようにしました。
+
+```csharp
+public async Task Buy()
+{
+    if (Status != ItemStatus.Available)
+    {
+        return;
+    }
+
+    if (SequenceConnector.Instance == null)
+    {
+        string error = "SequenceConnector not found. User has not logged in";
+        Debug.LogError($"Failed to purchase shop item: {error}");
+        OnFailedToPurchaseShopItem?.Invoke($"Failed to purchase shop item: {error}");
+        return;
+
+    SequenceConnector.Instance.AddToTransactionQueue(new PurchaseShopItemQueueableTransaction(this));
+    TransactionReturn result = await SequenceConnector.Instance.SubmitQueuedTransactions(true, false); // [!code hl]
+    if (result is SuccessfulTransactionReturn successfulTransactionReturn)
+    {
+        BurnTokensFromInventory();
+        MintTokenInInventory()
+        if (string.IsNullOrWhiteSpace(successfulTransactionReturn.txHash))
+        {
+            GetTransactionReceipt(successfulTransactionReturn);
+        }
+    }
+    else if (result is FailedTransactionReturn failed)
+    {
+        string error = $"Transaction failed: {failed.error}";
+        Debug.LogError(error);
+        OnFailedToPurchaseShopItem?.Invoke($"Failed to purchase shop item: {error}");
+    }
+    else
+    {
+        throw new Exception("Unexpected transaction result type");
+    }
+}
+```
+
+## 6. ゲーム内トークンを他のトークンと交換してバーン
+
+Jelly Forestでは、コインと（場合によっては）低ティアのパワーアップをバーンすることで、パワーアップやコスメティックを購入できます。
+
+このメカニクスを有効にし、強制するために、シンプルな[BurnToMint smart contract](https://polygonscan.com/address/0x80329e7f4F006E3178Db369425329759157B5a2a#code)をデプロイしました。このコントラクトでは、特定のトークンIDに対してミント要件（必要なトークンIDと関連する数量）を指定できます。ERC1155トークンのバッチを受け取り、送信者が`data`パラメータでミントしたいトークンIDを指定すると、コントラクトは各トークンIDの必要数量を受け取ったかチェックします。これに合格すると、コントラクトはトークンをバーンし、要求されたトークンIDを送信者（ユーザー）にミントします。そうでない場合、トランザクションは失敗してリバートします。
+
+Builder Consoleで、このコントラクトに私たちのゲームコントラクトのミント権限を付与しました：
+
+1. コントラクトを`Contracts`で見つけてクリックして開きます
+2. クリック`Write Contract`
+3. 展開`grantRole`
+4. 下の`role`に入力`0x9f2df0fed2c77648de5860a4cc508cd0818c85b8b8a1ab4ceeef8d981c8956a6`- これは`MINTER_ROLE`
+5. 下の`account`にミンターのウォレットアドレスを貼り付けます
+
+:::danger
+警告：`BurnToMint`スマートコントラクトは第三者による監査を受けていません。再利用する際は注意してください！
+:::
+
+ユーザーがショップからアップグレードやコスメティックを購入すると、`BurnToMint`スマートコントラクトに[PurchaseShopItemQueueableTransaction](https://github.com/0xsequence/sequence-unity-demo/blob/JellyForest/Scripts/Items/ShopItem.cs#L109)を[SequenceWalletTransactionQueuer](https://github.com/0xsequence/sequence-unity/blob/master/Packages/Sequence-Unity/Sequence/SequenceSDK/Relayer/SequenceWalletTransactionQueuer.cs)の`SequenceConnector`に追加してトランザクションを送信します。
+
+```csharp
+SequenceConnector.Instance.AddToTransactionQueue(new PurchaseShopItemQueueableTransaction(this));
+```
+
+## 7. ショップページの構築とミント要件の設定
+
+Jelly Forestのショップページを構築し、さまざまなアップグレードと帽子の価格/ミント要件を設定する際、[ShopItems](https://github.com/0xsequence/sequence-unity-demo/blob/JellyForest/Scripts/Items/ShopItem.cs)を[Scriptable Objects](https://docs.unity3d.com/Manual/class-ScriptableObject.html)を使用して定義することを選択しました。これらはInspectorでシリアライズできるため、調整や視覚化が容易だからです。これらのスクリプタブルオブジェクトは、各[Item](https://github.com/0xsequence/sequence-unity-demo/blob/JellyForest/Scripts/Items/Item.cs)の定義とトークンIDの関連付けにも使用しています。
+
+しかし、Scriptable Objectsで定義されたミント要件を`BurnToMint`コントラクトのオンチェーン上で定義されたミント要件と同期を保つのは、すぐに面倒（バグの潜在的な原因にもなる）になりました。
+
+私たちは[エディタ拡張](https://learn.unity.com/tutorial/editor-scripting)を作成し、`ShopItem`スクリプタブルオブジェクトにボタンを追加しました。このボタンを押すと、オンチェーン上で定義されたミント要件がスクリプタブルオブジェクトで定義されたものと一致するかチェックします。異なる場合は、`BurnToMint`コントラクトのオンチェーン上のミント要件をスクリプタブルオブジェクトに合わせて更新するトランザクションを送信します。トランザクションは、開発者のマシンの環境変数として保存された秘密鍵から作成されたEOAウォレットを介して送信されます。このEOAウォレットは、このコントラクトの[owner](https://docs.openzeppelin.com/contracts/2.x/access-control#ownership-and-ownable)です。
+
+実際、私たちのショップページは60秒ごと（および開くたびに）スマートコントラクトにミント要件の変更を問い合わせ、それに応じてUIを更新します。これにより、アップデートを必要とせずにゲームの経済をライブパッチすることが可能になります！
+
+以下の動画をクリックしてください
+
+<Frame>
+  <video controls className="w-full aspect-video" src="https://pub-f048362b915448c9b012a2e03c189024.r2.dev/ShopItemExtension.mp4" />
+</Frame>
+
+こちらで[ShopItemEditorExtensionの実装をご覧ください](https://github.com/0xsequence/sequence-unity-demo/blob/JellyForest/Scripts/Editor/ShopItemEditorExtension.cs)。
+
+# 8. 購入したアイテムのゲーム内活用
+
+よし、プレイヤーはログインしてウォレットを取得し、トークンを獲得して、そのトークンで物を購入できるようになりました。残るは、プレイヤーにアイテムを購入したいと思わせる理由を与えることです。つまり、ゲーム開発者としての魔法を使って、素晴らしいパワーアップやコスメティックアイテムを作る時が来たのです！
+
+トークンをゲームに組み込むために必要なのは、ユーザーが特定のトークンIDを十分に所持しているかを確認し、そのトークンの効果を適用することだけです。
+
+Jelly Forestでは、いくつかの異なる[PowerUpTypes](https://github.com/0xsequence/sequence-unity-demo/blob/JellyForest/Scripts/Items/ItemCatalogue.cs#L13)とそれぞれに`Item`を`PowerUpType`とティアを割り当て、[その後`Inventory`を照会して、各タイプの最高のパワーアップ](https://github.com/0xsequence/sequence-unity-demo/blob/JellyForest/Scripts/Inventory.cs#L138)をプレイヤーが所持しているか確認します。

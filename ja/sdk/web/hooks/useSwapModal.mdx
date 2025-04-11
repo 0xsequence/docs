@@ -1,0 +1,128 @@
+---
+title: useSwapModal
+description: スワップモーダルを開くためのフック
+sidebarTitle: useSwapModal
+---
+
+## インポート
+
+```tsx
+import { useSwapModal } from '@0xsequence/checkout'
+```
+
+## 使用方法
+
+```tsx
+import { useSwapModal } from '@0xsequence/checkout'
+import { encodeFunctionData, parseAbi } from 'viem'
+
+function App() {
+  const { openSwapModal } = useSwapModal()
+  
+  const handleSwap = () => {
+    // Target token information
+    const chainId = 137 // Polygon
+    const currencyAddress = '0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359' // USDC on Polygon
+    const currencyAmount = '20000' // 0.02 USDC (in smallest units)
+    
+    // Optional: Transaction to execute after swap is completed
+    const data = encodeFunctionData({ 
+      abi: parseAbi(['function demo()']), 
+      functionName: 'demo', 
+      args: [] 
+    })
+    
+    // Open the swap modal
+    openSwapModal({
+      onSuccess: () => {
+        console.log('swap successful!')
+      },
+      chainId,
+      currencyAddress,
+      currencyAmount,
+      postSwapTransactions: [
+        {
+          to: '0x37470dac8a0255141745906c972e414b1409b470',
+          data
+        }
+      ],
+      title: 'Swap and Pay',
+      description: 'Select a token in your wallet to swap to 0.2 USDC.'
+    })
+  }
+  
+  return (
+    <button onClick={handleSwap}>
+      Swap with Sequence Pay
+    </button>
+  )
+}
+```
+
+## 戻り値の型：`UseSwapModalReturnType`
+
+このフックは以下のプロパティを持つオブジェクトを返します：
+
+```tsx
+type UseSwapModalReturnType = {
+  openSwapModal: (settings: SwapModalSettings) => void
+  closeSwapModal: () => void
+  swapModalSettings: SwapModalSettings | undefined
+}
+```
+
+### プロパティ
+
+#### openSwapModal
+
+`(settings: SwapModalSettings) => void`
+
+指定された設定でスワップモーダルを開く関数。
+
+**パラメータ：**
+
+この`settings`オブジェクトには以下のプロパティを含めることができます：
+
+| パラメータ                  | 型                                   | 説明                                        |
+| ---------------------- | ----------------------------------- | ----------------------------------------- |
+| `chainId`              | `number`                            | スワップが行われるブロックチェーンネットワークID                 |
+| `currencyAddress`      | `string`                            | 対象トークンコントラクトのアドレス                         |
+| `currencyAmount`       | `string`                            | 最小単位での対象トークンの量                            |
+| `postSwapTransactions` | `Array<{to: string, data: string}>` | （オプション）スワップ完了後に実行するトランザクション               |
+| `disableMainCurrency`  | `boolean`                           | （オプション）trueの場合、チェーンのメイン通貨を使用したスワップを無効にします |
+| `title`                | `string`                            | （オプション）スワップモーダルのカスタムタイトル                  |
+| `description`          | `string`                            | （オプション）スワップモーダルのカスタム説明                    |
+| `onSuccess`            | `() => void`                        | （オプション）スワップ成功時のコールバック                     |
+| `onError`              | `(error: Error) => void`            | （オプション）エラー発生時のコールバック                      |
+| `onClose`              | `() => void`                        | （オプション）モーダルが閉じられた時のコールバック                 |
+| `blockConfirmations`   | `number`                            | （オプション）スワップ完了を待つブロック確認数                   |
+
+#### closeSwapModal
+
+`() => void`
+
+スワップモーダルを閉じる関数。
+
+#### swapModalSettings
+
+`SwapModalSettings | undefined`
+
+スワップモーダルの現在の設定構成。
+
+```tsx
+export interface SwapModalSettings {
+  chainId: number
+  currencyAddress: string
+  currencyAmount: string
+  title?: string
+  description?: string
+  disableMainCurrency?: boolean
+  postSwapTransactions?: Transaction[]
+  blockConfirmations?: number
+  onSuccess?: (txHash: string) => void
+}
+```
+
+## 注意事項
+
+このフックは、ユーザーがウォレット内のトークンを目的の通貨にスワップできるようにするスワップモーダルを制御するメソッドを提供します。スワップモーダルでは、ユーザーがウォレットからトークンを選択して指定された対象トークンにスワップでき、スワップ完了後に追加のトランザクションを実行するオプションもあります。

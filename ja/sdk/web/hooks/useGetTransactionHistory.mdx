@@ -1,0 +1,179 @@
+---
+title: useGetTransactionHistory
+description: トランザクション履歴のフェッチとページネーションのためのフック
+sidebarTitle: useGetTransactionHistory
+---
+
+## インポート
+
+```tsx
+import { useGetTransactionHistory } from '@0xsequence/hooks'
+```
+
+## 使用方法
+
+```tsx
+import { useGetTransactionHistory } from '@0xsequence/hooks'
+
+function TransactionList() {
+  const {
+    data,
+    fetchNextPage,
+    hasNextPage,
+    isLoading,
+    isFetchingNextPage
+  } = useGetTransactionHistory({
+    chainId: 1,
+    accountAddress: '0x123...',
+    // Optional filters:
+    // contractAddress: '0x456...',
+    // tokenId: '1'
+  })
+
+  if (isLoading) return <div>Loading...</div>
+
+  return (
+    <div>
+      {data?.pages.map(page => 
+        page.transactions.map(tx => (
+          <div key={tx.txnHash}>
+            Transaction: {tx.txnHash}
+            Block: {tx.blockNumber}
+            Time: {tx.timestamp}
+          </div>
+        ))
+      )}
+      
+      {hasNextPage && (
+        <button 
+          onClick={() => fetchNextPage()}
+          disabled={isFetchingNextPage}
+        >
+          {isFetchingNextPage ? 'Loading more...' : 'Load more'}
+        </button>
+      )}
+    </div>
+  )
+}
+```
+
+## 戻り値の型：`UseGetTransactionHistoryReturnType`
+
+このフックはReact Queryの`UseInfiniteQueryResult`のすべてのプロパティをトランザクション履歴データと共に返します。詳細な構造は以下の通りです：
+
+```tsx
+type UseGetTransactionHistoryReturnType = UseInfiniteQueryResult<
+  InfiniteData<GetTransactionHistoryReturn, unknown>,
+  Error
+>
+```
+
+### プロパティ
+
+#### data
+
+`InfiniteData<GetTransactionHistoryReturn> | undefined`
+
+複数のページを含むページネーション化されたトランザクション履歴データ。各ページには以下が含まれます：
+
+##### transactions
+
+以下のプロパティを持つトランザクションオブジェクトの配列：
+
+* `txnHash`：トランザクションハッシュ
+* `blockNumber`: トランザクションがマイニングされたブロック番号
+* `blockHash`: ブロックのハッシュ
+* `chainId`: トランザクションが発生したチェーンID
+* `metaTxnID`: オプションのメタトランザクションID
+* `transfers`: オプションのトランザクション転送配列
+* `timestamp`: トランザクションのタイムスタンプ
+
+##### page
+
+以下を含むページネーション情報オブジェクト：
+
+* `page`: 次のページ番号
+* `more`: 次のページに結果が存在するかどうか
+* `pageSize`: 1ページあたりの結果数
+
+#### fetchNextPage
+
+`() => Promise<unknown>`
+
+トランザクションの次のページを読み込むための関数。
+
+#### hasNextPage
+
+`boolean`
+
+読み込み可能なトランザクションがさらにあるかどうかを示すブール値。
+
+#### isLoading
+
+`boolean`
+
+初期データフェッチの読み込み状態。
+
+#### isFetching
+
+`boolean`
+
+データフェッチ（初期または後続）の読み込み状態。
+
+#### isFetchingNextPage
+
+`boolean`
+
+次のページフェッチの読み込み状態。
+
+#### error
+
+`Error | null`
+
+データフェッチ中に発生したエラー。
+
+## パラメータ
+
+このフックは2つのパラメータを受け付けます：
+
+### args: `UseGetTransactionHistoryArgs`
+
+```tsx
+interface UseGetTransactionHistoryArgs {
+  chainId: number
+  accountAddress: string
+  contractAddress?: string
+  tokenId?: string
+  page?: {
+    page: number
+  }
+}
+```
+
+| パラメータ             | 型        | 説明                                 |
+| ----------------- | -------- | ---------------------------------- |
+| `chainId`         | `number` | トランザクションを取得するチェーンID                |
+| `accountAddress`  | `string` | トランザクション履歴を取得するアドレス                |
+| `contractAddress` | `string` | （オプション）コントラクトアドレスでトランザクションをフィルタリング |
+| `tokenId`         | `string` | （オプション）トークンIDでトランザクションをフィルタリング     |
+| `page`            | `object` | （オプション）ページネーション設定                  |
+
+### options: `HooksOptions`
+
+```tsx
+interface HooksOptions {
+  disabled?: boolean
+  retry?: boolean
+}
+```
+
+| パラメータ      | 型         | 説明                       |
+| ---------- | --------- | ------------------------ |
+| `disabled` | `boolean` | （オプション）クエリの自動実行を無効にする    |
+| `retry`    | `boolean` | （オプション）失敗したクエリを再試行するかどうか |
+
+## 注意事項
+
+このフックは無限スクロールをサポートするトランザクション履歴を取得するためのメソッドを提供します。コントラクトアドレスとトークンIDでトランザクションをフィルタリングできるため、一般的なアカウント履歴と特定のアセット履歴の両方のビューに有用です。
+
+このフックは内部で`@tanstack/react-query`を使用してデータのフェッチとキャッシングを行い、30秒のstale timeを設定しています。

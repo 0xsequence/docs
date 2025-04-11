@@ -1,0 +1,25 @@
+---
+title: メール + OTP
+---
+
+すべてのプラットフォームで利用可能なメールサインインは、ユーザーにワンタイムパスワード（OTP）チャレンジを提供します - 入力されたアドレスに送信される6桁のコードを次のページで入力します。
+
+まず、[builderでプロジェクトのメールサインインを有効にする](/solutions/builder/embedded-wallet/configuration)必要があります。
+
+ビルトインの`LoginPanel`を使用している場合、UIは自動的にメール + OTPサインインを管理します。
+
+<Tip>新しく作成されたウォレットを受け取るために`SequenceWallet.OnWalletCreated`イベントの購読を忘れないでください！</Tip>
+
+## カスタム統合
+
+それ以外の場合は、`Login(string email)`非同期タスクを`SequenceLogin`で呼び出してAPIでの認証を開始する必要があります。これにより指定されたメールアドレスにOTPチャレンジが送信されます。
+
+ユーザーがOTPコードを入力したら、`Login(string email, string code)`非同期タスクを`SequenceLogin`で呼び出してユーザーの認証を完了する必要があります。
+
+関連するイベント：
+
+* `OnMFAEmailSent` - このイベントにはOTPが送信されたメールアドレスを指定する文字列が含まれます
+
+* `OnMFAEmailFailedToSend` - このイベントには2つの文字列が含まれます：OTPが要求されたメールアドレスとエラーメッセージ
+
+* `OnLoginFailed` - このイベントには以下が含まれます：エラーメッセージ文字列、`LoginMethod`が使用され、ログイン試行に関連するメール文字列

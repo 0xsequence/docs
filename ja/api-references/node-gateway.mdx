@@ -1,0 +1,39 @@
+---
+title: Node Gateway
+sidebarTitle: 概要
+---
+
+Sequence Node gatewayインフラストラクチャにより、アプリケーションと共にスケールできるフェイルオーバー耐性のあるRPCエンドポイントを持つことができます。
+
+私たちのインフラストラクチャを使用することで、独自のスタックをデプロイする必要がないためコストを節約でき、複数のパブリックRPCプロバイダーを単一のエンドポイントに集約する機能のメリットを得ることができます。
+
+## 試してみましょう
+
+インストール`ethers`を`pnpm install ethers`または`yarn add ethers`
+
+私たちの[ネットワークオプション](https://status.sequence.info)
+
+そして[Sequence Builderアクセスキー](https://sequence.build)を取得して接続を認証し、エンドポイントに追加します
+
+```js
+// Import the ethers library
+import { ethers } from "ethers";
+
+// Function to create a provider and fetch the latest block
+async function getLatestBlock() {
+  // Replace the following URL with your actual RPC endpoint
+  const rpcUrl =
+    "https://nodes.sequence.app/<chain_handle>/<project_access_key>";
+
+  // Create a provider using the RPC URL
+  const provider = new ethers.providers.JsonRpcProvider(rpcUrl);
+
+  // Fetch the latest block
+  const latestBlock = await provider.getBlock("latest");
+
+  console.log("Latest Block:", latestBlock);
+}
+
+// Call the function to get the latest block
+getLatestBlock().catch(console.error);
+```

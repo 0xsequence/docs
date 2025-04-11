@@ -1,0 +1,119 @@
+---
+title: セッション管理
+description: Auth + Embedded Walletのセッション管理機能は、アプリケーションのアカウント管理、認証、セッション制御を簡素化します。
+sidebarTitle: セッションを管理する
+---
+
+有効なセッションは認証プロセス中に開始されます。
+
+Sequence AuthとEmbedded Walletは、アプリケーションの以下の側面を処理します：
+
+* [有効なセッションの確認](/sdk/headless-wallet/manage-sessions#validation-status)：ユーザーのサインアップまたはサインインのためのブロックチェーンアカウントを管理します。
+* [セッション検証の制御](/sdk/headless-wallet/manage-sessions#control-session-validation)：ゲームやアプリケーションの体験を向上させるために、アプリケーションで使用される重要な詳細を返す認証セッション。
+* [セッションを閉じる](/sdk/headless-wallet/manage-sessions#close-session)：WaaSスタックで処理されるセッションのリスト化とドロップの管理。
+
+## 検証ステータス
+
+現在のセッションの検証ステータスを確認するには、`isSessionValid`メソッドを使用します。これは`true`メールログインと信頼できるソーシャルログインの場合は`false`カスタムログインの場合はメール検証が完了するまで
+
+```ts
+const isValid = await sequence.isSessionValid();
+console.log(isValid);
+```
+
+```
+true
+```
+
+### セッション検証のトリガー
+
+手動でセッション検証をトリガーするには`validateSession`メソッドを使用します。これによりユーザーのメールにコードが送信されます。10分以内に検証された場合、メソッドは`true`を返し、そうでない場合は`false`を返します。
+
+```ts
+const result = await sequence.validateSession();
+```
+
+```
+true
+```
+
+ユーザーがコードを受け取ったら、`finishValidateSession`メソッドを使用してセッションを検証できます。このメソッドはコードを引数として受け取ります。コードが有効な場合、メソッドは`true`を返し、そうでない場合は`false`を返します。
+
+```ts
+const result = await sequence.finishValidateSession("123456");
+```
+
+```
+true
+```
+
+### **セッション検証の制御**
+
+こ&#x306E;**`onValidationRequired`**&#x30B3;ールバックは、トランザクションの送信やメッセージの署名などのアクションの際にセッション検証が必要かどうかを判断するために使用されます。コールバック&#x304C;**`true`**&#x3092;返す場合、セッション検証がトリガーされます。**`false`**&#x3092;返す場合、関連するアクションはキャンセルされます。このメカニズムにより、検証されたセッションのみが機密性の高い操作を実行できることを保証します。
+
+```ts
+const tx = await sequence.sendERC20({
+  validation: {
+    onValidationRequired: () => true,
+  },
+  chainId: 42161,
+  token: "0x6b175474e89094c44da98b954eedeac495271d0f", // DAI
+  to: "0x27CabC9700EE6Db2797b6AC1e1eCe81C72A2cD8D", // Recipient
+  value: "200000000000000000000", // 200 DAI
+});
+```
+
+### セッション検証をリッスンする
+
+トランザクションの送信などのイベントは、暗黙的にセッション検証を要求する場合があります。`onValidationRequired`フックを使用してそのようなインスタンスをキャッチします。
+
+```ts
+sequence.onValidationRequired(() => {
+  console.log("Session has been triggered for validation");
+});
+
+await sequence.sendTransaction({ chainId: 1 }, { to: "0x...", value: "1" });
+```
+
+```
+Session has been triggered for validation
+```
+
+## 自動セッション検証の管理
+
+自動セッション検証は、検証を必要とするアクション中に発生します。このプロセスはonValidationRequiredフックを使用して管理します。
+
+```ts
+const tx = await sequence.sendTransaction({
+  chainId: 1,
+  validation: {
+    onValidationRequired: () => {
+      console.log("Session has been triggered for validation");
+      return true;
+    },
+  },
+  to: "0x061150e5574716DBb1a2cdf54b3DcE9F94395f65",
+  value: "1",
+});
+```
+
+フックから`true`または`false`を`onValidationRequired`返すことで、それぞれアクションを継続またはキャンセルします。
+
+## セッションを閉じる
+
+セッションは`id`を使用して閉じることができます。アクティブなセッションを持つ任意のデバイスから任意のセッションを閉じることができます。
+
+```ts
+import { SequenceWaaS } from '@0xsequence/waas'
+
+const sequence = new SequenceWaaS({
+  projectAccessKey: `${process.env.VITE_PROJECT_ACCESS_KEY}`,
+  waasConfigKey: `${process.env.VITE_WAAS_CONFIG_KEY}`,
+  network: 'arbitrum-nova'
+})
+
+await sequence.signIn({ idToken }, "MacBook Pro - Chrome")
+
+const sessions = await sequence.listSessions()
+await sequence.dropSession({ sessionId: sessions[0].id })
+```

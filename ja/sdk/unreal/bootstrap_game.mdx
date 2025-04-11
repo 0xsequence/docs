@@ -1,0 +1,98 @@
+---
+title: ゲームのブートストラップ
+description: web3ゲーミング向けのSequenceインフラストラクチャスタックを使用してブロックチェーンから読み取るためのUnreal SDK APIのドキュメント。
+---
+
+Sequence Unreal SDKには、ゲームのブートストラップを支援する様々な機能が含まれています。以下のように作成するか、`.uasset`のファイルを`Plugins/SequencePlugin Content/Samples/`フォルダから複製して、ニーズに合わせてカスタマイズすることができます。
+
+## インベントリ
+
+ウィジェットを作成して`Sequence Inventory`、任意のERC1155またはERC721コントラクトからユーザーが所有するすべてのアイテムを表示します。
+
+<Frame caption="Feature Inventory Demo">
+  <img src="/images/unreal/feature_inventory_demo.gif" />
+</Frame>
+
+<Frame caption="Feature Inventory">
+  <img src="/images/unreal/feature_inventory.png" />
+</Frame>
+
+<Accordion title="Parameters">
+  **チェーン（ENetwork列挙型）**
+
+  指定されたコントラクトがデプロイされているチェーンタイプ（Ethereum、Sepolia、..）。
+
+  **ウォレットアドレス（FString）**
+
+  インベントリアイテムを表示したいユーザーのウォレットアドレス。
+
+  **コントラクト（FString）**
+
+  指定されたウォレットアドレスがアイテムを所有しているERC1155またはERC721コントラクトのアドレス。
+</Accordion>
+
+## プライマリセール
+
+プレイヤーに直接アイテムを販売してゲームの成長を加速させましょう。`Sequence Primary Sale`ウィジェットを作成して、ユーザーが任意のカスタムまたは既存のERC20通貨を使用して購入できるERC1155コントラクトからのゲームアイテムを利用したインゲームショップを表示します。
+
+[プライマリーセール契約](/solutions/collectibles/contracts/deploy-primary-sales-contract/)：プライマリーセールを開始するためのコントラクトの設定とデプロイ方法について学びます。
+
+<Frame caption="Feature Sale Demo">
+  <img src="/images/unreal/feature_sale_demo.gif" />
+</Frame>
+
+<Frame caption="Feature Sale">
+  <img src="/images/unreal/feature_sale.png" />
+</Frame>
+
+<Accordion title="Parameters">
+  **チェーン（ENetwork Enum）**
+
+  指定されたコントラクトがデプロイされているチェーンタイプ（Ethereum、Sepolia、...）。
+
+  **トークンコントラクトアドレス（FString）**
+
+  Sequenceのビルダーを使用してデプロイしたERC1155またはERC721トークンコントラクトのアドレス。
+
+  **セールコントラクトアドレス（FString）**
+
+  Sequenceのビルダーを使用してデプロイしたセールコントラクトのアドレス。
+
+  **支払いトークン（FString）**
+
+  セールコントラクトの「ミントアクセス」セクションで指定したERC20トークンアドレス。
+
+  **価格（Integer）**
+
+  セールコントラクトの「ミントアクセス」セクションで指定した各トークンの価格。
+
+  **販売用トークン（Integer配列）**
+
+  ユーザーインターフェースに表示するトークンID（例：\[0, 1, 2]）のリスト。
+</Accordion>
+
+## マイウォレットビュー
+
+作成する`Sequence Profile`ウィジェットで、資金を受け取るためのQRコードを表示したり、他のウォレットに資金を送信したりできます。
+
+<Frame caption="Feature Wallet Demo">
+  <img src="/images/unreal/feature_wallet_demo.gif" />
+</Frame>
+
+<Frame caption="Feature Wallet">
+  <img src="/images/unreal/feature_wallet.png" />
+</Frame>
+
+<Accordion title="Parameters">
+  **チェーン（ENetwork Enum）**
+
+  ゲームを実行したいチェーンタイプ（Ethereum、Sepolia、...）。
+
+  **ウォレットアドレス（FString）**
+
+  このビューを表示したいユーザーのウォレットアドレス。
+
+  **送信を有効化（Boolean）**
+
+  送信ビューを開くボタンを有効にするかどうかを示します。他のユーザーのプロフィールを表示したい場合はfalseに設定します。
+</Accordion>

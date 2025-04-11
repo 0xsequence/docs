@@ -1,0 +1,12 @@
+---
+title: 送金
+---
+
+ETH（またはネットワークのガス通貨）を送金するには、`TranferEth.CreateTransaction`
+
+```csharp
+EthTransaction transferTransaction = await TransferEth.CreateTransaction(client, wallet, recipientAddress, DecimalNormalizer.Normalize(1));
+TransactionReceipt receipt = await wallet.SendTransactionAndWaitForReceipt(client, transferTransaction);
+```
+
+バックグラウンドでは、これは`GasLimitEstimator`を作成し、適切なgasPrice、gasLimit、nonceを決定してトランザクションを構築します。

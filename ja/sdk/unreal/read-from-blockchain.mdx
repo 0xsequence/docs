@@ -1,0 +1,275 @@
+## チェーンIDの設定
+
+ユーザー情報を取得したいチェーンIDを選択します。デフォルトではPolygonに設定されています。
+
+<Tabs>
+  <Tab title="Blueprint">
+    <Frame caption="Set Chain Id">
+      <img src="/images/unreal/set_chain_id.png" />
+    </Frame>
+  </Tab>
+</Tabs>
+
+<Accordion title="Parameters">
+  **新しいチェーンタイプ（ENetwork Enum）**
+
+  情報を要求したいチェーンのタイプ。Ethereum MainnetやSepoliaなどのオプションが含まれます。Sequenceのビルダーからプロジェクトに適したチェーンを選択してください。
+</Accordion>
+
+## イーサー残高の取得
+
+Indexer APIを使用して、ローカルユーザーのアドレスなど、指定されたウォレットアドレスのイーサー残高を取得します。
+
+<Tabs>
+  <Tab title="Blueprint">
+    <Frame caption="Get Ether Balance">
+      <img src="/images/unreal/get_ether_balance.png" />
+    </Frame>
+  </Tab>
+
+  <Tab title="C++">
+    ```cpp twoslash
+    // Define success and failure callbacks
+    const TSuccessCallback<FEtherBalance> GenericSuccess = [=](const FEtherBalance& etherBalance) { };
+    const FFailureCallback GenericFailure = [=](const FSequenceError& Error) { };
+
+    // Get a reference of the user's current wallet session.
+    const TOptional<USequenceWallet*> WalletOptional = USequenceWallet::Get();
+    if (WalletOptional.IsSet() && WalletOptional.GetValue())
+    {
+        // Example Indexer call
+        USequenceWallet * Wallet = WalletOptional.GetValue();
+        Wallet->GetEtherBalance(Wallet->GetWalletAddress(), GenericSuccess, GenericFailure);
+    }
+    ```
+  </Tab>
+</Tabs>
+
+<Accordion title="Parameters">
+  **ウォレットアドレス（FString）**
+
+  データを取得したいウォレットアドレス。
+</Accordion>
+
+<Accordion title="Return Types">
+  **残高（Integer64）**
+
+  指定されたウォレットアドレスが所有するイーサーの量。
+</Accordion>
+
+## トークン残高の取得
+
+ERC20、ERC721、およびERC1155トークンのユーザートークン残高を取得します。これにより、ユーザーが所有するすべてのトークンの配列が返されます。
+
+<Tabs>
+  <Tab title="Blueprint">
+    <Frame caption="Get Token Balances">
+      <img src="/images/unreal/get_token_balances.png" />
+    </Frame>
+  </Tab>
+
+  <Tab title="C++">
+    ```cpp
+    const TSuccessCallback<FGetTokenBalancesReturn> GenericSuccess = [=](const FGetTokenBalancesReturn& tokenBalances)
+    {
+        //Response in FGetTokenBalancesReturn
+    };
+    const FFailureCallback GenericFailure = [=](const FSequenceError& Error)
+    {
+        //GetTokenBalances Failure
+    };
+
+    const TOptional<USequenceWallet*> WalletOptional = USequenceWallet::Get();
+    if (WalletOptional.IsSet() && WalletOptional.GetValue())
+    {
+        USequenceWallet * Wallet = WalletOptional.GetValue();
+        FGetTokenBalancesArgs args;
+        args.accountAddress = Wallet->GetWalletAddress();
+        args.includeMetaData = true;
+        Wallet->GetTokenBalances(args, GenericSuccess, GenericFailure);
+    }
+    ```
+  </Tab>
+</Tabs>
+
+<Accordion title="Parameters">
+  **コントラクトアドレス（FString）**
+
+  データを取得したいERC20、ERC721、またはERC1155のコントラクトアドレス。
+
+  **ウォレットアドレス（FString）**
+
+  指定されたコントラクトアドレス上でトークンを所有するウォレットアドレス。
+
+  **メタデータを含める（Boolean）**
+
+  レスポンスにトークンメタデータを含める場合は、このフラグを有効にします。
+</Accordion>
+
+<Accordion title="Return Types">
+  **残高（SeqGetTokenBalancesReturn構造体）**
+
+  指定されたウォレットアドレスが所有するすべてのトークンIDをリストするSeqTokenBalance配列を含みます。'メタデータを含める'がtrueに設定されている場合、トークンメタデータも含まれます。
+</Accordion>
+
+## トークン供給量の取得
+
+ERC20、ERC721、またはERC1155トークンのトークン供給量を取得します。
+
+<Tabs>
+  <Tab title="Blueprint">
+    <Frame caption="Get Token Supplies">
+      <img src="/images/unreal/get_token_supplies.png" />
+    </Frame>
+  </Tab>
+
+  <Tab title="C++">
+    ```cpp
+    const TSuccessCallback<FGetTokenSuppliesReturn> GenericSuccess = [=](const FGetTokenSuppliesReturn& tokenSupplies)
+    {
+        //Response is in FGetTokenSuppliesReturn
+    };
+    const FFailureCallback GenericFailure = [=](const FSequenceError& Error)
+    {
+        //GetTokenSupplies Failure
+    };
+
+    const TOptional<USequenceWallet*> WalletOptional = USequenceWallet::Get();
+    if (WalletOptional.IsSet() && WalletOptional.GetValue())
+    {
+        USequenceWallet * Wallet = WalletOptional.GetValue();
+        FGetTokenSuppliesArgs args;
+        args.contractAddress = "0x01";//Testing Contract Address in hex with leading 0x
+        args.includeMetaData = true;
+        Wallet->GetTokenSupplies(args, GenericSuccess, GenericFailure);
+    }
+    ```
+  </Tab>
+</Tabs>
+
+<Accordion title="Parameters">
+  **コントラクトアドレス（FString）**
+
+  トークン供給量を取得したいERC20、ERC721、またはERC1155のコントラクトアドレス。
+
+  **メタデータを含める（Boolean）**
+
+  レスポンスにトークンメタデータを含める場合は、このフラグを有効にします。
+</Accordion>
+
+<Accordion title="Return Types">
+  **供給量（SeqGetTokenSuppliesReturn構造体）**
+
+  指定されたコントラクトアドレス上で利用可能なすべてのトークンIDをリストするSeqTokenSupply配列を含みます。各要素には'supply'値が含まれます。'メタデータを含める'がtrueに設定されている場合、トークンメタデータも含まれます。
+</Accordion>
+
+## トークン供給量マップの取得
+
+ERC20、ERC721、またはERC1155トークンの供給量コレクションを取得します。
+
+<Tabs>
+  <Tab title="Blueprint">
+    <Frame caption="Get Token Supplies Map">
+      <img src="/images/unreal/get_token_supplies_map.png" />
+    </Frame>
+  </Tab>
+
+  <Tab title="C++">
+    ```cpp
+    const TSuccessCallback<FGetTokenSuppliesMapReturn> GenericSuccess = [=](const FGetTokenSuppliesMapReturn& tokenSuppliesMap)
+    {
+        //Response is in FGetTokenSuppliesMapReturn
+    };
+    const FFailureCallback GenericFailure = [=](const FSequenceError& Error)
+    {
+        //GetTokenSuppliesMap Failure
+    };
+    const TOptional<USequenceWallet*> WalletOptional = USequenceWallet::Get();
+    if (WalletOptional.IsSet() && WalletOptional.GetValue())
+    {
+        USequenceWallet * Wallet = WalletOptional.GetValue();
+        TMap<FString, FTokenList> tokenMap;
+        const TPair<FString,FTokenList> item;
+        tokenMap.Add(item);
+        FGetTokenSuppliesMapArgs args;
+        args.includeMetaData = true;
+        args.tokenMap = tokenMap;
+        Wallet->GetTokenSuppliesMap(args, GenericSuccess, GenericFailure);
+    }
+    ```
+  </Tab>
+</Tabs>
+
+<Accordion title="Parameters">
+  **トークンマップ（FString->FSeqTokenList マップ）**
+
+  データを取得したいトークンIDのマップ。
+
+  **メタデータを含める（Boolean）**
+
+  レスポンスにトークンメタデータを含める場合は、このフラグを有効にします。
+</Accordion>
+
+<Accordion title="Return Types">
+  **供給量（SeqGetTokenSuppliesMapReturn構造体）**
+
+  'トークンマップ'で指定された各IDのSeqTokenSupply配列を含みます。各要素には'supply'値が含まれます。'メタデータを含める'がtrueに設定されている場合、トークンメタデータも含まれます。
+</Accordion>
+
+## トランザクション履歴の取得
+
+ウォレットまたはトークンアドレスのトランザクション履歴を取得します。
+例えば、ここでは現在のユーザーのすべてのトランザクションを取得します。
+
+<Tabs>
+  <Tab title="Blueprint">
+    <Frame caption="Get Transaction History">
+      <img src="/images/unreal/get_transaction_history.png" />
+    </Frame>
+  </Tab>
+
+  <Tab title="C++">
+    ```cpp
+    const TSuccessCallback<FGetTransactionHistoryReturn> GenericSuccess = [=](const FGetTransactionHistoryReturn& transactionHistory)
+    {
+        //Response is in FGetTransactionHistoryReturn
+    };
+    const FFailureCallback GenericFailure = [=](const FSequenceError& Error)
+    {
+        //GetTransactionHistory Failure
+    };
+
+    const TOptional<USequenceWallet*> WalletOptional = USequenceWallet::Get();
+    if (WalletOptional.IsSet() && WalletOptional.GetValue())
+    {
+        USequenceWallet * Wallet = WalletOptional.GetValue();
+        FGetTransactionHistoryArgs args;
+        args.filter.accountAddress = Wallet->GetWalletAddress();
+        args.includeMetaData = true;
+        args.page.page = 0;
+        args.page.more = true;
+        Wallet->GetTransactionHistory(args, GenericSuccess, GenericFailure);
+    }
+    ```
+  </Tab>
+</Tabs>
+
+<Accordion title="Parameters">
+  **アカウントアドレス（FString）**
+
+  特定のユーザーの履歴を受け取りたい場合は、ウォレットアドレスを指定します。
+
+  **コントラクトアドレス（FString）**
+
+  特定のトークンの履歴を受け取りたい場合は、ERC20、ERC721、またはERC1155のコントラクトアドレスを指定します。
+
+  **メタデータを含める（Boolean）**
+
+  レスポンスにトークンメタデータを含める場合は、このフラグを有効にします。
+</Accordion>
+
+<Accordion title="Return Types">
+  **トランザクション履歴（SeqGetTransactionHistoryReturn構造体）**
+
+  すべてのトランザクションをリストするSeqTransaction配列を含みます。
+</Accordion>

@@ -1,0 +1,52 @@
+---
+title: Wallet Factory
+description: Wallet Factoryは、Factory契約を使用してSequence Walletsの作成を可能にし、すべてのSequenceウォレットのベースコードとして機能するMinimalUpgradeableProxiesの子契約を生成します。
+sidebarTitle: Wallet Factory
+---
+
+Sequence Walletsは[Factory](https://github.com/0xsequence/wallet-contracts/blob/e0c5382636a88b4db4bcf0a70623355d7cd30fb4/contracts/Factory.sol)契約を使用して作成され、呼び出されると子[MinimalUpgradeableProxies](https://github.com/0xsequence/wallet-contracts/blob/e0c5382636a88b4db4bcf0a70623355d7cd30fb4/contracts/Wallet.sol)契約を作成します。これらは本質的にすべてのSequenceウォレットの「ブート」コードです。
+
+## ファクトリーAPI
+
+### deploy
+
+```solidity
+  function deploy(
+    address _mainModule,
+    bytes32 _salt
+  ) public payable returns (address _contract)
+```
+
+MinimalUpgradeableProxyを使用して子プロキシを作成します[CREATE2](https://eips.ethereum.org/EIPS/eip-1014)、プロキシは最初に提供された`_mainModule`を指します。
+初期化コードは実行されません。
+
+#### パラメータ：
+
+| 名前           | 型       | 説明                                                                                                             |
+| ------------ | ------- | -------------------------------------------------------------------------------------------------------------- |
+| \_mainModule | address | 新しいプロキシコントラクトの初期実装。カウンターファクチュアル初期化をサポートする有効なSequenceウォレット実装を指すことが期待されます。                                       |
+| \_salt       | bytes32 | CREATE2のソルトとして使用される任意の値。`create2`ソルト。Sequenceの`mainModule`はウォレットの初期設定のハッシュを取得するためにソルトを使用します（[ImageHash](#)参照）。 |
+
+#### 戻り値：
+
+| 名前         | 型       | 説明                    |
+| ---------- | ------- | --------------------- |
+| \_contract | address | 作成されたプロキシコントラクトのアドレス。 |
+
+<Warning>
+  未検証の入力<br />
+  Factoryコントラクト**は**提供された`_mainModule`が有効なSequenceウォレット実装であるか、または`_salt`が有効なSequence設定であるかを確認しません。
+
+  無効なパラメータを使用すると、プロキシコントラクトが**使用できなくなる**可能性があり、資金の損失につながる可能性があります。
+</Warning>
+
+## カウンターファクチュアルアドレス
+
+Sequenceウォレットは設計上カウンターファクチュアルです。これは、ウォレットのアドレスがウォレットがデプロイされる前に分かることを意味します。`mainModule`と`salt`の値の2つの組み合わせは、同じウォレットアドレスになります。
+
+この特性と[NanoUniversalDeployer](/solutions/technical-references/internals/v1/deploy#1-deploy-nanouniversaldeployer)または[UniversalDeployer](/solutions/technical-references/internals/v1/deploy#2-deploy-universaldeployer2)の使用により、Sequenceウォレットは複数のチェーンで同じアドレスを取得できます。
+
+<Tip>
+  ガスフリーのウォレット作成<br />Sequenceウォレットは**100%カウンターファクチュアル**です。
+  これは、`deploy`関数を呼び出す必要なく、ウォレットのアドレスに安全に資金を転送できることを意味します。ウォレットのデプロイは、最初のトランザクションが送信される前にのみ必要です**から**ウォレット。
+</Tip>

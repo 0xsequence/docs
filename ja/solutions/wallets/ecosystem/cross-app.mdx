@@ -1,0 +1,92 @@
+---
+title: Cross-App Ecosystem Wallets
+description: Sequence エコシステムウォレットは、エコシステム全体でユーザーの統一されたウォレットを作成することを可能にします。
+sidebarTitle: Cross App Integration
+---
+
+Sequenceのクロスアップソリューションにより、ユーザーは外部のエコシステムやwagmiなどの一般的なウォレットコネクタを使用してSequenceと統合されているかに関係なく、同じウォレットアドレスを使用してあらゆるアプリでエコシステム組み込みウォレットを活用できます。これには以下が含まれます：
+
+* 外部マーケットプレイス
+* 外部DEX
+* 外部アプリケーション
+
+<Frame>
+  ![Cross App Architecture](/images/ecosystem/architecture.png "Sequence Cross-App Architecture")
+</Frame>
+
+<Note>
+  クロスアップ組み込みウォレットコネクタのデモは[こちら](https://cross-app-demo-dapp.pages.dev/)でご覧いただけます。
+</Note>
+
+クロスアップ組み込みウォレットは、外部アプリケーションとウォレットアプリケーション間の通信フローを実装します：
+
+* 外部アプリはWagmi用のクロスアップ組み込みウォレットコネクタを通じてウォレットと通信します
+* コネクタは通信を処理するためにProviderTransportを使用します
+* メッセージはProviderTransportとWalletTransport間で送信されます
+* ウォレットコンポーネントは3つの主要な機能を処理します：
+  * ユーザー認証
+  * トランザクション署名
+  * メッセージ署名
+
+ウォレットは開かれ、トランスポート層を通じて外部アプリケーションにメッセージを送り返すことができ、安全なクロスアプリケーション通信を可能にします。特に、クロスアップ統合の場合、ユーザーはすべての操作を確認する必要があります。
+
+<Steps>
+  <Step title="Clone our Cross App Embedded Wallet App & connector">
+    ```bash
+    git clone https://github.com/0xsequence/cross-app-embedded-wallet/tree/master && cd cross-app-embedded-Wallet/wallet
+    cp .env.example .env
+    ```
+  </Step>
+
+  <Step title="Update Wallet Transport with your configuration">
+    エコシステム組み込みウォレットの変数を`.env`ファイルに渡します。その後、単に`pnpm build`でウォレットアプリケーションをビルドし、Cloudflare Pagesなどの公にアクセス可能なURLにデプロイします。
+  </Step>
+
+  <Step title="Example External Application Configuration">
+    次に、wagmiにウォレットコネクタURLを渡すサンプル外部アプリケーションを設定します。
+
+    サンプルアプリケーションに移動し、依存関係、特にsequenceクロスアップコネクタパッケージ`@sequence-wallet/cross-app-connector`をインストールします：
+
+    ```bash
+    cd ../dapp && pnpm install
+    ```
+
+    次に、プロジェクトアクセスキーと先ほどデプロイしたホストされたウォレットURLで環境変数を更新します：
+
+    ```bash
+    cp .env.example .env
+    ```
+  </Step>
+
+  <Step title="Update Wagmi Connector">
+    最後に、`src/wagmiConfig.ts`にある特定のウォレット用のwagmiコネクタ設定を編集できます。以下は外部アプリケーションに提供できる設定例です：
+
+    ```
+    import { sequenceCrossAppEmbeddedWallet } from '@0xsequence/cross-app-embedded-wallet-connector'
+    import { createConfig, http } from 'wagmi'
+    import { arbitrumNova, arbitrumSepolia } from 'wagmi/chains'
+
+    const urlParams = new URLSearchParams(window.location.search)
+    const walletAppUrl = urlParams.get('walletAppUrl') ?? import.meta.env.VITE_WALLET_URL
+
+    const connector = sequenceCrossAppEmbeddedWallet(
+      {
+        projectAccessKey: import.meta.env.VITE_PROJECT_ACCESS_KEY,
+        walletUrl: walletAppUrl,
+        chainId: arbitrumNova.id, // Change this to your desired chain
+      }
+    );
+
+    export const config = createConfig({
+      chains: [arbitrumNova, arbitrumSepolia],
+      connectors: [connector],
+      transports: {
+        [arbitrumNova.id]: http(), // add Chain ID Transport
+        [arbitrumSepolia.id]: http()
+      }
+    })
+    ```
+  </Step>
+</Steps>
+
+これで、ウォレットコネクタ設定を任意のアプリと共有して、ユーザーが同じウォレットアドレスを使用できるように、エコシステムウォレットをそのアプリケーションで活用することができます。

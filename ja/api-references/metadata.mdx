@@ -1,0 +1,67 @@
+---
+title: Sequence メタデータAPI - ドキュメントとエンドポイント
+description: Sequence メタデータAPIサービスは、Ethereum互換チェーンのコレクション、トークン、NFTメタデータの照会、管理、更新を可能にします。アクセスするには、Sequence Builder Consoleでサービスアカウントとトークンを取得してください。
+---
+
+# メタデータAPI
+
+:::note
+[メタデータAPIのドキュメントとエンドポイント](https://0xsequence.redoc.ly/tag/metadata)
+:::
+
+Sequence メタデータAPIサービスは、Ethereum互換チェーンのコレクション、トークン、NFTメタデータを照会、管理、更新するためのシンプルで高速なAPIを提供します。
+
+<Note>
+  メタデータサービスは[Sequence Builder Console](HTTPS://SEQUENCE.BUILD)を通じて管理され、対応するエンドポイントを呼び出すにはサービスアカウントとトークンが必要です。エンドポイントを呼び出す前に、以下の[セクション](/api-references/metadata#obtaining-a-service-account--token)に従ってください
+</Note>
+
+## サービスアカウントとトークンの取得
+
+メタデータAPIはオンチェーンの状態を更新するために書き込みアクセスが必要なため、バックエンドから呼び出すためのサービスアカウントとトークンを最初に取得する必要があります。重要なことに、これは秘密鍵であり、公開してはいけません。
+
+1. 私たちの[Builder](https://sequence.build)を使用して新しいプロジェクトを作成します。設定 > APIキー > サービスアカウントの追加に移動します。
+2. 表示されるモーダルで、権限のドロップダウンをクリックしてWriteに変更します。完了したら追加をクリックします。
+3. 次の画面で、シークレットAPIトークンが表示されます。二度と表示されないため、キーをコピーして安全に保管してください。完了したら確認をクリックすれば、APIを使用する準備が整います。
+
+パブリックAPIアクセスキーとは異なり、このシークレットAPIトークンは安全に保管し、公開して使用してはいけないことに注意してください。このトークンは、リクエストヘッダーでX-Access-Keyとして通常のJWTとして渡します。
+
+## コレクション、トークン、メタデータの作成と管理
+
+以下のステップでは、メタデータAPIを使用してNFTコレクションをデプロイし、そのコレクション内にトークンを作成し、画像などのアセットメタデータをそのトークンにデプロイする方法を説明します。
+
+1. [呼び出し`CreateCollection`エンドポイント](https://docs.sequence.xyz/api-references/metadata/endpoints)- 前のセクションで作成したシークレットサービストークンを必ず渡してください。
+
+2. `CreateToken`- 前のリクエストから返されたcollectionIdを使用
+
+3. `CreateAsset`- collectionIdとあなたのtokenIdを使用
+   * 設定`metadataField`(assetType)を以下のいずれかに
+     * image
+     * animation\_url
+     * audio
+     * video
+
+4. PUTメソッドでこのエンドポイントにファイルをアップロード`PUT {metadata-server}/projects/{projectId}/collections/{collectionId}/tokens/{tokenId}/upload/{assetIdOrAssetType}`- ステップ3で返されたassetIdを使用するか、"image"などのassetTypeを渡すことができます
+
+* 例えば、以下にアップロードできます[https://metadata.sequence.app/projects/486/collections/1/tokens/1/upload/image](https://metadata.sequence.app/projects/486/collections/1/tokens/1/upload/image)これはトークンの"image"タイプのアセットを見つけ、そこにアップロードします。
+  * 必要に応じてassetIdを渡すこともできます。例：PUT[https://metadata.sequence.app/projects/486/collections/1/assets/1/upload](https://metadata.sequence.app/projects/486/collections/1/assets/1/upload)
+* アセットタイプには以下があります：image、audio、video、animation\_url
+
+5. アセットは現在、JWTトークンを使用してプライベートにアクセス可能です：`GET {metadata-server}/projects/{projectID}/collections/{collectionID}/tokens/{tokenID}/asset/{assetType}`
+   * 例：[https://metadata.sequence.app/projects/486/collections/1/tokens/1/asset/image](https://metadata.sequence.app/projects/486/collections/1/tokens/1/asset/image)
+
+6. `PublishCollection`-- これによりコレクションが一般公開されるようになります
+
+7. `GetCollection`-- コントラクトレベルとトークンレベルの両方のメタデータのbaseURIを返します。
+
+* コレクションレベルのメタデータ（コントラクトレベルのメタデータとも呼ばれる）：[https://metadata.sequence.app/projects/486/collections/1](https://metadata.sequence.app/projects/486/collections/1)または[https://metadata.sequence.app/projects/486/collections/1.json](https://metadata.sequence.app/projects/486/collections/1.json)
+* トークンレベルのメタデータ：[https://metadata.sequence.app/projects/486/collections/1/tokens/\{tokenId}](https://metadata.sequence.app/projects/486/collections/1/tokens/\{tokenId})
+  * 例：[https://metadata.sequence.app/projects/486/collections/1/tokens/1](https://metadata.sequence.app/projects/486/collections/1/tokens/1)または[https://metadata.sequence.app/projects/486/collections/1/tokens/1.json](https://metadata.sequence.app/projects/486/collections/1/tokens/1.json)
+
+8. 最後に、コントラクトでメタデータを使用するには、コントラクトのメタデータベースURIを上記の値に更新するだけで、すべてが自動的に機能します。
+
+以下は、NFTコレクション（ERC721またはERC1155）がどのように作成され管理されるかを示す上記のステップのアーキテクチャ図です。
+![Sequence Support](/images/metadata/metadata_api_architecture.png)
+
+## 価格と使用量
+
+Sequence メタデータは適度なリクエスト制限付きで無料で利用できますが、プロジェクトでより高い制限が必要な場合は、[Sequence](https://sequence.xyz)チームにお問い合わせください。

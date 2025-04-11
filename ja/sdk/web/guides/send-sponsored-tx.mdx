@@ -1,0 +1,63 @@
+---
+title: スポンサード取引の送信
+description: このチュートリアルでは、Web SDKを使用してスポンサード取引を送信する方法を学びます。
+sidebarTitle: 取引のスポンサー
+---
+
+<Steps>
+  <Step title="Setup Web SDK">
+    必ず[はじめに](/sdk/web/getting-started)ガイドを完了してください。
+  </Step>
+
+  <Step title="Setup your Gas Tank (for Mainnet only)">
+    メインネットで取引を送信する予定がある場合は、ガスタンクのセットアップが必要です。[ガススポンサーシップ](/solutions/builder/gas-tank)でガスタンクのセットアップ方法を確認してください。
+
+    <Note>
+      テストネットでは、すべてのSequenceスマートウォレット取引はデフォルトでスポンサーされています。
+    </Note>
+  </Step>
+
+  <Step title="Send a sponsored transaction">
+    次に、スポンサード取引を送信するための簡単なコンポーネントを作成します。
+
+    ```typescript
+    import React, { useState, useEffect } from 'react';
+    import { Button, Card, Select, Text } from '@0xsequence/design-system';
+    import { useAccount, useSendTransaction } from 'wagmi';
+
+    export const SponsoredTransactionExample = () => {
+      const { address } = useAccount();
+
+      const {
+        sendTransaction,
+        isPending,
+        isSuccess,
+        data: txHash
+      } = useSendTransaction();
+
+      const sendSponsoredTx = () => {
+        if (!address) return;
+        // Sending a dummy tx
+        sendTransaction({
+          to: address,
+          value: BigInt(0),
+          gas: null
+        });
+      };
+
+      return (
+        <>
+          <div>
+            <Text>Address: {address}</Text>
+            <Button onClick={sendSponsored}>Send Sponsored</Button>
+            {isPending && <Text>Pending...</Text>}
+            {isSuccess && <Text>Success! Tx Hash: {txHash}</Text>}
+          </div>
+        </>
+      )
+    }
+    ```
+  </Step>
+</Steps>
+
+おめでとうございます！Web SDKを使用してスポンサード取引を送信する方法を学びました。

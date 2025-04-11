@@ -1,0 +1,44 @@
+---
+title: v2からv3へのアップグレード
+---
+
+## インストール
+
+gitのURLを使用してパッケージマネージャーでインストールした場合は、以下を実行してください：
+
+1. Sequence-Unityパッケージを削除
+2. 以下のリンクを使用して再インストールしてください`https://github.com/0xsequence/sequence-unity.git?path=/Packages/Sequence-Unity`をリンクとして
+
+## コンパイルエラーの解決
+
+1. 削除`Samples/Sequence WaaS SDK/version/Setup/Editor` - これは現在SDKに含まれています
+2. 以下を含むすべての名前空間（using文）`WaaS`は以下に置き換えられました`Sequence.EmbeddedWallet`
+
+例えば、以下のような場合
+
+```csharp
+using Sequence.WaaS;
+using Sequence.WaaS.Authentication;
+using SequenceSDK.WaaS;
+```
+
+これを以下のように置き換えてください
+
+```csharp
+using Sequence.EmbeddedWallet;
+```
+
+3. `WaaSTransactionQueuer` -> `SequenceWalletTransactionQueuer`
+4. `WaaSWallet` -> `SequenceWallet`
+5. 一般的に、名前に`WaaS`を含むクラス、メソッド、またはイベントでコンパイルエラーが発生する場合は、`WaaS`が名前から削除されています（前述の一部のクラスを除く）
+   例：
+   `OnWaaSWalletCreated` -> `OnWalletCreated`
+
+   `WaaSSession` -> `Session`
+
+   `EthWallet` -> `EOAWallet`
+6. 既存の`LoginPanel`インスタンス
+
+   a. `WaaSSessionManager`プレハブを（Session Manager Prefabとして）`Sequence > SequenceSDK > EmbeddedWallet > WaaSSessionManager`の下に追加してください（まだ追加されていない場合）
+
+   b. `FederatedAuthPopupPanel`プレハブを`Sequence > SequenceFrontend > Prefabs`

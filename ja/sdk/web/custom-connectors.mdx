@@ -1,0 +1,88 @@
+---
+title: Web SDKのカスタムコネクター
+description: Web SDKでカスタムコネクターを作成し統合する方法を学びます。既存のテンプレートを使用して独自のコネクターを構築するためのステップバイステップの手順に従ってください。
+sidebarTitle: Custom Connectors
+---
+
+Web SDKは公式コネクターを[@0xsequence/connect-connectors](https://github.com/0xsequence/web-sdk/tree/master/packages/connect/src/connectors)パッケージを通じて提供しています。ただし、追加のウォレットをサポートするためにWeb SDKにカスタムコネクターを統合することもできます。このガイドでは、カスタムコネクターの作成と使用方法について説明します。
+
+## カスタムコネクターの作成
+
+カスタムコネクターを作成するには、既存のコネクターを基にすることができます。例えば、[Metamask Connector](https://github.com/0xsequence/web-sdk/tree/master/packages/connect/src/connectors/metaMask)は良い出発点です。以下はカスタムコネクターを作成する例です：
+
+```tsx
+export const myCustomConnector = (options: MyCustomConnectorOptions) => ({
+  id: 'my-custom-connector',
+  name: 'My Custom Connector',
+  logoDark: MyCustomLogoDark,
+  logoLight: MyCustomLogoLight,
+  createConnector: () => {
+    const connector = myCustomConnector(options);
+    return connector;
+  },
+});
+```
+
+他のコネクターとの競合を避けるため、コネクターには一意の`id`を提供してください。また、`name`、`logoDark`、および`logoLight`などのフィールドをカスタマイズして、Web SDKでのコネクターの表示方法を制御できます。
+
+wagmiの`createConnector`関数は初期化されたコネクターを返す必要があります。Web SDKコネクターはWagmiコネクターのラッパーなので、利用可能な場合は公式Wagmiコネクターを使用するか、必要に応じて独自のものを作成できます。
+
+カスタムコネクターの作成の詳細については、[Wagmiのカスタムコネクターガイド](https://wagmi.sh/examples/custom-connector)を参照してください。
+
+# カスタムコネクターの使用
+
+カスタムコネクターを使用する場合、`getDefaultConnectors`ユーティリティ関数に依存することはできません。代わりに、Web SDKにカスタム設定を渡す必要があります。
+
+まず、カスタムコネクターを含むコネクターのリストを作成し、Wagmi設定に提供します：
+
+```tsx
+import { getConnectWallets } from '@0xsequence/connect';
+import { createConfig } from 'wagmi';
+
+const projectAccessKey = '<your-project-access-key>';
+
+const connectors = getConnectWallets(projectAccessKey, [
+  google({
+    defaultNetwork: 137,
+    connect: {
+      app: 'my-app',
+      projectAccessKey: '<access-key>'
+    }
+  }),
+  // ... other connectors
+  myCustomConnector({ appName: 'my-app' }),
+]);
+
+const config = createConfig({
+  transports,
+  connectors,
+  chains
+})
+```
+
+次に、カスタムコネクターを使用するには、その`id`をWeb SDK設定の`socialAuthOptions`または`walletAuthOptions`フィールドで指定します：
+
+```tsx
+const kitConfig = {
+  signIn: {
+    socialAuthOptions: ['google', 'facebook'],
+    walletAuthOptions: ['metamask', 'my-custom-connector'],
+  }
+};
+
+return (
+  <WagmiProvider config={wagmiConfig}>
+    <QueryClientProvider client={queryClient}>
+      <SequenceConnect config={connectConfig}>
+        <App />
+      </SequenceConnect>
+    </QueryClientProvider>
+  </WagmiProvider>
+);
+```
+
+# カスタムコネクターの共有
+
+カスタムコネクターを[プルリクエスト](https://github.com/0xsequence/web-sdk/pulls)を作成して共有してください。これにより、他の人々もあなたの成果を活用し、Sequence Web SDKとのシームレスな統合を楽しむことができます。
+
+カスタムコネクターのエコシステムを拡大することで、愛を共有しましょう❤️

@@ -1,0 +1,170 @@
+---
+title: useGetTokenBalancesByContract
+description: コントラクトアドレスごとに複数のトークン残高を取得するためのフック
+sidebarTitle: useGetTokenBalancesByContract
+---
+
+## インポート
+
+```tsx
+import { useGetTokenBalancesByContract } from '@0xsequence/hooks'
+```
+
+## 使用方法
+
+```tsx
+import { useGetTokenBalancesByContract } from '@0xsequence/hooks'
+import { useAccount } from 'wagmi'
+import { ContractVerificationStatus } from '@0xsequence/connect'
+
+function TokenBalances() {
+  const { address } = useAccount()
+  
+  const {
+    data: balances,
+    isLoading,
+    isError
+  } = useGetTokenBalancesByContract({
+    chainIds: [1], // Ethereum mainnet
+    filter: {
+      contractAddresses: [
+        '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48', // USDC
+        '0xdac17f958d2ee523a2206206994597c13d831ec7'  // USDT
+      ],
+      accountAddresses: [address || ''],
+      contractStatus: ContractVerificationStatus.VERIFIED // Optional: only fetch verified contracts
+    }
+  }, {
+    hideCollectibles: true // Optional: filter out NFTs
+  })
+
+  if (isLoading) return <div>Loading...</div>
+  if (isError) return <div>Error fetching balances</div>
+
+  return (
+    <div>
+      {balances?.map(balance => (
+        <div key={`${balance.chainId}-${balance.contractAddress}`}>
+          <h3>{balance.contractInfo?.symbol || 'Unknown Token'}</h3>
+          <p>Balance: {balance.balance}</p>
+          <p>Contract: {balance.contractAddress}</p>
+          {balance.contractInfo && (
+            <img 
+              src={balance.contractInfo.logoURI} 
+              alt={balance.contractInfo.symbol}
+              width={24} 
+              height={24} 
+            />
+          )}
+        </div>
+      ))}
+    </div>
+  )
+}
+```
+
+## 戻り値の型：`UseQueryResult<TokenBalance[]>`
+
+このフックはReact Queryの`UseQueryResult`のすべてのプロパティとトークン残高データを返します。以下が詳細な構造です：
+
+```tsx
+interface TokenBalance {
+  contractType: ContractType
+  contractAddress: string
+  accountAddress: string
+  tokenID?: string
+  balance: string
+  blockHash: string
+  blockNumber: number
+  chainId: number
+  uniqueCollectibles: string
+  isSummary: boolean
+  contractInfo?: ContractInfo
+  tokenMetadata?: TokenMetadata
+}
+```
+
+### プロパティ
+
+#### data
+
+`TokenBalance[] | undefined`
+
+以下を含むトークン残高オブジェクトの配列：
+
+* `contractType`：トークンコントラクトのタイプ（ERC20、ERC721、ERC1155）
+* `contractAddress`：トークンコントラクトのアドレス
+* `accountAddress`：トークンを保有するアカウントのアドレス
+* `balance`：トークン残高を文字列で表示（基本単位）
+* `chainId`：トークンが存在するチェーンID
+* `blockHash`：残高が最後に更新されたブロックのハッシュ
+* `blockNumber`：残高が最後に更新されたブロック番号
+* `tokenID`：NFTのオプショナルトークンID
+* `contractInfo`：名前、シンボル、小数点、ロゴURLを含むオプショナルなトークンコントラクト情報
+* `tokenMetadata`：トークンに関するオプショナルなメタデータ
+* `uniqueCollectibles`：ユニークなコレクティブルの数
+* `isSummary`：残高が要約かどうか
+
+#### isLoading
+
+`boolean`
+
+データフェッチのローディング状態。
+
+#### isError
+
+`boolean`
+
+クエリが失敗したかどうかを示すエラー状態。
+
+#### error
+
+`Error | null`
+
+データフェッチ中に発生したエラー。
+
+## パラメータ
+
+このフックは2つのパラメータを受け取ります：
+
+### args: `GetTokenBalancesByContractArgs`
+
+```tsx
+enum ContractVerificationStatus {
+    VERIFIED = "VERIFIED",
+    UNVERIFIED = "UNVERIFIED",
+    ALL = "ALL"
+}
+
+interface GetTokenBalancesByContractArgs {
+  chainIds: number[]
+  filter: {
+    contractAddresses: string[]
+    accountAddresses?: string[]
+    contractStatus?: ContractVerificationStatus
+  }
+}
+```
+
+| パラメータ                      | 型                            | 説明                          |
+| -------------------------- | ---------------------------- | --------------------------- |
+| `chainIds`                 | `number[]`                   | 残高を取得するチェーンIDの配列            |
+| `filter.contractAddresses` | `string[]`                   | 残高を取得するトークンコントラクトアドレスの配列    |
+| `filter.accountAddresses`  | `string[]`                   | (オプション) 残高を取得するアカウントアドレスの配列 |
+| `filter.contractStatus`    | `ContractVerificationStatus` | (オプション) コントラクト検証ステータスのフィルター |
+
+### オプション: `BalanceHookOptions`
+
+```tsx
+interface BalanceHookOptions {
+  disabled?: boolean
+  retry?: boolean
+  hideCollectibles?: boolean
+}
+```
+
+| パラメータ              | 型         | 説明                                       |
+| ------------------ | --------- | ---------------------------------------- |
+| `disabled`         | `boolean` | (オプション) クエリの自動実行を無効にする                   |
+| `retry`            | `boolean` | (オプション) 失敗したクエリを再試行するかどうか                |
+| `hideCollectibles` | `boolean` | (オプション) trueの場合、ERC721とERC1155トークンを除外します |

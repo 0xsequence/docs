@@ -1,0 +1,52 @@
+---
+title: クイックスタート
+description: web3ゲーミング向けのSequenceインフラストラクチャスタック用の組み込みウォレットのテンプレート
+icon: 'text-size'
+---
+
+## デモを試す
+
+<Note>
+  私たちの組み込みウォレットのシームレスなUXを[デモ](https://0xsequence.github.io/demo-waas-auth/)
+</Note>
+
+## テンプレート
+
+<Note>
+  私たちの組み込みウォレットを活用した[テンプレート](https://github.com/0xsequence/demo-waas-auth)ですぐに始めることができます。
+</Note>
+
+## はじめに
+
+### SDKのインストール
+
+組み込みウォレット認証システム用のTypeScriptとUnity SDKを提供しています。TypeScript SDKは以下のようにインストールできます：
+
+```bash
+pnpm install @0xsequence/waas
+```
+
+Unity組み込みウォレットSDKの詳細については、[Unity SDKのドキュメント](/sdk/unity/overview)
+
+### プロジェクトのセットアップ
+
+Sequence組み込みウォレットは現在クローズドベータとしてのみ利用可能です。組み込みウォレットSDKの使用を開始するには、Sequenceチームに連絡してAPIクレデンシャルを取得する必要があります。完了すると、以下の2つのキーが提供されます：
+
+* プロジェクトアクセスキー
+* 組み込みウォレット設定キー
+
+### ライブラリのセットアップ
+
+Sequence組み込みウォレットSDKの使用を開始するには、`waas`クラスの新しいインスタンスを作成する必要があります：
+
+```typescript
+import { SequenceWaaS } from '@0xsequence/waas'
+
+const waas = new SequenceWaaS({
+  projectAccessKey: `${process.env.PROJECT_ACCESS_KEY}`,
+  waasConfigKey: `${process.env.WAAS_CONFIG_KEY}`,
+  network: 'mumbai'
+}, defaults.TEST)
+```
+
+ライブラリは動作していますが、**ユーザーとして**認証するまでウォレットとの対話には使用できません。

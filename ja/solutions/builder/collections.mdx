@@ -1,0 +1,130 @@
+---
+title: コレクション
+description: Sequence Builderでは、コレクティブルのメタデータのコレクションを管理できます。
+  詳細、画像、プロパティを含みます。コレクションを簡単なクラフティングフローのために
+  デプロイ可能なコントラクトにリンクできます。Sequenceサーバー上でコレクション情報の
+  更新やパブリック/プライベート表示を制御できます。
+sidebarTitle: コレクションの管理
+---
+
+Sequence Builderでは、コレクティブルのメタデータのコレクションを管理することができます。これには、コレクティブルの詳細、画像、プロパティが含まれます。Builderでは、簡単なクラフティングフローのために、コレクションをBuilderからデプロイ可能なコントラクトにリンクすることができます。
+
+メディアとメタデータはSequenceサーバーに保存され、特定の機能により、コレクション情報の更新やパブリックまたはプライベート表示を制御することができます。
+
+<Tip>
+  [APIs](/api-references/metadata/overview)もNFTコレクションのメタデータを管理するために利用可能です。
+</Tip>
+
+## 1. コレクションの作成
+
+まず、左上のドロップダウンからプロジェクトに移動し、[Sequence Builder](https://sequence.build)で`Collections`ページビューを左のナビゲーションから選択し、その後`+ Create a collection`
+
+<Frame>
+  ![create collection](/images/collections/collections_create_collection.png)
+</Frame>
+
+次に、コレクションの詳細を入力します。例えば`Collection Name`、`Description`コントラクト情報として、`Collection Data`が`Visible (Public)`または`Private (Hidden)`データを表示可能にするにはVisible（Public）を選択し、プロジェクトの`External Link`をウェブサイトに含めます。
+
+<Frame>
+  ![add details to collection](/images/collections/collections_create_collection_input_details.png)
+</Frame>
+
+## 2. コントラクトのリンク
+
+コレクションを作成した後、まずコレクティブルコントラクト（例：`ERC1155`または`ERC721`）をデプロイし、`baseMetadataURI`をデプロイメント時に選択して設定することでコントラクトをリンクできます`Link contract`
+
+次に選択します`Deploy new contract`
+
+<Frame>
+  ![link a contract](/images/collections/collections_collections_link_contract.png)
+</Frame>
+
+コントラクトタイプを選択するか、独自のものをアップロードします
+
+<Frame>
+  ![contract type](/images/collections/collections_link_contract_choose_contract_type.png)
+</Frame>
+
+次に、コントラクトタイプの詳細を確認することができます
+
+<Frame>
+  ![contract type chosen](/images/collections/collections_link_contract_confirm_contract.png)
+</Frame>
+
+そしてコントラクトの詳細を完成させます。`Network`、`Contract Name`、および`Royalties`を指定し、コレクティブルを[Token Directory](/api-references/indexer/examples/metadata-tips)に公開するかどうかを選択し、最後に`Deploy Contract`を選択してSequenceポップアップでトランザクション署名を完了します。
+
+<Frame>
+  ![contract details](/images/collections/collections_deploy_contract.png)
+</Frame>
+
+その後、コントラクトの`Read Contract`セクションタブを確認すると、`Read`から`baseURI`すると、Indexerから読み取られる際のSequenceのメタデータURLが表示され、`<token_id>.json`がコレクティブルのJSONを参照するために末尾に追加されます。
+
+<Frame>
+  ![read base uri](/images/collections/collection_read_base_uri.png)
+</Frame>
+
+## 3. コレクティブルの作成
+
+コレクションの一部としてコレクティブルを作成するには、`Collections`ページに戻り、`+ Add a collectible`
+
+<Frame>
+  ![add a collectible](/images/collections/collections_add_a_collectible.png)
+</Frame>
+
+次に`Collectible Name`や`Description`などの詳細を更新し、グレーのフィールドを選択してアートワークをアップロードします
+
+<Frame>
+  ![update collectible details](/images/collections/collections_update_art_and_details.png)
+</Frame>
+
+#### メタデータプロパティの追加
+
+また、`+ Add a property`を選択してコレクティブルに特定のプロパティを追加することができます。これは、ゲーム内でメタデータを使用する際に、数値や文字列などの追加情報を刻印するのに便利です。
+
+<Frame>
+  ![add a property](/images/collections/collection_add_property.png)
+</Frame>
+
+各プロパティにキーと値を割り当てる
+
+<Frame>
+  ![asign properties](/images/collections/collection_assign_properties.png)
+</Frame>
+
+コレクションにコレクティブルを追加する最終結果が得られるまで、前述の手順を完了します
+
+<Frame>
+  ![final result of collectible added](/images/collections/collections_final_result_of_collectible.png)
+</Frame>
+
+## 4. 設定での情報更新
+
+設定でいつでもコレクティブルの詳細を更新することができます
+
+<Frame>
+  ![settings](/images/collections/collections_access_settings.png)
+</Frame>
+
+設定内で、以下のような情報フィールドを更新することができます：`Collection Name`、`Description`、`Collection data`の可視性、`External Link`でウェブサイトを参照することができます。
+
+<Frame>
+  ![settings](/images/collections/collections_update_info.png)
+</Frame>
+
+#### コレクションデータの削除
+
+を選択することで、コントラクトのコレクションデータをすべて削除することができます`Delete collection data`これにより、すべてのデータが永久に削除され、この操作は取り消すことができません。
+
+## 5. メタデータトークンURIの参照
+
+現在、`Link Contract`するためにプリデプロイされたコントラクトは使用できませんが、`Token Metadata URI`をコレクションから読み取って、既存のコントラクトの`setBaseMetadataURI`を設定することができます。URIは`Metadata URIs`ボタンにアクセスすることで取得できます
+
+<Frame>
+  ![copy metadata uris](/images/collections/collections_metadata_uris.png)
+</Frame>
+
+その後、モーダルから`Token Metadata URI`をコピーし、そのURIを`setBaseMetadataURI`関数でコントラクトに書き込むか、`<token_id>.json`をURIに追加してメタデータに直接アクセスするために使用します
+
+<Frame>
+  ![access metadata uris](/images/collections/collections_token_metadata_uri.png)
+</Frame>

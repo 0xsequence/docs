@@ -1,0 +1,727 @@
+---
+title: AIミンティングを使用したトレジャーチェスト
+description: AIで生成されたトレジャーチェストのルートを使用してReactでWeb3アプリケーションを構築する方法を学びます。認証用の組み込みウォレット、トランザクションを容易にするCloudflareワーカー、Sequence Stackツールを活用します。
+sidebarTitle: AIミンティングを使用したトレジャーチェストの構築
+---
+
+所要時間: 50-60分
+
+このガイドでは、[React](https://react.dev/)で構築されたWeb3アプリケーションを作成し、認証用の組み込みウォレットとCloudflareワーカーを使用して、確認不要の簡単なトランザクションでSequence Stackのツールを活用してトレジャーチェストからAI生成のルートをミントします。
+
+これを[ダンジョンクローラーゲーム](https://0xsequence-demos.github.io/demo-dungeon-minter/)として包括し、プレイして報酬を獲得できるゲーム環境でこれらの機能を紹介します。
+
+<Note>
+  完全なコードは以下のリポジトリにあります：
+
+  * [Web3 React Dungeon Crawler Game](https://github.com/0xsequence-demos/demo-dungeon-minter)
+  * [Template Embedded Wallet](https://github.com/0xsequence-demos/template-embedded-wallet-web2-auth)
+  * [Cloudflare Worker](https://github.com/0xsequence-demos/demo-cloudflare-worker-treasure-chests/)
+  * [Diablo Loot API](https://github.com/0xsequence-demos/integration-diablo-loot-api)
+</Note>
+
+これらのツールで以下のことが可能になります：
+
+1. [Sequence Builder Console Signup & Project Creation](/guides/treasure-chest-guide#1-sequence-builder-console-signup-and-project-creation)：Builderでプロジェクトを作成
+2. [Access Key Management](/guides/treasure-chest-guide#2-access-key-management)：Sequenceスタックと対話するためのパブリック、シークレットアクセスキー、waas設定キーを取得
+3. [Embedded Wallet Integration](/guides/treasure-chest-guide#3-embedded-wallet-integration)：アプリケーションに組み込みウォレットを統合
+4. [Deploy a Contract & Sponsor gas](/guides/treasure-chest-guide#4-deploy-a-contract-and-sponsor-gas)：アイテムコントラクトをデプロイしガスをスポンサー
+5. [Deploy a Cloudflare Worker](/guides/treasure-chest-guide#5-deploy-transactions-api-on-a-cloudflare-worker)：ガスレスで確認不要のトランザクションのためのCloudflareワーカーをデプロイ
+6. [Generating AI Prompts & Images](/guides/treasure-chest-guide#6-generating-ai-prompts-and-images)：APIからAIプロンプトを作成し、アップロードする画像を生成
+7. [Store Media to Sequence Metadata service](/guides/treasure-chest-guide#7-store-media-to-sequence-metadata-service)：コレクションとトークンのメタデータをSequenceにアップロード
+8. [Securing your Cloudflare Worker](/guides/treasure-chest-guide#8-minting-with-your-cloudflare-worker)：リファラーURLを制限してCloudflareワーカーへの外部リクエストを防止
+9. [(Optional) Native Mint Restriction Per Wallet](/guides/treasure-chest-guide#9-optional-native-mint-restriction-per-wallet)：ウォレットごとの1日のミント制限
+
+## 1. Sequence Builder Console Signup & Project Creation
+
+まず[このウォークスルー](/support/builder/project-management)に従って[Sequence Builder Console](https://sequence.build/)にサインアップし、プロジェクトの作成方法を学びます。
+
+特定の機能を使用するには、`Gas Sponsoring`および`Transactions API`の使用には、プロジェクトプランを`Developer` [このウォークスルーを使用](/support/builder/project-settings#5-billing-settings)
+
+## 2. Access Key Management
+
+プロジェクトができたら、Sequenceスタックでアプリケーションを認証するために、プロジェクトの3つの異なるアクセスキーを取得する必要があります：
+
+1. `Waas Config Key`組み込みウォレットに使用され、[ここ](/solutions/builder/embedded-wallet)
+2. `Public Access Key`組み込みウォレットとトランザクションAPIに使用され、[ここ](/solutions/builder/getting-started#claim-an-api-access-key)
+3. `Secret Access Key`メタデータサービスに使用され、以下の手順で取得
+
+### シークレットアクセスキーの作成
+
+<Steps>
+  <Step title="Access Settings">
+    まず設定にアクセスし、APIキーを選択します
+
+    <Frame>
+      ![builder settings access keys](/images/builder/builder_settings_access_keys.png)
+    </Frame>
+  </Step>
+
+  <Step title="Add Service Account">
+    下にスクロールして選択`+ Add Service Account`
+
+    <Frame>
+      ![builder settings add service account](/images/builder/builder_settings_add_service_account.png)
+    </Frame>
+  </Step>
+
+  <Step title="Select Write Permission">
+    次にアクセスを`Write`と`Confirm`
+
+    <Frame>
+      ![builder settings add service account](/images/builder/builder_settings_add_service_account_confirm.png)
+    </Frame>
+
+    最後に`copy`キーを安全な場所に保存してください。今後Builder Consoleからこのキーにアクセスすることはできません。
+  </Step>
+</Steps>
+
+## 3. Embedded Wallet Integration
+
+<Note>
+  テンプレートリポジトリは[ここ](https://github.com/0xsequence-demos/template-embedded-wallet-web2-auth)
+</Note>
+
+Web2認証プロバイダーを使用してユーザーをアプリケーションにオンボーディングできるSequence組み込みウォレットを使用できるようにするために、必要な部分を一から構築していきます。
+
+まずプロジェクトフォルダを`mkdir <project>`で作成し、`cd <project>`して`vite`プロジェクトをReactで作成します：
+
+```shell
+pnpm create vite
+
+# or 
+yarn create vite
+
+# or 
+npm create vite
+```
+
+次に、組み込みウォレットを使用するための正しいWallet-as-a-Service（Waas）パッケージをインストールします：
+
+```shell
+pnpm install @0xsequence/waas
+
+# or
+npm install @0xsequence/waas
+
+# or
+yarn add @0xsequence/waas
+```
+
+以下のステップで作成する新しいファイルはすべて`/src`
+
+まず、`SequenceEmbeddedWallet.ts`のような名前のファイルを作成し、以下の初期化コードを記述します：
+
+```typescript
+import { SequenceWaaS } from '@0xsequence/waas'
+
+const sequence = new SequenceWaaS({
+    projectAccessKey: import.meta.env.VITE_PROJECT_ACCESS_KEY!,
+    waasConfigKey:  import.meta.env.VITE_WAAS_CONFIG_KEY!,
+    network: 'arbitrum-nova'
+})
+
+export default sequence;
+```
+
+次に`useSessionHash.ts`というファイルを作成し、SDKからユーザー固有のセッションハッシュを生成します：
+
+```typescript
+import sequence from './SequenceEmbeddedWallet.ts'
+import { useEffect, useState } from "react";
+
+export function useSessionHash() {
+    const [sessionHash, setSessionHash] = useState("")
+    const [error, setError] = useState<any>(undefined)
+
+    useEffect(() => {
+        const handler = async () => {
+            try {
+                setSessionHash(await sequence.getSessionHash())
+            } catch (error) {
+                console.error(error)
+                setError(error)
+            }
+        }
+        handler()
+        return sequence.onSessionStateChanged(handler)
+    }, [setSessionHash, setError])
+
+    return {
+        sessionHash,
+        error,
+        loading: !!sessionHash,
+    }
+}
+```
+
+最後に、Google認証を実装するには、`GoogleOAuthProvider`でアプリケーションをラップする必要があります。以下のコマンドでインストールすると、後で使用するApple認証サインインも含まれます：
+
+```shell
+pnpm i @react-oauth/google react-apple-signin-auth
+```
+
+次に、以前にインポートしたファイルを使用して、スターターコードが以下のように`main.tsx`ファイル内に実装されています：
+
+```typescript
+import React from 'react'
+import ReactDOM from 'react-dom/client'
+import './index.css'
+import App from './App.tsx'
+import { useSessionHash } from "./useSessionHash.ts";
+
+import { ThemeProvider } from '@0xsequence/design-system'
+import { GoogleOAuthProvider } from '@react-oauth/google'
+
+
+function Dapp() {
+  const { sessionHash } = useSessionHash()
+
+  return (
+	<GoogleOAuthProvider clientId="<GOOGLE_CLIENT_ID>" nonce={sessionHash} key={sessionHash}>
+		<App />
+	</GoogleOAuthProvider>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')!).render(
+  <React.StrictMode>
+    <Dapp />
+  </React.StrictMode>
+)
+```
+
+あなたの`main.tsx`の準備ができたら、以下のようなログインボタンを作成しましょう：
+
+<Frame>
+  ![embedded wallet social login](/images/guides/treasure-chest/guide_treasure_chest_embedded_wallet_template.png)
+</Frame>
+
+以下の`App.tsx`でユーザーが接続されているかを確認し、サインインしているユーザーに基づいてウォレットアドレスを表示する、様々なソーシャル認証ボタンとハンドラーを含むコードを使用します：
+
+```typescript
+import { useState, useEffect } from 'react'
+import './App.css'
+import sequence from './SequenceEmbeddedWallet'
+import { useSessionHash } from './useSessionHash'
+import { CredentialResponse, GoogleLogin } from '@react-oauth/google';
+import AppleSignin from 'react-apple-signin-auth';
+import playImage from './assets/play.svg'
+
+function LoginScreen () {
+  const { sessionHash } = useSessionHash()
+
+  const [wallet, setWallet] = useState<any>(null)
+
+  const handleGoogleLogin = async (tokenResponse: CredentialResponse) => {
+    const res = await sequence.signIn({
+      idToken: tokenResponse.credential! // inputted id credential from google
+    }, "template")
+    setWallet(res.wallet)
+  }
+
+  const handleAppleLogin = async (response: any) => {
+    const res = await sequence.signIn({
+      idToken: response.authorization.id_token! // inputted id token from apple
+    }, "template")
+ 
+    setWallet(res.wallet)
+  }
+
+  // checks to see if there is a logged in user
+  useEffect(() => {
+    setTimeout(async () => {
+      if(await sequence.isSignedIn()){
+        setWallet(await sequence.getAddress())
+      }
+    }, 0)
+  }, [])
+
+  useEffect(() => {
+
+  }, [wallet])
+
+  const signOut = async () => {
+    try {
+      const sessions = await sequence.listSessions()
+
+      for(let i = 0; i < sessions.length; i++){
+        await sequence.dropSession({ sessionId: sessions[i].id })
+      }
+    }catch(err){
+      console.log(err)
+    }
+  }
+
+  return (
+    <>
+      {
+        !wallet 
+      ? 
+        <>
+          <span className='sign-in-via'>SIGN IN VIA</span>
+          <br/>
+          <br/>
+          <br/>
+          <div className="login-container">
+          <div className='dashed-box-google'>
+              <p className='content'>
+                <div className='gmail-login' style={{overflow: 'hidden', opacity: '0', width: '90px', position: 'absolute', zIndex: 1, height: '100px'}}>
+                  <GoogleLogin 
+                    nonce={sessionHash}
+                    key={sessionHash}
+                    onSuccess={handleGoogleLogin} shape="circle" width={230} />
+                  </div>
+                  <span className='gmail-login'>Gmail</span>
+              </p>
+          </div>
+          <div className='dashed-box-apple'>
+            <p className='content' 
+            style={{position:'relative'}}>
+                <span className='apple-login'>
+                  {/* @ts-ignore */}
+                  <AppleSignin
+                    key={sessionHash}
+                    authOptions={{
+                      clientId: '<replce with com. bundle id>',
+                      scope: 'openid email',
+                      redirectURI: '<must be a deployed URL>',
+                      usePopup: true,
+                      nonce: sessionHash
+                    }}
+                    onError={(error: any) => console.error(error)}
+                    onSuccess={handleAppleLogin}
+                  />Apple
+                </span>
+            </p>
+            </div>
+          </div>
+        </>
+      : 
+        <>
+          <div className="login-container">
+          <p style={{cursor: 'pointer'}} onClick={() =>signOut()}>sign out</p>
+          &nbsp;&nbsp;&nbsp;
+          <span >{wallet}</span>
+          </div>
+        </>
+      }
+    </>
+  )
+}
+
+function App() {
+  return (
+    <LoginScreen/>
+  )
+}
+
+export default App
+```
+
+次に、`.env`ファイルをプロジェクトのルートに含め、`.gitignore`に追加し、Sequence Builderから以下の値でファイルを更新します：
+
+```
+VITE_PROJECT_ACCESS_KEY=
+VITE_WAAS_CONFIG_KEY=
+```
+
+<Warning>
+  すべての環境変数は`VITE_`で始める必要があります。これはviteアプリケーションの環境に含めるためです
+</Warning>
+
+ルートフォルダで以下のコマンドを実行してコードを試してみてください：
+
+```shell
+pnpm run dev
+```
+
+## 4. コントラクトのデプロイとガスのスポンサー
+
+AI生成画像を任意のトークンのメタデータにリンクできるようにするため、トークンコントラクトをデプロイします。コントラクトをデプロイする際、推奨されるアプローチは`ERC1155`よりも`ERC721`を使用することです。`ERC1155`
+
+* 準fungible：同じ基本アイテムの複数のコピーを持つことができるゲーム資産に理想的です。
+* ガス節約：単一のERC1155が多くの異なる種類を保持できるため、複数のトークンを必要とするプロジェクトに適しています。
+
+ガス節約の利点に関して、各トークンタイプごとに新しいコントラクトをデプロイする代わりに、単一のERC1155トークンコントラクトでシステム全体の状態を保持できるため、デプロイコストと複雑さが削減されます。
+
+コントラクトをデプロイするには、[このガイド](/solutions/collectibles/contracts/deploy-an-item-collection)に従ってERC1155をデプロイし、`wrangler.toml`を`CONTRACT_ADDRESS`で更新してください。
+
+その後、ミント機能がプログラム的に動作し、リレーヤーのトランザクションがガスレスになるようにするには、アップグレードされた課金プランのアカウントクレジットからTransactions APIが引き出せるように、デプロイされたスマートコントラクトアドレスをスポンサーする必要があります。
+
+Transactions APIが手数料なしでトランザクションをリレーできるようにするには、[このガイド](/solutions/builder/gas-tank#watch-the-gas-tank-in-action-in-builder)に従ってデプロイされたコントラクトのガスをスポンサーしてください。
+
+<Note>
+  すべてのSequenceテストネットは無料です
+</Note>
+
+## 5. Cloudflare WorkerでのTransactions APIのデプロイ
+
+前のステップに続いて、Sequence Transactions APIをサーバーレスのCloudflare workerに実装することで、ゲームやアプリのユーザーインタラクションが確認署名やガス支払いなしでシームレスになります。この場合、workerはSequence Transactions APIを活用してユーザーのアドレスにトークンをミントします。また、トランザクションの速度、スループット、再編成を心配する必要がなく、Cloudflareによる自動スケーリングを体験できます。
+
+### トークンのミント
+
+Cloudflare Workerを一から作成する方法を学びたい場合は、[このガイド](/guides/mint-collectibles-serverless)に従って、デプロイされた`ERC1155`コントラクトでサーバーレスNFTミントサービスを作成するか、単に[テンプレート](https://github.com/0xsequence-demos/demo-cloudflare-worker-treasure-chests/)をクローンしてください。
+
+<Warning>
+  Sequence Standard ERC1155 Items Contractを使用している場合は、リレーヤーアカウントアドレスに`MINTER_ROLE`を付与していることを確認してください。
+</Warning>
+
+セットアップが完了したら、後のステップでCloudflareインスタンスのエンドポイントを呼び出してNFTをミントします。
+
+## 6. AIプロンプトと画像の生成
+
+AI画像生成の旅を始めるにあたり、メディアを生成するためのAIモデルプロンプトのソースが必要になります。このガイドとデモでは、[Diabloゲーム](https://d07riv.github.io/diabloweb/)に含まれるアイテムからプロンプトを取得しています。
+
+この[テンプレート](https://github.com/0xsequence-demos/demo-cloudflare-worker-treasure-chests/)には、すでにデプロイされたAPIを呼び出すコードとレスポンスを解析するコードが含まれています。
+
+このAPIを使用して、Cloudflare worker内の`generate`関数内でデプロイされたDiablo APIからのプロンプトを使用して画像を生成する方法を示します：
+
+```typescript
+const generate = async () => {
+	const url = 'https://flask-production-2641.up.railway.app/'; // External API endpoint
+	
+	const init = {
+		method: 'GET',
+		headers: {
+		'Content-Type': 'application/json',
+		},
+	};
+
+	const response = await fetch(url, init); // Fetch data from external API
+	const data: any= await response.json(); 
+	const defend = Math.random() >= 0.5 ? true : false
+	const attributes = []
+	// parse the data to create the attributes
+	
+	return {loot: data[defend ? 'armor' : 'weapon'], attributes: attributes}
+}
+```
+
+次に`getInferenceWithItem`関数を完成させて、Scenario APIからインスタンス化された推論参照を取得し、`prompt`（生成されたルート`name`と`type`）を渡します。また、[Scenario APIドキュメント](https://docs.scenario.com/reference/postmodelsinferencesbymodelid)でカスタマイズできる追加のモデルパラメータも含まれます：
+
+<Note>
+  このガイドでは、品質と時間に基づいてScenario APIから`EulerDiscreteScheduler`スケジューラータイプを選択しましたが、追加のスケジューラーを試してみたい場合は、[このカスタムローカルCLI](https://github.com/moskalyk/scenario-gg-benchmark-cli)そして結果を[Scenario.gg](https://scenario.gg/)ダッシュボードで確認します
+</Note>
+
+```typescript
+const getInferenceWithItem = async (env: Env, prompt: any) => {
+	try {
+		const res: any = await fetch(`https://api.cloud.scenario.com/v1/models/${env.SCENARIO_MODEL_ID}/inferences`, {
+			method: 'POST',
+			headers: {
+				'Authorization': `Basic ${env.SCENARIO_API_KEY}`,
+				'accept': 'application/json',
+				'content-type': 'application/json'
+			},
+			body: JSON.stringify({
+						"parameters": {
+						"numSamples": 1,
+						"qualityBoostScale": 4,
+						"qualityBoost": false,
+						"type": "txt2img",
+						"disableMerging": false,
+						"hideResults": false,
+						"referenceAdain": false,
+						"intermediateImages": false,
+						"scheduler": 'EulerDiscreteScheduler',
+						"referenceAttn": false,
+						"prompt": prompt + ' single object on black background no people'
+					}
+				})
+		})
+
+		const data = await res.json()
+		console.log(data)
+		return {inferenceId: data.inference.id}
+	}catch(err){
+		console.log(err)
+		return {inferenceId: null, err: "ERROR"}
+	}
+}
+```
+
+次に、上記の関数をReactコードで実装します：
+
+```js
+	...
+	if(mint){
+		...
+	} else {
+		const loot = await generate()
+		const inferenceId = await getInferenceWithItem(env, loot.loot.name + " " + loot.loot.type)
+		...
+	}
+	...
+```
+
+一度`inferenceId`を取得したら、推論のステータスをポーリングし、`succeeded`ステータス記述子で示される完了を待ちます：
+
+```typescript
+const getInferenceObjectWithPolling = async (env: Env, id: any) => {
+	console.log('getting inference status for: ', id.inferenceId)
+	const inferenceId = id.inferenceId
+
+	const headers = {
+		'Authorization': `Basic ${env.SCENARIO_API_KEY}`,
+		'accept': 'application/json',
+		'content-type': 'application/json'
+	}
+
+	// Function to poll the inference status
+	const pollInferenceStatus = async () => {
+		let status = '';
+		let inferenceData: any = null;
+		while (!['succeeded', 'failed'].includes(status)) {
+			// Fetch the inference details
+			try {
+				const inferenceResponse = await fetch(`https://api.cloud.scenario.com/v1/models/${env.SCENARIO_MODEL_ID}/inferences/${inferenceId}`, {
+					method: 'GET',
+					headers
+				})
+				if (inferenceResponse.ok) {
+					console.log(inferenceResponse.statusText)
+					inferenceData = await inferenceResponse.json();
+				}
+			}catch(err){
+				console.log(err)
+			}
+			status = inferenceData.inference.status;
+			console.log(`Inference status: ${status}`);
+
+			// Wait for a certain interval before polling again
+			await new Promise(resolve => setTimeout(resolve, 5000)); // Polling every 5 seconds
+		}
+		// Handle the final status
+		if (status === 'succeeded') {
+			console.log('Inference succeeded!');
+			console.log(inferenceData); // Print inference data
+			return inferenceData
+		} else {
+			console.log('Inference failed!');
+			console.log(inferenceData); // Print inference data
+			throw new Error("Scenario API Failed")
+		}
+	};
+
+	// Start polling the inference status
+	return await pollInferenceStatus();
+}
+```
+
+再度、上記の関数をReactコードに追加し、inferenceIdを渡します。レスポンスを受け取ったら、画像URLを`resObject.inference.images[0].url`で取得できます：
+
+```typescript
+	...
+	if(mint){
+		...
+	} else {
+		const loot = await generate()
+		const inferenceId = await getInferenceWithItem(env, loot.loot.name + " " + loot.loot.type)
+		const resObject = await getInferenceObjectWithPolling(env, inferenceId)
+		console.log(resObject.inference.images[0].url) // prints image url
+		...
+	}
+	...
+```
+
+<Note>
+  プロンプトごとに複数の画像を返し、ユーザーが正しい生成を選択できるようにアプリケーションを設計することができることに注意してください
+</Note>
+
+## 7. Sequenceメタデータサービスへのメディアの保存
+
+メディアを`url`Scenario APIから取得したら、`Sequence Metadata Service`にアセットを保存することができます。これにより、AI生成画像を特定のトークンメタデータにリンクすることができます - すべてREST-APIコールを通じて。
+
+各Dungeon Minterの宝箱報酬は、まずSequence Metadata APIを使用してメタデータを保存し、`url`とランダムに生成された`tokenID`（これにより並列リクエストが可能になります）がクライアントに返されます。ユーザーはコレクティブルを確認した後、トークンのミントに同意し、`tokenID`とユーザーの`address`が[ステップ5](/guides/treasure-chest-guide#5-deploy-a-cloudflare-worker)で作成したワーカーに戻されます。
+
+### 実装
+
+完了して統合[このガイド](/guides/metadata-guide)を使用して、Sequence Metadata APIを活用するサーバーレスメディアサービスをCloudflareワーカーで構築するか、単に私たちのCloudflare[template](https://github.com/0xsequence-demos/demo-cloudflare-worker-treasure-chests/)をこのガイド用にクローンしてください。
+
+完了したら、保存されたメディアの`tokenID`と`url`をフロントエンドに渡してレンダリングし、ユーザーが最初にミントする内容を確認できるようにします：
+
+```typescript
+    const randomTokenIDSpace = ethers.parseUnits(String('10000'), 18)
+	...
+	const jsonCreateAsset = await collectionsService.createAsset({...})
+	...
+	const response = await uploadAsset(env, projectID, collectionID, jsonCreateAsset.asset.id, String(randomTokenIDSpace), imageUrl)
+	return new Response(JSON.stringify({tokenID: String(randomTokenIDSpace), image: response.url }), { status: 200 });
+```
+
+## 8. Cloudflareワーカーでのミント
+
+最後のステップは、以前にメタデータをリンクしたtokenIdをユーザーのアドレスに最終的にミントすることです。ここでは、ステップ5で作成したCloudflareワーカーにリクエストを送信し、ユーザーにトークンをミントします。
+
+```typescript
+const data = {
+	address: address,
+	mint: true,
+	tokenID: tokenID
+};
+
+const res = await fetch(ENDPOINT, {
+	method: 'POST',
+	headers: {
+	'Content-Type': 'application/json',
+	},
+	body: JSON.stringify(data),
+})
+
+const json = await res.json()
+```
+
+重要な注意点として、Cloudflareワーカーが特定のフロントエンドオリジンからのリクエストのみを処理するようにしたい場合、単純に`request.headers`の`Referrer`値を`CLIENT_URL`の中の`wrangler.toml`と比較することができます：
+
+```typescript
+async function handleRequest(request: any, env: Env, ctx: ExecutionContext) {
+	const originUrl = new URL(request.url);
+	const referer = request.headers.get('Referer');
+
+	if(referer.toString() != env.CLIENT_URL){
+		return new Response('Bad Origin', { status: 500 }); // Handle errors
+	} 
+
+	...
+}
+```
+
+## 結論
+
+このチュートリアルで行ったことを振り返ってみましょう：
+
+**Sequenceプロジェクトの作成方法と、APIスイートへのアクセス方法について説明しました。サンプルのダンジョンクローラーゲームのスムーズなプレイを確保するために、組み込みウォレットをデプロイしてセットアップしました。
+さらに、Sequenceプラットフォームを使用してコントラクトをデプロイし、そのコントラクトのガスをスポンサーしてユーザーエクスペリエンスを簡素化しました。また、Sequence Transaction APIを使用してサーバーレスNFTミンターをデプロイし、ゲームが数百万人のプレイヤーにスケールし、リオーグのような複雑なブロックチェーンのインタラクションを処理できるようにしました。
+さらに、scenario.gg APIを活用して、プレイヤーへの報酬として動的にゲームアセットを作成しました。これらの画像は、Sequence Metadata APIを使用してNFTのメタデータにリンクされます。これで、Scenario.ggとSequenceを活用したゲームのためにAIアートをミントする方法を理解できたはずです。**
+
+スケーラブルで安全かつ**楽しい**ブロックチェーン対応ゲームを作成するには多くのコンポーネントが必要ですが、Scenarioを備えたSequenceプラットフォームがそれをカバーしています。
+
+最後に、上記のすべてのステップを完全な体験として組み込んだ[ダンジョンクローラーゲーム](https://0xsequence-demos.github.io/demo-dungeon-minter/)で迷宮に挑戦し、あなた自身のダンジョンの戦利品を手に入れることができます。
+
+ハッピービルディング！
+
+## 9. （オプション）ウォレットごとのネイティブミント制限
+
+特定のウォレットからの宝箱ミントの過剰使用を防ぐオプションとして、`DAILY_MINT_RESTRICTION`というパラメータを`wrangler.toml`で1日あたりの最大ミント許可量として設定できます。また、必要に応じて`ADMIN`をプロトコルに追加して、無制限にミントできるようにすることもできます。
+
+これらの機能は、以下の手順でコードに実装できます：
+
+```typescript
+async function handleRequest(request: any, env: Env, ctx: ExecutionContext) {
+	... 
+	const payload = await request.json()
+	const { address, tokenID }: any = payload
+
+	// check for admin
+	if(address.toLowerCase() != env.ADMIN.toLowerCase() && !await hasDailyMintAllowance(env, address)){
+		// check for daily mint allowance
+		return new Response(JSON.stringify({limitExceeded: true}), { status: 400 })
+	}
+	...
+}
+```
+
+ここで`hasDailyMintAllowance`は2つの関数に分かれています：
+
+* `fullPaginationDay`ユーザーのトランザクションの`address`
+* `mintCount`は`from`が`0x`アドレス
+
+### 1日分のインデクサーの完全なページネーション
+
+<Note>
+  補足として、Sequence Indexerスタックはこの期間の取引を30日間のみ保持しているため、時間枠を1日からこの最大値まで拡張できます
+</Note>
+
+Sequence Indexerを使用するために、`pnpm install @0xsequence/indexer`
+
+次に、実装するために、最初のバッチのトランザクションと`page.after`値をインデクサーから取得し、タイムスタンプが24時間未満かどうかを継続的にチェックする while ループを使用し、各パスで一時配列に追加します。これにより、利用可能なすべてのトランザクションを取得できます：
+
+```typescript
+import { SequenceIndexer } from '@0xsequence/indexer'
+
+const isLessThan24Hours = (isoDate: string) => {
+    const dateProvided: any = new Date(isoDate);
+    const currentDate: any = new Date();
+    const twentyFourHours = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
+
+    // Calculate the difference in milliseconds
+    const difference = currentDate - dateProvided;
+
+    // Check if the difference is less than 24 hours
+    return difference < twentyFourHours && difference > 0;
+}
+
+const fullPaginationDay = async (env: Env, address: string) => {
+    const txs: any = []
+	const indexer = new SequenceIndexer(`https://${env.CHAIN_HANDLE}-indexer.sequence.app`, env.PROJECT_ACCESS_KEY)
+
+    const filter = {
+        accountAddress: address,
+    };
+
+    // query Sequence Indexer for all token transaction history
+	let txHistory: any
+	let firstLoop = true;
+    let finished = true;
+    // if there are more transactions to log, proceed to paginate
+    while(firstLoop || (!finished && txHistory.page.more)){  
+		if(firstLoop){
+			firstLoop = false
+			txHistory = await indexer.getTransactionHistory({
+				filter: filter,
+				page: { pageSize: 50 }
+			})
+
+			for(let i = 0; i < txHistory.transactions.length; i++){
+				if(!isLessThan24Hours(txHistory.transactions[i].timestamp)){
+					finished = true
+				}
+				txs.push(txHistory.transactions[i])
+			}
+		}
+        txHistory = await indexer.getTransactionHistory({
+            filter: filter,
+            page: { 
+                pageSize: 50, 
+                // use the after cursor from the previous indexer call
+                after: txHistory!.page!.after! 
+            }
+        })
+		for(let i = 0; i < txHistory.transactions.length; i++){
+			if(!isLessThan24Hours(txHistory.transactions[i].timestamp)){
+				finished = true
+			}
+			txs.push(txHistory.transactions[i])
+		}
+    }
+
+    return txs
+}
+```
+
+### 1日のミント数
+
+すべてのコレクティブルは`ERC721`と`ERC1155`標準のSequenceコントラクトから`from`に`0x`アドレス：
+
+```typescript
+const mintCount = (env: Env, txs: any) => {
+	let count = 0
+	for(let i = 0; i < txs.length; i++){
+		if(
+			txs[i].transfers[0].from == '0x0000000000000000000000000000000000000000' 
+			&& txs[i].transfers[0].contractAddress == env.CONTRACT_ADDRESS.toLowerCase()
+		) count++
+	}
+	return count
+}
+```
+
+### デイリーミント許可の有無
+
+```typescript
+const hasDailyMintAllowance = async (env: Env, address: string) => {
+	const txs = await fullPaginationDay(env, address)
+	const count = mintCount(env, txs)
+	return count < env.DAILY_MINT_RESTRICTION
+}
+```

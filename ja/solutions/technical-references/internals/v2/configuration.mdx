@@ -1,0 +1,149 @@
+---
+title: ウォレット設定
+description: Sequence Walletsの「ウォレット設定」は、アクセス制御、署名者、および署名の重みを定義します。
+sidebarTitle: ウォレット設定
+---
+
+Sequence Walletsにおいて、「ウォレット設定」はウォレットの動作を定義するパラメータのセットで、主にウォレットのアクセス制御（誰が取引に署名できるか、また必要な署名の数）を定義するために使用されます。
+
+## トップレベルのプロパティ
+
+Sequence v2の設定には以下の3つのプロパティが含まれます：
+
+* `threshold` - 署名が有効とみなされるために必要な「重み合計」
+* `checkpoint` - ソルトとしてウォレットの更新の順序付けメカニズムとして使用
+* `tree` - ウォレットの署名者とその重みを決定
+
+### 閾値
+
+この`threshold`は`uint16`です。0から65535の間の任意の値を取ることができます。署名は、取引に署名した署名者の重みの合計が閾値以上である場合にのみ、有効または無効とみなされます。
+
+### チェックポイント
+
+この`checkpoint`は`uint32`です。ウォレット作成時に、同じ初期設定で独立したウォレットを生成するために、半ランダムな値を提供することができます。その後、通常の操作中、`checkpoint`はLight State Syncによってウォレットの更新が正しい順序で適用されることを保証するために使用されます。
+
+### ツリー
+
+この`tree`は不均衡な二分マークルツリーで、各リーフには署名者、静的署名、またはサブツリーを含むことができます。このツリーは署名者と重みのあらゆる組み合わせを表現でき、複雑なマルチシグウォレットを作成するために使用できます。
+
+可能なリーフタイプは以下の通りです：
+
+#### 署名者
+
+署名者は署名者`address`と`uint8`重みで表されます。重みは署名者が閾値にどれだけ貢献するかを示します。
+アドレスは`ERC1271`準拠のコントラクトまたは`EOA`ウォレットのいずれかに属することができます。
+
+リーフハッシュは以下のように計算されます：
+
+```solidity
+bytes32(uint256(weight) << 160 | uint256(uint160(addr)))
+```
+
+#### サブダイジェスト
+
+これは任意の署名が有効な静的サブダイジェストを表します。このサブダイジェストに対する署名が提供された場合、署名の総重みは自動的に`Infinity`に設定されます。
+
+ネストされたツリー内に存在する静的サブダイジェストは、その「無限大」の重みがネストされたツリーの重みに減少することに注意してください。
+
+リーフハッシュは以下のように計算されます：
+
+```solidity
+keccak256(abi.encodePacked('Sequence static digest:\n', subdigest));
+```
+
+#### サブツリー（ネストされた設定）
+
+これは全く新しいウォレット設定を表し、この「ネストされた設定」は独自の以下を持ちます：
+
+* 外部`weight`（`uint8`）
+* 内部`threshold`（`uint16`）
+* 内部`tree`
+
+その仕組みは、署名がサブツリー内の`internal threshold`に達すると有効とみなされ、`external weight`が親ツリーに追加されます。任意の数のネストされた設定を作成でき、複数のネストレベルを作成することが可能です。
+
+このパターンは、とりわけ以下のようなシナリオを表現するために使用できます：
+
+* 非線形の重み分配、AとBの署名者はそれぞれ1の重みを提供できますが、一緒になると3の重みを提供できます。
+* 総重み貢献の制限、A、B、Cの署名者はそれぞれ1の重みを提供できますが、一緒になっても2の重みしか提供できません。
+* 「部門設定」、N個の部門が署名する必要があり、各部門が独自の内部設定を持ちます。
+
+リーフハッシュは以下のように計算されます：
+
+```solidity
+keccak256(abi.encodePacked(
+  'Sequence nested config:\n',
+  imageHash(tree),
+  threshold,
+  weight
+))
+```
+
+<Warning>
+  ウォレットコントラクトには設定の正確性を検証する方法がありません。設定が正しいことを確認する責任は、コントラクトと対話するSDKにあります。
+
+  例えば`threshold == 0`や`threshold > total weight`のような設定は、完全に認証されていないウォレットやアクセス不可能なウォレットをそれぞれ生成することになります。
+</Warning>
+
+## ImageHash
+
+この`configuration`は全体として保存されることはありません。代わりに、Merkleツリーは単一の`bytes32`値にハッシュ化され、これは内部で`imageHash`と呼ばれます。
+
+この`imageHash`は以下のように計算されます：
+
+```solidity
+imageHash := keccak256(abi.encode(
+  keccak256(abi.encode(
+    hashTree(tree),
+    threshold
+  )),
+  checkpoint
+))
+```
+
+この`hashTree`関数は、ツリーを単一の`bytes32`値にハッシュ化する再帰関数です。`hashTree`関数の擬似コードは以下の通りです：
+
+```typescript
+export function hashTree(node: Node | Leaf): string {
+  if (isSignerLeaf(node)) {
+    return ethers.solidityPackedKeccak256(
+      ['uint96', 'address'],
+      [node.weight, node.address]
+    )
+  }
+
+  if (isSubdigestLeaf(node)) {
+    return ethers.solidityPackedKeccak256(
+      ['string', 'bytes32'],
+      ['Sequence static digest:\n', node.subdigest]
+    )
+  }
+
+  if (isNestedLeaf(node)) {
+    const nested = hashTree(node.tree)
+    return ethers.solidityPackedKeccak256(
+      ['string', 'bytes32', 'uint256', 'uint256'],
+      ['Sequence nested config:\n', nested, node.threshold, node.weight]
+    )
+  }
+
+  return ethers.solidityPackedKeccak256(
+    ['bytes32', 'bytes32'],
+    [hashTree(node.left), hashTree(node.right)]
+  )
+}
+```
+
+## 初期設定
+
+すべてのSequenceウォレットには「初期設定」があり、`imageHash`を初期設定のSALTとして使用して`CREATE2`ウォレットのデプロイメント時に実装されます。
+
+ウォレットは`deploy`関数を`Factory`コントラクトで呼び出すことでデプロイされ、以下のパラメータを取ります：
+
+* `mainModule`：ウォレットの初期コード実装のアドレス。
+* `salt`：`imageHash`初期設定の。
+
+<Note>
+  常に`MainModule`をウォレットの初期コード実装として使用する必要があります。`MainModule`は`imageHash`を（署名検証中に）ウォレットのカウンターファクチュアルアドレスを再計算することで検証するため、ストレージの初期化は必要ありません。
+
+  もし`imageHash`が変更された場合、`MainModule`は自動的にウォレットのコード実装を`MainModuleUpgradeable`に置き換え、ストレージの初期化を処理します。
+</Note>

@@ -1,0 +1,107 @@
+---
+title: Web SDKをTelegramミニアプリと統合する
+description: Web SDKをTelegramミニアプリやゲームと統合して、シームレスなweb3機能を実現する方法を学びます。
+sidebarTitle: SequenceでTelegramミニアプリを構築する
+---
+
+このガイドでは、Web SDKをTelegramミニアプリやゲームと設定し、メールとゲストの認証方法でユーザーにEVMチェーンのweb3機能を提供する方法を説明します。
+
+## 前提条件
+
+開始する前に、以下が必要です：
+
+* Telegramアカウント
+* アカウントと[Cloudflareダッシュボード](https://dash.cloudflare.com)
+
+## 統合手順
+
+<Steps>
+  <Step title="Create a Telegram Bot with BotFather">
+    1. Telegramを開き、「@BotFather」を検索
+    2. 「Start」をクリックするか入力して会話を開始`/start`
+    3. 入力して新しいボットを作成`/newbot`
+    4. プロンプトに従って：
+       * ボットの名前を入力
+       * ユーザー名を選択（'bot'で終わる必要があります）
+  </Step>
+
+  <Step title="Obtain Required Tokens">
+    ボットを作成後、BotFatherは以下を提供します：
+
+    * ボットトークン（HTTP APIトークン）
+    * ボットのユーザー名
+
+    これらの認証情報を保存してください - 次のステップで必要になります。
+
+    <Warning>
+      ボットトークンは絶対に共有やコミットしないでください。秘密として扱う必要があります。
+    </Warning>
+  </Step>
+
+  <Step title="Install and Configure Your Project">
+    1. Sequence Telegramスターターをクローン：
+
+    ```shell
+    git clone https://github.com/0xsequence-demos/telegram-kit-embedded-wallet-react-boilerplate
+    ```
+
+    2. プロジェクトルートに例のファイルをコピー：
+
+    ```shell
+    cp .env.example .env && cp example.wrangler.toml wrangler.toml
+    ```
+
+    更新`.env`ファイルを`VITE_PROJECT_ACCESS_KEY`と`VITE_WAAS_CONFIG_KEY`を使用して[Sequence Builder](https://sequence.build/project/default/embedded-wallet)の設定後に。
+
+    3. 依存関係をインストール：
+
+    ```shell
+    pnpm install
+    ```
+
+    4. アプリをビルド：
+
+    ```shell
+    pnpm run build
+    ```
+
+    4. 更新`VARS`を`wrangler.toml`ファイルでユーザーが提供する秘密を`BOT_SECRET`に、BotFatherからのボットトークンを`BOT_TOKEN`に。
+  </Step>
+
+  <Step title="Authenticate with Cloudflare Account">
+    アプリと関数のロジックをCloudflareにデプロイ
+
+    1. 実行`pnpm wrangler pages deploy`
+
+    まだログインしていない場合、Cloudflareでの認証を求められます。デプロイが成功したら、アプリケーションがホストされているURLをコピーしてください。
+  </Step>
+
+  <Step title="Register Webhook with Telegram">
+    次に、`registerWebhook`エンドポイントを呼び出して、Telegram APIのアクセスを有効にするためにデプロイされたアプリケーションのURLでwebhook関数を登録します。
+
+    ```shell
+    curl -X POST \
+         "<YOUR_CLOUDFLARE_DEPLOYED_URL>/api/registerWebhook"
+    ```
+  </Step>
+
+  <Step title="Update Allowed Origins">
+    ウォレット設定で、デプロイされたアプリケーションのURLが[Sequence Builder](https://sequence.build/project/default/embedded-wallet)の設定ページで許可されたオリジンとして追加されていることを確認してください。
+  </Step>
+
+  <Step title="Test out the Bot!">
+    Telegramでボットにメッセージを送信して、応答があるか確認してください！共有、プレイ、ボットに関する詳細情報を取得する機能で応答するはずです。
+  </Step>
+</Steps>
+
+これで、すべての統合されたEVMチェーンに対してSequence組み込みウォレットと対話できる完全に機能するTelegramボットが完成しました。ボットの応答とクライアントサイドアプリケーションをゲームやアプリに特化した機能でカスタマイズできます - 単にデプロイし直して許可されたオリジンを更新するだけです！
+
+## 本番環境への移行
+
+あなたの`BOT_TOKEN`は、データ漏洩を防ぐために以下のコマンドでCloudflareで暗号化して保存できます：
+
+```shell
+pnpm wrangler pages secret put BOT_TOKEN
+```
+
+プロンプトが表示されたらボットトークンを入力してください。

@@ -1,0 +1,128 @@
+---
+title: Webショップでゲームアイテムを販売する
+description: このガイドではSequenceのプライマリーセールの作成について説明します。セールスコントラクトの作成、NFTコントラクトの作成、コレクションの作成、ウォレット認証、購入とミントの手順が含まれています。
+sidebarTitle: WebショップでERC-1155ゲームアイテムを販売する
+---
+
+プレイヤーに直接アイテムを販売することでゲームの成長を加速させましょう。このガイドでは、ERC1155コントラクトからのゲームアイテムを利用するウェブショップ向けに、既存または任意の通貨を使用してプライマリーセールコントラクトをデプロイする手順を説明します。Sequenceプラットフォームから以下のテクノロジーを使用します：
+
+1. [プライマリーセールコントラクト](/solutions/collectibles/contracts/deploy-primary-sales-contract/)：Webショップ、NFTドロップなどに適したプライマリーセールを開始するためのコントラクトのセットアップとデプロイ方法。
+2. [組み込みウォレット](/solutions/wallets/embedded-wallet/overview)：Web SDKとSequence組み込みウォレットを使用してユーザーを認証します。
+3. [Sequence Indexer](/solutions/builder/indexer)：Sequence Indexerを活用してNFTメタデータとユーザーのウォレット資産を照会します。
+4. [Sequence Metadata](/solutions/builder/collections)：Sequence Builder UIとAPIを通じてコレクションやトークンのメタデータを更新・管理します。
+
+## ゲームアイテム用プライマリーセールのボイラープレートをクローン
+
+<Tabs>
+  <Tab title="Sequence CLI">
+    #### プライマリーセールリポジトリは[Sequence CLI](https://github.com/0xsequence/sequence-cli/)
+
+    ```bash
+    npx sequence-cli boilerplates create-primary-drop-sale-starter
+    ```
+  </Tab>
+
+  <Tab title="Github">
+    #### GitHubからプライマリーセールリポジトリをクローンできます
+
+    ```shell
+    git clone https://github.com/0xsequence-demos/primary-sale-1155-boilerplate.git
+    ```
+
+    <br />
+
+    その後、インストールして実行します：
+
+    <br />
+
+    ```shell
+    pnpm install && pnpm dev
+    ```
+
+    <br />
+
+    依存関係をインストールすると、`.env.example`が自動的に`.env`にコピーされ、提供済みのキーでテストできます。
+
+    <br />
+
+    準備ができたら、`.env`の内容をプロジェクトの情報に置き換えてください。
+  </Tab>
+
+  <Tab title="Github Template">
+    #### GitHubからプライマリーセールリポジトリテンプレートを使用できます
+
+    以下にアクセス：[https://github.com/0xsequence-demos/primary-sale-1155-boilerplate](https://github.com/0xsequence-demos/primary-sale-1155-boilerplate)そして右上の「Use this Template」をクリックします。
+
+    <br />
+
+    新しく作成したリポジトリをクローンします。
+
+    <br />
+
+    その後、インストールして実行します：
+
+    <br />
+
+    ```shell
+    pnpm install && pnpm dev
+    ```
+
+    <br />
+
+    依存関係をインストールすると、`.env.example`が自動的に`.env`にコピーされ、提供済みのキーでテストできます。
+
+    <br />
+
+    準備ができたら、`.env`の内容をプロジェクトの情報に置き換えてください。
+  </Tab>
+</Tabs>
+
+## リポジトリで独自のプライマリーセールコントラクトを設定する
+
+開始するためのいくつかのサンプルコントラクトと変数を提供しています。ただし、おそらく独自のコントラクトを使用したいと思われます。これを設定するには、以下の手順に従ってください：
+
+<Steps>
+  <Step title="Deploy a Primary Sales Contract in Sequence Builder.">
+    まず、販売したいゲームアイテムを含むERC1155コントラクトと共にプライマリーセールコントラクトが必要です。そのために、[ガイド](/solutions/collectibles/contracts/deploy-primary-sales-contract)をご覧ください。
+  </Step>
+
+  <Step title="Set the Sales Configurations for the project.">
+    セールコントラクトがデプロイされたら、ボイラープレートのセール設定を更新するだけです。`src/salesConfigs.ts`に移動し、サポートしたいネットワークのプロジェクト用に各コントラクトセールを配列に追加してsalesConfigs変数を修正します。例：
+
+    ```ts
+    export const salesConfigs: SaleConfiguration[] = [
+      {
+        nftTokenAddress: "0x888a322db4b8033bac3ff84412738c096f87f9d0",
+        salesContractAddress: "0x0327b2f274e04d292e74a06809bcd687c63a4ba4",
+        chainId: 80002, //polygonAmoy
+        // Modify here to show different items
+        itemsForSale: ["0", "1"],
+      },
+      {
+        nftTokenAddress: "0xd4bb59d0ba1f7b2beea4c6d9b9f151ee1da02665",
+        salesContractAddress: "0x326d2fbe4808dd2a3e205aecc5e25a6322ad0a81",
+        chainId: 421614, //arbitrumSepolia,
+        // Modify here to show different items
+        itemsForSale: ["0"],
+      },
+    ];
+    ```
+
+    <Note>
+      Sequenceが現在サポートしている利用可能なチェインはすべて<a href="https://status.sequence.info" target="_blank" rel="noopener noreferrer" style={{ fontWeight: 700 }}>こちら</a>でご確認いただけます。
+    </Note>
+  </Step>
+
+  <Step title="Set a default chainId for the project.">
+    デフォルトのchainIdを設定するには、`src/salesConfigs.ts`に移動し、プロジェクトでデフォルトで表示したいchainIdでdefaultChainId変数を修正します。これはsalesConfigs変数に存在するchainIdと一致している必要があります。例：
+
+    ```ts
+    // In this case, the chosen `defaultChainId` is 80002 (amoy), which is present in the previously declared `salesConfigs` variable.
+    export const defaultChainId = 80002;
+    ```
+
+    ### 完了！
+
+    これでプライマリーセールが正しく表示され機能するはずです。購入するには、セール用の通貨として設定したトークンがウォレットにあることを確認し、数量を増やして購入をクリックしてください！
+  </Step>
+</Steps>

@@ -1,0 +1,97 @@
+---
+title: セキュアなセッションリカバリー
+description: SDKは、選択されたプラットフォームでネイティブのセキュアストレージを使用して、セッションウォレット情報を安全に保存するオプションを提供します。
+---
+
+# セッションの復元
+
+デフォルトでは、アプリが完全に閉じられるたびに、SDKはユーザーにサインインを要求します。これは、ユーザーのセキュリティのため、デフォルトではセッションウォレット情報（例：秘密鍵）を永続的なストレージに書き込まないためです。
+
+ただし、特定のプラットフォームでは、プラットフォームのネイティブな安全なストレージ機能と統合しています。
+
+もし有効にした場合`StoreSessionPrivateKeyInSecureStorage`の中で`SequenceConfig`ScriptableObjectでは、（サポートされているプラットフォームで）セッションウォレット情報を自動的に保存し、`SequenceLogin`でセッションを復元する機能を提供します。デフォルトの`LoginPanel`はこのUIフローも自動的に処理します（[認証](/sdk/unity/onboard/authentication/intro)を参照）。プラットフォームがサポートされていない場合、このフラグは効果がありません。
+
+以下に、サポートされているプラットフォームとそのプラットフォームの安全なストレージソリューションについて説明します - これらのシステムの基本的な仕組みを理解し、秘密鍵（またはその他の機密情報）を永続的なストレージに保存することのセキュリティ上の影響について慎重に検討することが重要です。
+
+## iOS
+
+iOSでは、[iOS Keychain](https://developer.apple.com/documentation/security/keychain_services?language=objc)を活用しています。
+
+## MacOS
+
+MacOSでは、[MacOS Keychain](https://developer.apple.com/documentation/security/keychain_services?language=objc)を活用しています。
+
+## Windows
+
+WindowsのPCでは、[Crypto: Next Generation - Data Protection API (CNG DPAPI)](https://learn.microsoft.com/en-us/windows/win32/seccng/cng-dpapi)
+
+## Web
+
+Webビルドでは、[IndexedDB](https://developer.mozilla.org/en-US/docs/Web/API/IndexedDB_API)を[PlayerPrefs](https://docs.unity3d.com/ScriptReference/PlayerPrefs.html)経由で活用しています。
+
+## Android
+
+Androidビルドでは、[Android Keystore](https://developer.android.com/privacy-and-security/keystore)を活用しています。
+
+Unity用のKeystoreプラグイン（SDKに含まれています）にはカスタムメインGradleテンプレートが必要です。プロジェクト設定に移動し、`Player > Publishing Settings`で`Custom Main Gradle Template`を有効にしてください。これにより`Assets/Plugins/Android/mainTemplate.gradle`ファイル（または類似のもの、エディターがパスを表示します）がまだない場合は作成されます。以下は`mainTemplate.gradle`ファイルの例です。これをコピー/ペーストするか、既存のファイルに組み込んでください。
+
+```
+apply plugin: 'com.android.library'
+**APPLY_PLUGINS**
+
+dependencies {
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+    implementation 'androidx.security:security-crypto:1.1.0-alpha03'
+
+**DEPS**}
+
+android {
+    compileSdkVersion **APIVERSION**
+    buildToolsVersion '**BUILDTOOLS**'
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+
+    defaultConfig {
+        minSdkVersion **MINSDKVERSION**
+        targetSdkVersion **TARGETSDKVERSION**
+        ndk {
+            abiFilters **ABIFILTERS**
+        }
+        versionCode **VERSIONCODE**
+        versionName '**VERSIONNAME**'
+        consumerProguardFiles 'proguard-unity.txt'**USER_PROGUARD**
+    }
+
+    lintOptions {
+        abortOnError false
+    }
+
+    aaptOptions {
+        noCompress = **BUILTIN_NOCOMPRESS** + unityStreamingAssets.tokenize(', ')
+        ignoreAssetsPattern = "!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~"
+    }**PACKAGING_OPTIONS**
+}**REPOSITORIES**
+**IL_CPP_BUILD_SETUP**
+**SOURCE_BUILD_SETUP**
+**EXTERNAL_SOURCES**
+```
+
+Keystoreプラグインにはカスタムのグラデルプロパティテンプレートも必要です。再度、プロジェクト設定に移動し、`Player > Publishing Settings`で`Custom Gradle Properties Template`を有効にしてください。これにより`Assets/Plugins/Android/gradleTemplate.properties`ファイル（または類似のもの、エディターがパスを表示します）がまだない場合は作成されます。以下は`gradleTemplate.properties`ファイルの例です。これをコピー/ペーストするか、既存のファイルに組み込んでください。
+
+```
+org.gradle.jvmargs=-Xmx**JVM_HEAP_SIZE**M
+org.gradle.parallel=true
+android.enableJetifier=true
+android.useAndroidX=true
+unityStreamingAssets=**STREAMING_ASSETS**
+**ADDITIONAL_PROPERTIES**
+
+android.enableR8=**MINIFY_WITH_R_EIGHT**
+```
+
+## エディター
+
+エディターでは、秘密鍵の保存にPlayerPrefsを使用します。また、エディター内で安全なストレージを使用してセッションを復元するには、SequenceConfigで'EditorStoreSessionPrivateKeyInSecureStorage'を有効にする必要があります。この別個のフラグにより、ビルドの動作を変更することなく、両方のフローをテストすることが容易になります。エディターでの安全なストレージは開発目的のみであり、長期保存用の安全なストレージとは見なされるべきではありません。

@@ -1,0 +1,121 @@
+---
+title: Unity IAPを使用してNFTを販売する
+description: Jelly ForestでiOS App StoreとGoogle Play StoreでIAP（アプリ内課金）を通じて購入可能なNFTを追加した方法と、あなたのゲームで同様のことを実現する方法
+sidebarTitle: Unity IAPを使用してNFTを販売する
+---
+
+プレイヤーの大多数は暗号通貨をウォレットに持っていません。従来の方法で暗号通貨に資金を移すのは、プレイヤーにとって面倒な場合があり、技術的な経験が少ないユーザーにとってはストレスが大きすぎる可能性があります。いずれにせよ、支払いの摩擦を最小限に抑えることは、効果的なマネタイズ戦略にとって常に非常に重要な要件でした。モバイルでのマイクロトランザクションを行う上で、大多数のユーザーにとって最も摩擦の少ない方法は、すでに慣れているアプリ内購入方法です：iOS App StoreとAndroid Google Play StoreでのIAPです。これは特に、組み込みウォレットを使用し、ブロックチェーンが見えないゲームを構築している場合に当てはまります。
+
+このガイドでは、[Unityで作られた組み込みウォレットのショーケースゲームであるJelly Forest](/guides/jelly-forest-unity-guide)に、ジェリーのためのおかしなホットドッグ帽子をミントできるIAPを追加した方法を説明します。
+
+## スマートコントラクトのデプロイ
+
+まだ行っていない場合、最初のステップは[スマートコントラクトをデプロイする](/solutions/collectibles/contracts/deploy-an-item-collection)ことです。このコントラクトは、プレイヤーに販売し、ゲーム内で表示するNFTを定義し表現します。
+
+スマートコントラクトをデプロイしたら、忘れずに[Builder Consoleの「Gas Sponsoring」ページでコントラクトアドレスをスポンサードアドレスとして追加](/solutions/builder/gas-tank#gas-tank-in-builder)してください！これにより、ユーザーがあなたのゲームのスマートコントラクトと対話する際に、あなたのコンピュートクレジットを使用して自動的にガス料金がスポンサーされるようになります。
+
+## リモートミンターのデプロイ
+
+デフォルトでは、Builder Consoleを通じてデプロイされたERC1155/721コントラクトは、トークンをミントするために適切な権限を持つ呼び出し元を必要とします。一見すると面倒に思えるかもしれませんが、これは良いことです！これがないと、誰でもあなたのコントラクトのミントメソッドを呼び出して、無限のゲームアイテムを自分に与えることができてしまいます！
+
+Sequenceウォレット（または他のウォレット）を持つサーバーをデプロイし、builderでミント権限を与える必要があります。
+
+### Jelly Forestでの実装方法
+
+Jelly Forestでは、ゲームプレイ中に集めたすべてのコインがERC1155トークンとしてミントされます。以下が実装方法です：
+
+1. 登録する[Cloudflare](https://www.cloudflare.com/) - これは私たちがミンティングサービスコードをホストする方法です。他の方法を使用しても構いません
+2. ターミナルまたは他のコマンドラインを開く
+3. `git clone https://github.com/0xsequence-demos/cloudflare-worker-sequence-relayer.git` その後 `cd cloudflare-worker-sequence-relayer`
+4. `git checkout permissionedMinter`
+5. `pnpm install` - 依存関係をインストールするため
+6. wranglerをインストール
+
+```
+pnpm install wrangler --save-dev
+alias wrangler='./node_modules/.bin/wrangler'
+```
+
+そしてログイン
+
+```
+wrangler login
+```
+
+7. 開く`wrangler.toml`
+   1. 文字列を変更してサーバーに名前を付ける`name` 文字列
+   2. 新しい[EOA wallet](https://ethereum.stackexchange.com/questions/5828/what-is-an-eoa-account) を作成し、秘密鍵をエクスポートします。どのEOAウォレットでも構いません。Metamaskを使用すると簡単に[ウォレットを設定](https://support.metamask.io/hc/en-us/articles/360015489531-Getting-started-with-MetaMask)して[秘密鍵をエクスポート](https://support.metamask.io/hc/en-us/articles/360015289632-How-to-export-an-account-s-private-key)できます。秘密鍵の取り扱いには十分注意し、コンピュータ上にプレーンテキストで保存したり、バージョン管理にコミットしたりしないでください！これを以下で設定します`PKEY`
+   3. 設定する`CONTRACT_ADDRESS`
+   4. 設定する`PROJECT_ACCESS_KEY` - これは以前`SequenceConfig` スクリプタブルオブジェクト
+   5. 設定する`CHAIN_HANDLE` - これが何かわからない場合は、`CHAIN_HANDLE` Builder ConsoleのNode Gatewayページで各ネットワークの情報を確認できます。
+8. `pnpm dev` - これによりサーバーがローカルにデプロイされます。コマンドラインでどのlocalhostにデプロイされたかが表示されます
+9. 別のコマンドラインウィンドウを開く
+10. `curl http://localhost:8787` - 与えられたlocalhostに置き換えてください。これによりサーバーにpingを送信します。
+11. localhostサーバーが実行されているコマンドラインで、ミンターのウォレットアドレスがログに表示されているはずです
+12. Builder Consoleでこのアドレスにミント権限を付与します
+    1. コントラクトを`Contracts`で見つけてクリックして開きます
+    2. クリック`Write Contract`
+    3. 展開`grantRole`
+    4. 以下の`role`に入力`0x9f2df0fed2c77648de5860a4cc508cd0818c85b8b8a1ab4ceeef8d981c8956a6` - これは以下のKeccak-256ハッシュです`MINTER_ROLE`
+    5. 以下の`account`にミンターのウォレットアドレスを貼り付けます
+13. `wrangler deploy` - これによりコードが[Cloudflare Worker](https://developers.cloudflare.com/workers/)にデプロイされ、ミンティングURLが提供されます
+
+素晴らしい！これで、サーバーにPOSTリクエストを送信する際に、[C#で定義された](https://github.com/0xsequence/sequence-unity/blob/master/Packages/Sequence-Unity/Sequence/SequenceSDK/Relayer/MintingRequestProver.cs#L103)、ここで`proof`はミンティングリクエストを送信するクライアントによって生成されます。Unity SDKではこれは[MintingRequestProver](https://github.com/0xsequence/sequence-unity/blob/master/Packages/Sequence-Unity/Sequence/SequenceSDK/Relayer/MintingRequestProver.cs#L27)。
+
+### リモートミンターでIAPで購入したトークンを処理する
+
+上記では、ゲーム内のアクションを通じて獲得できるトークンをミントするために便利なリモートミンターをデプロイしました。このサーバーを活用して、IAPを通じて購入可能なトークンもミントできるようにする方法を見てみましょう。
+
+リモートミンターに送信されるペイロードにレシートも含めることができることに気付くでしょう。ここにGoogle/Appleから受け取ったIAPレシートを含めます。[Unityは推奨しています](https://docs.unity3d.com/Packages/com.unity.purchasing@4.0/manual/BackendReceiptValidation.html)使用を[Nobuyori Takahashi's IAP project](https://github.com/voltrue2/in-app-purchase)サーバーサイドでUnity IAPを通じて受け取ったIAPレシートを検証するために。
+
+サーバーサイドでレシートを検証したら、上記のサンプルコードを参考にしてミンティングロジックを進めることができます。
+
+## Unity実装
+
+Unity側では、最初のステップは[Unity IAP](https://docs.unity3d.com/Manual/UnityIAP.html)をプロジェクトに統合することです。
+
+あなたの`ProcessPurchase`メソッドの中で`IStoreListener` 統合プロセスから、ミンティングプロセスを開始する必要があります。Jelly Forestでは、これは [UnityIAP](https://github.com/0xsequence/sequence-unity-demo/blob/JellyForest/Scripts/UnityIAP.cs) と [PremiumItem](https://github.com/0xsequence/sequence-unity-demo/blob/JellyForest/Scripts/Items/PremiumItem.cs) スクリプトで行われます。
+
+ペイロードに関しては、`PremiumItem` の実装で、PermissionedMintTransactionを `TransactionQueuer` に追加しているのがわかります。
+
+```csharp
+public void AddToPremiumTransactionQueue(PermissionedMintTransaction payload, string iapReceipt)
+{
+    PremiumIAPMinter minter = new PremiumIAPMinter(new MintingRequestProver(Wallet, Chain),
+        _mintEndpoint, ContractAddress, iapReceipt);
+    _permissionedMinterTransactionQueuer.Enqueue((payload, minter));
+}
+```
+
+ここで `_permissionedMinterTransactionQueuer` は `PermissionedMinterTransactionQueuer` です。
+
+これは以下の形式でペイロードを送信します：
+
+```json
+ProofPayload: 
+{
+    "app": "Made with Sequence Unity SDK App",
+    "iat": (uint)DateTimeOffset.UtcNow.ToUnixTimeSeconds(), // issued at time 
+    "exp": (uint)DateTimeOffset.UtcNow.ToUnixTimeSeconds() + 300, // expiry time 
+    "ogn": "Sequence Unity SDK",
+    "payload": {
+        "contractAddress": "0xabc123...",
+        "tokenId": "11",
+        "amount": 5,
+        "receipt": <IAP Receipt String here>
+    }
+}
+
+This JSON get stringified and included in the MintingRequestProof:
+{
+    "Proof": "{\"app\": \"Made with Sequence Unity SDK App\", \"iat\": ...}",
+    "SignedProof": "0x123def...", // proof signed by the player's embedded wallet
+    "SigningAddress": "0xa1b2c3..." // the player's embedded wallet address
+}
+```
+
+トランザクションキューについての詳細は、[このドキュメント](/sdk/unity/power/write-to-blockchain#transaction-queuers)をご確認ください。
+
+<Warning>
+  AppleとGoogleは、ユーザーが誤って行ったIAPに対してチャージバックのオプションを提供しています。この場合、ユーザーは依然としてミントされたトークンを保持することになります。従来の方法（例：頻繁にチャージバックを行うプレイヤーをBANするなど）で対処することは可能ですが、不正なチャージバックのリスクがあるため、この方法で高額なNFTを販売することには注意が必要です。
+</Warning>

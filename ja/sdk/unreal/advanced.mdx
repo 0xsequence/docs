@@ -1,0 +1,40 @@
+---
+title: 高度なブロックチェーン操作
+description: web3ゲーミング向けのSequenceインフラストラクチャスタック用
+  Unreal SDKの高度なブロックチェーン操作のドキュメント。
+---
+
+Sequence SDKのほとんどのユーザーは、暗号化機能を直接操作する必要はありません。
+
+## バイナリデータ
+
+バイナリデータは以下を使用してカプセル化します`FBinaryData`構造体。これは共有バイト配列へのポインタのラッパーです`TSharedPtr<TArray<uint8>>`。バイナリデータはさらに以下のサブタイプに分類されます`FUnsizedData`、これは可変サイズのデータを表し、`TSizedData<TSize>`、これは必要なバイト長のデータを表します**TSize**。
+
+32バイトの秘密鍵などの重要な固定サイズの暗号化タイプは、TSizedDataのサブタイプとして定義されています。例えば、以下のように定義します`FPrivateKey : TSizedData<32>`。これらは以下を使用して16進数文字列からロードすることもできます`From(FString Str)`、例えば`FPrivateKey::From("0x0...0");`。入力文字列が正しいサイズであることを確認してください。
+
+## ABI
+
+ブロックチェーン上のコントラクトを呼び出すには、引数として渡すデータを**ABI**を使用してエンコードする必要があります。ABIとその仕様について詳しくは、[*solidity*のドキュメント](https://docs.soliditylang.org/en/latest/abi-spec.html)をご覧ください。
+
+私たちのABI実装は、ABIクラスを中心に`ABI/ABI.h`構成されており、以下の型の変換機能を提供します：**UInt32**、**Int32**、**Bool**、**FAddress**、および**FString**。その他のデータは直接**TFixedABIArray**または**TDynamicABIArray**（固定長および可変長配列用）、あるいは**TFixedABIData**および`TDynamicABIData`（固定長および可変長バイナリデータ用）に変換できます。
+
+データを**ABIEncodeable**型に格納したら、ABIに型の配列を提供して`TArray<ABIEncodeable*>`から`ABI::Encode`引数のバイナリエンコーディングを受け取ることができます。例については\`**TestABI.cpp**をご覧ください。
+
+## 暗号化関数
+
+**Eth/Crypto.h**は、ブロックチェーンと直接やり取りするための重要なイーサリアム関数を提供します：
+
+```cpp
+// Derives a public key from a private key
+FPublicKey GetPublicKey(FPrivateKey PrivateKey);
+// Derives an address from the public key
+FAddress GetAddress(FPublicKey PublicKey);
+// Finds a keccak hash for some binary data
+FHash256 GetKeccakHash(FBinaryData &Data);
+// Derives contract address from a given sending address and nonce
+FAddress GetContractAddress(FAddress Sender, FBlockNonce Nonce);
+```
+
+## 生のイーサリアムトランザクション
+
+**EthTransaction.h**には、生のイーサリアムトランザクションを管理するための構造体が含まれており、それらの署名とハッシュ化のための関数も含まれています。なお、トランザクションは通常、Sequence WAASを介してトランザクションを送信するSequenceウォレットインターフェースを通じて処理される必要があります。

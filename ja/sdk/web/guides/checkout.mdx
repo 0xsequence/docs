@@ -1,0 +1,199 @@
+---
+title: チェックアウトモーダル
+description: チェックアウトモーダルは、開発者に暗号通貨決済を実装する簡単な方法を提供します。
+sidebarTitle: チェックアウトモーダル
+---
+
+Sequence Checkoutを使用すると、ユーザーはマーケットプレイスなどのプライマリまたはセカンダリセールス契約を使用して、以下の支払いオプションでERC721またはERC1155トークンを簡単に購入できます：
+
+* ウォレット内の任意の暗号通貨で購入。
+* 別のウォレットからSequenceウォレットに資金を受け取って購入。
+* 各地域、チェーン、通貨に適したプロバイダーを自動的に検出するクレジットカードまたはデビットカードで支払う。
+* 自動スワップと購入を行うことで、ウォレット内の別の暗号通貨で支払う。
+
+専用ライブラリをインストールすることで利用できる統合されたチェックアウトフローを提供しています`@0xsequence/checkout`と組み合わせて使用します`@0xsequence/connect`。
+
+<Frame>
+  ![](/images/kit/checkout-modal.png)
+</Frame>
+
+<Note>
+  チェックアウトでクレジットカード決済を有効にするには、契約アドレスをアローリストに追加する必要があるため、Sequenceチームにお問い合わせください。クレジットカード決済はメインネットでのみ機能します。
+</Note>
+
+# インストールとセットアップ
+
+チェックアウト機能を統合するには、以下の手順に従ってください：
+
+<Steps>
+  <Step title="Install the `@0xsequence/checkout` library:">
+    ```bash
+    npm install @0xsequence/checkout
+    # or
+    pnpm install @0xsequence/checkout
+    # or
+    yarn add @0xsequence/checkout
+    ```
+  </Step>
+
+  <Step title="Place the `SequenceCheckoutProvider` below the SequenceConnect Provider in your App:">
+    ```jsx
+    import { SequenceCheckoutProvider } from '@0xsequence/checkout'
+    import { SequenceConnect } from '@0xsequence/connect'
+    import { config } from './config'
+
+    const App = () => {
+      return (
+        <SequenceConnect config={config}>
+          <SequenceCheckoutProvider>
+            <Page />
+          </SequenceCheckoutProvider>
+        </SequenceConnect>
+      )
+    }
+    ```
+  </Step>
+</Steps>
+
+セットアップが完了したので、異なるユースケースでチェックアウトモーダルを使用する方法を見てみましょう。
+
+## ERC1155トークンでのチェックアウト
+
+チェックアウトモーダルの設定を簡単にするERC1155トークン用の便利なユーティリティ関数を提供しています。
+
+以下は設定例の変数です：
+
+```jsx
+  import { useERC1155SaleContractCheckout } from "@0xsequence/checkout";
+  import { useAccount } from "wagmi";
+
+  const MyComponent = () => {
+    const { address: userAddress } = useAccount();
+    const { openCheckoutModal } = useERC1155SaleContractCheckout({
+      chain: 80001, // chainId of the chain the collectible is on
+      contractAddress: "0x0327b2f274e04d292e74a06809bcd687c63a4ba4", // address of the contract handling the minting function
+      wallet: userAddress!, // address of the recipient
+      collectionAddress: "0x888a322db4b8033bac3ff84412738c096f87f9d0", // address of the collection contract
+      items: [
+        // array of collectibles to purchase
+        {
+          tokenId: "0",
+          quantity: "1",
+        },
+      ],
+      onSuccess: (txnHash: string) => {
+        console.log("success!", txnHash);
+      },
+      onError: (error: Error) => {
+        console.error(error);
+      },
+    });
+
+    const onClick = () => {
+      if (!userAddress) {
+        return;
+      }
+      openCheckoutModal();
+    };
+
+    return <button onClick={onClick}>Buy ERC-1155 collectible!</button>;
+  };
+```
+
+## カスタムコントラクト
+
+私たちは`useSelectPaymentModal`フックを使用してチェックアウトモーダルを開き、設定オブジェクトを渡します。さらに、カスタムコントラクトの場合、コントラクトABIを指定し、コールデータをエンコードできます。この場合、私たちは`ethers`と`viem`の`encodeFunctionData`ユーティリティを使用しています。
+
+```tsx
+import { useAccount } from 'wagmi'
+import { useSelectPaymentModal, type SelectPaymentSettings } from '@0xsequence/checkout'
+import { toHex } from 'viem'
+import { encodeFunctionData } from 'viem'
+
+const MyComponent = () => {
+    const { address } = useAccount()
+    const { openSelectPaymentModal } = useSelectPaymentModal()
+
+    const onClick = () => {
+        if (!address) {
+            return
+        }
+
+        const currencyAddress = '0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359'
+        const salesContractAddress = '0xe65b75eb7c58ffc0bf0e671d64d0e1c6cd0d3e5b'
+        const collectionAddress = '0xdeb398f41ccd290ee5114df7e498cf04fac916cb'
+        const price = '20000'
+
+        const chainId = 137
+
+        const erc1155SalesContractAbi = [
+            {
+                type: 'function',
+                name: 'mint',
+                inputs: [
+                    { name: 'to', type: 'address', internalType: 'address' },
+                    { name: 'tokenIds', type: 'uint256[]', internalType: 'uint256[]' },
+                    { name: 'amounts', type: 'uint256[]', internalType: 'uint256[]' },
+                    { name: 'data', type: 'bytes', internalType: 'bytes' },
+                    { name: 'expectedPaymentToken', type: 'address', internalType: 'address' },
+                    { name: 'maxTotal', type: 'uint256', internalType: 'uint256' },
+                    { name: 'proof', type: 'bytes32[]', internalType: 'bytes32[]' }
+                ],
+                outputs: [],
+                stateMutability: 'payable'
+            }
+        ]
+
+        const collectibles = [
+            {
+                tokenId: '1',
+                quantity: '1'
+            }
+        ]
+
+        const purchaseTransactionData = encodeFunctionData({
+            abi: erc1155SalesContractAbi,
+            functionName: 'mint',
+            args: [
+                address,
+                collectibles.map(c => BigInt(c.tokenId)),
+                collectibles.map(c => BigInt(c.quantity)),
+                toHex(0),
+                currencyAddress,
+                price,
+                [toHex(0, { size: 32 })]
+            ]
+        })
+
+        const selectPaymentModalSettings: SelectPaymentSettings = {
+            collectibles: [
+                {
+                    tokenId: '1',
+                    quantity: '1'
+                }
+            ],
+            chain: chainId,
+            price,
+            targetContractAddress: salesContractAddress,
+            recipientAddress: address,
+            currencyAddress,
+            collectionAddress,
+            creditCardProviders: ['sardine'],
+            copyrightText: 'ⓒ2024 Sequence',
+            onSuccess: (txnHash: string) => {
+                console.log('success!', txnHash)
+            },
+            onError: (error: Error) => {
+                console.error(error)
+            },
+            txData: purchaseTransactionData,
+        }
+
+        openSelectPaymentModal(selectPaymentModalSettings)
+    }
+
+    return <button onClick={onClick}>Buy ERC-1155 collectble!</button>
+}
+```
+
+おめでとうございます！Web SDKでチェックアウトモーダルの使用方法を学びました。

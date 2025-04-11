@@ -1,0 +1,18 @@
+---
+title: オファーの作成
+---
+
+マーケットプレイスを構築する際、ユーザーにコレクティブルを購入するためのオファーを出す機会を提供したい場合があります。マーケットプレイスで販売可能なコレクティブルを紹介するUIを表示したいと考えるでしょう。
+
+ユーザーが購入したいコレクティブル、数量、価格を選択したら、オファーを作成する必要があります。
+
+```
+ICheckout checkout = new Checkout(_wallet, _chain);
+Step[] steps = await checkout.GenerateOfferTransaction(collectionContractAddress, tokenId, amount, ContractType.ERC1155, currencyTokenAddress, pricePerTokenInstance, expiryDateTime);
+TransactionReturn result = await steps.SubmitAsTransactions(_wallet, _chain);
+if (result is SuccessfulTransactionReturn successTransaction) {
+    // Handle success case
+}else {
+    // Handle fail case
+}
+```

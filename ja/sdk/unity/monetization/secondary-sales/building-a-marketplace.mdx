@@ -1,0 +1,47 @@
+---
+title: マーケットプレイスの構築
+---
+
+このドキュメントでは、Sequence SDKを使用してセカンダリーセールのためのオンチェーンコレクティブルマーケットプレイスを構築する方法について説明します。
+
+<Tip>開始する前に、必ず[Builderでマーケットプレイスを設定](/solutions/marketplaces/orderbook/overview)してください。</Tip>
+
+## 1. リスティングの読み取り
+
+まず、ユーザーに表示するためにマーケットプレイスからリスティングを読み取る必要があります。
+
+```
+IMarketplaceReader reader = new MarketplaceReader(_chain);
+ListCollectiblesReturn collectiblesReturn = await reader.ListCollectibleListingsWithLowestPricedListingsFirst(myCollectionContractAddress);
+CollectibleOrder[] orders = collectiblesReturn.collectibles;
+```
+
+オプションで、`CollectiblesFilter`を提供してクエリにフィルターを適用できます。
+
+このリクエストはページネーションを使用します。比較的小さなコレクションを扱っていてページネーションを処理したくない場合は、`ListAllCollectibleListingsWithLowestPricedListingsFirst`ヘルパー関数を使用できます。これはページネーションを処理し、関連する全ての`CollectibleOrder`が取得されるまでリクエストを続けます。
+
+また、オプションで`OnListCollectibleOrdersReturn`と`OnListCollectibleOrdersError`イベントをサブスクライブして、応答を別の場所で処理することもできます。
+
+これにより、各コレクティブルに対して1つの`CollectibleOrder`（最低価格のリスティング）が得られます。
+
+## 2. リスティングの表示
+
+ステップ1で`CollectibleOrder[]`を取得したら、`TokenMetadata`で返された`CollectibleOrder`を使用して、マーケットプレイスUIで注文を何らかの形で表示する必要があります。
+
+SDKに含まれているデモシーンで、この情報をユーザーに表示する非常に基本的な例を提供しています。
+
+## 3. チェックアウト
+
+ユーザーがUIでコレクティブルと数量を選択したら、チェックアウトプロセスを開始する必要があります。私たちは[チェックアウトUI](/sdk/unity/monetization/checkout-ui)を使用し、必要に応じてその外観を変更することをお勧めします。
+
+チェックアウトUIを開くには、`ICheckoutHelper` と `IFiatCheckout`。この場合、`NftCheckout` と `SequenceCheckout` の実装をそれぞれ使用する必要があります。
+
+```
+ICheckoutHelper checkoutHelper = new NftCheckout(wallet, collectibleOrder, collectibleSprite, amount);
+```
+
+collectibleOrderはUIに表示されているCollectibleOrder\[]から選択されたCollectibleです。NftCheckoutは、必要に応じて同じコレクティブルの追加リストを取得し、数量を促進します（そして、すべてのリストで利用可能な数量で購入数量を制限します）
+
+```
+IFiatCheckout fiatCheckout = new SequenceCheckout(wallet, chain, collectibleOrder, amount);
+```

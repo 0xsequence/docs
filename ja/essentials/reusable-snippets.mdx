@@ -1,0 +1,102 @@
+---
+title: 再利用可能なスニペット
+description: コンテンツを同期させるための再利用可能なカスタムスニペット
+icon: recycle
+---
+
+import SnippetIntro from '/snippets/snippet-intro.mdx';
+
+<SnippetIntro />
+
+## カスタムスニペットの作成
+
+**前提条件**：スニペットファイルは`snippets`ディレクトリに作成する必要があります。
+
+<Note>
+  ディレクトリ内の`snippets`すべてのページはスニペットとして扱われ、単独のページとしてはレンダリングされません。スニペットから単独のページを作成したい場合は、スニペットを別のファイルにインポートしてコンポーネントとして呼び出してください。
+</Note>
+
+### デフォルトエクスポート
+
+1. 複数の場所で再利用したいコンテンツをスニペットファイルに追加します。オプションで、スニペットをインポートする際にpropsを通じて入力できる変数を追加することができます。
+
+```mdx snippets/my-snippet.mdx
+Hello world! This is my content I want to reuse across pages. My keyword of the
+day is {word}.
+```
+
+<Warning>
+  再利用したいコンテンツは`snippets`ディレクトリ内にある必要があります。インポートが機能するためです。
+</Warning>
+
+2. スニペットを目的のファイルにインポートします。
+
+```mdx destination-file.mdx
+---
+title: My title
+description: My Description
+---
+
+import MySnippet from '/snippets/path/to/my-snippet.mdx';
+
+## Header
+
+Lorem impsum dolor sit amet.
+
+<MySnippet word="bananas" />
+```
+
+### 再利用可能な変数
+
+1. スニペットファイルから変数をエクスポートします：
+
+```mdx snippets/path/to/custom-variables.mdx
+export const myName = 'my name';
+
+export const myObject = { fruit: 'strawberries' };
+```
+
+2. 目的のファイルからスニペットをインポートし、変数を使用します：
+
+```mdx destination-file.mdx
+---
+title: My title
+description: My Description
+---
+
+import { myName, myObject } from '/snippets/path/to/custom-variables.mdx';
+
+Hello, my name is {myName} and I like {myObject.fruit}.
+```
+
+### 再利用可能なコンポーネント
+
+1. スニペットファイル内で、アロー関数の形式でコンポーネントをエクスポートすることで、propsを受け取るコンポーネントを作成します。
+
+```mdx snippets/custom-component.mdx
+export const MyComponent = ({ title }) => (
+  <div>
+    <h1>{title}</h1>
+    <p>... snippet content ...</p>
+  </div>
+);
+```
+
+<Warning>
+  MDXはアロー関数の本体内でコンパイルされません。可能な限りHTML構文を使用するか、MDXを使用する必要がある場合はデフォルトエクスポートを使用してください。
+</Warning>
+
+2. スニペットを目的のファイルにインポートし、propsを渡します
+
+```mdx destination-file.mdx
+---
+title: My title
+description: My Description
+---
+
+import { MyComponent } from '/snippets/custom-component.mdx';
+
+Lorem ipsum dolor sit amet.
+
+<MyComponent title={'Custom title'} />
+```

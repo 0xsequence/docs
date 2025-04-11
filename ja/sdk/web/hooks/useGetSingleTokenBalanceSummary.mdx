@@ -1,0 +1,155 @@
+---
+title: useGetSingleTokenBalanceSummary
+description: チェーン上のアカウントの特定のトークン残高を取得するためのフック
+sidebarTitle: useGetSingleTokenBalanceSummary
+---
+
+## インポート
+
+```tsx
+import { useGetSingleTokenBalanceSummary, ZERO_ADDRESS } from '@0xsequence/hooks'
+```
+
+## 使用方法
+
+```tsx
+import { useGetSingleTokenBalanceSummary, ZERO_ADDRESS } from '@0xsequence/hooks'
+import { useAccount } from 'wagmi'
+
+// Fetch native ETH balance
+function NativeBalance() {
+  const { address } = useAccount()
+  
+  const {
+    data: ethBalance,
+    isLoading,
+    isError
+  } = useGetSingleTokenBalanceSummary({
+    chainId: 1,
+    accountAddress: address || '',
+    contractAddress: ZERO_ADDRESS
+  })
+
+  if (isLoading) return <div>Loading...</div>
+  if (isError) return <div>Error fetching balance</div>
+
+  return <div>ETH Balance: {ethBalance?.balance}</div>
+}
+
+// Fetch USDC balance
+function TokenBalance() {
+  const { address } = useAccount()
+  
+  const {
+    data: usdcBalance,
+    isLoading,
+    isError
+  } = useGetSingleTokenBalanceSummary({
+    chainId: 1,
+    accountAddress: address || '',
+    contractAddress: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48', // USDC
+    hideCollectibles: true
+  })
+
+  if (isLoading) return <div>Loading...</div>
+  if (isError) return <div>Error fetching balance</div>
+
+  return <div>USDC Balance: {usdcBalance?.balance}</div>
+}
+```
+
+## 戻り値の型: `UseQueryResult<TokenBalance>`
+
+このフックはReact Queryの`UseQueryResult`のすべてのプロパティをトークン残高データと共に返します。以下が詳細な構造です：
+
+```tsx
+interface TokenBalance {
+  contractType: ContractType
+  contractAddress: string
+  accountAddress: string
+  tokenID?: string
+  balance: string
+  blockHash: string
+  blockNumber: number
+  chainId: number
+  uniqueCollectibles: string
+  isSummary: boolean
+  contractInfo?: ContractInfo
+  tokenMetadata?: TokenMetadata
+}
+```
+
+### プロパティ
+
+#### data
+
+`TokenBalance | undefined`
+
+以下を含むトークン残高オブジェクト：
+
+* `contractType`: コントラクトの種類（ERC20、ERC721、ERC1155）
+* `contractAddress`: トークンコントラクトのアドレス
+* `accountAddress`: 残高を照会したアドレス
+* `balance`: トークンの基本単位での残高量
+* `chainId`: 残高を取得したチェーンID
+* `blockHash`: 残高を含むブロックのハッシュ
+* `blockNumber`: 残高を含むブロックの番号
+* `tokenID`: NFTのオプショナルトークンID
+* `uniqueCollectibles`: ユニークなコレクティブルの数
+* `isSummary`: これが要約残高かどうか
+* `contractInfo`: オプショナルなコントラクト情報
+* `tokenMetadata`: オプショナルなトークンメタデータ
+
+#### isLoading
+
+`boolean`
+
+データフェッチのローディング状態。
+
+#### isError
+
+`boolean`
+
+クエリが失敗したかどうかを示すエラー状態。
+
+#### error
+
+`Error | null`
+
+データフェッチ中に発生したエラー。
+
+## パラメータ
+
+このフックは2つのパラメータを受け付けます：
+
+### args: `GetSingleTokenBalanceSummaryArgs`
+
+```tsx
+interface GetSingleTokenBalanceSummaryArgs {
+  chainId: number
+  accountAddress: string
+  contractAddress: string
+}
+```
+
+| パラメータ             | 型        | 説明                                            |
+| ----------------- | -------- | --------------------------------------------- |
+| `chainId`         | `number` | 残高を取得するチェーンID                                 |
+| `accountAddress`  | `string` | 残高を取得するアドレス                                   |
+| `contractAddress` | `string` | トークンコントラクトアドレス（ネイティブトークンの場合はZERO\_ADDRESSを使用） |
+
+### options: `BalanceHookOptions`
+
+```tsx
+interface BalanceHookOptions {
+  disabled?: boolean
+  retry?: boolean
+  hideCollectibles?: boolean
+}
+```
+
+| パラメータ              | 型         | 説明                                        |
+| ------------------ | --------- | ----------------------------------------- |
+| `disabled`         | `boolean` | （オプション）クエリの自動実行を無効にする                     |
+| `retry`            | `boolean` | （オプション）失敗したクエリを再試行するかどうか                  |
+| `hideCollectibles` | `boolean` | （オプション）trueの場合、ERC721とERC1155トークンをフィルタリング |

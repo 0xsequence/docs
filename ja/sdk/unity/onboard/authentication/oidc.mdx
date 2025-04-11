@@ -1,0 +1,187 @@
+---
+title: OIDC - ソーシャルサインイン
+---
+
+当SDKは[OIDC](https://openid.net/developers/how-connect-works/)を使用した[implicit flow](https://auth0.com/docs/authenticate/login/oidc-conformant-authentication/oidc-adoption-implicit-flow)によるソーシャルサインインをサポートしています。
+
+現在サポートされているOIDCプロバイダーには以下があります：
+
+* Google -> [Builder Setup](/solutions/builder/embedded-wallet/google-configuration)
+* Apple -> [Builder Setup](/solutions/builder/embedded-wallet/apple-configuration)
+
+<Warning>注意！上記のリンクの指示に従ってBuilderでOIDCプロバイダーを設定しましたか？Resourcesフォルダ内の`SequenceConfig`スクリプタブルオブジェクトにクライアントIDを追加しましたか？</Warning>
+
+ユーザーが正常にサインインすると、idTokenがディープリンクを介してアプリケーションに返されます。
+ディープリンクを有効にするには、アプリケーションのカスタムURLスキームを登録する必要があります。これを設定するにはプラットフォーム固有の要件があります。
+
+### エディター
+
+エディターでソーシャルサインインを機能させるには、ローカルマシンに簡単なサーバーをデプロイする必要があります。サンプル実装を[こちら](https://gist.github.com/BellringerQuinn/d012cd29eb9e756fe3555d4d03b001b2)で提供しています。
+
+このサンプルサーバーをデプロイするには、以下の手順を実行してください。
+
+1. Goをダウンロードしてインストール：[https://go.dev/dl/](https://go.dev/dl/)
+2. ターミナル/コマンドプロンプトを開き、以下を入力してインストールを確認します
+
+```
+go version
+```
+
+3. Goプロジェクト用のディレクトリとmain.goファイルを作成します
+
+```
+mkdir myUnityServer
+cd myUnityServer
+touch main.go
+```
+
+4. 以下の[gist](https://gist.github.com/BellringerQuinn/d012cd29eb9e756fe3555d4d03b001b2)をmain.goにコピー＆ペーストします
+5. goモジュールを作成してプロジェクトを初期化します
+
+```
+go mod init myUnityServer
+```
+
+6. サーバーを実行します
+
+```
+go run main.go
+```
+
+7. ターミナル/コマンドプロンプトに`Server listening on port 8080`と表示されるはずです
+
+サーバーを別の場所（異なるポート、パブリックサーバーなど）にデプロイする場合は、サインインプロセスを開始する前に`OpenIdAuthenticator.RedirectUrl`のコードを変更する必要があります
+
+```csharp
+OpenIdAuthenticator.InjectRedirectUrl("the url for your deployed server");
+```
+
+注意：ソーシャルサインインプロバイダーのウェブクライアントでは、`http://localhost:8080/`（またはあなたのサーバーURL）を`Standalone Platforms`の下でリダイレクトURLとしてホワイトリストに登録する必要があります`SequenceConfig`
+
+### iOS
+
+#### Sign in with Apple
+
+このSDKは人気のある[`apple-signin-unity`パッケージ](https://github.com/lupidan/apple-signin-unity)を通じてネイティブのSign in with Appleをサポートしています。これには[XCodeでの`Sign in with Apple`機能が必要です](https://developer.apple.com/documentation/xcode/configuring-sign-in-with-apple#Add-the-Sign-in-with-Apple-capability-to-your-app)。[Package Manager > Samplesを通じて`Setup`スクリプトをインポートし](https://docs.sequence.xyz/sdk/unity/installation#package-manager---recommended)、および/または`SignInWithApplePostprocessor.cs`サブフォルダ下に`Editor`がある場合、この機能は自動的にXCodeビルドに追加されます。
+
+この機能は`Personal Teams`ではサポートされていないことにご注意ください。
+
+#### その他のソーシャルプラットフォーム
+
+その他のすべてのソーシャルプラットフォームはデフォルトでサポートされています。`SequenceConfig`にクライアントIDを追加するだけです。
+
+### MacOS
+
+1. Windows/Mac/Linuxプレイヤー設定ウィンドウを開きます（メニュー：Edit > Project Settings > Player Settings、その後Windows/Mac/Linuxを選択）。
+2. を選択し、`Other Settings`までスクロールします`Mac Configuration`。
+3. セクションを展開し、`Supported URL schemes`サイズを1増やします。
+4. 新しい`Element N`フィールドに、`SequenceConfig`で設定したURLスキームを入力します。
+
+![Mac URL Scheme](/images/unity/unity-url-scheme-mac.png)
+
+### PC
+
+追加の手順は必要ありません。
+
+<Tip>デスクトッププラットフォーム（およびAndroid）用の*web client*認証情報をGoogle（例えば）で設定する場合、[https://api.sequence.app/oauth/callback](https://api.sequence.app/oauth/callback)を「承認済みのリダイレクトURI」としてホワイトリストに登録する必要があります</Tip>
+
+### Android
+
+1. プロジェクトウィンドウで、`Assets > Plugins > Android`に移動します。
+
+a) 注意：Unity バージョン2021.2以降では、このパスはデフォルトでは存在しません。`Edit > Project Settings > Player`に移動し、Android Publishing Settingsで、`Custom Main Manifest`をBuildセクションで有効にしてください。詳細は[https://docs.unity3d.com/Manual/deep-linking-android.html](https://docs.unity3d.com/Manual/deep-linking-android.html)をご覧ください。
+
+2. まだ存在しない場合は、新しいファイルを作成し、名前を`AndroidManifest.xml`としてください。
+3. 以下のXMLをファイルに貼り付けるか、既存のファイルがある場合は、このXMLから新しいキーを追加してください。
+4. 'sdk-powered-by-sequence'を、あなたが設定したUrl Schemeに置き換えてください。`SequenceConfig`
+
+```xml
+   <?xml version="1.0" encoding="utf-8"?>
+   <manifest
+     xmlns:android="http://schemas.android.com/apk/res/android"
+     xmlns:tools="http://schemas.android.com/tools"
+   >
+     <application>
+       <activity
+         android:name="com.unity3d.player.UnityPlayerActivity"
+         android:theme="@style/UnityThemeSelector"
+       >
+         <intent-filter>
+           <action android:name="android.intent.action.MAIN" />
+           <category android:name="android.intent.category.LAUNCHER" />
+         </intent-filter>
+         <intent-filter>
+           <action android:name="android.intent.action.VIEW" />
+           <category android:name="android.intent.category.DEFAULT" />
+           <category android:name="android.intent.category.BROWSABLE" />
+           <data android:scheme="sdk-powered-by-sequence"/> <!-- substitute 'sdk-powered-by-sequence' with the Url Scheme you set in `SequenceConfig` -->
+         </intent-filter>
+       </activity>
+     </application>
+   </manifest>
+```
+
+b) 注意：Unity 2022バージョンの`2022.3.7f1`以前と2023バージョンの`2023.1.7f1`、`2023.2.0b3`、または`2023.3.0a1`以前には、Androidのディープリンクに関するバグが含まれています。代わりに以下のXMLを使用してください。
+
+```xml
+<?xml version="1.0" encoding="utf-8"?>
+<manifest
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:tools="http://schemas.android.com/tools"
+>
+    <application>
+        <activity
+                android:name="com.unity3d.player.UnityPlayerActivity"
+                android:theme="@style/UnityThemeSelector"
+                android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+            <meta-data android:name="unityplayer.UnityActivity" android:value="true" />
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="sdk-powered-by-sequence"/> <!-- substitute 'sdk-powered-by-sequence' with the Url Scheme you set in `SequenceConfig` -->
+            </intent-filter>
+        </activity>
+    </application>
+</manifest>
+```
+
+つまり、`<meta-data android:name="unityplayer.UnityActivity" android:value="true" />`を最初の`intent-filter`の後に追加します。詳細は[https://forum.unity.com/threads/deep-linking-in-unity-2022-the-app-is-restarted.1447300/](https://forum.unity.com/threads/deep-linking-in-unity-2022-the-app-is-restarted.1447300/)をご覧ください。
+
+<Tip>Unity 6を使用している場合、AndroidManifestの`UnityPlayerActivity`を以下に置き換える必要があるかもしれません：`UnityPlayerGameActivity`また、あなたの`android:theme`も置き換える必要があるかもしれません；私たちのテストでは"@style/BaseUnityGameActivityTheme"がうまく機能しています。</Tip>
+
+### Web
+
+WebプラットフォームでのソーシャルサインインはReactを使用し、[WebGLTemplate](https://docs.unity3d.com/Manual/webgl-templates.html)は`WebGLTemplates/SequenceReact`にあります。これはWebGLとWebGPUで検証済みです。UnityでWebGPUを有効にする方法については、[このフォーラム投稿](https://forum.unity.com/threads/early-access-to-the-new-webgpu-backend-in-unity-2023-3.1516621/)をご覧ください。
+
+デフォルトの`SequenceReact`WebGLTemplateでは、現在WebプラットフォームではGoogleのみがOIDCプロバイダーとしてサポートされていますが、APIでサポートされている他のOIDCプロバイダーのサポートを追加することは可能です。
+
+#### 初期設定
+
+この`WebGLTemplates`フォルダを`Assets`の下にドラッグするか（または`SequenceReact`テンプレートを既存の`WebGLTemplates`フォルダにドラッグしてください）。結果として`Assets/WebGLTemplates/SequenceReact`となります。
+
+<Warning>あなたの`WebGLTemplates`が`Assets/WebGLTemplates`にあることが非常に重要です。`Plugins`フォルダと同様に、この正確な場所にない場合、Unityはそれらを認識しません！</Warning>
+
+一度`SequenceReact`テンプレートを追加したら、Unityが新しく追加されたテンプレートを認識できるようにエディタを再起動する必要があります。
+
+ここから、`Project Settings > Player Settings > Resolution and Presentation`でテンプレートを選択できます。
+
+#### ビルド
+
+初期設定の後、WebプラットフォームでUnityプロジェクトをビルドすると、Reactプロジェクトの一部としてビルドされます。
+
+1. 新しいビルドのルートでコマンドラインを開きます
+2. [pnpmをインストール](https://pnpm.io/installation)（まだインストールしていない場合）
+3. `pnpm install`で依存関係をインストール
+4. `pnpm dev`でローカルホストでプロジェクトを実行（デフォルトでポート4444 - `SequenceReact/package.json`で設定可能）
+5. 開く：[http://localhost:4444](http://localhost:4444)
+
+<Warning>WebGLアプリをビルドする際、`Compression Format`（GzipやBrotliなど）を使用している場合、`Decompression Fallback`を`Player Settings > Publishing Settings`で有効にすることをお勧めします。WebGLデプロイメントについての詳細はこちら：[https://docs.unity3d.com/Manual/webgl-deploying.html](https://docs.unity3d.com/Manual/webgl-deploying.html)</Warning>
+
+<Tip>Googleなどでソーシャルサインインの認証情報を設定する際は、[http://localhost:4444](http://localhost:4444)とゲームの最終的なホストURLを「承認されたJavaScriptオリジン」としてホワイトリストに追加する必要があります</Tip>
+
+<Tip>新しく作成されたウォレットを受け取るために`SequenceWallet.OnWalletCreated`イベントをサブスクライブすることを忘れないでください！</Tip>

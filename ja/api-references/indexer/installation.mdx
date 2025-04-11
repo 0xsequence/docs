@@ -1,0 +1,82 @@
+---
+title: Indexer インストール
+sidebarTitle: インストール
+---
+
+Sequence Indexerは、ブロックチェーンのトークンとNFTデータを照会するためのシンプルなAPIです。以下は、Sequence Indexer APIをWebアプリ、ゲーム、バックエンドに統合する方法の説明です。まだご覧になっていない場合は、[Indexer概要](/api-references/indexer/overview)もご覧ください。
+
+## インストール
+
+Sequence IndexerはHTTP APIとして構築されており、Webアプリやゲームまたはサーバーバックエンドから直接呼び出すことができるRPCエンドポイントを提供しています。以下では、サンプルのcurlコマンドと共にRPCエンドポイントスキーマの情報を、Javascript/TypescriptとGoの両方の例と共に紹介します。
+
+私たちは[Web / node.js](https://github.com/0xsequence/sequence.js)と[Go](https://github.com/0xsequence/go-sequence)のSDKを提供しています。また、他の言語ターゲットでIndexerを統合したい場合は、以下のAPIリファレンスに従ってHTTPリクエストを実装してください。さらに、Indexer APIクライアントの[リファレンス実装としてTypescriptクライアントのソースコードをお読みください](https://github.com/0xsequence/sequence.js/blob/master/packages/indexer/src/indexer.gen.ts)。
+
+### Web / node.jsのインストール
+
+<CodeGroup>
+  ```bash npm
+  npm install 0xsequence ethers
+  ```
+
+  または
+
+  ```bash pnpm
+  pnpm install 0xsequence ethers
+  ```
+
+  または
+
+  ```bash yarn
+  yarn add 0xsequence ethers
+  ```
+</CodeGroup>
+
+<Note>
+  このコードには[Sequence Builder](https://sequence.build)からのAPIアクセスキーが必要です。
+</Note>
+
+```ts
+import { SequenceIndexer } from '@0xsequence/indexer'
+
+// see https://docs.sequence.xyzhttps://status.sequence.info for list of
+// indexer hosts for the chain you'd like to query
+const indexer = new SequenceIndexer('https://mainnet-indexer.sequence.app', 'AQAAAAAAAF_JvPALhBthL7VGn6jV0YDqaFY')
+
+// see examples below for the kinds of queries you can make
+const tokenBalances = await indexer.getTokenBalances(...)
+```
+
+**注意:**&#x6E;ode.jsで`@0xsequence/indexer`を使用する場合は、node v18.x以降を推奨します。
+
+<br />
+
+### Goのインストール
+
+```bash Terminal
+go get -u github.com/0xsequence/go-sequence@latest
+```
+
+そしてアプリケーションで、
+
+```go Go
+import (
+	"github.com/0xsequence/go-sequence/indexer"
+)
+
+// see https://docs.sequence.xyzhttps://status.sequence.info for list of
+// indexer hosts for the chain you'd like to query
+seqIndexer := indexer.NewIndexer("https://polygon-indexer.sequence.app", "AQAAAAAAAF_JvPALhBthL7VGn6jV0YDqaFY")
+
+// see examples below for the kinds of queries you can make
+accountAddress := "ACCOUNT_ADDRESS"
+includeMetadata := true
+metadataOptions := indexer.MetadataOptions{
+	VerifiedOnly: true,
+}
+
+_, tokenBalances, err := seqIndexer.GetTokenBalances(context.Background(), &accountAddress, nil, nil, &includeMetadata, &metadataOptions, nil, nil)
+```
+
+### UnityまたはUnrealのインストール
+
+Sequence Indexerは[Sequence Unity](/sdk/unity/)と[Sequence Unreal](/sdk/unreal/introduction)SDKに直接統合されています。

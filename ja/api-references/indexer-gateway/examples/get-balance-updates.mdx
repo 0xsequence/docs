@@ -1,0 +1,125 @@
+---
+title: 特定のコントラクトからの残高更新を取得
+description: このコンテンツでは、特定のコントラクトからの残高更新を取得する方法について説明します。
+---
+
+# 残高更新API
+
+## `GetBalanceUpdates`
+
+* リクエスト: POST /rpc/IndexerGateway/GetBalanceUpdates
+* Content-Type: application/json
+* ボディ（JSON形式）:
+  * `chainIds`（\[]int - オプション）-- 指定されたIDに一致するチェーンの結果のみを返します。
+  * `networks`（\[]string - オプション）-- 指定された名前に一致するチェーンの結果のみを返します。
+  * `contractAddress`（string）
+  * `lastBlockNumber`（int - オプション）
+  * `lastBlockHash`（string - オプション）
+
+### 特定のネットワーク上の検証済みトークンの残高サマリーを取得
+
+例：イーサリアムネットワーク上のUSDTコントラクトの残高更新を照会します。
+
+<CodeGroup>
+  ```shell [Curl]
+  curl -X POST \
+    -H "Content-Type: application/json" \
+    -H "X-Access-Key: AQAAAAAAAF_JvPALhBthL7VGn6jV0YDqaFY" \
+    https://indexer.sequence.app/rpc/IndexerGateway/GetBalanceUpdates \
+    -d '{
+      "chainIds": [
+          1
+      ],
+      "contractAddress": "0xdac17f958d2ee523a2206206994597c13d831ec7"
+    }'
+  ```
+
+  ```ts [Typescript]
+  import { SequenceIndexerGateway } from '@0xsequence/indexer'
+
+  const INDEXER_TOKEN = 'AQAAAAAAAF_JvPALhBthL7VGn6jV0YDqaFY';
+  const CONTRACT_ADDRESS = '0xdac17f958d2ee523a2206206994597c13d831ec7';
+
+  const indexerGateway = new SequenceIndexerGateway(
+    'https://indexer.sequence.app',
+    INDEXER_TOKEN
+  )
+
+  const res = await indexerGateway.getBalanceUpdates({
+    chainIds: [1],
+    contractAddress: CONTRACT_ADDRESS
+  })
+
+  res.balances.forEach(({ chainId, error, results }) => {
+    if (error) {
+      console.error(`Error fetching balance updates for chainId ${chainId}: ${error}`);
+      return;
+    }
+    console.log(`chainId: ${chainId}`);
+    results.forEach(({ accountAddress, balance }) => {
+      if (balance === '0') {
+        return;
+      }
+      console.log(`\taccountAddress: ${accountAddress}, balance: ${balance}`);
+    });
+  });
+  ```
+
+  ```go [Go]
+  package main
+
+  import (
+  	"context"
+  	"fmt"
+  	"log"
+  	"net/http"
+
+  	"github.com/0xsequence/go-sequence/indexer"
+  )
+
+  const indexerToken = "AQAAAAAAAF_JvPALhBthL7VGn6jV0YDqaFY"
+
+  func main() {
+  	ctx := context.TODO()
+
+  	seqIndexerGW := indexer.NewIndexerGatewayClient(
+  		"https://indexer.sequence.app",
+  		http.DefaultClient,
+  	)
+
+  	authCtx, err := indexer.WithHTTPRequestHeaders(ctx, http.Header{
+  		"X-Access-Key": []string{indexerToken},
+  	})
+  	if err != nil {
+  		log.Fatal(err)
+  	}
+
+  	contractAddress := "0xdac17f958d2ee523a2206206994597c13d831ec7"
+  	chainIDs := []uint64{1} // Ethereum Mainnet
+
+  	_, balanceUpdates, err := seqIndexerGW.GetBalanceUpdates(
+  		authCtx,
+  		chainIDs,
+  		nil, // No network names
+  		contractAddress,
+  		0,   // No lastBlockNumber filter
+  		nil, // No lastBlockHash filter
+  		nil, // Default page
+  	)
+  	if err != nil {
+  		log.Fatal(err)
+  	}
+
+  	for _, update := range balanceUpdates {
+  		fmt.Printf("chainId: %d\n", update.ChainID)
+  		for _, result := range update.Results {
+  			if result.Balance.Int64() == 0 {
+  				continue
+  			}
+  			fmt.Printf("\taccountAddress: %s, balance: %s\n",
+  				result.AccountAddress, result.Balance)
+  		}
+  	}
+  }
+  ```
+</CodeGroup>
