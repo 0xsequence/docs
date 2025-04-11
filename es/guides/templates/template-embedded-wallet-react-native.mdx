@@ -1,0 +1,124 @@
+---
+title: Demo de Billetera Embebida en React Native
+description: Aprende cómo integrar el SDK de Billetera Embebida Móvil de Sequence en una
+  aplicación React Native para iOS y Android.
+---
+
+La siguiente guía implementa el SDK de Billetera Embebida Móvil de Sequence tanto para iOS como para Android.
+
+La guía explicará cómo clonar un repositorio de plantilla y construir una aplicación basada en [Expo](https://expo.dev/), que puede ser bifurcada, para que un usuario pueda iniciar sesión con [Gmail](https://console.cloud.google.com/) o [Apple](https://developer.apple.com/) en una aplicación móvil.
+
+Esta aplicación permite a los usuarios firmar mensajes y enviar transacciones en una aplicación de Billetera Embebida en React Native en la red `arbitrum-sepolia`.
+
+## Plantilla
+
+<Note>
+  Comienza con una [plantilla](https://github.com/0xsequence/demo-waas-react-native) aprovechando la Billetera Embebida de Sequence.
+</Note>
+
+## Instrucciones de Construcción
+
+### Requisitos Previos
+
+::::steps
+
+#### Instalar Yarn
+
+```shell
+npm install --global yarn
+```
+
+#### Descargar Android Studio
+
+Navega al siguiente [enlace para descargar Android Studio](https://developer.android.com/studio)
+
+#### Descargar Java 22 SDK
+
+Navega al siguiente [enlace para descargar Java SDK](https://www.oracle.com/java/technologies/downloads/)
+
+#### Configura tus rutas del Java SDK
+
+Si estás en macOS o Linux, configura tu ruta del java sdk con las siguientes líneas en tu `~/.bashrc` (o `~/.zshrc`)
+
+```shell
+export ANDROID_HOME=$HOME/Android/Sdk
+export PATH=$PATH:$ANDROID_HOME/tools:$ANDROID_HOME/platform-tools
+```
+
+Y ejecuta el siguiente comando para permitir que los cambios surtan efecto
+
+```shell
+source ~/.bashrc
+```
+
+#### Instalar XCode (si estás en macOS)
+
+Navega al siguiente[enlace para descargar Xcode](https://developer.apple.com/xcode/)
+
+#### Instalar`cocoapods` (si estás en macOS)
+
+```
+sudo gem install cocoapods
+```
+
+::::
+
+### Ejecutando el Proyecto
+
+::::steps
+
+#### Clonar repositorio
+
+Comienza clonando el repositorio en tu computadora
+
+```shell
+git clone git@github.com:0xsequence/demo-waas-react-native.git
+```
+
+#### Crear un Archivo de Clave
+
+Navega a la`/android/app` carpeta con`cd` y ejecuta el siguiente comando para crear un keystore
+
+```
+keytool -genkey -v -keystore debug.keystore -storepass android -alias androiddebugkey -keypass android -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=Android Debug,O=Android,C=US"
+```
+
+#### `yarn install`
+
+`cd` en la raíz del repositorio que clonaste y ejecuta
+
+```shell
+yarn install
+```
+
+#### Abrir Proyecto con Android Studio
+
+Abre el repositorio del proyecto con Android Studio, y permite que el editor indexe y compile el proyecto
+
+#### Ejecutar aplicación en Android
+
+Una vez que el proyecto haya sido compilado,`cd` en la raíz del repositorio clonado y ejecuta
+
+```shell
+yarn android
+```
+
+#### Ejecutar aplicación en iOS (si estás en macOS)
+
+```shell
+yarn ios 
+```
+
+Prueba iniciar sesión y enviar algunas transacciones de prueba
+
+#### Actualizar Configuración de WaaS
+
+Finalmente, para permitir que la instancia de Embedded Wallet cree billeteras al iniciar sesión en tu aplicación específica, accede a la[siguiente página](https://sequence.build/project/default/wallet/embedded-wallet) de tu proyecto para obtener una clave de configuración de WaaS, y usa[esta guía](/solutions/builder/embedded-wallet) para ayudar a explicar los diversos aspectos de la configuración de Embedded Wallet que se actualizarán en tu código.
+
+Luego en la siguiente ruta en el archivo`waasSetup.ts` desde las líneas 5-13 actualiza las variables para tu aplicación específica que estás construyendo, con los`projectAccessKey` y`waasConfigKey` valores del Sequence Builder, y los ID's de cliente de autenticación social de Google desde la Consola de Google.
+
+Después, actualiza el`app.json` archivo en la línea 13 con el Apple`bundleIdentifier`
+
+Finalmente, actualiza las líneas 428 para`clientId` y línea 432 para`redirectUri` en`App.tsx` desde la Consola de Desarrollador de Apple.
+
+::::

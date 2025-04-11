@@ -1,0 +1,92 @@
+---
+title: Historial de transacciones de la billetera
+sidebarTitle: Historial de Transacciones
+---
+
+## Obtener el historial de transacciones para cualquier dirección de billetera
+
+Obtiene el historial de transacciones/tokens para cualquier dirección de billetera de cualquier token ERC20, ERC721 y ERC1155.
+La respuesta incluye detalles decodificados de la transacción para un fácil consumo/renderizado.
+
+*Sequence Indexer`GetTransactionHistory` Método:*
+
+* Solicitud: POST /rpc/Indexer/GetTransactionHistory
+* Content-Type: application/json
+* Cuerpo (en JSON):
+  * `filter` (objeto)
+    * `accountAddress` (string) -- la dirección de la cuenta de la billetera
+    * `contractAddress` (string) -- opcionalmente especifica una dirección de contrato para filtrar
+    * `accountAddresses` (array de strings) -- opcionalmente especifica una lista de direcciones de cuentas de billetera
+    * `contractAddresses` (array de strings) -- especificar opcionalmente una lista de direcciones de contrato
+    * `transactionHashes` (array de strings) -- especificar opcionalmente una lista de hashes de transacciones
+    * `metaTransactionIDs` (array de strings) -- especificar opcionalmente una lista de IDs de meta transacciones
+  * `includeMetadata` (booleano - opcional - predeterminado: false) -- alternar que los metadatos del token se incluyan en la respuesta
+  * `metadataOptions` (objeto - opcional) -- opciones adicionales para metadatos
+    * `verifiedOnly` (booleano - opcional) -- devolver solo contratos que están 'verificados' para ayudar a reducir el spam
+    * `includeContracts` (\[]string - opcional) -- lista de direcciones de contrato específicas que siempre se incluirán, incluso si verifiedOnly está habilitado.
+
+<br />
+
+<Note>
+  La retención del historial de transacciones de la billetera con el Indexer es de 30 días para todas las redes (con la excepción de `arbitrum-sepolia` que es de 20 días).
+</Note>
+
+**Ejemplo: `GetTransactionHistory` de una dirección de cuenta de billetera en Polygon usando un `API_ACCESS_KEY`**
+
+<CodeGroup>
+  ```bash cURL
+  curl -X POST -H "Content-Type: application/json" -H "X-Access-Key: AQAAAAAAAF_JvPALhBthL7VGn6jV0YDqaFY" https://polygon-indexer.sequence.app/rpc/Indexer/GetTransactionHistory -d '{ "filter": { "accountAddress": "0x8e3E38fe7367dd3b52D1e281E4e8400447C8d8B9" }, "includeMetadata": true }'
+  projectAccessKey
+  ```
+
+  ```ts Typescript
+  // Works in both a Webapp (browser) or Node.js:
+  import { SequenceIndexer } from '@0xsequence/indexer'
+
+  const indexer = new SequenceIndexer('https://polygon-indexer.sequence.app', 'AQAAAAAAAF_JvPALhBthL7VGn6jV0YDqaFY')
+
+  // try any account address you'd like :)
+  const filter = {
+  	accountAddress: "0xabc..."
+  }
+
+  // query Sequence Indexer for all token transaction history on Polygon
+  const transactionHistory = await indexer.getTransactionHistory({
+  	filter: filter,
+  	includeMetadata: true
+  })
+  	
+  console.log('transaction history in account:', transactionHistory)
+  ```
+
+  ```go Go
+  import (
+  	"context"
+  	"fmt"
+  	"log"
+  	"net/http"
+
+  	"github.com/0xsequence/go-sequence/indexer"
+  )
+
+  func GetTransactionHistory(accountAddress string) {
+  	seqIndexer := indexer.NewIndexer("https://polygon-indexer.sequence.app", "AQAAAAAAAF_JvPALhBthL7VGn6jV0YDqaFY")
+
+  	filter := &indexer.TransactionHistoryFilter{
+  		AccountAddress: &accountAddress,
+  	}
+
+  	metadataOptions := indexer.MetadataOptions{
+  		VerifiedOnly:     true, // Set to true if you want to fetch only verified contracts
+  		UnverifiedOnly:   false,
+  		IncludeContracts: nil, // Provide a list of specific contracts to include, if any
+  	}
+
+  	_, history, err := seqIndexer.GetTransactionHistory(context.Background(), filter, nil, nil, &metadataOptions)
+  	if err != nil {
+  		log.Fatal(err)
+  	}
+  	fmt.Println("transaction history:", history)
+  }
+  ```
+</CodeGroup>

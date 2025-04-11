@@ -1,0 +1,47 @@
+---
+title: Analytics
+sidebarTitle: Overview
+---
+
+# Analíticas
+
+La API de Sequence Analytics es ideal para medir tu progreso, ver cómo crece tu juego o aplicación, rastrear el uso de las soluciones de Sequence, o para incorporarla en tu propio pipeline de datos para análisis adicional.
+
+Al aprovechar esta API, puedes obtener información detallada sobre el comportamiento del usuario, así que ya sea que busques mejorar la participación del usuario, optimizar el rendimiento o simplemente entender los patrones de uso, la API de Sequence Analytics proporciona las sólidas capacidades analíticas necesarias para impulsar el éxito en tu juego.
+
+## Redes y Endpoints Soportados
+
+Puedes ver la [lista completa de redes soportadas aquí](https://status.sequence.info).
+
+## Primeros Pasos
+
+### Obtención de una Cuenta de Servicio y Token
+
+Primero necesitarás obtener una Cuenta de Servicio y Token para llamar a esto desde tu backend. Es importante destacar que esta es una clave secreta y no debe exponerse públicamente.
+
+1. Crea un Nuevo Proyecto usando nuestro [Builder](https://sequence.build). Navega a Configuración > Claves API > Agregar Cuenta de Servicio.
+2. En el modal que aparece, haz clic en el menú desplegable de Permisos y cambia a Escribir. Después de completar, haz clic en Agregar.
+3. En la siguiente pantalla, se te proporcionará tu Token API Secreto. Copia la clave y guárdala de forma segura ya que no será posible verla nuevamente. Una vez hecho esto, haz clic en Confirmar y estarás listo para utilizar la API.
+
+Ten en cuenta que, a diferencia de nuestra clave de Acceso API Pública, este Token API Secreto debe almacenarse de forma segura y no debe usarse públicamente. Pasarás este token como un JWT normal en los Encabezados de Solicitud como X-Access-Key
+
+### Enviar una Solicitud
+
+Ahora estás listo para enviar una solicitud, asegúrate de cambiar el SECRET\_API\_ACCESS\_KEY de abajo con tu clave de acceso así como el PROJECT\_ID que se puede encontrar en la URL como un conjunto de números enteros mientras estás en tu proyecto en [sequence.build](https://sequence.build)
+
+```sh cURL
+curl 'https://api.sequence.build/rpc/Builder/WalletsTotal' \
+  -H 'accept: */*' \
+  -H 'authorization: BEARER <SECRET_API_ACCESS_KEY>' \
+  -H 'content-type: application/json' \
+  --data-raw '{"filter":{"projectId":<PROJECT_ID>,"startDate":"2024-04-23","endDate":"2024-05-23"}}'
+```
+
+### Más Ejemplos
+
+Ahora que has comenzado - prueba algunos de nuestros otros ejemplos:
+
+* [Obtener carteras dentro de un intervalo de tiempo](/api-references/analytics/examples/wallets#fetch-wallets-for-a-time-interval-for-a-project-id)
+* [Obtener transacciones por carteras](/api-references/analytics/examples/wallets#fetch-transactions-by-wallets)
+* [Obtener carteras por dispositivo](/api-references/analytics/examples/wallets#fetch-wallets-by-device)
+* [Obtener transacciones en tu Marketplace de Sequence](/api-references/analytics/examples/marketplace#fetch-transactions-on-your-marketplace)

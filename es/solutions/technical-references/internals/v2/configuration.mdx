@@ -1,0 +1,150 @@
+---
+title: Configuración de Billetera
+description: La "Configuración de Billetera" en Sequence Wallets define el control
+  de acceso, firmantes y peso de firmas.
+sidebarTitle: Wallet Configuration
+---
+
+En el contexto de las Sequence Wallets, la "Configuración de la Wallet" es un conjunto de parámetros que define el comportamiento de la wallet, utilizado principalmente para definir el control de acceso de la wallet, es decir, quién puede firmar transacciones y cuántas firmas son necesarias.
+
+## Propiedades de nivel superior
+
+Las configuraciones de Sequence v2 contienen las siguientes 3 propiedades:
+
+* `threshold` - La "suma de peso" requerida para que una firma se considere válida.
+* `checkpoint` - Utilizado como mecanismo de salt y ordenamiento para actualizaciones de la wallet.
+* `tree` - Determina los firmantes y sus pesos para la wallet.
+
+### Threshold
+
+El `threshold` es un `uint16`; puede tener cualquier valor entre 0 y 65535. Las firmas solo se consideran válidas o inválidas si la suma de los pesos de los firmantes que firmaron la transacción es mayor o igual al threshold.
+
+### Checkpoint
+
+El `checkpoint` es un `uint32`. Durante la creación de la wallet, se puede proporcionar un valor semi-aleatorio para generar wallets independientes con la misma configuración inicial. Luego, durante la operación normal, el `checkpoint` es utilizado por Light State Sync para asegurar que las actualizaciones de la wallet se apliquen en el orden correcto.
+
+### Tree
+
+El `tree` es un árbol Merkle binario no balanceado, donde cada hoja puede contener un firmante, una firma estática o un subárbol. El árbol puede representar cualquier combinación de firmantes y pesos y puede ser utilizado para crear wallets multi-firma complejas.
+
+Los tipos de hoja posibles son:
+
+#### Signer
+
+Los firmantes están representados por una dirección de firmante `address` y un `uint8` peso. El peso es cuánto contribuye el firmante al threshold.
+La dirección puede pertenecer a un contrato compatible con `ERC1271` o una wallet `EOA`.
+
+El hash de la hoja se calcula de la siguiente manera:
+
+```solidity
+bytes32(uint256(weight) << 160 | uint256(uint160(addr)))
+```
+
+#### Subdigest
+
+Esto representa un subdigest estático para el cual cualquier firma es válida. Si se proporciona una firma para este subdigest, el peso total de la firma se establece automáticamente en `Infinity`.
+
+Ten en cuenta que los subdigests estáticos que existen dentro de árboles anidados tendrán su peso "Infinity" reducido al peso del árbol anidado.
+
+El hash de la hoja se calcula de la siguiente manera:
+
+```solidity
+keccak256(abi.encodePacked('Sequence static digest:\n', subdigest));
+```
+
+#### Subtree (configuración anidada)
+
+Esto representa una configuración de wallet completamente nueva, esta "configuración anidada" tiene su propio:
+
+* External `weight` (`uint8`)
+* Internal `threshold` (`uint16`)
+* Internal `tree`
+
+La forma en que funciona es que si una firma alcanza el `internal threshold` dentro del subárbol se considera válida, y el `external weight` se agrega al árbol padre. Se puede crear cualquier número de configuraciones anidadas, y es posible crear múltiples niveles de anidación.
+
+Este patrón puede ser utilizado, entre otras cosas, para expresar los siguientes escenarios:
+
+* Distribución de peso no lineal, los firmantes A y B pueden proporcionar 1 peso cada uno, pero juntos pueden proporcionar 3 pesos.
+* Contribución de peso total limitada, los firmantes A, B y C pueden proporcionar 1 peso cada uno, pero juntos solo pueden proporcionar 2 pesos.
+* "Configuraciones departamentales", se requiere que N departamentos firmen, y cada departamento tiene su propia configuración interna.
+
+El hash de la hoja se calcula de la siguiente manera:
+
+```solidity
+keccak256(abi.encodePacked(
+  'Sequence nested config:\n',
+  imageHash(tree),
+  threshold,
+  weight
+))
+```
+
+<Warning>
+  Los contratos de wallet no tienen forma de validar la corrección de la configuración, la responsabilidad de asegurar que la configuración sea correcta recae en los SDKs que interactúan con los contratos.
+
+  Cosas como `threshold == 0` o `threshold > total weight` resultarán en wallets completamente no autenticadas o wallets inaccesibles respectivamente.
+</Warning>
+
+## ImageHash
+
+El `configuration` nunca se almacena como un todo; en su lugar, el árbol de Merkle se convierte en un único valor `bytes32`, esto se denomina internamente el `imageHash` de la configuración.
+
+El `imageHash` se calcula de la siguiente manera:
+
+```solidity
+imageHash := keccak256(abi.encode(
+  keccak256(abi.encode(
+    hashTree(tree),
+    threshold
+  )),
+  checkpoint
+))
+```
+
+La `hashTree` función es una función recursiva que convierte el árbol en un único valor `bytes32`, el pseudocódigo para la función `hashTree` es el siguiente:
+
+```typescript
+export function hashTree(node: Node | Leaf): string {
+  if (isSignerLeaf(node)) {
+    return ethers.solidityPackedKeccak256(
+      ['uint96', 'address'],
+      [node.weight, node.address]
+    )
+  }
+
+  if (isSubdigestLeaf(node)) {
+    return ethers.solidityPackedKeccak256(
+      ['string', 'bytes32'],
+      ['Sequence static digest:\n', node.subdigest]
+    )
+  }
+
+  if (isNestedLeaf(node)) {
+    const nested = hashTree(node.tree)
+    return ethers.solidityPackedKeccak256(
+      ['string', 'bytes32', 'uint256', 'uint256'],
+      ['Sequence nested config:\n', nested, node.threshold, node.weight]
+    )
+  }
+
+  return ethers.solidityPackedKeccak256(
+    ['bytes32', 'bytes32'],
+    [hashTree(node.left), hashTree(node.right)]
+  )
+}
+```
+
+## Configuración Inicial
+
+Todas las Sequence Wallets tienen una "configuración inicial", implementada usando el `imageHash` de la configuración inicial como SALT durante el `CREATE2` despliegue de la billetera.
+
+Las billeteras se despliegan llamando a la función `deploy` del contrato `Factory`, que toma los siguientes parámetros:
+
+* `mainModule`: La dirección de la implementación inicial del código de la billetera.
+* `salt`: El `imageHash` de la configuración inicial.
+
+<Note>
+  El `MainModule` siempre debe usarse como la implementación inicial del código de la billetera. El `MainModule` valida el `imageHash` (durante la validación de firma) recalculando la dirección contrafactual de la billetera, por lo tanto no requiere ninguna inicialización de almacenamiento.
+
+  Si el `imageHash` se cambia alguna vez, `MainModule` reemplazará automáticamente la implementación del código de la billetera con `MainModuleUpgradeable`, mientras maneja la inicialización del almacenamiento.
+</Note>

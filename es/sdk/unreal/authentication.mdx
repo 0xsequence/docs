@@ -1,0 +1,198 @@
+---
+title: Autenticación de Usuarios
+description: Documentación para la API del SDK de Unreal para gestionar sesiones en la
+  infraestructura de Sequence para juegos web3.
+---
+
+Visita nuestra [Requisitos de Plataforma](/sdk/unreal/platforms) página para información detallada sobre la configuración y asegurar
+que los métodos de autenticación que elijas estén correctamente configurados en tu proyecto Builder.
+
+## Iniciar Sesión con Email OTP
+
+Inicia sesión de usuarios con cualquier email, y recibirán una contraseña de un solo uso en su bandeja de entrada.
+Escucha el evento Email Requires Code.
+
+<Tabs>
+  <Tab title="Blueprint">
+    <Frame caption="Email Otp">
+      <img src="/images/unreal/email_otp.png" />
+    </Frame>
+  </Tab>
+</Tabs>
+
+## Inicio de Sesión Social
+
+Para iniciar la autenticación basada en SSO en escritorio, necesitas navegar a un navegador para obtener el id\_token necesario.
+En móvil, nuestro SDK maneja este proceso por ti usando plugins integrados.
+
+En plataformas de escritorio, escucha el evento `Sign in Web View Required` y abre el `Sign In URL` retornado.
+En plataformas móviles, escucha el evento `Id Token Received`.
+
+### Obtener Id Token de Google
+
+<Tabs>
+  <Tab title="Blueprint">
+    <Frame caption="Google Idtoken">
+      <img src="/images/unreal/google_idtoken.png" />
+    </Frame>
+  </Tab>
+</Tabs>
+
+### Obtener Id Token de Apple
+
+<Tabs>
+  <Tab title="Blueprint">
+    <Frame caption="Apple Idtoken">
+      <img src="/images/unreal/apple_idtoken.png" />
+    </Frame>
+  </Tab>
+</Tabs>
+
+### Iniciar Sesión con Id Token
+
+Usa este método para iniciar una sesión usando un Id token válido de Google o Apple.
+
+<Tabs>
+  <Tab title="Blueprint">
+    <Frame caption="Token Session">
+      <img src="/images/unreal/token_session.png" />
+    </Frame>
+  </Tab>
+</Tabs>
+
+## PlayFab
+
+Necesitarás incluir tu ID de Título de PlayFab en el archivo `SequenceConfig.ini` durante la [Configuración](/sdk/unreal/configuration) y [configurar PlayFab en el Builder](/solutions/builder/embedded-wallet/playfab-configuration).
+
+### Registrar un nuevo usuario de PlayFab
+
+<Tabs>
+  <Tab title="Blueprint">
+    <Frame caption="Playfab Registration">
+      <img src="/images/unreal/playfab_registration.png" />
+    </Frame>
+  </Tab>
+</Tabs>
+
+### Iniciar sesión con usuario existente de PlayFab
+
+<Tabs>
+  <Tab title="Blueprint">
+    <Frame caption="Playfab Login">
+      <img src="/images/unreal/playfab_login.png" />
+    </Frame>
+  </Tab>
+</Tabs>
+
+### Integración personalizada de PlayFab
+
+Si tienes tu propia integración de PlayFab, puedes utilizarla. Una vez que hayas recibido tu SessionTicket de PlayFab, por favor pásalo para la autenticación con las APIs de Sequence usando el`PlayfabAuthenticateWithSessionTicket` método en tu`USequenceAthenticator` objeto.
+
+## Iniciar sesión como Invitado
+
+Puedes iniciar sesión de usuarios como invitados. Sin embargo, ten en cuenta que perderán acceso a su billetera si desinstalan la aplicación o cierran sesión.
+
+<Tabs>
+  <Tab title="Blueprint">
+    <Frame caption="Guest Session">
+      <img src="/images/unreal/guest_session.png" />
+    </Frame>
+  </Tab>
+</Tabs>
+
+## Federar Cuentas
+
+Con las Cuentas Federadas, puedes asociar múltiples métodos de inicio de sesión con una sola cuenta y billetera.
+Si tu usuario ha iniciado sesión como Invitado, definitivamente querrás empujarlos hacia la federación de su
+cuenta para tener credenciales persistentes con las que puedan acceder a su Sequence Embedded Wallet en sesiones posteriores.
+Mientras un usuario está autenticado con la API de Sequence, puedes agregar un método de inicio de sesión adicional usando la llamada apropiada de federar cuenta.
+
+<Tabs>
+  <Tab title="Blueprint">
+    <Frame caption="Email Federation">
+      <img src="/images/unreal/email_federation.png" />
+    </Frame>
+  </Tab>
+</Tabs>
+
+## Obtener Token de Id
+
+Un caso de uso común es verificar la identidad del usuario en tu backend después de que el usuario haya completado el proceso de inicio de sesión en tu cliente de aplicación.
+Obtén un Token de Id de Sequence de tus usuarios para enviarlo a tu backend para verificación usando cualquier biblioteca JWKS.
+Lee nuestra[Guía de Verificación de Backend](/sdk/headless-wallet/verification) para más información.
+
+<Tabs>
+  <Tab title="Blueprint">
+    <Frame>
+      <img src="/images/unreal/get_id_token.png" />
+    </Frame>
+  </Tab>
+
+  <Tab title="C++">
+    ```cpp
+    const TFunction<void (FSeqIdTokenResponse_Data)> OnSuccess = [this](const FSeqIdTokenResponse_Data& Data) { };
+    const TFunction<void (FSequenceError)> OnFailure = [this](const FSequenceError& Err){ };
+
+    const TOptional<USequenceWallet*> WalletOptional = USequenceWallet::Get();
+    if (WalletOptional.IsSet() && WalletOptional.GetValue())
+    {
+        const USequenceWallet* Wallet = WalletOptional.GetValue();
+        Wallet->GetIdToken(Nonce, OnSuccess, OnFailure);
+    }
+    ```
+  </Tab>
+</Tabs>
+
+## Cerrar Sesión
+
+Limpiar el caché de credenciales y cerrar la sesión del usuario actual.
+
+<Tabs>
+  <Tab title="Blueprint">
+    <Frame caption="Sign Out">
+      <img src="/images/unreal/sign_out.png" />
+    </Frame>
+  </Tab>
+
+  <Tab title="C++">
+    ```cpp
+    const TOptional<USequenceWallet*> WalletOptional = USequenceWallet::Get();
+    if (WalletOptional.IsSet() && WalletOptional.GetValue())
+    {
+        USequenceWallet * Api = WalletOptional.GetValue();
+        Api->SignOut();
+    }
+    ```
+  </Tab>
+</Tabs>
+
+## Listar Sesiones
+
+Listar las sesiones activas.
+
+<Tabs>
+  <Tab title="Blueprint">
+    <Frame caption="List Sessions">
+      <img src="/images/unreal/list_sessions.png" />
+    </Frame>
+  </Tab>
+
+  <Tab title="C++">
+    ```cpp
+    const TSuccessCallback<TArray<FSession>> OnSuccess = [=](TArray<FSession> Response)
+    {
+        //Response is a list of Sessions
+    };
+    const FFailureCallback OnFailure = [=](const FSequenceError& Error)
+    {
+        UE_LOG(LogTemp,Display,TEXT("Error Message: %s"),*Error.Message);
+    };
+    const TOptional<USequenceWallet*> WalletOptional = USequenceWallet::Get();
+    if (WalletOptional.IsSet() && WalletOptional.GetValue())
+    {
+        USequenceWallet * Api = WalletOptional.GetValue();
+        Api->ListSessions(OnSuccess,OnFailure);
+    }
+    ```
+  </Tab>
+</Tabs>

@@ -1,0 +1,118 @@
+---
+title: On-ramp y Swap a un token personalizado
+description: On-ramp a un token soportado y swap a tu propio token personalizado.
+sidebarTitle: On-ramp y Swap a un token personalizado
+---
+
+La mayoría de los tokens conocidos ya están soportados pero en algunos casos podrías querer que tus usuarios puedan hacer swap a un token personalizado.
+Este ejemplo te mostrará cómo hacerlo en dos pasos usando nuestro SDK web.
+
+## Integración
+
+Para integrar el on-ramp y swap a un token personalizado, sigue estos pasos:
+
+<Steps>
+  <Step title="Connect with Web SDK">
+    Asegúrate de haber completado la [Guía de Inicio](/sdk/web/getting-started) guía.
+  </Step>
+
+  <Step title="On ramp to a supported token">
+    Completa la [On-ramp](/sdk/web/guides/on-ramp) guía
+  </Step>
+
+  <Step title="Update state after on-ramp is successful">
+    Después de que el on-ramp sea exitoso, podemos usar el `onOrderSuccessful` callback para actualizar el estado de la aplicación.
+
+    ```tsx
+      import { useState } from 'react'
+      import { useAddFundsModal } from '@0xsequence/checkout'
+      import { useAccount } from 'wagmi'
+
+      export const OnRampAndSwap = () => {
+          const { triggerAddFunds: toggleAddFunds } = useAddFundsModal()
+          const { address: smartWalletAddress } = useAccount()
+          const [canSwap, setCanSwap] = useState(true)
+
+          const onTriggerAddFunds = () => {
+              if (smartWalletAddress) {
+                  toggleAddFunds({
+                      walletAddress: smartWalletAddress,
+                      onOrderSuccessful(data) {
+                          console.log('Order successful', data)
+                          setCanSwap(true)
+                      },
+                  })
+              }
+          }
+
+          return (
+              <>
+                  <button onClick={onTriggerAddFunds}>On Ramp</button>
+              </>
+          )
+      }
+    ```
+  </Step>
+
+  <Step title="Swap to a custom token with Smart Swaps">
+    Una vez que el on-ramp sea exitoso, podemos usar el `useSwapModal` hook para hacer swap del token comprado a tu propio token personalizado.
+
+    Tomará unos minutos (1-3 minutos) para que el token on-ramped esté disponible en la billetera inteligente, así que asegúrate de verificar el saldo antes de abrir el modal de swap.
+    Si tienes suficiente saldo de un token de pago soportado, el modal lo mostrará como una opción de pago, no necesitas especificar un token de pago.
+
+    <Warning>
+      Asegúrate de que tu token personalizado tenga suficiente liquidez en la cadena en la que estás ejecutando el swap.
+    </Warning>
+
+    ```tsx
+      import { useState } from 'react'
+      import { SwapModalSettings, useAddFundsModal, useSwapModal } from '@0xsequence/checkout'
+      import { useAccount } from 'wagmi'
+
+      export const OnRampAndSwap = () => {
+          const { triggerAddFunds: toggleAddFunds } = useAddFundsModal()
+          const { openSwapModal } = useSwapModal()
+          const { address: smartWalletAddress, chainId } = useAccount()
+          const [canSwap, setCanSwap] = useState(true)
+
+          const buyCurrencyAmount = '10000000000' // amount in wei
+          const buyCurrencyAddress = '0x...' // custom token address
+
+          const onTriggerAddFunds = () => {
+              if (smartWalletAddress) {
+                  toggleAddFunds({
+                      walletAddress: smartWalletAddress,
+                      onOrderSuccessful(data) {
+                          console.log('Order successful', data)
+                          setCanSwap(true)
+                      },
+                  })
+              }
+          }
+
+          const onSwap = () => {
+              const swapModalSettings: SwapModalSettings = {
+                  onSuccess: () => {
+                      console.log('Swap successful')
+                  },
+                  chainId,
+                  currencyAddress: buyCurrencyAddress,
+                  currencyAmount: buyCurrencyAmount,
+                  title: `Buy our custom token`,
+                  description: 'Choose your payment method'
+              }
+
+              openSwapModal(swapModalSettings)
+          }
+
+          return (
+              <>
+                  {canSwap ? <button onClick={onSwap}>Swap</button> : <button onClick={onTriggerAddFunds}>On Ramp</button>}
+              </>
+          )
+      }
+    ```
+  </Step>
+</Steps>
+
+¡Felicitaciones! Acabas de aprender cómo hacer on-ramp y swap a un token personalizado usando el SDK Web.

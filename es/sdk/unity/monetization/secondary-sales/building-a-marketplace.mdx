@@ -1,0 +1,47 @@
+---
+title: Construyendo un Marketplace
+---
+
+Este documento te guiará sobre cómo recomendamos usar el SDK de Sequence para construir un marketplace de coleccionables en cadena para ventas secundarias.
+
+<Tip>Antes de comenzar, no olvides[configurar tu marketplace en el Builder](/solutions/marketplaces/orderbook/overview).</Tip>
+
+## 1. Leer Listados
+
+Primero, querrás leer los listados de tu marketplace para mostrarlos a tu usuario.
+
+```
+IMarketplaceReader reader = new MarketplaceReader(_chain);
+ListCollectiblesReturn collectiblesReturn = await reader.ListCollectibleListingsWithLowestPricedListingsFirst(myCollectionContractAddress);
+CollectibleOrder[] orders = collectiblesReturn.collectibles;
+```
+
+Opcionalmente, puedes proporcionar un`CollectiblesFilter`para aplicar filtros en tu consulta.
+
+Esta solicitud usa paginación. Si estás tratando con una colección bastante pequeña y no quieres lidiar con la paginación, puedes usar la`ListAllCollectibleListingsWithLowestPricedListingsFirst`función auxiliar; esto manejará la paginación por ti y continuará haciendo solicitudes hasta que todos los relevantes`CollectibleOrder`hayan sido recuperados.
+
+También puedes suscribirte opcionalmente a los eventos`OnListCollectibleOrdersReturn`y`OnListCollectibleOrdersError`para manejar las respuestas en otro lugar.
+
+Esto te dará un`CollectibleOrder`para cada Coleccionable, el listado de menor precio.
+
+## 2. Mostrar los Listados
+
+Una vez que hayas recuperado tus`CollectibleOrder[]`del paso #1, querrás usar el`TokenMetadata`devuelto en tu`CollectibleOrder`para mostrar las órdenes en tu interfaz de marketplace de alguna manera.
+
+Hemos proporcionado un ejemplo muy básico de cómo mostrar esta información a tu usuario en la escena Demo incluida en el SDK.
+
+## 3. Proceso de Pago
+
+Una vez que tu usuario haya seleccionado un Coleccionable y la cantidad en tu interfaz, querrás iniciar el proceso de pago. Recomendamos usar nuestra[Interfaz de Pago](/sdk/unity/monetization/checkout-ui)y modificar su apariencia según sea necesario.
+
+Para abrir la Interfaz de Pago, necesitarás una instancia de`ICheckoutHelper` y `IFiatCheckout`. En este caso, querrás usar el `NftCheckout` y `SequenceCheckout` implementaciones respectivamente.
+
+```
+ICheckoutHelper checkoutHelper = new NftCheckout(wallet, collectibleOrder, collectibleSprite, amount);
+```
+
+Donde collectibleOrder es el Collectible seleccionado del CollectibleOrder\[] mostrado en la UI. NftCheckout buscará listados adicionales para el mismo collectible según sea necesario para facilitar la cantidad (y limitará la cantidad comprada a lo que está disponible en todos los listados)
+
+```
+IFiatCheckout fiatCheckout = new SequenceCheckout(wallet, chain, collectibleOrder, amount);
+```

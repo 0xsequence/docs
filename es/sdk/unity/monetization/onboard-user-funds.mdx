@@ -1,0 +1,27 @@
+---
+title: Incorporar Fondos de Usuario
+---
+
+¡Una vez que tus usuarios tengan un saldo suficiente de criptomonedas en su billetera, comprar coleccionables es súper fácil! Pero, incorporar fondos de usuarios a criptomonedas no siempre ha sido fácil, ¡hasta ahora!
+
+El SDK de Sequence integra una variedad de proveedores de servicios de pago, como [Transak](https://transak.com/#onramp) y [Sardine](https://docs.payments.sardine.ai/guides/integration/OnOffRamps/quickstart), para facilitar la incorporación de fondos de usuarios a través de un flujo web fácil de usar utilizando su tarjeta de crédito/débito.
+
+Si bien puedes trabajar con cualquier integración directamente, se recomienda trabajar con ellas a través de `SequencePay` para que se utilice la implementación del proveedor apropiada (basada en disponibilidad geográfica y otros factores).
+
+## Incorporar Fondos de Usuario mediante Tarjeta de Crédito/Débito
+
+Para generar un enlace para la incorporación de fondos de tus usuarios:
+
+```csharp
+SequencePay pay = new SequencePay(wallet, chain);
+string onRampLink = pay.GetOnRampLink(); 
+```
+
+Desde aquí, puedes abrir el `onRampLink` vía `Application.OpenURL` o similar. O también puedes usar:
+
+```csharp
+SequencePay pay = new SequencePay(wallet, chain);
+pay.OnRamp();
+```
+
+Esto llamará automáticamente a `Application.OpenURL` en el enlace de On-Ramp generado.

@@ -1,0 +1,149 @@
+---
+title: useChain
+description: Gancho para recuperar información de configuración de la cadena
+sidebarTitle: useChain
+---
+
+## Importar
+
+```tsx
+import { useChain } from '@0xsequence/connect'
+```
+
+## Uso
+
+```tsx
+import { useChain } from '@0xsequence/connect'
+
+function App() {
+  // Get current chain configuration
+  const currentChain = useChain()
+  
+  // Get configuration for a specific chain (e.g., Ethereum Mainnet)
+  const ethereumChain = useChain(1)
+  
+  return (
+    <div>
+      <h2>Current Chain</h2>
+      {currentChain && (
+        <div>
+          <p>Name: {currentChain.name}</p>
+          <p>Chain ID: {currentChain.id}</p>
+          <p>Network: {currentChain.network}</p>
+          <p>Native Currency: {currentChain.nativeCurrency.symbol}</p>
+        </div>
+      )}
+      
+      <h2>Ethereum Mainnet</h2>
+      {ethereumChain && (
+        <div>
+          <p>Name: {ethereumChain.name}</p>
+          <p>Chain ID: {ethereumChain.id}</p>
+          <p>Network: {ethereumChain.network}</p>
+          <p>Native Currency: {ethereumChain.nativeCurrency.symbol}</p>
+        </div>
+      )}
+    </div>
+  )
+}
+```
+
+## Parámetros
+
+| Parámetro | Tipo                  | Descripción                                                                                                                                        |
+| --------- | --------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `chainId` | `number \| undefined` | ID de cadena opcional para obtener la configuración de una cadena específica. Si no se proporciona, devuelve la configuración de la cadena actual. |
+
+## Tipo de Retorno: `Chain | undefined`
+
+El gancho devuelve un `Chain` objeto de las configuraciones de cadena de wagmi o `undefined` si no se encuentra la cadena.
+
+```tsx
+interface Chain {
+  id: number
+  name: string
+  network: string
+  nativeCurrency: {
+    name: string
+    symbol: string
+    decimals: number
+  }
+  rpcUrls: {
+    default: {
+      http: string[]
+      webSocket?: string[]
+    }
+    public: {
+      http: string[]
+      webSocket?: string[]
+    }
+  }
+  blockExplorers?: {
+    default: {
+      name: string
+      url: string
+    }
+  }
+  // ... other chain-specific properties
+}
+```
+
+### Propiedades
+
+#### id
+
+`number`
+
+El identificador único de la red blockchain.
+
+#### name
+
+`string`
+
+El nombre legible por humanos de la red blockchain.
+
+#### network
+
+`string`
+
+La cadena identificadora de la red.
+
+#### nativeCurrency
+
+`object`
+
+Información sobre la moneda nativa de la cadena.
+
+```tsx
+{
+  name: string      // Full name of the currency
+  symbol: string    // Currency symbol
+  decimals: number  // Number of decimal places
+}
+```
+
+#### rpcUrls
+
+`object`
+
+URLs para conectarse a los puntos finales RPC de la red.
+
+#### blockExplorers
+
+`object | undefined`
+
+Información sobre los exploradores de bloques para la cadena.
+
+## Notas
+
+Este gancho proporciona fácil acceso a la información de configuración de la cadena desde las configuraciones de cadena de wagmi. Es particularmente útil cuando necesitas:
+
+* Acceder a detalles sobre la cadena actualmente conectada
+* Obtener configuración para una cadena específica por ID
+* Recuperar información específica de la cadena como:
+  * Detalles de la red
+  * Información de moneda nativa
+  * Puntos finales RPC
+  * URLs de exploradores de bloques
+
+El gancho se usa comúnmente en conjunto con otros ganchos de Sequence cuando se trabaja con transacciones, clientes indexadores o características específicas de la red.

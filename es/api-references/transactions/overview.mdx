@@ -1,0 +1,99 @@
+---
+title: Transactions API
+sidebarTitle: Overview
+---
+
+La API de Transacciones de Sequence (o el término técnico servicio Relayer) ofrece una interfaz simple para despachar meta-transacciones en redes compatibles con Ethereum.
+
+Las meta-transacciones son el concepto de una transacción dentro de otra transacción. Los beneficios de las meta-transacciones de Sequence son que permiten:
+
+## Beneficios
+
+* Abstracción de gas -- donde los usuarios pueden pagar el gas de la red en una variedad de tokens (por ejemplo, USDC, DAI, etc.)
+* Gas patrocinado -- los proyectos pueden patrocinar el gas de contratos específicos para permitir gas gratuito para sus usuarios
+* Transacciones por lotes -- agrupar varias transacciones independientes y permitir que se minen como una sola transacción
+* Transacciones paralelas -- paralelizar el despacho de transacciones en algunos casos
+* Modelo "enviar y olvidar" -- enviar fácilmente transacciones a la API de transacciones que gestionará automáticamente los nonces, aumentará el gas y otras características que asegurarán una entrega rápida
+* Precio óptimo de gas para transacciones -- se intentará una vez y si no se incluye desde el mempool dentro de 3 bloques, la transacción será reenviada
+
+La mejor parte: las transacciones con la API de Transacciones de Sequence son compatibles con cualquier contrato Ethereum existente/desplegado, y por lo tanto, integrar el Relayer de Sequence no requiere ningún cambio en tus contratos o dapp.
+
+La API de Transacciones de Sequence puede ser utilizada por dapps frontend, o incluso en tus backends. Asegúrate de instalar el SDK correspondiente para tu lenguaje preferido como [Typescript](/sdk/typescript/overview) o [Go](/sdk/go/overview).
+
+## Anatomía de un paquete de transacciones Sequence
+
+Un paquete de transacciones Sequence consiste en tres cosas:
+
+1. Una lista de transacciones Sequence
+2. Un nonce Sequence
+3. Una firma Sequence
+
+Al igual que las cuentas Ethereum, las billeteras Sequence utilizan nonces para forzar el orden de las transacciones y proteger contra ataques de repetición.
+A diferencia de las cuentas Ethereum, las billeteras Sequence tienen un suministro virtualmente ilimitado de nonces independientes, permitiendo que múltiples transacciones independientes se ejecuten en paralelo.
+Un nonce Sequence está codificado como un espacio de nonce de 160 bits seguido por el nonce de 96 bits para ese espacio de nonce, en formato big-endian.
+
+```
+|<------------------------- uint256 -------------------------->|
+|<------ nonce space (160 bits) ------>||<- nonce (96 bits) -->|
+ssssssssssssssssssssssssssssssssssssssssnnnnnnnnnnnnnnnnnnnnnnnn
+```
+
+## Patrocinio de gas y tarifas
+
+La API de transacciones solo despacha transacciones que:
+
+1. Están patrocinadas en un proyecto a través del Sequence Builder, o
+2. Incluyen una transacción de pago de tarifa a la API de transacciones.
+
+Puedes patrocinar:
+
+1. Billeteras Sequence, para que puedan enviar transacciones sin necesidad de pagar tarifas,
+2. Direcciones de tokens, para que cualquier usuario pueda enviar esos tokens gratis,
+3. Contratos, para que cualquier usuario pueda interactuar con ellos gratis,
+4. Direcciones arbitrarias, para que cualquier usuario pueda transferir tokens nativos a ellas gratis.
+
+Para comenzar a patrocinar transacciones, inicia sesión en [https://sequence.build](https://sequence.build), y crea un nuevo proyecto para la red en la que quieres realizar transacciones.
+
+También puedes pagar directamente a la API de transacciones para despachar tus transacciones agregando una transacción adicional de pago de tarifa al relayer en tu paquete.
+La lista de tokens de tarifa aceptados se puede obtener llamando al endpoint `/FeeTokens` para la red que te interesa:
+
+```sh [cURL]
+$ curl -s -X POST -H 'Content-Type: application/json' -d '{}' \
+  https://mainnet-relayer.sequence.app/rpc/Relayer/FeeTokens | jq
+
+{
+  "isFeeRequired": true,
+  "tokens": [
+    {
+      "chainId": 1,
+      "name": "Matic",
+      "symbol": "MATIC",
+      "type": "ERC20_TOKEN",
+      "decimals": 18,
+      "logoURL": "https://raw.githubusercontent.com/spothq/cryptocurrency-icons/master/128/color/matic.png",
+      "contractAddress": "0x7D1AfA7B718fb893dB30A3aBc0Cfc608AaCfeBB0",
+      "tokenID": "0"
+    },
+    {
+      "chainId": 1,
+      "name": "USDC",
+      "symbol": "USDC",
+      "type": "ERC20_TOKEN",
+      "decimals": 6,
+      "logoURL": "https://logos.covalenthq.com/tokens/0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48.png",
+      "contractAddress": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+      "tokenID": "0"
+    },
+    {
+      "chainId": 1,
+      "name": "Wrapped Ether",
+      "symbol": "WETH",
+      "type": "ERC20_TOKEN",
+      "decimals": 18,
+      "logoURL": "https://logos.covalenthq.com/tokens/0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2.png",
+      "contractAddress": "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
+      "tokenID": "0"
+    }
+  ]
+}
+```

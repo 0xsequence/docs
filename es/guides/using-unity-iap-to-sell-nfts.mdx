@@ -1,0 +1,123 @@
+---
+title: Usando Unity IAP para Vender NFTs
+description: Cómo agregamos NFTs comprables a través de IAP (compra dentro de la aplicación) en la
+  App Store de iOS y Google Play Store a Jelly Forest y cómo puedes hacer algo
+  similar en tus propios juegos
+sidebarTitle: Usando Unity IAP para Vender NFTs
+---
+
+La mayoría de tus jugadores no tendrán criptomonedas en sus wallets. Incorporar fondos en criptomonedas usando medios tradicionales puede ser un inconveniente para los jugadores y puede ser demasiado estresante para usuarios con menos experiencia técnica. En cualquier caso, minimizar la fricción en los pagos siempre ha sido un requisito muy importante para una estrategia de monetización efectiva. El método más fluido para realizar microtransacciones para la mayoría de los usuarios en móviles será con el método de compra dentro de la aplicación al que ya están acostumbrados: IAP a través de la App Store de iOS y la Google Play Store de Android. Esto es especialmente cierto si estás usando Embedded Wallets y construyendo juegos donde la blockchain es invisible.
+
+Esta guía explicará cómo actualizamos[Jelly Forest, nuestro juego de demostración de embedded wallet hecho con Unity](/guides/jelly-forest-unity-guide), para agregar un IAP que te otorga un divertido sombrero de hot dog para tu Jelly.
+
+## Desplegar un Smart Contract
+
+El primer paso, si aún no lo has hecho, es[desplegar un smart contract](/solutions/collectibles/contracts/deploy-an-item-collection) que definirá y representará los NFTs que pretendes vender a tus jugadores y mostrar en tu juego.
+
+Una vez que hayas desplegado tu smart contract, no olvides[agregar la dirección de tu contrato como Dirección Patrocinada en la página "Patrocinio de Gas"](/solutions/builder/gas-tank#gas-tank-in-builder) en la Consola del Builder! Esto hará que las tarifas de gas de tus usuarios sean automáticamente patrocinadas usando tus créditos de cómputo cuando interactúen con los smart contracts de tu juego.
+
+## Desplegar un Acuñador Remoto
+
+Por defecto, los contratos ERC1155/721 desplegados a través de la Builder Console requieren que los llamadores tengan los permisos apropiados para acuñar un token. ¡Aunque esto puede parecer una molestia a primera vista, es algo bueno! Sin esto, ¡cualquiera podría llamar al método de acuñación en tu contrato y darse a sí mismo infinitos objetos del juego!
+
+Querrás desplegar un servidor con una billetera Sequence (u otra) y darle permisos de acuñación en el builder.
+
+### Cómo Lo Hicimos en Jelly Forest
+
+En Jelly Forest, todas las monedas que recoges durante el juego se acuñan como tokens ERC1155. Así es como lo hicimos:
+
+1. Regístrate en [Cloudflare](https://www.cloudflare.com/) - así es como alojamos el código del servicio de acuñación; siéntete libre de usar cualquier otro método que prefieras
+2. Abre la terminal u otra línea de comandos
+3. `git clone https://github.com/0xsequence-demos/cloudflare-worker-sequence-relayer.git` luego `cd cloudflare-worker-sequence-relayer`
+4. `git checkout permissionedMinter`
+5. `pnpm install` - para instalar dependencias
+6. Instalar wrangler
+
+```
+pnpm install wrangler --save-dev
+alias wrangler='./node_modules/.bin/wrangler'
+```
+
+e inicia sesión
+
+```
+wrangler login
+```
+
+7. Abre `wrangler.toml`
+   1. Dale un nombre a tu servidor cambiando la cadena `name` string
+   2. Crea una nueva [EOA wallet](https://ethereum.stackexchange.com/questions/5828/what-is-an-eoa-account) y exporta la clave privada. Cualquier billetera EOA está bien. Metamask se puede usar fácilmente para [configurar una billetera](https://support.metamask.io/hc/en-us/articles/360015489531-Getting-started-with-MetaMask) y [exportar la clave privada](https://support.metamask.io/hc/en-us/articles/360015289632-How-to-export-an-account-s-private-key). ¡Por favor, ten mucho cuidado con la clave privada y no la almacenes en texto plano en tu computadora ni la subas al control de versiones! Configura esto bajo `PKEY`
+   3. Configura el `CONTRACT_ADDRESS`
+   4. Configura el `PROJECT_ACCESS_KEY` - esta es tu clave API de producción de la Builder Console que recuperaste anteriormente al configurar el `SequenceConfig` scriptable object
+   5. Configura el `CHAIN_HANDLE` - si no estás seguro de qué es esto, puedes ver el `CHAIN_HANDLE` para cada red respectiva en la página Node Gateway de la Builder Console.
+8. `pnpm dev` - esto desplegará el servidor localmente. Deberías ver en qué localhost está desplegado en la línea de comandos
+9. Abre otra ventana de línea de comandos
+10. `curl http://localhost:8787` - sustituye cualquier localhost que te hayan dado. Esto hará ping al servidor.
+11. En la línea de comandos donde se está ejecutando el servidor localhost, deberías ver que se ha registrado la dirección de la billetera del acuñador
+12. Otorga a esta dirección permisos de acuñación en la Builder Console
+    1. Encuentra el contrato bajo `Contracts` y haz clic para abrirlo
+    2. Haz clic en `Write Contract`
+    3. Expande `grantRole`
+    4. Bajo `role` ingresa `0x9f2df0fed2c77648de5860a4cc508cd0818c85b8b8a1ab4ceeef8d981c8956a6` - este es el hash Keccak-256 de `MINTER_ROLE`
+    5. Bajo `account` pega la dirección de la billetera del acuñador
+13. `wrangler deploy` - esto desplegará el código en un [Cloudflare Worker](https://developers.cloudflare.com/workers/) y te dará una URL de acuñación
+
+¡Genial! Ahora, cuando enviemos una solicitud POST a nuestro servidor con un cuerpo [definido en C#](https://github.com/0xsequence/sequence-unity/blob/master/Packages/Sequence-Unity/Sequence/SequenceSDK/Relayer/MintingRequestProver.cs#L103), donde el `proof` es generado por el cliente que envía la solicitud de acuñación. En el SDK de Unity esto está implementado por el [MintingRequestProver](https://github.com/0xsequence/sequence-unity/blob/master/Packages/Sequence-Unity/Sequence/SequenceSDK/Relayer/MintingRequestProver.cs#L27).
+
+### Manejar Tokens Comprados por IAP con el Acuñador Remoto
+
+Arriba, hemos desplegado un acuñador remoto que es útil para acuñar tokens que se pueden ganar a través de acciones en el juego. Veamos cómo podemos aprovechar este servidor para que también podamos acuñar tokens que se pueden comprar a través de IAP.
+
+Notarás que también se puede incluir un recibo en la carga útil enviada al acuñador remoto. Aquí es donde incluirás el recibo IAP de Google/Apple. [Unity recomienda](https://docs.unity3d.com/Packages/com.unity.purchasing@4.0/manual/BackendReceiptValidation.html) usar [Nobuyori Takahashi's IAP project](https://github.com/voltrue2/in-app-purchase) para verificar los recibos IAP recibidos a través de Unity IAP en el lado del servidor.
+
+Una vez que hayas validado el recibo en el lado del servidor, puedes proceder con tu lógica de acuñación, usando el código de ejemplo proporcionado arriba como referencia.
+
+## Implementación en Unity
+
+En el lado de Unity, el primer paso es integrar [Unity IAP](https://docs.unity3d.com/Manual/UnityIAP.html) en tu proyecto.
+
+En tus `ProcessPurchase` métodos en tu `IStoreListener` del proceso de integración, querrás iniciar el proceso de acuñación. En Jelly Forest, esto se hace a través del [UnityIAP](https://github.com/0xsequence/sequence-unity-demo/blob/JellyForest/Scripts/UnityIAP.cs) y [PremiumItem](https://github.com/0xsequence/sequence-unity-demo/blob/JellyForest/Scripts/Items/PremiumItem.cs) scripts.
+
+En términos de la carga útil, puedes ver en la `PremiumItem` implementación que estoy añadiendo una PermissionedMintTransaction a un `TransactionQueuer`.
+
+```csharp
+public void AddToPremiumTransactionQueue(PermissionedMintTransaction payload, string iapReceipt)
+{
+    PremiumIAPMinter minter = new PremiumIAPMinter(new MintingRequestProver(Wallet, Chain),
+        _mintEndpoint, ContractAddress, iapReceipt);
+    _permissionedMinterTransactionQueuer.Enqueue((payload, minter));
+}
+```
+
+donde `_permissionedMinterTransactionQueuer` es un `PermissionedMinterTransactionQueuer`.
+
+Esto enviará una carga útil en este formato:
+
+```json
+ProofPayload: 
+{
+    "app": "Made with Sequence Unity SDK App",
+    "iat": (uint)DateTimeOffset.UtcNow.ToUnixTimeSeconds(), // issued at time 
+    "exp": (uint)DateTimeOffset.UtcNow.ToUnixTimeSeconds() + 300, // expiry time 
+    "ogn": "Sequence Unity SDK",
+    "payload": {
+        "contractAddress": "0xabc123...",
+        "tokenId": "11",
+        "amount": 5,
+        "receipt": <IAP Receipt String here>
+    }
+}
+
+This JSON get stringified and included in the MintingRequestProof:
+{
+    "Proof": "{\"app\": \"Made with Sequence Unity SDK App\", \"iat\": ...}",
+    "SignedProof": "0x123def...", // proof signed by the player's embedded wallet
+    "SigningAddress": "0xa1b2c3..." // the player's embedded wallet address
+}
+```
+
+Para más información sobre los encoladores de transacciones, por favor consulta [este documento](/sdk/unity/power/write-to-blockchain#transaction-queuers).
+
+<Warning>
+  Apple y Google permiten a los usuarios la opción de solicitar un reembolso de una compra IAP hecha por error. En este caso, tu usuario seguirá teniendo los tokens acuñados. Si bien puedes manejar esto a través de medios tradicionales (por ejemplo, prohibiendo a los jugadores que frecuentemente solicitan reembolsos), debes tener cuidado de no vender NFTs de alto valor a través de este método debido al riesgo de reembolsos fraudulentos.
+</Warning>

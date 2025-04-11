@@ -1,0 +1,43 @@
+---
+title: Guest Wallet Configuration for Embedded Wallet
+description: Aprenda cómo configurar una billetera Guest para su instancia de Embedded Wallet.
+sidebarTitle: Guest Wallet Setup
+---
+
+Las Carteras de Invitado son una función en Sequence Stack que permite la creación efímera de una identidad de autenticación que dura hasta que el usuario borra la caché del navegador o inicia sesión nuevamente.
+
+Esta estrategia de incorporación puede ser útil para proporcionar formas de acceder gratuitamente a tu juego o experiencia, aumentando tu tasa de conversión hasta que los jugadores quieran persistir su información.
+
+Es importante destacar que si los usuarios borran su caché o pierden acceso al dispositivo - cualquier activo en la Cartera de Invitado no será recuperable. Por lo tanto, los usuarios deberían conectar un método de autenticación adicional si hay algún valor asociado con la cartera.
+
+<Warning>
+  La función de Cartera de Invitado está actualmente en acceso anticipado. Para habilitarla, por favor visita [https://sequence.build/earlyaccess](https://sequence.build/earlyaccess) y activa la funcionalidad.
+</Warning>
+
+Para configurar la Cartera Integrada para Cartera de Invitado, esto se puede lograr con los siguientes pasos:
+
+<Steps>
+  <Step title="Builder Configuration">
+    Accede a tu proyecto en Sequence builder, navega a la sección de Configuración de Cartera Integrada, luego añade un Proveedor de Inicio de Sesión:
+
+    <Frame>
+      ![add login provider](/images/builder/builder_guest_wallet_add_provider.png)
+    </Frame>
+
+    Finalmente, seleccionando`Guest Wallet` en el menú desplegable.
+
+    <Frame>
+      ![select guest wallet](/images/builder/builder_guess_wallet_select_provider.png)
+    </Frame>
+
+    Y seleccionando el botón morado`Update configuration` para ingresar tu contraseña para actualizar la Configuración.
+  </Step>
+
+  <Step title="Implementation">
+    Una vez configurado, puedes implementar una Cartera de Invitado con el siguiente código y usarla como cualquier otra Cartera Integrada:
+
+    ```typescript App.tsx
+    await sequence.signIn({ guest: true }, "Session name");
+    ```
+  </Step>
+</Steps>

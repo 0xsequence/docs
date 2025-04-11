@@ -1,0 +1,223 @@
+---
+title: Módulos y actualización de billetera
+description: Este contenido explica cómo las billeteras Sequence están implementadas usando
+  módulos y cómo se puede actualizar la configuración de la billetera.
+---
+
+Los módulos de Sequence son la implementación del programa subyacente de las billeteras; las billeteras pueden cambiar de módulos en tiempo de ejecución.
+
+El `MainModule` es el módulo inicial de cada billetera Sequence; se diferencia de los otros módulos porque no almacena el conjunto de firmantes en el almacenamiento del contrato; utiliza el [salt](/solutions/technical-references/internals/v1/wallet-factory) proporcionado al contrato Factory.
+
+## Implementación de la billetera
+
+Los módulos de Sequence pueden asignarse a las billeteras ya sea por la factory o actualizándolos después del despliegue inicial. Solo se puede asignar un módulo a una billetera a la vez.
+
+### \_updateConfiguration
+
+El `updateImplementation` permite actualizar la implementación subyacente del proxy de la billetera. Esta implementación contiene todo el código central que define el comportamiento de la billetera.
+
+<Warning>
+  Llamar a `updateImplementation` con una implementación inválida resultará en la corrupción de la billetera.
+
+  Las billeteras corruptas pueden llevar a la pérdida de fondos.
+</Warning>
+
+```solidity
+function updateImplementation(
+  address _implementation
+) external override onlySelf
+```
+
+#### Parámetros:
+
+| Nombre           | Tipo    | Descripción                                           |
+| ---------------- | ------- | ----------------------------------------------------- |
+| \_implementation | address | Dirección de la nueva implementación de la billetera. |
+
+Este método tiene el `onlySelf` modificador, lo que significa que solo puede ser llamado por la billetera misma usando una transacción autorreferencial. Las llamadas a este método provenientes de otras direcciones, incluso si estas direcciones son firmantes de la billetera, serán rechazadas.
+
+### Leyendo la implementación actual
+
+La implementación de la billetera se almacena en el slot de almacenamiento del contrato definido por la dirección de la billetera misma. Dado que cada billetera tiene una dirección única, el slot de implementación varía de billetera a billetera.
+
+```js
+import {AbiCoder} "ethers"
+
+const address = "0x596af90cecdbf9a768886e771178fd5561dd27ab"
+const provider = new ethers.providers.JsonRpcProvider("http://localhost:8545")
+
+// Read storage slot address(address)
+const slot = await provider.getStorageAt(address, AbiCoder.defaultAbiCoder().encode(['address'], [address]))
+
+// Decode bytes32 as address value
+const implementation = AbiCoder.defaultAbiCoder().decode(['address'], slot)[0]
+
+console.log(implementation)
+```
+
+## Validación de configuración de billetera
+
+<Note>
+  Configuración fija
+  Configuración de firmantes en billeteras usando `MainModule` no puede ser cambiada. La única forma de cambiar el conjunto de firmantes o el umbral es actualizando el módulo de la billetera.
+</Note>
+
+Todos los módulos de sequence deben implementar la `ModuleAuth` interfaz, esta interfaz permite que el resto del módulo valide firmas para la billetera. En el caso de `MainModule` esta interfaz se implementa como una validación contra-factual del hash pasado a la fábrica durante la creación de la billetera de contrato.
+
+### \_isValidImage
+
+```solidity
+  function _isValidImage(
+    bytes32 _imageHash
+  ) internal override view returns (bool _isValid)
+```
+
+Valida si el `imageHash` proporcionado corresponde al configurado en la billetera. Esta función se llama internamente para validar firmas de transacciones y mensajes.
+
+El `imageHash` es un hash de la configuración de la billetera, que contiene el umbral, los firmantes y los pesos de la billetera.
+
+#### Parámetros:
+
+| Nombre      | Tipo    | Descripción                                      |
+| ----------- | ------- | ------------------------------------------------ |
+| \_imageHash | bytes32 | Hash de la configuración de billetera a validar. |
+
+#### Valores de Retorno:
+
+| Nombre    | Tipo | Descripción                                                                        |
+| --------- | ---- | ---------------------------------------------------------------------------------- |
+| \_isValid | bool | Verdadero si el `imageHash` corresponde a la configuración actual de la billetera. |
+
+## MainModuleUpgradeable
+
+`MainModuleUpgradable` es un módulo que imita el comportamiento del `MainModule` pero permite que la configuración de la billetera sea actualizada.
+
+### `updateImageHash`
+
+Actualiza el `imageHash`, este es el hash que define la configuración de la billetera (firmantes, pesos, umbral).
+
+```solidity
+  function updateImageHash(
+    bytes32 _imageHash
+  ) external override onlySelf
+```
+
+#### Parámetros:
+
+| Nombre      | Tipo    | Descripción                                       |
+| ----------- | ------- | ------------------------------------------------- |
+| \_imageHash | bytes32 | Hash de la nueva configuración para la billetera. |
+
+<Warning>
+  El `imageHash` no es validado, es responsabilidad del llamador asegurar que el hash es correcto. Las razones para hashes incorrectos incluyen:
+
+  * El peso combinado de los firmantes está por debajo del umbral.
+  * Los firmantes no son direcciones válidas.
+  * Los firmantes son billeteras de contrato inteligente sin soporte adecuado para EIP-1271.
+  * El `imageHash` no corresponde a ninguna configuración de billetera (puede ser una cadena aleatoria).
+  * El `imageHash` corresponde a una configuración de billetera desconocida.
+
+  En cualquiera de estos casos la billetera será **inutilizable**.
+</Warning>
+
+Este método tiene el modificador `onlySelf`, lo que significa que solo puede ser llamado por la billetera misma usando una transacción auto-referencial. Las llamadas a este método provenientes de otras direcciones, incluso si estas direcciones son firmantes de la billetera, serán rechazadas.
+
+## Primera actualización de configuración
+
+Cuando se crean las billeteras Sequence, el contrato de fábrica no llama a un `initialize` función. La configuración está en cambio definida por el `salt` proporcionado a la fábrica, el `MainModule` entonces verifica la validez contrafactual de todas las firmas contra la dirección de la billetera.
+
+Esto significa que no hay una manera directa de actualizar la configuración de una billetera mientras se sigue usando el `MainModule`. Dado que la primera actualización de configuración necesita también cambiar la implementación de la billetera al `MainModuleUpgradable`, el `MainModule` se actualiza al `MainModuleUpgradable` y el `updateImageHash` método es llamado para actualizar la configuración de la billetera.
+
+```js
+const transactions = [
+  {
+    delegateCall: false,
+    revertOnError: true,
+    to: wallet,
+    data: walletInterface.encodeFunctionData(
+      walletInterface.getFunction('updateImplementation'), [this.context.mainModuleUpgradable]
+    ),
+    value: ethers.constants.Zero,
+    gasLimit: ethers.constants.Zero,
+  },
+  {
+    delegateCall: false,
+    revertOnError: true,
+    to: wallet,
+    data: mainModuleInterface.encodeFunctionData(
+      mainModuleInterface.getFunction('updateImageHash'), [newImageHash]
+    ),
+    value: ethers.constants.Zero,
+    gasLimit: ethers.constants.Zero,
+  }
+]
+```
+
+#### delegateCall: false
+
+`delegateCall` se usa para extender la funcionalidad de la billetera más allá de lo permitido por el módulo. En este caso los métodos llamados están definidos en los módulos mismos, por lo que no hay necesidad de usar `delegateCall`.
+
+#### revertOnError: true
+
+`revertOnError` se usa para revertir todo el paquete de transacciones si una transacción marcada por él falla. En este caso la operación debe ser atómica dado que una actualización parcial de la configuración de la billetera **va a** hacer la billetera inutilizable.
+
+#### to: wallet
+
+Los métodos que están siendo llamados están definidos en la billetera misma, pero necesitan ser llamados externamente, así que la `to` dirección es la billetera misma.
+
+#### value: ethers.constants.Zero
+
+El `value` de la transacción es siempre cero, ya que la transacción es auto-referencial y no requiere transferir fondos.
+
+#### gasLimit: ethers.constants.Zero
+
+El `gasLimit` de la transacción es siempre cero, ya que representa una cantidad ilimitada de gas.
+
+<Warning>
+  Operación peligrosa
+
+  Cuando la billetera se actualiza por primera vez al `MainModuleUpgradable` no tiene un válido `imageHash` todavía. Es imperativo que el `imageHash` se actualice antes de que el paquete de transacciones termine de ejecutarse.
+  Si el `imageHash` no se actualiza antes de que el paquete de transacciones termine de ejecutarse, la billetera quedará inutilizable.
+
+  Por esta razón se deben tomar las siguientes consideraciones al actualizar la billetera por primera vez:
+
+  * Todas las transacciones deben estar marcadas `revertOnError = true`.
+  * `updateImplementation` y `updateImageHash` deben estar ambos declarados en el mismo paquete de transacciones.
+  * El `gasLimit` de ambas transacciones debe establecerse como ilimitado (`0`).
+</Warning>
+
+### Actualizaciones de configuración subsiguientes
+
+Una vez que la billetera está actualizada al `MainModuleUpgradable` puede ser actualizada llamando al método `updateImageHash`, sin ninguna transacción adicional.
+
+```js
+const transactions = [
+  {
+    delegateCall: false,
+    revertOnError: true,
+    to: wallet,
+    data: mainModuleInterface.encodeFunctionData(
+      mainModuleInterface.getFunction('updateImageHash'), [newImageHash]
+    ),
+    value: ethers.constants.Zero,
+    gasLimit: ethers.constants.Zero,
+  }
+]
+```
+
+### Recuperando la configuración actual
+
+Si la billetera está actualizada al `MainModuleUpgradable` se puede consultar la configuración actual llamando al método `getImageHash`.
+
+Este método debe devolver el hash de la configuración actual de la billetera, que puede compararse con una lista de configuraciones conocidas de billetera para encontrar la correcta.
+
+#### Recuperando la configuración de la billetera
+
+El `imageHash` método devuelve `bytes32(0)` si la billetera aún no está actualizada al `MainModuleUpgradable`.
+En este caso la billetera está en un estado contrafactual y el `imageHash` no se puede consultar directamente.
+
+Este también es el caso para las billeteras no desplegadas.
+
+Para encontrar el `imageHash` de una billetera no desplegada o no actualizada, un candidato conocido `imageHash` necesita ser comparado contra la dirección de la billetera.
+
+Ver [Compute wallet address](/solutions/technical-references/internals/v1/wallet-configuration).

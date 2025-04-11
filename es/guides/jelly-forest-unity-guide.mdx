@@ -1,0 +1,365 @@
+---
+title: Introducción a Jelly Forest - Guía del Juego Unity
+description: La Introducción a Jelly Forest - Guía del Juego Unity presenta un
+  juego runner 2D con características blockchain como inicio de sesión social, mejoras y
+  elementos cosméticos almacenados en una billetera de contrato inteligente.
+sidebarTitle: Build a Unity Game
+---
+
+Jelly Forest es un juego runner 2D habilitado para blockchain. El juego cuenta con inicio de sesión social, mejoras de múltiples niveles (con niveles superiores que requieren mejoras de nivel inferior como insumos para construir/acuñar), y mejoras cosméticas, todo lo cual se almacena en una billetera de contrato inteligente no custodial integrada. No hay ventanas emergentes de firma de transacciones ni requisitos de pago de tarifas de gas impuestos a los jugadores.
+
+<Frame>
+  <video controls className="w-full aspect-video" src="https://pub-f048362b915448c9b012a2e03c189024.r2.dev/JellyForest.mp4" />
+</Frame>
+
+Descárgalo en Google Play [aquí](https://play.google.com/store/apps/details?id=app.sequence.jelly_forest)!
+
+Aprende [por qué las billeteras de contrato inteligente aquí](/solutions/technical-references/wallet-contracts/why)
+
+Aprende [qué es una billetera integrada aquí](/solutions/wallets/overview#what-are-the-differences-between-these-options)
+
+Esta guía te mostrará cómo construimos Jelly Forest y cómo tú también puedes construir tu propio juego web3 usando [Sequence's Unity SDK](/sdk/unity/overview/)!
+
+## 1. Construir un bucle de juego
+
+El primer paso es construir el bucle básico del juego. ¡No olvides pensar primero en tu estrategia de monetización y cómo usarás los elementos web3!
+
+Para nuestro bucle de juego, compramos el [Infinite Runner Engine](https://assetstore.unity.com/packages/templates/systems/2d-3d-infinite-runner-engine-51328) de la Unity Asset Store. Dentro del asset, encontramos una escena de demostración `JellyForest`, que, con algunos ajustes, pudimos obtener una versión funcional para iOS y Android.
+
+## 2. Integrar el inicio de sesión social y la solución de Billetera Integrada de Sequence
+
+### Configuración
+
+1. [Instalar el SDK de Unity de Sequence usando el Package Manager](/sdk/unity/installation#package-manager---recommended)
+2. [Iniciar sesión en la Consola Builder de Sequence](/solutions/builder/getting-started)
+3. [Crear un Proyecto para tu Juego en la Consola Builder](/support/builder/project-management)
+4. Configurar una [Embedded Wallet en la Consola Builder](/solutions/builder/embedded-wallet#embedded-wallet-in-builder)
+5. En tu `SequenceConfig` [objeto scriptable](https://docs.unity3d.com/Manual/class-ScriptableObject.html) que importaste a través del menú Samples en Package Manager durante la [etapa de instalación](/sdk/unity/installation#package-manager---recommended), agrega tus IDs de cliente de Google y Apple que añadiste al Builder así como tu Clave de Configuración bajo `WaaSConfigKey`
+   * ¡No olvides poner tus IDs de cliente de Android e iOS bajo sus respectivas plataformas!
+6. Agrega tu [Builder API Key de la Consola Builder](/solutions/builder/getting-started#claim-an-api-access-key) bajo `Settings > API Access Keys` - necesitas la `prod` clave
+
+### Inicio de Sesión Social
+
+1. Crea una escena básica donde tus jugadores iniciarán sesión.
+   * En nuestro caso, [creamos una nueva escena](https://docs.unity3d.com/Manual/scenes-working-with.html#creating-a-new-scene) y le agregamos una imagen de fondo
+2. Crea un `Canvas`, adjunta un `Canvas Scaler` componente y usa el modo de escala UI "Scale with Screen Size". Esto hará que el LoginPanel (y cualquier otro elemento UI bajo este Canvas) se escale automáticamente al cambiar entre objetivos de compilación.
+3. Arrastra el `LoginPanel` prefab a tu Jerarquía de Escena bajo el Canvas. Esto se puede encontrar en la ventana de Proyecto bajo `Packages > Sequence Embedded Wallet SDK > SequenceFrontend > Prefabs`.
+4. Crea un administrador de UI para llamar `Open` en el `LoginPanel`. Ver [nuestra implementación](https://github.com/0xsequence/sequence-unity-demo/blob/JellyForest/Scripts/UI/LoginScreenUIManager.cs) a continuación:
+
+```csharp
+private void Start()
+{
+    LoginPanel loginPanel = GetComponentInChildren<LoginPanel>();
+    if (loginPanel == null)
+    {
+        Debug.LogError("LoginPanel not found!");
+    }
+    loginPanel.Open();
+}
+```
+
+5. Rompe la referencia al `LoginPanel` prefab en la Jerarquía para que puedas editarlo libremente en la vista de escena
+   1. Selecciona el `LoginPanel` GameObject en la Jerarquía
+   2. Haz clic derecho en el `LoginPanel` GameObject en la Jerarquía
+   3. `Prefab > Unpack Completely`
+6. Personaliza el LoginPanel para que se ajuste al tema de tu juego
+
+El LoginPanel manejará toda la lógica de inicio de sesión social por ti. Si tienes curiosidad sobre cómo está implementado, puedes revisar el `LoginPage` y `OpenIdAuthenticator` implementaciones.
+La autenticación funciona a través del [Open ID Connect Implicit Flow](https://auth0.com/docs/authenticate/login/oidc-conformant-authentication/oidc-adoption-implicit-flow).
+
+### Registrando una Sesión con la API de Sequence
+
+Una vez que el inicio de sesión social está completo, automáticamente harás una solicitud de registro de sesión con las APIs de WaaS (Wallet as a Service) de Sequence. Así es como funciona:
+
+Cuando el inicio de sesión social está completo, el `OpenIdAuthenticator.SignedIn` evento se dispara. Esto inicia el proceso de autorización en `SequenceLogin.ConnectToWaaS`.
+
+### Recuperando la Billetera del Usuario
+
+Para recuperar la billetera, necesitarás suscribirte al evento `SequenceWallet.OnWalletCreated` evento.
+
+```csharp
+SequenceWallet.OnWalletCreated += OnWalletCreatedHandler;
+public void OnWalletCreatedHandler(SequenceWallet wallet) {
+  // Do something
+}
+```
+
+Recomendamos encarecidamente que importes `SequenceConnector` a través de "Scripts Útiles" bajo Samples en la página del Package Manager para el "Sequence Embedded Wallet SDK". [Por defecto, contiene mucho código inicial útil](https://github.com/0xsequence/sequence-unity/blob/master/Packages/Sequence-Unity/Sequence/Samples~/Scripts/SequenceConnector.cs) y actúa como una interfaz útil para comunicarse con el SDK. Lo usamos bastante [en nuestra integración con JellyForest](https://github.com/0xsequence/sequence-unity-demo/blob/JellyForest/Scripts/SequenceConnector.cs).
+
+En JellyForest, también creamos un [LevelLoader](https://github.com/0xsequence/sequence-unity-demo/blob/JellyForest/Scripts/LevelLoader.cs) MonoBehaviour que carga la siguiente escena cuando el `SequenceWallet.OnWalletCreated` evento es disparado.
+
+```csharp
+private void Awake()
+{
+    SequenceWallet.OnWalletCreated += OnWalletCreated;
+}
+
+private void OnWalletCreated(SequenceWallet wallet)
+{
+    SceneManager.LoadScene("MenuScene");
+}
+```
+
+Para más información sobre cómo funciona la autenticación en la solución Embedded Wallet de Sequence, por favor consulta nuestra [documentación](/solutions/wallets/embedded-wallet/overview/) y [publicación del blog](https://sequence.xyz/blog/sequence-embedded-wallets).
+
+## 3. Desplegar un Contrato de Coleccionables
+
+Ahora que nuestros jugadores pueden iniciar sesión y obtener una billetera, ¡agreguemos algunos coleccionables!
+
+Recomendamos encarecidamente usar un contrato [ERC1155](https://eips.ethereum.org/EIPS/eip-1155). Son un estándar de token flexible que se adapta bien a los juegos. Puedes desplegar fácilmente nuestra implementación auditada de ERC1155 a través de la Builder Console de esta manera:
+
+<Frame>
+  <video controls className="w-full aspect-video" src="/video/builder/03_Contracts.mp4" />
+</Frame>
+
+Esto es lo que hicimos para Jelly Forest.
+
+Una vez que hayas desplegado tu contrato inteligente, no olvides [agregar la dirección de tu contrato como Dirección Patrocinada en la página "Patrocinio de Gas"](/solutions/builder/gas-tank#gas-tank-in-builder) en la Builder Console! Esto hará que las tarifas de gas de tus usuarios sean patrocinadas automáticamente usando tus créditos de cómputo cuando interactúen con los contratos inteligentes de tu juego.
+
+## 4. Desplegar un Acuñador Remoto
+
+Por defecto, los contratos ERC1155 desplegados a través de la Builder Console requieren que los llamadores tengan los permisos apropiados para acuñar un token. ¡Aunque esto pueda parecer una molestia a primera vista, es algo bueno! Sin esto, ¡cualquiera podría llamar al método de acuñación en tu contrato y darse a sí mismo infinitos objetos del juego!
+
+Necesitarás desplegar un servidor con una billetera Sequence (u otra) y darle permisos de acuñación en el builder.
+
+### Cómo Lo Hicimos en Jelly Forest
+
+En Jelly Forest, todas las monedas que recolectas durante el juego se acuñan como tokens ERC1155. Así es como lo hicimos:
+
+1. Regístrate en [Cloudflare](https://www.cloudflare.com/) - así es como alojamos el código del servicio de acuñación; siéntete libre de usar cualquier otro método que prefieras
+2. Abre la terminal u otra línea de comandos
+3. `git clone https://github.com/0xsequence-demos/cloudflare-worker-sequence-relayer.git` luego `cd cloudflare-worker-sequence-relayer`
+4. `git checkout permissionedMinter`
+5. `pnpm install` - para instalar dependencias
+6. Instalar wrangler
+
+```
+pnpm install wrangler --save-dev
+alias wrangler='./node_modules/.bin/wrangler'
+```
+
+e iniciar sesión
+
+```
+wrangler login
+```
+
+7. Abrir `wrangler.toml`
+   1. Dale un nombre a tu servidor cambiando la cadena `name` string
+   2. Crea una nueva [billetera EOA](https://ethereum.stackexchange.com/questions/5828/what-is-an-eoa-account) y exporta la clave privada. Cualquier billetera EOA está bien. Metamask puede usarse fácilmente para [configurar una billetera](https://support.metamask.io/hc/en-us/articles/360015489531-Getting-started-with-MetaMask) y [exportar la clave privada](https://support.metamask.io/hc/en-us/articles/360015289632-How-to-export-an-account-s-private-key). ¡Por favor, ten mucho cuidado con la clave privada y no la almacenes en texto plano en tu computadora ni la subas al control de versiones! Configura esto bajo `PKEY`
+   3. Configura el `CONTRACT_ADDRESS`
+   4. Configura el `PROJECT_ACCESS_KEY` - esta es tu clave API de producción de la Builder Console que obtuviste anteriormente al configurar el `SequenceConfig` objeto scriptable
+   5. Configura el `CHAIN_HANDLE` - si no estás seguro de qué es esto, puedes ver el `CHAIN_HANDLE` para cada red respectiva en la página Node Gateway de la Builder Console.
+8. `pnpm dev` - esto desplegará el servidor localmente. Deberías ver en qué localhost se ha desplegado en la línea de comandos
+9. Abre otra ventana de línea de comandos
+10. `curl http://localhost:8787` - sustituye cualquier localhost que te hayan dado. Esto hará ping al servidor.
+11. En la línea de comandos donde se está ejecutando el servidor localhost, deberías ver que se ha registrado la dirección de la billetera del acuñador
+12. Otorga a esta dirección permisos de acuñación en la Builder Console
+    1. Encuentra el contrato bajo `Contracts` y haz clic para abrirlo
+    2. Haz clic en `Write Contract`
+    3. Expande `grantRole`
+    4. Bajo `role` entrar `0x9f2df0fed2c77648de5860a4cc508cd0818c85b8b8a1ab4ceeef8d981c8956a6` - este es el hash Keccak-256 de `MINTER_ROLE`
+    5. Bajo `account` pega la dirección de la billetera del acuñador
+13. `wrangler deploy` - esto desplegará el código en un [Cloudflare Worker](https://developers.cloudflare.com/workers/) y te dará una URL de acuñación
+
+¡Genial! Ahora, cuando enviamos una solicitud POST a nuestro servidor con un cuerpo [definido en C#](https://github.com/0xsequence/sequence-unity/blob/master/Packages/Sequence-Unity/Sequence/SequenceSDK/Relayer/MintingRequestProver.cs#L103), donde el `proof` es generado por el cliente que envía la solicitud de acuñación. En el SDK de Unity esto está implementado por el [MintingRequestProver](https://github.com/0xsequence/sequence-unity/blob/master/Packages/Sequence-Unity/Sequence/SequenceSDK/Relayer/MintingRequestProver.cs#L27).
+
+## 5. Acuñar Tokens En-juego al Inventario del Jugador
+
+Ahora que tenemos configurado nuestro servidor de acuñación con permisos, necesitamos configurar el lado del cliente (la aplicación Made With Unity) para que podamos comenzar a dar tokens a nuestros jugadores a través del juego. Podemos enviar una solicitud al acuñador con permisos usando el SDK de Unity llamando al método `PermissionedMinter.MintToken`.
+
+En Jelly Forest, mientras el jugador corre a través del nivel recoge muchas monedas, todas estas son tokens ERC1155. Todavía hay algunos desafíos que necesitamos resolver para proporcionar a nuestros jugadores una gran experiencia de usuario.
+
+1. ¿Cómo lees la cadena para saber qué tokens/derechos tiene el usuario en su inventario?
+2. Las transacciones de blockchain, aunque rápidas en algunas cadenas como Arbitrum, no son instantáneas. Recoger una moneda (u otro objeto) y luego tener que esperar unos segundos antes de que aparezca en tu inventario en el juego no es, en general, una gran experiencia para el usuario final.
+3. A primera vista, podrías estar tentado a enviar una transacción cada vez que un usuario gana un token a través de tu juego. Sin embargo, en la mayoría de los juegos, especialmente juegos como Jelly Forest donde los jugadores recolectan muchas monedas (tokens), esto terminará enviando una gran cantidad de transacciones y te costará una fortuna en [tarifas de gas](https://ethereum.org/en/developers/docs/gas/)!
+
+¡Veamos cómo resolvimos todos estos problemas en Jelly Forest usando el SDK de Unity!
+
+### 1. Leyendo la Cadena
+
+Leer los tokens en la billetera de un usuario determinado es un proceso complicado que se hace mucho más fácil usando el [Sequence's Indexer](/api-references/indexer/overview) que el [SDK de Unity implementa](/sdk/unity/power/read-from-blockchain).
+
+Aquí hay un fragmento de código de Jelly Forest donde usamos el Indexer para leer todos los tokens en la billetera de un jugador desde nuestro contrato ERC1155 del juego.
+
+```csharp
+private Dictionary<BigInteger, TokenBalance> _tokenBalances = new Dictionary<BigInteger, TokenBalance>();
+private async Task GetTokenBalances(Page page = null)
+{
+    if (page == null)
+    {
+        page = new Page();
+    }
+    GetTokenBalancesReturn balances = await _indexer.GetTokenBalances(new GetTokenBalancesArgs(_userAddress, SequenceConnector.ContractAddress, false, page));
+    int uniqueTokens = balances.balances.Length;
+    for (int i = 0; i < uniqueTokens; i++)
+    {
+        _tokenBalances[balances.balances[i].tokenID] = balances.balances[i];
+    }
+    if (balances.page.more)
+    {
+        await GetTokenBalances(balances.page);
+    }
+}
+```
+
+### 2. Construyendo un Caché
+
+Dado que las transacciones de blockchain no son instantáneas pero queremos proporcionar a nuestro usuario retroalimentación instantánea, utilizaremos un caché simple en memoria.
+
+Cuando primero recibimos nuestro `SequenceWallet` en Jelly Forest, [SequenceConnector](https://github.com/0xsequence/sequence-unity-demo/blob/JellyForest/Scripts/SequenceConnector.cs), que usamos como nuestra interfaz principal para comunicarnos con el SDK de Sequence en nuestro juego, crea un `Inventory`.
+
+```csharp
+private void OnWalletCreated(SequenceWallet wallet)
+{
+    Wallet = wallet;
+    Wallet.OnSendTransactionComplete += OnSendTransactionCompleteHandler;
+    Wallet.OnSendTransactionFailed += OnSendTransactionFailedHandler;
+    Wallet.OnSignMessageComplete += OnSignMessageCompleteHandler;
+    Wallet.OnDeployContractComplete += OnDeployContractCompleteHandler;
+    Wallet.OnDeployContractFailed += OnDeployContractFailedHandler;
+    Wallet.OnDropSessionComplete += OnDropSessionCompleteHandler;
+    Wallet.OnSessionsFound += OnSessionsFoundHandler;
+
+    Inventory = new Inventory(Indexer, Wallet.GetWalletAddress(), ItemCatalogue); // [!code focus]
+
+    _transactionQueuer.Setup(Wallet, Chain);
+    _permissionedMinterTransactionQueuer.Setup(Wallet, Chain, "https://sequence-relayer-jelly-forest2.tpin.workers.dev/", ContractAddress);
+}
+```
+
+El `Inventory` se usa como un caché simple en nuestro juego. Cuando se crea por primera vez, y cuando se solicita, usamos el Indexer para obtener todos los tokens en la billetera de los usuarios. A partir de aquí, cada vez que el usuario gana un token, actualizamos nuestro caché (`Inventory`) y los datos en la cadena.
+
+Lee la `Inventory` [implementación completa aquí](https://github.com/0xsequence/sequence-unity-demo/blob/JellyForest/Scripts/Inventory.cs)
+
+### 3. Usando una Cola de Transacciones
+
+El SDK de Unity de Sequence proporciona un [sistema de cola de transacciones](https://github.com/0xsequence/sequence-unity/blob/master/Packages/Sequence-Unity/Sequence/SequenceSDK/Relayer/TransactionQueuer.cs).
+
+En Jelly Forest, adjuntamos un [PermissionedMinterTransactionQueuer](https://github.com/0xsequence/sequence-unity/blob/master/Packages/Sequence-Unity/Sequence/SequenceSDK/Relayer/PermissionedMinterTransactionQueuer.cs) MonoBehaviour a nuestro `SequenceConnector` GameObject y [obtenemos una referencia a él en Awake](https://github.com/0xsequence/sequence-unity-demo/blob/JellyForest/Scripts/SequenceConnector.cs#L59).
+
+![PermissionedMinterTransactionQueuer](/images/guides/making-of-jelly-forest/TransactionQueuer.png)
+
+Una vez [que esto está configurado](https://github.com/0xsequence/sequence-unity-demo/blob/JellyForest/Scripts/SequenceConnector.cs#L78), todo lo que necesitamos hacer cuando se recoge un token es llamar a "acuñar token".
+
+```csharp
+public class CollectibleToken : Coin
+{
+    protected override void ObjectPicked()
+    {
+        base.ObjectPicked();
+        if (SequenceConnector.Instance == null || SequenceConnector.Instance.Wallet == null)
+        {
+            Debug.LogWarning("No minting will happen. Make sure SequenceConnector is in the scene and user is logged in.");
+            return;
+        }
+        SequenceConnector.Instance.MintFungibleToken(); // [!code focus]
+    }
+}
+```
+
+Esto actualizará nuestro `Inventory` y añadirá una transacción de acuñación a la `PermissionedMinterTransactionQueuer` cola. El `PermissionedMinterTransactionQueuer` combinará automáticamente las transacciones cuando sea posible para que gastes la menor cantidad de dinero posible en tarifas de gas.
+
+En Jelly Forest, hemos configurado nuestro sistema de cola de transacciones para enviar transacciones cada vez que el jugador tiene un game over, pero no antes de cada 30 segundos.
+
+#### ¿Cómo Determinas Con Qué Frecuencia Enviar Tus Transacciones?
+
+Con nuestro SDK de Unity, esto se convierte más en una cuestión de diseño de juego que cualquier otra cosa.
+
+Nuestro `TransactionQueuers` se puede configurar para enviar transacciones automáticamente cada X segundos, cuando se solicite (mediante llamada a función) pero no antes de cada Y segundos, o cuando se solicite anulando cualquier umbral mínimo de tiempo configurado (Y segundos).
+
+Aquí hay algunas cosas a considerar al determinar cómo configurar tus colas de transacciones:
+
+* Cuanto más frecuentemente envíes transacciones, más tarifas de gas pagarás. Por supuesto, la blockchain compatible con EVM que selecciones influirá enormemente en el número y la complejidad de las transacciones que puedes enviar antes de que los costos se vuelvan prohibitivos.
+* Cuanto menos frecuentemente envíes transacciones, más desincronizado estará el estado de tu juego (caché) con la información en la cadena. Si una transacción fallara, necesitarás una forma de recuperarte de esto sin perjudicar la experiencia de juego de tus jugadores.
+
+Como ejemplo de Jelly Forest: sentimos que las transacciones de las Tiendas eran de alta importancia para el usuario final. No queríamos arriesgarnos a que un usuario pensara que tenía una mejora/sombrero y luego que la transacción fallara y necesitara revocar la mejora/sombrero o acuñar uno extra que el jugador podría no haber ganado legítimamente. Así que, hicimos que el usuario espere en las páginas de la Tienda hasta que la transacción de compra (y todas las otras transacciones en los TransactionQueuers) hayan tenido éxito.
+
+```csharp
+public async Task Buy()
+{
+    if (Status != ItemStatus.Available)
+    {
+        return;
+    }
+
+    if (SequenceConnector.Instance == null)
+    {
+        string error = "SequenceConnector not found. User has not logged in";
+        Debug.LogError($"Failed to purchase shop item: {error}");
+        OnFailedToPurchaseShopItem?.Invoke($"Failed to purchase shop item: {error}");
+        return;
+
+    SequenceConnector.Instance.AddToTransactionQueue(new PurchaseShopItemQueueableTransaction(this));
+    TransactionReturn result = await SequenceConnector.Instance.SubmitQueuedTransactions(true, false); // [!code hl]
+    if (result is SuccessfulTransactionReturn successfulTransactionReturn)
+    {
+        BurnTokensFromInventory();
+        MintTokenInInventory()
+        if (string.IsNullOrWhiteSpace(successfulTransactionReturn.txHash))
+        {
+            GetTransactionReceipt(successfulTransactionReturn);
+        }
+    }
+    else if (result is FailedTransactionReturn failed)
+    {
+        string error = $"Transaction failed: {failed.error}";
+        Debug.LogError(error);
+        OnFailedToPurchaseShopItem?.Invoke($"Failed to purchase shop item: {error}");
+    }
+    else
+    {
+        throw new Exception("Unexpected transaction result type");
+    }
+}
+```
+
+## 6. Quemar Tokens del Juego a Cambio de Otros
+
+En Jelly Forest, puedes comprar potenciadores y cosméticos quemando monedas y (a veces) potenciadores de nivel inferior.
+
+Para habilitar y hacer cumplir este mecanismo, implementamos un simple [BurnToMint smart contract](https://polygonscan.com/address/0x80329e7f4F006E3178Db369425329759157B5a2a#code). Este contrato te permite especificar requisitos de acuñación (ids de tokens requeridos y cantidades asociadas) para un id de token dado. Cuando recibe un lote de tokens ERC1155 y el remitente especifica el id del token que quieren acuñar en el `data` parámetro, el contrato verificará si recibió la cantidad requerida de cada id de token; si esto pasa, el contrato quema los tokens y acuña el id de token solicitado para el remitente (usuario); de lo contrario, la transacción falla y se revierte.
+
+Le hemos dado a este contrato permisos de acuñación para nuestro contrato de juego en la Builder Console:
+
+1. Encuentra el contrato bajo `Contracts` y haz clic para abrirlo
+2. Haz clic en `Write Contract`
+3. Expande `grantRole`
+4. Bajo `role` ingresa `0x9f2df0fed2c77648de5860a4cc508cd0818c85b8b8a1ab4ceeef8d981c8956a6` - este es el hash Keccak-256 de `MINTER_ROLE`
+5. Bajo `account` pega la dirección de la billetera del acuñador
+
+:::danger
+Advertencia: el `BurnToMint` contrato inteligente compartido arriba no ha sido auditado por un tercero. ¡Reutilizar con precaución!
+:::
+
+Cuando un usuario compra una mejora o cosmético de la tienda, enviamos una transacción al `BurnToMint` contrato inteligente agregando una [PurchaseShopItemQueueableTransaction](https://github.com/0xsequence/sequence-unity-demo/blob/JellyForest/Scripts/Items/ShopItem.cs#L109) a nuestro [SequenceWalletTransactionQueuer](https://github.com/0xsequence/sequence-unity/blob/master/Packages/Sequence-Unity/Sequence/SequenceSDK/Relayer/SequenceWalletTransactionQueuer.cs) en nuestro `SequenceConnector`.
+
+```csharp
+SequenceConnector.Instance.AddToTransactionQueue(new PurchaseShopItemQueueableTransaction(this));
+```
+
+## 7. Construyendo las Páginas de la Tienda y Estableciendo los Requisitos de Acuñación
+
+Al construir las Páginas de la Tienda y establecer los precios/requisitos de acuñación para las diferentes mejoras y sombreros en Jelly Forest, optamos por definir [ShopItems](https://github.com/0xsequence/sequence-unity-demo/blob/JellyForest/Scripts/Items/ShopItem.cs) usando [Scriptable Objects](https://docs.unity3d.com/Manual/class-ScriptableObject.html) porque son fáciles de ajustar y visualizar ya que pueden ser serializados en el Inspector. Estos objetos scriptables también son la forma en que definimos qué es cada [Item](https://github.com/0xsequence/sequence-unity-demo/blob/JellyForest/Scripts/Items/Item.cs) y los asociamos con un id de token.
+
+Sin embargo, rápidamente se volvió una molestia (sin mencionar una posible fuente de errores) mantener los requisitos de acuñación definidos en los Scriptable Objects sincronizados con los requisitos de acuñación definidos en nuestro `BurnToMint` contrato en la cadena.
+
+Creamos una [extensión del editor](https://learn.unity.com/tutorial/editor-scripting) para nuestros `ShopItem` objetos scriptables agregando un botón que, cuando se presiona, verificará si los requisitos de acuñación definidos en la cadena coinciden con lo definido en el objeto scriptable; si difieren, enviará una transacción para actualizar los requisitos de acuñación en el `BurnToMint` contrato en la cadena para que coincida con el objeto scriptable. La transacción se envía a través de una billetera EOA creada a partir de una clave privada almacenada como una variable de entorno en una de las máquinas de nuestros desarrolladores. Esta billetera EOA es el [owner](https://docs.openzeppelin.com/contracts/2.x/access-control#ownership-and-ownable) de este contrato.
+
+De hecho, nuestras Páginas de la Tienda consultan al contrato inteligente cada 60 segundos (y cada vez que se abren) para detectar cambios en los requisitos de acuñación, actualizando su interfaz de usuario en consecuencia. ¡Esto nos permite hacer parches en vivo a la economía de nuestro juego sin requerir una actualización!
+
+Haz clic en el video a continuación
+
+<Frame>
+  <video controls className="w-full aspect-video" src="https://pub-f048362b915448c9b012a2e03c189024.r2.dev/ShopItemExtension.mp4" />
+</Frame>
+
+Ver la [implementación de ShopItemEditorExtension aquí](https://github.com/0xsequence/sequence-unity-demo/blob/JellyForest/Scripts/Editor/ShopItemEditorExtension.cs).
+
+# 8. Aprovechar los Objetos Comprados en el Juego
+
+Muy bien, nuestros jugadores pueden iniciar sesión, obtener una billetera, ganar tokens y comprar cosas con sus tokens. Lo único que falta es darles a tus jugadores una razón para querer comprar cosas en primer lugar. En otras palabras, ¡es hora de usar tu magia de desarrollador de juegos y crear algunos potenciadores y cosméticos increíbles!
+
+Todo lo que tienes que hacer para incorporar tus tokens en tu juego es verificar si el usuario posee suficientes del ID de token dado y aplicar el efecto del token.
+
+En Jelly Forest, definimos diferentes [PowerUpTypes](https://github.com/0xsequence/sequence-unity-demo/blob/JellyForest/Scripts/Items/ItemCatalogue.cs#L13) y asignamos cada `Item` un `PowerUpType` y nivel. Luego [consultamos nuestro `Inventory` para encontrar el mejor potenciador de cada tipo](https://github.com/0xsequence/sequence-unity-demo/blob/JellyForest/Scripts/Inventory.cs#L138) que posee el jugador.

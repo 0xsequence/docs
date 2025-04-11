@@ -1,0 +1,54 @@
+---
+title: Wallet Factory
+description: El Wallet Factory permite la creación de Wallets de Sequence usando el contrato Factory, que genera MinimalUpgradeableProxies secundarios que sirven como código base para todas las wallets de Sequence.
+sidebarTitle: Wallet Factory
+---
+
+Las Wallets de Sequence se crean usando el contrato [Factory](https://github.com/0xsequence/wallet-contracts/blob/e0c5382636a88b4db4bcf0a70623355d7cd30fb4/contracts/Factory.sol), cuando se llama crea contratos secundarios [MinimalUpgradeableProxies](https://github.com/0xsequence/wallet-contracts/blob/e0c5382636a88b4db4bcf0a70623355d7cd30fb4/contracts/Wallet.sol), que son en esencia el código de "arranque" de todas las wallets de Sequence.
+
+## API de Fábrica
+
+### deploy
+
+```solidity
+  function deploy(
+    address _mainModule,
+    bytes32 _salt
+  ) public payable returns (address _contract)
+```
+
+Crea un MinimalUpgradeableProxy hijo usando [CREATE2](https://eips.ethereum.org/EIPS/eip-1014), el proxy inicialmente apunta al `_mainModule`.
+No se ejecuta código de inicialización.
+
+#### Parámetros:
+
+| Nombre       | Tipo    | Descripción                                                                                                                                                                  |
+| ------------ | ------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| \_mainModule | address | Implementación inicial para el nuevo contrato proxy, se espera que apunte a una implementación válida de billetera Sequence con soporte para inicialización contra-factual.  |
+| \_salt       | bytes32 | Valor arbitrario que se usará como `create2` salt. Sequence `mainModule` usa el salt para obtener un hash con la configuración inicial de la billetera (Ver [ImageHash](#)). |
+
+#### Valores de Retorno:
+
+| Nombre     | Tipo    | Descripción                          |
+| ---------- | ------- | ------------------------------------ |
+| \_contract | address | Dirección del contrato proxy creado. |
+
+<Warning>
+  Entrada no sanitizada <br />
+  El contrato Factory **no** verifica si el `_mainModule` proporcionado es una implementación válida de billetera Sequence, o si el `_salt` es una configuración válida de Sequence.
+
+  Usar parámetros inválidos resultará en un contrato proxy que **podría no** ser utilizable, y podría resultar en pérdida de fondos.
+</Warning>
+
+## Direcciones contra-factuales
+
+Las billeteras Sequence son contra-factuales por diseño, esto significa que la dirección de la billetera puede conocerse antes de que la billetera sea desplegada; cualquier combinación de los valores `mainModule` y `salt` resultará en la misma dirección de billetera.
+
+Esta propiedad junto con el uso de [NanoUniversalDeployer](/solutions/technical-references/internals/v1/deploy#1-deploy-nanouniversaldeployer) o [UniversalDeployer](/solutions/technical-references/internals/v1/deploy#2-deploy-universaldeployer2) es la razón por la que las billeteras Sequence pueden obtener la misma dirección en múltiples cadenas.
+
+<Tip>
+  Creación de billetera sin gas <br /> Las billeteras Sequence son **100% contra-factuales**,
+  significando que los fondos pueden ser transferidos de manera segura a la dirección de la billetera sin
+  la necesidad de llamar a la función `deploy`. Desplegar la billetera solo es
+  requerido antes de que se envíe la primera transacción **desde** la billetera.
+</Tip>

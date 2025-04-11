@@ -1,0 +1,37 @@
+---
+title: Despliegue de Contratos Inteligentes
+---
+
+Si bien, en general, recomendaríamos desplegar sus contratos inteligentes a través del [Builder](https://sequence.build/), reconocemos que hay algunos casos de uso donde desplegar un contrato inteligente desde Unity (o una aplicación hecha con Unity) es útil.
+
+El despliegue de contratos implica enviar una transacción, que se realiza a través de una [Tarea asíncrona](https://medium.com/@sonusprocks/async-await-in-c-unity-explained-in-easy-words-571ebb6a9369). Puede usar `await` al llamar `SequenceWallet.DeployContract` desde dentro de una Tarea asíncrona si desea obtener el objeto `ContractDeploymentReturn` directamente. O puede tomar el enfoque recomendado que es configurar funciones manejadoras para los eventos `SequenceWallet.OnDeployContractComplete` y `SequenceWallet.OnDeployContractFailed` y llamar al método `SequenceWallet.DeployContract` desde cualquier lugar (sin await).
+
+`SequenceWallet.DeployContract` es esencialmente un envoltorio para una llamada muy especial `SequenceWallet.SendTransaction` y por lo tanto, puede esperar seguir recibiendo los eventos `SequenceWallet.OnSendTransactionComplete` o `SequenceWallet.OnSendTransactionFailed` adicionalmente.
+
+```csharp
+public void OnDeployContractCompleteHandler(SuccessfulContractDeploymentReturn result) {
+    Address newlyDeployedContractAddress = result.DeployedContractAddress;
+
+    // Do something
+}
+
+public void OnDeployContractFailedHandler(FailedContractDeploymentReturn result) {
+    // Do something
+}
+
+public void OnWalletCreatedHander(SequenceWallet wallet) {
+    wallet.OnDeployContractComplete += OnDeployContractCompleteHandler;
+    wallet.OnDeployContractFailed += OnDeployContractFailedHandler;
+}
+```
+
+Si no está familiarizado con el trabajo con eventos en Unity, consulte esta excelente [publicación de Reddit](https://www.reddit.com/r/gamedev/comments/u3hz2v/how_to_use_events_a_supersimple_unity_example/)!
+
+Para desplegar un contrato primero necesitará [compilar su código de contrato inteligente en bytecode](https://medium.com/coinmonks/compiling-the-smart-contracts-8dcda8071638) y agregar el bytecode como una cadena hexadecimal en uno de sus scripts C#.
+
+Para desplegar un contrato inteligente, puede usar este fragmento de código:
+
+```csharp
+string bytecode = "Here you'll paste your compiled bytecode"
+_wallet.DeployContract(Chain.Polygon, bytecode);
+```

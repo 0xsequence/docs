@@ -1,0 +1,88 @@
+---
+title: Conectores Personalizados en Web SDK
+description: Aprende cómo crear e integrar conectores personalizados con Web SDK. Sigue instrucciones paso a paso para construir tu propio conector usando plantillas existentes.
+sidebarTitle: Custom Connectors
+---
+
+Web SDK proporciona conectores oficiales a través del paquete [@0xsequence/connect-connectors](https://github.com/0xsequence/web-sdk/tree/master/packages/connect/src/connectors). Sin embargo, también puedes integrar conectores personalizados con Web SDK para soportar billeteras adicionales. Esta guía te mostrará cómo crear y usar conectores personalizados.
+
+## Creando un Conector Personalizado
+
+Para crear un conector personalizado, puedes usar un conector existente como base. Por ejemplo, el [Metamask Connector](https://github.com/0xsequence/web-sdk/tree/master/packages/connect/src/connectors/metaMask) es un buen punto de partida. Aquí hay un ejemplo de cómo crear un conector personalizado:
+
+```tsx
+export const myCustomConnector = (options: MyCustomConnectorOptions) => ({
+  id: 'my-custom-connector',
+  name: 'My Custom Connector',
+  logoDark: MyCustomLogoDark,
+  logoLight: MyCustomLogoLight,
+  createConnector: () => {
+    const connector = myCustomConnector(options);
+    return connector;
+  },
+});
+```
+
+Asegúrate de proporcionar un único `id` para tu conector para evitar conflictos con otros conectores. También puedes personalizar campos como `name`, `logoDark`, y `logoLight` para controlar cómo aparece el conector en Web SDK.
+
+La `createConnector` función de wagmi debe devolver un conector inicializado. Los conectores de Web SDK son envoltorios de conectores Wagmi, por lo que puedes usar un conector oficial de Wagmi si está disponible, o crear el tuyo propio si es necesario.
+
+Para más detalles sobre la creación de conectores personalizados, consulta la [guía de Wagmi sobre Conectores Personalizados](https://wagmi.sh/examples/custom-connector).
+
+# Usando Conectores Personalizados
+
+Cuando uses conectores personalizados, no puedes depender de la función `getDefaultConnectors`. En su lugar, necesitas pasar configuraciones personalizadas a Web SDK.
+
+Primero, crea una lista de conectores, incluyendo tu conector personalizado, y proporciónala a la configuración de Wagmi:
+
+```tsx
+import { getConnectWallets } from '@0xsequence/connect';
+import { createConfig } from 'wagmi';
+
+const projectAccessKey = '<your-project-access-key>';
+
+const connectors = getConnectWallets(projectAccessKey, [
+  google({
+    defaultNetwork: 137,
+    connect: {
+      app: 'my-app',
+      projectAccessKey: '<access-key>'
+    }
+  }),
+  // ... other connectors
+  myCustomConnector({ appName: 'my-app' }),
+]);
+
+const config = createConfig({
+  transports,
+  connectors,
+  chains
+})
+```
+
+Luego, usa tu conector personalizado especificando su `id` ya sea en el campo `socialAuthOptions` o `walletAuthOptions` de la configuración de Web SDK:
+
+```tsx
+const kitConfig = {
+  signIn: {
+    socialAuthOptions: ['google', 'facebook'],
+    walletAuthOptions: ['metamask', 'my-custom-connector'],
+  }
+};
+
+return (
+  <WagmiProvider config={wagmiConfig}>
+    <QueryClientProvider client={queryClient}>
+      <SequenceConnect config={connectConfig}>
+        <App />
+      </SequenceConnect>
+    </QueryClientProvider>
+  </WagmiProvider>
+);
+```
+
+# Comparte tus Conectores Personalizados
+
+Siéntete libre de contribuir con tus conectores personalizados creando un [pull request](https://github.com/0xsequence/web-sdk/pulls). De esta manera, otros pueden beneficiarse de tu trabajo y disfrutar de una integración perfecta con Web SDK de Sequence.
+
+¡Comparte el amor ❤️ expandiendo el ecosistema de conectores personalizados!

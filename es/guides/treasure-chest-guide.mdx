@@ -1,0 +1,727 @@
+---
+title: Cofres del Tesoro con Acuñación por IA
+description: Aprende a construir una aplicación web3 usando React con botín
+  generado por IA de cofres del tesoro. Utiliza una Billetera Integrada para autenticación,
+  workers de Cloudflare para facilitar transacciones y herramientas de Sequence Stack.
+sidebarTitle: Construye un Cofre del Tesoro con Acuñación por IA
+---
+
+Tiempo para completar: 50-60 minutos
+
+En esta guía, crearemos una aplicación web3 construida en [React](https://react.dev/), aprovechando las herramientas de Sequence Stack para acuñar botín generado por IA desde cofres del tesoro usando una Billetera Integrada para autenticación y workers de Cloudflare para transacciones fáciles sin confirmación.
+
+Hemos envuelto esto en un [juego de exploración de mazmorras](https://0xsequence-demos.github.io/demo-dungeon-minter/) para mostrar estas características en un entorno de juego que puedes jugar y ganar recompensas.
+
+<Note>
+  El código completo se puede encontrar en los siguientes repositorios:
+
+  * [Juego de Exploración de Mazmorras Web3 React](https://github.com/0xsequence-demos/demo-dungeon-minter)
+  * [Plantilla de Billetera Integrada](https://github.com/0xsequence-demos/template-embedded-wallet-web2-auth)
+  * [Worker de Cloudflare](https://github.com/0xsequence-demos/demo-cloudflare-worker-treasure-chests/)
+  * [API de Botín Diablo](https://github.com/0xsequence-demos/integration-diablo-loot-api)
+</Note>
+
+Las herramientas te permitirán realizar:
+
+1. [Registro en Sequence Builder Console y Creación de Proyecto](/guides/treasure-chest-guide#1-sequence-builder-console-signup-and-project-creation): Crear un proyecto con el Builder
+2. [Gestión de Claves de Acceso](/guides/treasure-chest-guide#2-access-key-management): Obtener una clave de acceso pública, secreta y clave de configuración waas para interactuar con el stack de Sequence
+3. [Integración de Billetera Integrada](/guides/treasure-chest-guide#3-embedded-wallet-integration): Integrar una Billetera Integrada en la aplicación
+4. [Desplegar un Contrato y Patrocinar gas](/guides/treasure-chest-guide#4-deploy-a-contract-and-sponsor-gas): Desplegar un contrato de items y patrocinar gas
+5. [Desplegar un Worker de Cloudflare](/guides/treasure-chest-guide#5-deploy-transactions-api-on-a-cloudflare-worker): Desplegar un worker de Cloudflare para transacciones sin gas y sin confirmación
+6. [Generación de Prompts e Imágenes con IA](/guides/treasure-chest-guide#6-generating-ai-prompts-and-images): Crear prompts de IA desde una API y generar imágenes para subir
+7. [Almacenar Medios en el servicio de Metadatos de Sequence](/guides/treasure-chest-guide#7-store-media-to-sequence-metadata-service): Subir metadatos de colección y tokens a Sequence
+8. [Asegurar tu Worker de Cloudflare](/guides/treasure-chest-guide#8-minting-with-your-cloudflare-worker): Prevenir solicitudes externas a tu worker de Cloudflare restringiendo la URL del referente
+9. [(Opcional) Restricción de Acuñación Nativa Por Billetera](/guides/treasure-chest-guide#9-optional-native-mint-restriction-per-wallet): Restringir acuñaciones diarias por billetera
+
+## 1. Registro en Sequence Builder Console y Creación de Proyecto
+
+Primero comienza siguiendo [esta guía](/support/builder/project-management) para saber cómo registrarte en la [Sequence Builder Console](https://sequence.build/) y aprender cómo crear un proyecto.
+
+Para usar ciertas características, como `Gas Sponsoring` y el uso del `Transactions API`, necesitarás actualizar tu plan de proyecto a `Developer` [usando esta guía](/support/builder/project-settings#5-billing-settings)
+
+## 2. Gestión de Claves de Acceso
+
+Ahora que tienes un proyecto, necesitarás obtener 3 diferentes Claves de Acceso para tu proyecto para autenticar tu aplicación con el Stack de Sequence:
+
+1. `Waas Config Key` usado para la Billetera Integrada, sobre lo cual puedes aprender más [aquí](/solutions/builder/embedded-wallet)
+2. `Public Access Key` usado para la Billetera Integrada y API de Transacciones, lo cual se puede hacer [aquí](/solutions/builder/getting-started#claim-an-api-access-key)
+3. `Secret Access Key` usado para el Servicio de Metadatos, con los siguientes pasos
+
+### Creación de Clave de Acceso Secreta
+
+<Steps>
+  <Step title="Access Settings">
+    Primero comienza accediendo a configuración y seleccionando las Claves API
+
+    <Frame>
+      ![builder settings access keys](/images/builder/builder_settings_access_keys.png)
+    </Frame>
+  </Step>
+
+  <Step title="Add Service Account">
+    Desplázate hacia abajo y selecciona `+ Add Service Account`
+
+    <Frame>
+      ![builder settings add service account](/images/builder/builder_settings_add_service_account.png)
+    </Frame>
+  </Step>
+
+  <Step title="Select Write Permission">
+    Luego cambia el acceso a `Write` y `Confirm`
+
+    <Frame>
+      ![builder settings add service account](/images/builder/builder_settings_add_service_account_confirm.png)
+    </Frame>
+
+    Finalmente `copy` la clave y guárdala en un lugar seguro, ya que no tendrás acceso a ella en el futuro desde la Builder Console.
+  </Step>
+</Steps>
+
+## 3. Integración de Billetera Integrada
+
+<Note>
+  Puedes ver y clonar el repositorio de plantilla [aquí](https://github.com/0xsequence-demos/template-embedded-wallet-web2-auth)
+</Note>
+
+Comenzaremos desde cero construyendo el proyecto con las piezas necesarias, para permitir el uso de una Billetera Integrada de Sequence que permite a los usuarios incorporarse a tu aplicación usando proveedores de autenticación web2.
+
+Primero comienza creando una carpeta de proyecto con `mkdir <project>`, luego `cd <project>` y crea un `vite` proyecto usando React:
+
+```shell
+pnpm create vite
+
+# or 
+yarn create vite
+
+# or 
+npm create vite
+```
+
+A continuación, instalaremos el paquete correcto de Wallet-as-a-Service (Waas) para usar la Billetera Integrada:
+
+```shell
+pnpm install @0xsequence/waas
+
+# or
+npm install @0xsequence/waas
+
+# or
+yarn add @0xsequence/waas
+```
+
+Para todos los nuevos archivos creados en los siguientes pasos, deben crearse en `/src`
+
+Primero, crea un archivo llamado algo como `SequenceEmbeddedWallet.ts` con el siguiente código de inicialización:
+
+```typescript
+import { SequenceWaaS } from '@0xsequence/waas'
+
+const sequence = new SequenceWaaS({
+    projectAccessKey: import.meta.env.VITE_PROJECT_ACCESS_KEY!,
+    waasConfigKey:  import.meta.env.VITE_WAAS_CONFIG_KEY!,
+    network: 'arbitrum-nova'
+})
+
+export default sequence;
+```
+
+Luego crea otro archivo llamado `useSessionHash.ts` que genera un hash de sesión desde el SDK único para el usuario:
+
+```typescript
+import sequence from './SequenceEmbeddedWallet.ts'
+import { useEffect, useState } from "react";
+
+export function useSessionHash() {
+    const [sessionHash, setSessionHash] = useState("")
+    const [error, setError] = useState<any>(undefined)
+
+    useEffect(() => {
+        const handler = async () => {
+            try {
+                setSessionHash(await sequence.getSessionHash())
+            } catch (error) {
+                console.error(error)
+                setError(error)
+            }
+        }
+        handler()
+        return sequence.onSessionStateChanged(handler)
+    }, [setSessionHash, setError])
+
+    return {
+        sessionHash,
+        error,
+        loading: !!sessionHash,
+    }
+}
+```
+
+Finalmente, para implementar la autenticación de Google, necesitarás el`GoogleOAuthProvider` para envolver tu aplicación. El siguiente comando instalará esto y el inicio de sesión con Apple Auth, que se utilizará más adelante:
+
+```shell
+pnpm i @react-oauth/google react-apple-signin-auth
+```
+
+Luego, el código inicial se implementa con los archivos importados anteriormente, en el siguiente código dentro del archivo`main.tsx`:
+
+```typescript
+import React from 'react'
+import ReactDOM from 'react-dom/client'
+import './index.css'
+import App from './App.tsx'
+import { useSessionHash } from "./useSessionHash.ts";
+
+import { ThemeProvider } from '@0xsequence/design-system'
+import { GoogleOAuthProvider } from '@react-oauth/google'
+
+
+function Dapp() {
+  const { sessionHash } = useSessionHash()
+
+  return (
+	<GoogleOAuthProvider clientId="<GOOGLE_CLIENT_ID>" nonce={sessionHash} key={sessionHash}>
+		<App />
+	</GoogleOAuthProvider>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')!).render(
+  <React.StrictMode>
+    <Dapp />
+  </React.StrictMode>
+)
+```
+
+Una vez que tu`main.tsx` esté listo, vamos a crear los botones de inicio de sesión, que se verán así:
+
+<Frame>
+  ![embedded wallet social login](/images/guides/treasure-chest/guide_treasure_chest_embedded_wallet_template.png)
+</Frame>
+
+En`App.tsx` usa el siguiente código que verifica si un usuario está conectado y presenta una dirección de billetera basada en el usuario que ha iniciado sesión, con los diversos botones de autenticación social y manejadores:
+
+```typescript
+import { useState, useEffect } from 'react'
+import './App.css'
+import sequence from './SequenceEmbeddedWallet'
+import { useSessionHash } from './useSessionHash'
+import { CredentialResponse, GoogleLogin } from '@react-oauth/google';
+import AppleSignin from 'react-apple-signin-auth';
+import playImage from './assets/play.svg'
+
+function LoginScreen () {
+  const { sessionHash } = useSessionHash()
+
+  const [wallet, setWallet] = useState<any>(null)
+
+  const handleGoogleLogin = async (tokenResponse: CredentialResponse) => {
+    const res = await sequence.signIn({
+      idToken: tokenResponse.credential! // inputted id credential from google
+    }, "template")
+    setWallet(res.wallet)
+  }
+
+  const handleAppleLogin = async (response: any) => {
+    const res = await sequence.signIn({
+      idToken: response.authorization.id_token! // inputted id token from apple
+    }, "template")
+ 
+    setWallet(res.wallet)
+  }
+
+  // checks to see if there is a logged in user
+  useEffect(() => {
+    setTimeout(async () => {
+      if(await sequence.isSignedIn()){
+        setWallet(await sequence.getAddress())
+      }
+    }, 0)
+  }, [])
+
+  useEffect(() => {
+
+  }, [wallet])
+
+  const signOut = async () => {
+    try {
+      const sessions = await sequence.listSessions()
+
+      for(let i = 0; i < sessions.length; i++){
+        await sequence.dropSession({ sessionId: sessions[i].id })
+      }
+    }catch(err){
+      console.log(err)
+    }
+  }
+
+  return (
+    <>
+      {
+        !wallet 
+      ? 
+        <>
+          <span className='sign-in-via'>SIGN IN VIA</span>
+          <br/>
+          <br/>
+          <br/>
+          <div className="login-container">
+          <div className='dashed-box-google'>
+              <p className='content'>
+                <div className='gmail-login' style={{overflow: 'hidden', opacity: '0', width: '90px', position: 'absolute', zIndex: 1, height: '100px'}}>
+                  <GoogleLogin 
+                    nonce={sessionHash}
+                    key={sessionHash}
+                    onSuccess={handleGoogleLogin} shape="circle" width={230} />
+                  </div>
+                  <span className='gmail-login'>Gmail</span>
+              </p>
+          </div>
+          <div className='dashed-box-apple'>
+            <p className='content' 
+            style={{position:'relative'}}>
+                <span className='apple-login'>
+                  {/* @ts-ignore */}
+                  <AppleSignin
+                    key={sessionHash}
+                    authOptions={{
+                      clientId: '<replce with com. bundle id>',
+                      scope: 'openid email',
+                      redirectURI: '<must be a deployed URL>',
+                      usePopup: true,
+                      nonce: sessionHash
+                    }}
+                    onError={(error: any) => console.error(error)}
+                    onSuccess={handleAppleLogin}
+                  />Apple
+                </span>
+            </p>
+            </div>
+          </div>
+        </>
+      : 
+        <>
+          <div className="login-container">
+          <p style={{cursor: 'pointer'}} onClick={() =>signOut()}>sign out</p>
+          &nbsp;&nbsp;&nbsp;
+          <span >{wallet}</span>
+          </div>
+        </>
+      }
+    </>
+  )
+}
+
+function App() {
+  return (
+    <LoginScreen/>
+  )
+}
+
+export default App
+```
+
+Luego, incluye un archivo`.env` en la raíz de tu proyecto, agregándolo a`.gitignore`, y actualiza el archivo con los siguientes valores del Sequence Builder:
+
+```
+VITE_PROJECT_ACCESS_KEY=
+VITE_WAAS_CONFIG_KEY=
+```
+
+<Warning>
+  Todas las variables de entorno deben comenzar con`VITE_` para ser incluidas en el entorno de una aplicación vite
+</Warning>
+
+Ejecuta tu código con el siguiente comando en la carpeta raíz y pruébalo:
+
+```shell
+pnpm run dev
+```
+
+## 4. Desplegar un Contrato y Patrocinar Gas
+
+Desplegaremos un contrato de token para poder vincular las imágenes generadas por IA con los metadatos de cualquier token dado. Al desplegar tu contrato, el enfoque recomendado es usar un`ERC1155` en lugar de un`ERC721`. Los beneficios de usar un`ERC1155`
+
+* Semi-Fungible: que es ideal para activos de juego que pueden tener múltiples copias del mismo elemento subyacente.
+* Ahorro de Gas: para proyectos que requieren múltiples tokens ya que un solo ERC1155 puede contener muchas variedades diferentes.
+
+En términos del beneficio de ahorro de gas, en lugar de desplegar un nuevo contrato para cada tipo de token, un solo contrato de token ERC1155 puede mantener todo el estado del sistema, reduciendo los costos de despliegue y la complejidad.
+
+Para desplegar un contrato, puedes seguir[esta guía](/solutions/collectibles/contracts/deploy-an-item-collection) para desplegar tu ERC1155, y actualizar tu`wrangler.toml` con el`CONTRACT_ADDRESS`.
+
+Luego, para que la función de acuñación funcione programáticamente y que las transacciones sean sin gas para tu relayer, necesitarás hacer que la API de Transacciones tome de los créditos de tu cuenta en tu plan de facturación actualizado patrocinando la dirección de tu contrato inteligente desplegado.
+
+Para permitir que la API de Transacciones retransmita transacciones sin tarifa, patrocina el gas siguiendo[esta guía](/solutions/builder/gas-tank#watch-the-gas-tank-in-action-in-builder) para el contrato desplegado.
+
+<Note>
+  Todas las redes de prueba de Sequence son gratuitas
+</Note>
+
+## 5. Desplegar la API de Transacciones en un Worker de Cloudflare
+
+Siguiendo el paso anterior, la API de Transacciones de Sequence puede implementarse en un worker serverless de Cloudflare para que la interacción del usuario del juego o aplicación sea fluida sin una firma de confirmación o pago de gas. En este caso, el worker aprovechará la API de Transacciones de Sequence para acuñar tokens en la dirección del usuario. También te beneficiarás de no tener que preocuparte por la velocidad de las transacciones, el rendimiento o las reorganizaciones, y experimentarás un escalado automático con Cloudflare.
+
+### Acuñando Un Token
+
+Si quieres aprender cómo desplegar un Worker de Cloudflare desde cero, puedes seguir[esta guía](/guides/mint-collectibles-serverless) sobre la creación de un servicio serverless de acuñación de NFT con tu contrato`ERC1155` desplegado o simplemente clonar la[plantilla](https://github.com/0xsequence-demos/demo-cloudflare-worker-treasure-chests/) específica para esta guía.
+
+<Warning>
+  Asegúrate de que si estás usando un Contrato de Items ERC1155 Estándar de Sequence, otorgues el`MINTER_ROLE` para la dirección de tu cuenta de relayer.
+</Warning>
+
+Una vez configurado, llamaremos al endpoint de la instancia de cloudflare para acuñar nuestros NFTs en un paso posterior.
+
+## 6. Generando Prompts e Imágenes con IA
+
+Al comenzar tu viaje en la generación de imágenes con IA, necesitarás una fuente de prompts de modelo de IA para producir medios. Para esta guía y demo, hemos obtenido prompts de los elementos contenidos en el juego[Diablo](https://d07riv.github.io/diabloweb/).
+
+En la[plantilla](https://github.com/0xsequence-demos/demo-cloudflare-worker-treasure-chests/), hemos incluido código para llamar a una API ya desplegada y código para analizar la respuesta.
+
+Con esta API, mostraremos cómo generar imágenes usando el prompt de la API de Diablo desplegada dentro de la función`generate` dentro del worker de Cloudflare:
+
+```typescript
+const generate = async () => {
+	const url = 'https://flask-production-2641.up.railway.app/'; // External API endpoint
+	
+	const init = {
+		method: 'GET',
+		headers: {
+		'Content-Type': 'application/json',
+		},
+	};
+
+	const response = await fetch(url, init); // Fetch data from external API
+	const data: any= await response.json(); 
+	const defend = Math.random() >= 0.5 ? true : false
+	const attributes = []
+	// parse the data to create the attributes
+	
+	return {loot: data[defend ? 'armor' : 'weapon'], attributes: attributes}
+}
+```
+
+Luego completa la función`getInferenceWithItem` para obtener la referencia de inferencia instanciada desde la API de Scenario y pasar un`prompt` que es el botín generado`name` y`type`, así como algunos parámetros adicionales del modelo, que se pueden personalizar a través de la[documentación de la API de Scenario](https://docs.scenario.com/reference/postmodelsinferencesbymodelid):
+
+<Note>
+  Para esta guía, nos decidimos por el tipo de programador`EulerDiscreteScheduler` de la API de Scenario basado en calidad y tiempo, pero si quieres experimentar con el uso de programadores adicionales, puedes usar[esta CLI local personalizada](https://github.com/moskalyk/scenario-gg-benchmark-cli) y verificar los resultados en el [Scenario.gg](https://scenario.gg/) panel de control
+</Note>
+
+```typescript
+const getInferenceWithItem = async (env: Env, prompt: any) => {
+	try {
+		const res: any = await fetch(`https://api.cloud.scenario.com/v1/models/${env.SCENARIO_MODEL_ID}/inferences`, {
+			method: 'POST',
+			headers: {
+				'Authorization': `Basic ${env.SCENARIO_API_KEY}`,
+				'accept': 'application/json',
+				'content-type': 'application/json'
+			},
+			body: JSON.stringify({
+						"parameters": {
+						"numSamples": 1,
+						"qualityBoostScale": 4,
+						"qualityBoost": false,
+						"type": "txt2img",
+						"disableMerging": false,
+						"hideResults": false,
+						"referenceAdain": false,
+						"intermediateImages": false,
+						"scheduler": 'EulerDiscreteScheduler',
+						"referenceAttn": false,
+						"prompt": prompt + ' single object on black background no people'
+					}
+				})
+		})
+
+		const data = await res.json()
+		console.log(data)
+		return {inferenceId: data.inference.id}
+	}catch(err){
+		console.log(err)
+		return {inferenceId: null, err: "ERROR"}
+	}
+}
+```
+
+Luego simplemente implementamos las funciones anteriores en el código react:
+
+```js
+	...
+	if(mint){
+		...
+	} else {
+		const loot = await generate()
+		const inferenceId = await getInferenceWithItem(env, loot.loot.name + " " + loot.loot.type)
+		...
+	}
+	...
+```
+
+Una vez que tenemos el `inferenceId` podemos consultar el estado de la inferencia y retornar cuando esté completo, indicado por el `succeeded` descriptor de estado:
+
+```typescript
+const getInferenceObjectWithPolling = async (env: Env, id: any) => {
+	console.log('getting inference status for: ', id.inferenceId)
+	const inferenceId = id.inferenceId
+
+	const headers = {
+		'Authorization': `Basic ${env.SCENARIO_API_KEY}`,
+		'accept': 'application/json',
+		'content-type': 'application/json'
+	}
+
+	// Function to poll the inference status
+	const pollInferenceStatus = async () => {
+		let status = '';
+		let inferenceData: any = null;
+		while (!['succeeded', 'failed'].includes(status)) {
+			// Fetch the inference details
+			try {
+				const inferenceResponse = await fetch(`https://api.cloud.scenario.com/v1/models/${env.SCENARIO_MODEL_ID}/inferences/${inferenceId}`, {
+					method: 'GET',
+					headers
+				})
+				if (inferenceResponse.ok) {
+					console.log(inferenceResponse.statusText)
+					inferenceData = await inferenceResponse.json();
+				}
+			}catch(err){
+				console.log(err)
+			}
+			status = inferenceData.inference.status;
+			console.log(`Inference status: ${status}`);
+
+			// Wait for a certain interval before polling again
+			await new Promise(resolve => setTimeout(resolve, 5000)); // Polling every 5 seconds
+		}
+		// Handle the final status
+		if (status === 'succeeded') {
+			console.log('Inference succeeded!');
+			console.log(inferenceData); // Print inference data
+			return inferenceData
+		} else {
+			console.log('Inference failed!');
+			console.log(inferenceData); // Print inference data
+			throw new Error("Scenario API Failed")
+		}
+	};
+
+	// Start polling the inference status
+	return await pollInferenceStatus();
+}
+```
+
+Nuevamente, agregamos la función anterior al código react y pasamos el inferenceId. Cuando recibas la respuesta, puedes obtener la URL de la imagen con `resObject.inference.images[0].url`:
+
+```typescript
+	...
+	if(mint){
+		...
+	} else {
+		const loot = await generate()
+		const inferenceId = await getInferenceWithItem(env, loot.loot.name + " " + loot.loot.type)
+		const resObject = await getInferenceObjectWithPolling(env, inferenceId)
+		console.log(resObject.inference.images[0].url) // prints image url
+		...
+	}
+	...
+```
+
+<Note>
+  Cabe señalar que puedes diseñar aplicaciones que devuelvan múltiples imágenes por prompt, y permitir que el usuario en el espacio de usuario elija la generación correcta
+</Note>
+
+## 7. Almacenar Medios en el Servicio de Metadatos de Sequence
+
+Con nuestros medios `url` de la API de Scenario en mano, podemos pasar a almacenar el activo en el `Sequence Metadata Service`. Esto te permite vincular la imagen generada por IA a los metadatos específicos del token - todo a través de llamadas REST-API.
+
+Cada recompensa del cofre del tesoro de Dungeon Minter sigue el mismo proceso donde los metadatos se almacenan primero usando la API de Metadatos de Sequence, el `url` y el generado aleatoriamente `tokenID` (que permite solicitudes paralelas) se devuelve al cliente. El usuario luego consiente, después de inspeccionar el coleccionable, en acuñar el token donde el `tokenID` y el `address` del usuario se pasan de vuelta al worker creado en el [Paso 5](/guides/treasure-chest-guide#5-deploy-a-cloudflare-worker).
+
+### Implementación
+
+Completa e integra [esta guía](/guides/metadata-guide) para construir tu Servicio de Medios sin servidor aprovechando la API de Metadatos de Sequence que usa workers de Cloudflare o simplemente clona nuestra plantilla de cloudflare [template](https://github.com/0xsequence-demos/demo-cloudflare-worker-treasure-chests/) para esta guía.
+
+Una vez completado, pasa los medios almacenados `tokenID` y `url` al frontend para ser renderizados, permitiendo que un usuario acuñe después de ver primero lo que está acuñando:
+
+```typescript
+    const randomTokenIDSpace = ethers.parseUnits(String('10000'), 18)
+	...
+	const jsonCreateAsset = await collectionsService.createAsset({...})
+	...
+	const response = await uploadAsset(env, projectID, collectionID, jsonCreateAsset.asset.id, String(randomTokenIDSpace), imageUrl)
+	return new Response(JSON.stringify({tokenID: String(randomTokenIDSpace), image: response.url }), { status: 200 });
+```
+
+## 8. Acuñación con tu Worker de Cloudflare
+
+El último paso es finalmente acuñar el tokenId correspondiente al que vinculaste los metadatos anteriormente a la dirección del usuario. Aquí enviamos una solicitud al Worker de Cloudflare que creamos en el Paso 5 que acuñará el token para el usuario.
+
+```typescript
+const data = {
+	address: address,
+	mint: true,
+	tokenID: tokenID
+};
+
+const res = await fetch(ENDPOINT, {
+	method: 'POST',
+	headers: {
+	'Content-Type': 'application/json',
+	},
+	body: JSON.stringify(data),
+})
+
+const json = await res.json()
+```
+
+Una nota importante es que probablemente querrás asegurarte de que tus workers de Cloudflare solo procesen solicitudes de un cierto origen frontend, puedes simplemente verificar el `request.headers` para el `Referrer` valor y compararlo contra el `CLIENT_URL` en el `wrangler.toml`:
+
+```typescript
+async function handleRequest(request: any, env: Env, ctx: ExecutionContext) {
+	const originUrl = new URL(request.url);
+	const referer = request.headers.get('Referer');
+
+	if(referer.toString() != env.CLIENT_URL){
+		return new Response('Bad Origin', { status: 500 }); // Handle errors
+	} 
+
+	...
+}
+```
+
+## Conclusión
+
+Recapitulemos lo que hemos hecho durante este tutorial:
+
+**Hemos cubierto cómo crear un proyecto de Sequence y obtener acceso a nuestra suite de APIs. Hemos implementado y configurado una billetera integrada para asegurar un juego fluido para un ejemplo de juego dungeon crawler. Además, hemos usado la plataforma Sequence para implementar un contrato, patrocinar gas para ese contrato para simplificar la experiencia del usuario. También implementamos un acuñador de NFT sin servidor usando la API de Transacciones de Sequence que permite que tu juego escale a millones de jugadores y maneje interacciones complejas de blockchain como las reorganizaciones. Además, hemos aprovechado la API de scenario.gg para crear dinámicamente activos del juego como recompensas para los jugadores. Estas imágenes luego se vinculan a los metadatos de un NFT usando la API de Metadatos de Sequence. Ahora deberías entender cómo acuñar arte de IA para tu juego potenciado por Scenario.gg y Sequence.**
+
+Está claro cuántos componentes intervienen en la creación de un juego escalable, seguro y **divertido** habilitado para blockchain, pero la plataforma Sequence con Scenario te tiene cubierto.
+
+Por último, puedes ver todos los pasos anteriores incorporados en una experiencia completa con nuestro [juego dungeon crawler](https://0xsequence-demos.github.io/demo-dungeon-minter/) para aventurarte en el laberinto y obtener tu propio botín de mazmorra.
+
+¡Feliz construcción!
+
+## 9. (Opcional) Restricción de Acuñación Nativa Por Billetera
+
+Como una opción para prevenir el uso excesivo de la acuñación del cofre del tesoro desde billeteras específicas, un parámetro llamado `DAILY_MINT_RESTRICTION` puede ser establecido en el `wrangler.toml` como una asignación máxima de acuñación por día. Y, si lo consideras necesario, agregar un `ADMIN` a tu protocolo para poder acuñar una cantidad infinita.
+
+Estas características pueden implementarse en el código con los siguientes pasos:
+
+```typescript
+async function handleRequest(request: any, env: Env, ctx: ExecutionContext) {
+	... 
+	const payload = await request.json()
+	const { address, tokenID }: any = payload
+
+	// check for admin
+	if(address.toLowerCase() != env.ADMIN.toLowerCase() && !await hasDailyMintAllowance(env, address)){
+		// check for daily mint allowance
+		return new Response(JSON.stringify({limitExceeded: true}), { status: 400 })
+	}
+	...
+}
+```
+
+Donde `hasDailyMintAllowance` se divide en 2 funciones:
+
+* `fullPaginationDay` de transacciones del usuario `address`
+* `mintCount` que corresponde al `from` siendo la `0x` dirección
+
+### Paginación Completa Del Indexador Para Un Día
+
+<Note>
+  Como nota adicional, el stack del Indexador de Sequence solo mantiene 30 días de transacciones para este período, por lo que puedes extender el marco de tiempo desde un día hasta este máximo
+</Note>
+
+Para usar el Indexador de Sequence, necesitaremos`pnpm install @0xsequence/indexer`
+
+Luego, para implementar usamos un bucle while que obtiene el primer lote de transacciones y el`page.after` valor del indexador, y verifica continuamente si la marca de tiempo es menor a 24 horas, agregando a un arreglo temporal en cada pasada. Esto asegura que obtengamos todas las transacciones disponibles:
+
+```typescript
+import { SequenceIndexer } from '@0xsequence/indexer'
+
+const isLessThan24Hours = (isoDate: string) => {
+    const dateProvided: any = new Date(isoDate);
+    const currentDate: any = new Date();
+    const twentyFourHours = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
+
+    // Calculate the difference in milliseconds
+    const difference = currentDate - dateProvided;
+
+    // Check if the difference is less than 24 hours
+    return difference < twentyFourHours && difference > 0;
+}
+
+const fullPaginationDay = async (env: Env, address: string) => {
+    const txs: any = []
+	const indexer = new SequenceIndexer(`https://${env.CHAIN_HANDLE}-indexer.sequence.app`, env.PROJECT_ACCESS_KEY)
+
+    const filter = {
+        accountAddress: address,
+    };
+
+    // query Sequence Indexer for all token transaction history
+	let txHistory: any
+	let firstLoop = true;
+    let finished = true;
+    // if there are more transactions to log, proceed to paginate
+    while(firstLoop || (!finished && txHistory.page.more)){  
+		if(firstLoop){
+			firstLoop = false
+			txHistory = await indexer.getTransactionHistory({
+				filter: filter,
+				page: { pageSize: 50 }
+			})
+
+			for(let i = 0; i < txHistory.transactions.length; i++){
+				if(!isLessThan24Hours(txHistory.transactions[i].timestamp)){
+					finished = true
+				}
+				txs.push(txHistory.transactions[i])
+			}
+		}
+        txHistory = await indexer.getTransactionHistory({
+            filter: filter,
+            page: { 
+                pageSize: 50, 
+                // use the after cursor from the previous indexer call
+                after: txHistory!.page!.after! 
+            }
+        })
+		for(let i = 0; i < txHistory.transactions.length; i++){
+			if(!isLessThan24Hours(txHistory.transactions[i].timestamp)){
+				finished = true
+			}
+			txs.push(txHistory.transactions[i])
+		}
+    }
+
+    return txs
+}
+```
+
+### Conteo de Minteos Por Día
+
+Todos los coleccionables minteados desde el`ERC721` y`ERC1155` contratos estándar de Sequence son`from` la`0x` dirección:
+
+```typescript
+const mintCount = (env: Env, txs: any) => {
+	let count = 0
+	for(let i = 0; i < txs.length; i++){
+		if(
+			txs[i].transfers[0].from == '0x0000000000000000000000000000000000000000' 
+			&& txs[i].transfers[0].contractAddress == env.CONTRACT_ADDRESS.toLowerCase()
+		) count++
+	}
+	return count
+}
+```
+
+### Tiene Permiso de Minteo Diario
+
+```typescript
+const hasDailyMintAllowance = async (env: Env, address: string) => {
+	const txs = await fullPaginationDay(env, address)
+	const count = mintCount(env, txs)
+	return count < env.DAILY_MINT_RESTRICTION
+}
+```

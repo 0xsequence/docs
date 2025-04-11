@@ -1,0 +1,379 @@
+---
+title: Inicialización y Autenticación
+description: La función de Autenticación en Embedded Wallets simplifica la gestión
+  de cuentas, autenticación y control de sesiones para su aplicación.
+sidebarTitle: Autenticación
+---
+
+* [**Inicializar SDK**](/sdk/headless-wallet/authentication#initialize-sdk): Inicialice el SDK con su clave de acceso al proyecto y la clave del Embedded Wallet Tenant.
+* [**Autenticando Usuarios**](/sdk/headless-wallet/authentication#authentication-methods): Asegúrese de que el SDK esté inicializado con una billetera social, de correo electrónico o de invitado a través de una de nuestras opciones de inicio de sesión para comenzar a usar las funciones WaaS.
+* [**Obtener información del Usuario desde Social**](/sdk/headless-wallet/authentication#retrieve-user-information-from-social-providers): Recuperar datos de usuario desde métodos de autenticación de proveedores sociales.
+
+## Instalar SDK
+
+<CodeGroup>
+  ```bash pnpm
+  pnpm install @0xsequence/waas
+  ```
+
+  ```bash npm
+  npm install @0xsequence/waas
+  ```
+
+  ```bash yarn
+  yarn add @0xsequence/waas
+  ```
+</CodeGroup>
+
+## Inicializar SDK
+
+El Embedded Wallet puede ser inicializado usando un token de Autenticación Social`OAuth` token (o [PlayFab `ticket`](/sdk/headless-wallet/authentication#authenticating-with-playfab)), correo electrónico, o como un `Guest Wallet` para proporcionar funciones de billetera.
+
+Antes de poder usar el SDK de Sequence WaaS, necesita obtener las siguientes claves de configuración del Sequence Builder:
+
+* `WaaSConfigKey`: Puede aprender más sobre esta clave [aquí](/solutions/builder/embedded-wallet/configuration)
+* `ProjectAccessKey`: Puede aprender más sobre esta clave [aquí](/solutions/builder/embedded-wallet/configuration)
+
+E inicialice el SDK de la siguiente manera, que recomendamos en un archivo `config.ts`:
+
+```ts config.ts
+import { SequenceWaaS } from "@0xsequence/waas";
+
+export const sequence = new SequenceWaaS(
+  {
+    projectAccessKey: `${process.env.VITE_PROJECT_ACCESS_KEY}`,
+    waasConfigKey: `${process.env.VITE_WAAS_CONFIG_KEY}`,
+    network: "arbitrum-nova",
+  }
+);
+```
+
+Luego, elija su enfoque para autenticar a sus usuarios:
+
+* [Autenticación con Proveedor Social](/sdk/headless-wallet/authentication#social-provider-authentication)
+* [Autenticación vía Correo Electrónico](/sdk/headless-wallet/authentication#email-authentication)
+* [Autenticación como Invitado](/sdk/headless-wallet/authentication#guest-embedded-wallet)
+
+<Note>
+  Habilite Correo Electrónico (Legacy), Stytch y Billeteras de Invitado, dirigiéndose a [la Página de Acceso Anticipado](https://sequence.build/earlyaccess) y habilitándolo mediante el interruptor.
+</Note>
+
+## Métodos de Autenticación
+
+Iniciar sesión y registrarse son la misma operación; la cuenta se crea automáticamente si aún no existe, lo que también creará automáticamente una billetera web3 para el usuario.
+
+### Autenticación con Proveedor Social
+
+Para autenticar a sus usuarios con un proveedor social, simplemente puede recuperar el [JWT](https://jwt.io/introduction) `idToken` (o ticket de PlayFab) del método de autenticación social, generalmente en forma de `eyJh...` si es un `OAuth` token y pasarlo a la función `signIn`:
+
+```typescript App.tsx
+await sequence.signIn({ idToken }, "Session name");
+```
+
+Para más ejemplos sobre autenticación con proveedores específicos, asegúrese de que su [configuración](/sdk/headless-wallet) de embedded wallet esté configurada con el proveedor de autenticación correspondiente. Luego consulte la implementación de ejemplo:
+
+* [Autenticación con PlayFab](/sdk/headless-wallet/authentication#authenticating-with-playfab)
+* [Autenticación con Google](/sdk/headless-wallet/authentication#authenticating-with-google)
+* [Autenticación con Stytch](/sdk/headless-wallet/authentication#authenticating-with-stytch)
+
+### Autenticación por Correo Electrónico
+
+El SDK de Embedded Wallet permite a los desarrolladores pasar un correo electrónico e iniciar una sesión de Embedded Wallet basada en la respuesta exitosa de una Contraseña de Un Solo Uso. La función permite:
+
+* **Soporte Directo de Correo Electrónico**: El SDK admite inicio de sesión por correo electrónico cuando la clave se genera con alcance de correo electrónico.
+* **Flujo de Usuario Seguro**: Después de proporcionar un correo electrónico de usuario, la API de Embedded Wallet Nitro envía una Contraseña de Un Solo Uso (OTP) a este correo.
+* **Autenticación**: Ingrese la Contraseña de Un Solo Uso en el SDK para obtener una billetera de usuario.
+
+```ts
+import { SequenceWaaS } from '@0xsequence/waas'
+
+const sequence = new SequenceWaaS({
+  projectAccessKey: `${process.env.VITE_PROJECT_ACCESS_KEY}`,
+  waasConfigKey: `${process.env.VITE_WAAS_CONFIG_KEY}`,
+  network: 'arbitrum-nova'
+})
+
+sequence.onEmailAuthCodeRequired(async (respondWithCode: any) => {
+  // you can now store the `respondWithCode` callback somewhere and call it when user submits the code from email
+  // it may return error and be retried for maximum 3 times, while this is happening the promise returned from `signIn` is still pending
+  await respondWithCode(otpCode)
+})
+
+const emailResponse = await sequence.signIn({ email })
+```
+
+```json
+{
+  "sessionId": "0x63A21cCa14ed7454B9cF6466af422B5c597c6b57",
+  "wallet": "0xd6043fe6f06d90ec2cB36cA5CD1B193A8515f350",
+  "email": "email@domain"
+}
+```
+
+### Embedded Wallet de Invitado
+
+La billetera de Invitado le permite crear una billetera efímera y autenticar a un usuario sin requerir que inicie sesión con un proveedor social o correo electrónico, sin embargo, no es recuperable si se eliminan los datos asociados de la aplicación.
+
+Puede habilitar las Billeteras de Invitado dirigiéndose a [la Página de Acceso Anticipado](https://sequence.build/earlyaccess) y habilitándolo mediante el interruptor.
+
+Para crear una billetera de invitado, pase un booleano `guest` establecido en `true`, que creará una billetera efímera para usar en la aplicación con todas las funciones posibles de Embedded Wallet.
+
+```typescript App.tsx
+await sequence.signIn({ guest: true }, "Session name");
+```
+
+<Warning>
+  Los activos almacenados en la billetera de invitado después de que se haya borrado el caché del navegador - o si el usuario ha desinstalado la aplicación - no serán accesibles por el usuario.
+
+  Para proteger a sus usuarios, asegúrese de que después de que se haya transferido cualquier valor o esté disponible para que el usuario lo reclame, solicite al usuario que inicie sesión con un proveedor social para garantizar la continuidad de los activos.
+</Warning>
+
+### Verificar si un Usuario ha Iniciado Sesión
+
+Se puede verificar si un usuario ha iniciado sesión con la siguiente llamada de función:
+
+```ts
+if (await sequence.isSignedIn()){
+  ... // logged in
+} else {
+  ... // not logged in
+}
+```
+
+### Recuperando el correo electrónico autenticado
+
+Cuando se llama al objeto WaaS para que un usuario inicie sesión usando un `idToken`, la dirección de correo electrónico del usuario autenticado se devuelve en una propiedad `email` del objeto devuelto:
+
+```typescript
+const { email } = await sequence.signIn({ idToken }, "Session name")
+```
+
+### Federación de Cuentas
+
+Si un usuario intenta autenticarse con las mismas credenciales a través de diferentes proveedores, por ejemplo, la misma dirección para correo electrónico y Google, recibirá un conflicto como callback `sequence.onEmailConflict` de que la cuenta ya existe para manejar en su aplicación. En este caso, puede elegir cómo desea abordar esto:
+
+1. Informar al usuario que la cuenta ya existe y solicitarle que inicie sesión con el método de autenticación anterior. Los usuarios pueden entonces vincular sus cuentas a través de [Federación de Cuentas](/sdk/headless-wallet/account-federation#embedded-wallet-account-federation) para utilizar diferentes proveedores de autenticación. Esto asegura una única dirección a través de múltiples proveedores.
+2. Alternativamente, también puede ejecutar la función asíncrona `forceCreate` en el callback. La advertencia de que una cuenta ya existe será ignorada y se creará una segunda dirección de billetera separada para el usuario que está afiliada con el diferente proveedor de inicio de sesión.
+
+Utilizando el `onEmailConflict` callback con `forceCreate` para crear una segunda billetera para el usuario:
+
+```typescript
+  const forceCreateFuncRef = useRef<(() => Promise<void>) | null>(null);
+
+  sequence.onEmailConflict(async (info, forceCreate) => {
+    forceCreateFuncRef.current = forceCreate; // Optionally choose to force create a second wallet for the user
+
+    setEmailConflictInfo(info); // Set the conflict info to inform the user
+    setIsEmailConflictModalOpen(true); // Display a modal to inform the user what to do that an account exists
+  });
+```
+
+## Autenticación con Proveedores Sociales Específicos
+
+### Autenticación con Playfab
+
+Para utilizar Playfab para la autenticación, primero debe obtener un Ticket de Playfab. Esto se puede hacer llamando directamente a la API o utilizando un SDK de cliente Playfab. Luego simplemente pase su titleId configurado así como un identificador único de usuario como `CustomId`. Por ejemplo, la llamada de ejemplo está a continuación:
+
+```ts
+const playfabResponse = PlayFabClient.LoginWithCustomID({
+  TitleId: titleId,
+  CustomId: "<CUSTOM_ID>",
+  CreateAccount: true,
+})
+```
+
+Una vez que haya obtenido un ticket de sesión válido de Playfab, simplemente páselo a la función sequence `signIn` como parámetro para autenticar al usuario y crear una sesión válida:
+
+```ts
+const response = await sequence.signIn(
+  {
+    playFabTitleId: import.meta.env.VITE_PLAYFAB_TITLE_ID,
+    playFabSessionTicket: playfabResponse.data.SessionTicket
+  },
+  'playfab session'
+)
+```
+
+Es importante asegurarse de que el ID del título configurado en el builder coincida con el ID del título que se pasa a PlayFab, de lo contrario recibirá un error `Invalid Verifier`.
+
+<Note>
+  Puede usar una variedad de información única del usuario como parámetro para pasar a Playfab para recuperar el ticket de sesión, como el accessToken de Google de un usuario o un nombre de usuario personalizado.
+</Note>
+
+### Autenticación con Google
+
+Por ejemplo en React, podemos aprovechar el paquete `@react-oauth/google` para generar un `idToken` y pasarlo a Sequence:
+
+Comience con un simple archivo `main.tsx` que configure el SDK de WaaS, el router y el proveedor de OAuth de Google.
+
+```ts
+import { SequenceWaaS } from '@0xsequence/waas'
+import { GoogleOAuthProvider } from '@react-oauth/google'
+import { createHashRouter, RouterProvider } from 'react-router-dom'
+
+const sequence = new SequenceWaaS({
+  projectAccessKey: `${process.env.VITE_PROJECT_ACCESS_KEY}`,
+  waasConfigKey: `${process.env.VITE_WAAS_CONFIG_KEY}`,
+  network: 'arbitrum-nova'
+})
+
+export const router = createHashRouter([
+  {
+    path: '/login',
+    element: <Login />
+  },
+  {
+    path: '/',
+    element: <App />
+  }
+])
+
+ReactDOM.createRoot(document.getElementById('root')!).render(
+  <React.StrictMode>
+      <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
+        <RouterProvider router={router} />
+      </GoogleOAuthProvider>
+  </React.StrictMode>
+)
+```
+
+Luego usamos el componente **`GoogleLogin`** del paquete **`@react-oauth/google`** para la autenticación de Google. Una vez autenticado, activamos la función **`handleGoogleLogin`** cuando un usuario inicia sesión exitosamente en Google.
+
+```ts
+import { router, sequence } from './main'
+import { CredentialResponse, GoogleLogin } from '@react-oauth/google'
+
+function Login() {
+  const [signingIn, setSigningIn] = useState(false)
+
+  useEffect(() => {
+    (async () => {
+      if (await sequence.isSignedIn()) {
+        router.navigate('/')
+      }
+    })()
+  }, [])
+
+  const handleGoogleLogin = async (tokenResponse: CredentialResponse) => {
+    const walletAddress = await sequence.signIn({
+      idToken: tokenResponse.credential!
+    }, "MacBook Pro - Chrome")
+
+    console.log(`Wallet address: ${walletAddress}`)
+    router.navigate('/')
+  }
+
+  return (
+    {(<>
+      <GoogleLogin onSuccess={handleGoogleLogin} shape="circle" width={230} />
+    </>)}
+ )
+}
+
+export default Login
+```
+
+### Autenticación con Stytch
+
+<Note>
+  Asegúrese de [completar los detalles de configuración](/sdk/headless-wallet/authentication#authenticating-with-stytch) para Stytch previamente.
+</Note>
+
+Puede ver una aplicación de ejemplo en react con stytch [aquí](https://github.com/0xsequence-demos/stytch-embedded-wallet-react-boilerplate/tree/master) con claves de ejemplo para pruebas.
+
+### Implementación
+
+Simplemente recuperaremos un `idToken` y lo pasaremos al SDK de Embedded Wallet.
+
+Para hacer esto para la sesión iniciada en web usando `@stytch/react`, use el siguiente paquete `browser-cookies` para recuperar el `stytch_session_jwt` de las cookies después del callback una vez que se haya completado la redirección:
+
+```typescript
+import { SequenceWaaS } from '@0xsequence/waas'
+import cookies from 'browser-cookies'
+...
+export const sequence = new SequenceWaaS({
+  projectAccessKey: `${process.env.VITE_PROJECT_ACCESS_KEY}`,
+  waasConfigKey: `${process.env.VITE_WAAS_CONFIG_KEY}`,
+  network: "arbitrum-nova",
+});
+
+const idToken = cookies.get('stytch_session_jwt')
+await sequence.signIn({ idToken }, "Stytch Session name");
+```
+
+## Recuperar información del usuario de los proveedores sociales
+
+Según la forma en que su aplicación esté configurada desde la perspectiva de los Proveedores de Autenticación, tiene la opción de analizar los detalles del usuario que se pueden compartir con las aplicaciones para ser integrados de alguna manera.
+
+Por ejemplo, como una forma simple de crear inclusión social de perfiles en su experiencia, puede hacer referencia a las fotos de perfil ya utilizadas dentro de los respectivos ecosistemas: Google y Apple.
+
+Los siguientes son detalles incluidos en los JWT devueltos:
+
+#### Análisis del JWT de Google `idToken` Contenidos
+
+* `iss` (también conocido como Emisor) (string) - El emisor del token. Para tokens de Google, esto es generalmente una URL como [https://accounts.google.com](https://accounts.google.com) o algo similar.
+* `azp` (también conocido como Parte Autorizada) (string) - El ID del cliente del presentador autorizado. Esta declaración se utiliza en Google OAuth 2.0 para identificar la parte que usa el token.
+* `aud` (también conocido como Audiencia) (string) - Audiencia prevista del token. Típicamente, este es el ID de cliente de tu aplicación.
+* `sub` (también conocido como Sujeto) (string) - El identificador único para el usuario. Está destinado a ser utilizado para identificar al usuario a través de múltiples sistemas.
+* `hd` (también conocido como Dominio Alojado) (string) - Significa que el usuario que se ha autenticado es del dominio respectivo.
+* `email` (string) - La dirección de correo electrónico del usuario, según está registrada en el servicio de autenticación.
+* `email_verified` (boolean) (string) - Un booleano que representa si la dirección de correo electrónico ha sido verificada como genuina.
+* `nonce` (string) - Una cadena utilizada para asociar una sesión de cliente con un token de ID y para mitigar ataques de repetición.
+* `name` (string) - El nombre completo del usuario según está registrado en el servicio de autenticación.
+* `picture` (string) - URL de la foto de perfil del usuario.
+* `given_name` (string) - El nombre del usuario.
+* `family_name` (string) - El apellido del usuario.
+* `iat` (también conocido como Emitido en) (number) - La marca de tiempo cuando se emitió el token, representada en tiempo Unix (segundos desde el 1 de enero de 1970).
+* `exp` (también conocido como Tiempo de expiración) (number) - La marca de tiempo de expiración del token, después de la cual el token no debe considerarse válido.
+
+#### Análisis de JWT de Apple`idToken` Contenidos
+
+* `iss` (string) - La declaración del emisor identifica al principal que emite el token de identidad. Debido a que Apple genera el token, el valor es [https://appleid.apple.com](https://appleid.apple.com).
+* `sub` (string) - La declaración registrada del sujeto identifica al principal que es el sujeto del token de identidad. Debido a que este token es para tu aplicación, el valor es el identificador único para el usuario.
+* `aud` (string) - La declaración registrada de audiencia identifica al destinatario del token de identidad. Debido a que el token es para tu aplicación, el valor es el client\_id de tu cuenta de desarrollador.
+* `iat` (number) - La declaración registrada de emisión indica el momento en que Apple emite el token de identidad, en el número de segundos desde la época Unix en UTC.
+* `exp` (number) - La declaración registrada del tiempo de expiración identifica el momento en que expira el token de identidad, en el número de segundos desde la época Unix en UTC. El valor debe ser mayor que la fecha y hora actuales al verificar el token.
+* `nonce` (string) - Una cadena para asociar una sesión de cliente con el token de identidad. Este valor mitiga los ataques de repetición y está presente solo si lo pasas en la solicitud de autorización.
+* `nonce_supported` (boolean) - Un valor booleano que indica si la transacción está en una plataforma que admite nonce. Si envías un nonce en la solicitud de autorización, pero no ves la declaración nonce en el token de identidad, verifica esta declaración para determinar cómo proceder. Si esta declaración devuelve true, trata el nonce como obligatorio y falla la transacción; de lo contrario, puedes proceder tratando el nonce como opcional.
+* `email` (string) - Un valor de cadena que representa la dirección de correo electrónico del usuario. La dirección de correo electrónico es la dirección real del usuario o la dirección proxy, dependiendo de su servicio de retransmisión de correo electrónico privado. Este valor puede estar vacío para usuarios de Sign in with Apple at Work & School. Por ejemplo, los estudiantes más jóvenes pueden no tener una dirección de correo electrónico.
+* `email_verified` (string || boolean) - Un valor de cadena o booleano que indica si el servicio verifica el correo electrónico. El valor puede ser una cadena ("true" o "false") o un booleano (true o false). El sistema puede no verificar las direcciones de correo electrónico para usuarios de Sign in with Apple at Work & School, y esta declaración es "false" o false para esos usuarios.
+* `is_private_email` (string || boolean) - Un valor de cadena o booleano que indica si el correo electrónico que comparte el usuario es la dirección proxy. El valor puede ser una cadena ("true" o "false") o un booleano (true o false).
+* `real_user_status` (number) - Un valor entero que indica si el usuario parece ser una persona real. Utiliza el valor de esta declaración para mitigar el fraude. Los valores posibles son: 0 (o No soportado), 1 (o Desconocido), 2 (o ProbablementeReal). Esta declaración está presente solo en iOS 14 y posterior, macOS 11 y posterior, watchOS 7 y posterior, tvOS 14 y posterior. La declaración no está presente ni es compatible con aplicaciones basadas en web.
+* `transfer_sub` (string) - Un valor de cadena que representa el identificador de transferencia para migrar usuarios a tu equipo. Esta declaración está presente solo durante el período de transferencia de 60 días después de transferir una aplicación.
+
+#### Ejemplo de Código JS para Análisis
+
+```typescript
+function parseJwt(token) {
+    try {
+        // Split the token into its three parts
+        const parts = token.split('.');
+        if (parts.length !== 3) {
+            throw new Error('JWT token must consist of three parts');
+        }
+
+        // The payload is the second part. We decode it from base64 URL encoding.
+        const decodedPayload = atob(parts[1].replace(/_/g, '/').replace(/-/g, '+'));
+
+        // Parse the decoded payload as JSON
+        const payload = JSON.parse(decodedPayload);
+
+        // Return the payload object, which includes all the claims
+        return payload;
+    } catch (e) {
+        console.error('Failed to parse JWT:', e);
+        return null;
+    }
+}
+
+// Example usage
+const token = 'eyJ...'; // Your JWT token here
+const jwtDetails = parseJwt(token);
+
+if (jwtDetails) {
+    console.log('Email:', jwtDetails.email);
+    console.log('Name:', jwtDetails.name);
+    console.log('Picture:', jwtDetails.picture);
+    // Access other fields similarly
+}
+```

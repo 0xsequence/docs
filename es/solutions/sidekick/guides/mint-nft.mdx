@@ -1,0 +1,58 @@
+---
+title: Acuñar NFTs
+description: Este ejemplo demuestra cómo acuñar un NFT usando Sidekick.
+---
+
+Cuando se usa Sidekick, tu clave privada está asociada con una cuenta inteligente de Sequence. Antes de realizar acciones como acuñar NFTs o transferir tokens, asegúrate de que esta cuenta inteligente tenga los permisos necesarios para ejecutar estas operaciones.
+
+A continuación, ilustraremos los pasos para preparar y acuñar ERC1155 usando Sidekick.
+
+<Note>
+  Este ejemplo asume que el Control de Acceso ERC1155 está basado en Roles.
+</Note>
+
+<Note>
+  Tu billetera inteligente de Sidekick debería ser el nuevo`owner`ahora si planeas ejecutar transacciones desde Sidekick. No funcionará acuñar nuevos tokens si no transfieres la propiedad a la billetera inteligente de Sidekick o usas Control de Acceso Basado en Roles y otorgas el rol de acuñador a la billetera inteligente de Sidekick.
+</Note>
+
+## Acuñar un NFT con Control de Acceso Basado en Roles
+
+<Steps>
+  <Step title="Complete Sidekick Setup">
+    Asegúrate de haber completado la[Sidekick Setup](/solutions/sidekick/overview)guía.
+  </Step>
+
+  <Step title="Get your Sidekick smart wallet address">
+    Envía una solicitud GET al`/sidekick/smart-account-address`endpoint para recuperar la dirección de tu billetera inteligente de Sidekick. Esta dirección se usará para interactuar con tus contratos NFT.
+
+    <video controls className="w-full aspect-video" src="../../../video/sidekick/sidekick_getaddress.mp4" />
+  </Step>
+
+  <Step title="Grant the minter role to the Sidekick smart wallet address from the contract" />
+
+  <Step title="Mint the NFT">
+    Ahora que tu billetera inteligente de Sidekick tiene el rol de acuñador, puedes enviar una solicitud POST al`/write/erc1155/{chainId}/{contractAddress}/mint`endpoint para acuñar un NFT desde el backend.
+  </Step>
+</Steps>
+
+<Note>
+  Si tu NFT no está basado en Roles, en lugar de otorgar el rol de acuñador necesitarás transferir la propiedad del contrato a la billetera inteligente de Sidekick.
+</Note>
+
+## Desplegar y Acuñar desde Sidekick
+
+También puedes desplegar tu contrato desde Sidekick y acuñar, sin pasos adicionales.
+
+<Steps>
+  <Step title="Deploy the NFT contract">
+    Despliega el contrato NFT usando Sidekick.
+
+    <video controls className="w-full aspect-video" src="../../../video/sidekick/sidekick_deploy.mp4" />
+  </Step>
+
+  <Step title="Mint the NFT">
+    Acuña el NFT usando Sidekick.
+
+    <video controls className="w-full aspect-video" src="../../../video/sidekick/sidekick_mint.mp4" />
+  </Step>
+</Steps>

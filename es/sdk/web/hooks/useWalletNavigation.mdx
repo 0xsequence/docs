@@ -1,0 +1,194 @@
+---
+title: useWalletNavigation
+description: Hook para gestionar el estado de navegación y el historial dentro del widget de la billetera
+sidebarTitle: useWalletNavigation
+---
+
+## Importar
+
+```tsx
+import { useWalletNavigation } from '@0xsequence/wallet-widget' 
+```
+
+## Uso
+
+```tsx
+import { useWalletNavigation } from '@0xsequence/wallet-widget'
+
+function SendView() {
+  const { setNavigation, goBack } = useWalletNavigation() 
+
+  const handleSend = () => {
+    // Navigate to confirmation view
+    setNavigation({
+      location: 'send-confirmation',
+      params: { amount, recipient }
+    })
+  }
+
+  const handleCancel = () => {
+    // Go back to previous view
+    goBack()
+  }
+
+  return (
+    <div>
+      <button onClick={handleSend}>Send</button>
+      <button onClick={handleCancel}>Cancel</button>
+    </div>
+  )
+}
+```
+
+## Tipo de Retorno: `useWalletNavigation`
+
+El hook retorna un objeto con controles de navegación y estado:
+
+```tsx
+interface useWalletNavigation {
+  setNavigation: (navigation: Navigation) => void
+  setHistory?: (history: History) => void
+  history: History
+  goBack: () => void
+}
+
+interface Navigation {
+  location: string
+  params?: Record<string, any>
+}
+
+type History = Navigation[]
+```
+
+### Propiedades
+
+#### setNavigation
+
+`(navigation: Navigation) => void`
+
+Función para navegar a una nueva vista. Gestiona automáticamente el historial:
+
+* Si se navega a 'home', limpia el historial
+* De lo contrario, añade la nueva ubicación a la pila del historial
+* Desplaza automáticamente hacia la parte superior de la vista
+
+#### history
+
+`History`
+
+Pila actual del historial de navegación que contiene la secuencia de vistas visitadas.
+
+#### setHistory
+
+`(history: History) => void`
+
+Función de manipulación directa del historial. Se recomienda usar `setNavigation` en su lugar cuando sea posible porque `setNavigation`:
+
+* Desplaza automáticamente hacia la parte superior de la vista
+* Maneja casos especiales como limpiar el historial al navegar a 'home'
+* Asegura una gestión consistente de la pila del historial
+* Proporciona un flujo de navegación más mantenible y predecible
+
+#### goBack
+
+`() => void`
+
+Función para navegar hacia atrás a la vista anterior en el historial.
+
+## Objeto de Navegación
+
+Cuando se usa `setNavigation`, se proporciona un `Navigation` objeto con:
+
+| Propiedad  | Tipo                  | Descripción                                 |
+| ---------- | --------------------- | ------------------------------------------- |
+| `location` | `string`              | La vista/ruta a la que navegar              |
+| `params`   | `Record<string, any>` | Parámetros opcionales para pasar a la vista |
+
+## Características
+
+* **Gestión Automática del Historial**: Mantiene una pila de vistas visitadas
+* **Navegación a Home**: Limpia el historial al navegar a 'home'
+* **Desplazamiento Automático**: Se desplaza hacia la parte superior de la vista al navegar
+* **Navegación Hacia Atrás**: Permite volver a las vistas anteriores
+* **Soporte de Parámetros**: Pasa datos entre vistas mediante parámetros de navegación
+
+## Ejemplos
+
+### Navegación Básica
+
+```tsx
+function HomeView() {
+  const { setNavigation } = useWalletNavigation()
+
+  return (
+    <button onClick={() => setNavigation({ 
+      location: 'settings' 
+    })}>
+      Go to Settings
+    </button>
+  )
+}
+```
+
+### Navegación con Parámetros
+
+```tsx
+function TokenList() {
+  const { setNavigation } = useWalletNavigation()
+
+  const viewToken = (tokenId: string) => {
+    setNavigation({
+      location: 'token-details',
+      params: { tokenId }
+    })
+  }
+
+  return (
+    <div>
+      {tokens.map(token => (
+        <button 
+          key={token.id} 
+          onClick={() => viewToken(token.id)}
+        >
+          View {token.name}
+        </button>
+      ))}
+    </div>
+  )
+}
+```
+
+### Usando Navegación Hacia Atrás
+
+```tsx
+function SettingsView() {
+  const { goBack } = useWalletNavigation()
+
+  return (
+    <div>
+      <h1>Settings</h1>
+      <button onClick={goBack}>
+        Back to Previous View
+      </button>
+    </div>
+  )
+}
+```
+
+### Accediendo al Historial
+
+```tsx
+function NavigationBreadcrumbs() {
+  const { history } = useWalletNavigation()
+
+  return (
+    <div>
+      {history.map((nav, index) => (
+        <span key={index}>
+          {nav.location} {index < history.length - 1 ? '>' : ''}
+        </span>
+      ))}
+    </div>
+  )
+}
+```

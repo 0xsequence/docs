@@ -1,0 +1,132 @@
+---
+title: useWalletSettings
+description: Gancho para acceder y modificar la configuración de la billetera
+sidebarTitle: useWalletSettings
+---
+
+## Importar
+
+```tsx
+import { useWalletSettings } from '@0xsequence/connect'
+```
+
+## Uso
+
+```tsx
+import { useWalletSettings } from '@0xsequence/connect'
+
+function WalletConfigPanel() {
+  const { displayedAssets, readOnlyNetworks, setDisplayedAssets } = useWalletSettings()
+  
+  // Example function to add a new asset
+  const addNewAsset = (contractAddress: string, chainId: number) => {
+    setDisplayedAssets([
+      ...displayedAssets,
+      { contractAddress, chainId }
+    ])
+  }
+  
+  // Example function to check if network is read-only
+  const isNetworkReadOnly = (chainId: number) => {
+    return readOnlyNetworks?.includes(chainId)
+  }
+  
+  return (
+    <div>
+      <h2>Wallet Settings</h2>
+      
+      <div>
+        <h3>Displayed Assets</h3>
+        <ul>
+          {displayedAssets.map(asset => (
+            <li key={`${asset.chainId}-${asset.contractAddress}`}>
+              Chain ID: {asset.chainId}, Contract: {asset.contractAddress}
+            </li>
+          ))}
+        </ul>
+        
+        <button
+          onClick={() => addNewAsset('0x1234...', 1)}
+          disabled={isNetworkReadOnly(1)}
+        >
+          Add ETH Mainnet Asset
+        </button>
+      </div>
+      
+      <div>
+        <h3>Network Status</h3>
+        <ul>
+          {[1, 137, 10].map(chainId => (
+            <li key={chainId}>
+              Chain {chainId}: {isNetworkReadOnly(chainId) ? 'Read-only' : 'Active'}
+            </li>
+          ))}
+        </ul>
+      </div>
+    </div>
+  )
+}
+```
+
+## Tipo de Retorno
+
+```tsx
+interface WalletSettingsReturn {
+  displayedAssets: Array<{
+    contractAddress: string
+    chainId: number
+  }>
+  readOnlyNetworks: number[] | undefined
+  setDisplayedAssets: (assets: Array<{
+    contractAddress: string
+    chainId: number
+  }>) => void
+}
+```
+
+### Propiedades
+
+#### displayedAssets
+
+`Array<{ contractAddress: string, chainId: number }>`
+
+Array de activos para mostrar en la interfaz de la billetera. Cada activo se define por:
+
+* `contractAddress`: La dirección del contrato del token
+* `chainId`: El ID de la red donde existe el token
+
+#### readOnlyNetworks
+
+`number[] | undefined`
+
+Array de IDs de red donde las transacciones están deshabilitadas. Estas redes están disponibles para ver saldos e historial de transacciones, pero los usuarios no pueden iniciar nuevas transacciones.
+
+#### setDisplayedAssets
+
+`(assets: Array<{ contractAddress: string, chainId: number }>) => void`
+
+Función para actualizar la lista de activos mostrados. Toma un array de objetos de activos, cada uno conteniendo una dirección de contrato y ID de cadena.
+
+## Notas
+
+Este gancho proporciona acceso a la configuración de visualización de la billetera e información del estado de la red.
+
+Características principales:
+
+* Gestión de lista de visualización de activos
+* Información de estado de red de solo lectura
+* Actualizaciones de configuración con seguridad de tipos
+
+Casos de uso comunes:
+
+* Gestionar lista de tokens visibles
+* Verificar si las redes son de solo lectura
+* Construir interfaces de configuración
+
+Mejores prácticas:
+
+* Validar direcciones de contrato antes de añadirlas a los activos mostrados
+* Verificar el estado de solo lectura de la red antes de intentar transacciones
+* Mantener actualizada la lista de activos mostrados
+
+El gancho se usa comúnmente en interfaces de configuración de billetera para gestionar qué activos se muestran y verificar el estado de la red.

@@ -1,0 +1,216 @@
+---
+title: useGetTokenMetadata
+description: Hook para obtener metadatos específicos de tokens individuales dentro de un contrato
+sidebarTitle: useGetTokenMetadata
+---
+
+## Importar
+
+```tsx
+import { useGetTokenMetadata } from '@0xsequence/hooks'
+```
+
+## Uso
+
+```tsx
+import { useGetTokenMetadata } from '@0xsequence/hooks'
+
+// Example 1: Single NFT Details
+function NFTDetails({ contractAddress, tokenId }) {
+  const {
+    data: tokensMetadata,
+    isLoading,
+    isError
+  } = useGetTokenMetadata({
+    chainID: "1", // Ethereum mainnet
+    contractAddress, 
+    tokenIDs: [tokenId]
+  })
+
+  if (isLoading) return <div>Loading NFT details...</div>
+  if (isError) return <div>Error loading NFT</div>
+
+  const nft = tokensMetadata?.[0]
+  if (!nft) return <div>NFT not found</div>
+
+  return (
+    <div className="nft-details">
+      <img 
+        src={nft.image}
+        alt={nft.name}
+        className="nft-image"
+      />
+      <div className="nft-info">
+        <h1>{nft.name}</h1>
+        <p>{nft.description}</p>
+        
+        <div className="attributes-grid">
+          {nft.attributes?.map(attr => (
+            <div key={attr.trait_type} className="attribute-card">
+              <span className="trait-type">{attr.trait_type}</span>
+              <span className="trait-value">{attr.value}</span>
+              {attr.rarity && (
+                <span className="trait-rarity">{attr.rarity}%</span>
+              )}
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// Example 2: Batch NFT Collection Display
+function NFTCollectionGrid({ contractAddress, tokenIds }) {
+  const {
+    data: tokensMetadata,
+    isLoading,
+    isError
+  } = useGetTokenMetadata({
+    chainID: "1",
+    contractAddress,
+    tokenIDs: tokenIds // Will automatically chunk into batches of 50
+  })
+
+  if (isLoading) return <div>Loading collection...</div>
+  if (isError) return <div>Error loading collection</div>
+
+  return (
+    <div className="nft-grid">
+      {tokensMetadata?.map(token => (
+        <div key={token.tokenId} className="nft-tile">
+          <img 
+            src={token.image}
+            alt={token.name}
+            loading="lazy"
+          />
+          <div className="nft-tile-info">
+            <h3>{token.name}</h3>
+            {token.attributes && (
+              <div className="trait-pills">
+                {token.attributes.slice(0, 3).map(attr => (
+                  <span key={attr.trait_type} className="trait-pill">
+                    {attr.trait_type}: {attr.value}
+                  </span>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      ))}
+    </div>
+  )
+}
+```
+
+## Tipo de Retorno: `UseQueryResult<TokenMetadata[]>`
+
+El hook devuelve todas las propiedades de React Query's `UseQueryResult` con metadatos del token. Aquí está la estructura detallada:
+
+```tsx
+interface TokenMetadata {
+    tokenId: string;
+    source: string;
+    name: string;
+    description?: string;
+    image?: string;
+    video?: string;
+    audio?: string;
+    properties?: {
+        [key: string]: any;
+    };
+    attributes: Array<{
+        [key: string]: any;
+    }>;
+    image_data?: string;
+    external_url?: string;
+    background_color?: string;
+    animation_url?: string;
+    decimals?: number;
+    updatedAt?: string;
+    assets?: Array<Asset>;
+    status: ResourceStatus;
+    queuedAt?: string;
+    lastFetched?: string;
+}
+```
+
+### Propiedades
+
+#### data
+
+`TokenMetadata[] | undefined`
+
+Array de objetos que contienen metadatos para cada token solicitado:
+
+* `tokenId`: ID del token específico
+* `source`: Fuente/origen de los metadatos del token (ej. "sequence", "opensea")
+* `name`: Nombre del token específico (ej., "Bored Ape #1234")
+* `description`: Descripción del token específico
+* `image`: URL de la imagen del token (automáticamente proxy a través del servicio de imágenes)
+* `video`: URL del video si el token tiene contenido de video
+* `audio`: URL del audio si el token tiene contenido de audio
+* `properties`: Propiedades adicionales de metadatos como pares clave-valor
+* `attributes`: Array de objetos de rasgos para NFTs
+* `image_data`: Datos brutos de SVG/imagen si se proporcionan
+* `external_url`: URL externa asociada con el token
+* `background_color`: Color de fondo en formato hexadecimal
+* `animation_url`: URL para contenido animado
+* `decimals`: Decimales del token (para tokens fungibles ERC1155)
+* `updatedAt`: Marca de tiempo ISO de la última actualización de metadatos
+* `assets`: Array de archivos de activos adicionales
+* `status`: Estado actual de los metadatos ("READY", "PENDING", "ERROR")
+* `queuedAt`: Marca de tiempo ISO cuando se puso en cola la indexación de metadatos
+* `lastFetched`: Marca de tiempo ISO de la última obtención exitosa
+
+#### isLoading
+
+`boolean`
+
+Estado de carga para la obtención de datos.
+
+#### isError
+
+`boolean`
+
+Estado de error que indica si la consulta falló.
+
+#### error
+
+`Error | null`
+
+Cualquier error que ocurrió durante la obtención de datos.
+
+## Parámetros
+
+El hook acepta dos parámetros:
+
+### args: `GetTokenMetadataArgs`
+
+```tsx
+interface GetTokenMetadataArgs {
+  chainID: string
+  contractAddress: string
+  tokenIDs: string[]
+}
+```
+
+| Parámetro         | Tipo       | Descripción                                                  |
+| ----------------- | ---------- | ------------------------------------------------------------ |
+| `chainID`         | `string`   | ID de la cadena como string (ej., "1" para Ethereum mainnet) |
+| `contractAddress` | `string`   | Dirección del contrato del token/NFT                         |
+| `tokenIDs`        | `string[]` | Array de IDs de tokens para obtener metadatos                |
+
+### options: `HooksOptions`
+
+```tsx
+interface HooksOptions {
+  disabled?: boolean
+  retry?: boolean
+}
+```
+
+| Parámetro  | Tipo      | Descripción                                                        |
+| ---------- | --------- | ------------------------------------------------------------------ |
+| `disabled` | `boolean` | (Opcional) Deshabilitar que la consulta se ejecute automáticamente |
+| `retry`    | `boolean` | (Opcional) Si se deben reintentar las consultas fallidas           |

@@ -1,0 +1,130 @@
+---
+title: Vende tus Objetos de Juego a través de una Tienda Web
+description: Esta guía cubre la creación de Ventas Primarias de Sequence. Incluye
+  pasos para crear contrato de ventas, crear contrato nft, crear
+  colección, autenticación de billetera, compra y acuñación.
+sidebarTitle: Vende tus Objetos de Juego ERC-1155 vía Tienda Web
+---
+
+Acelera el crecimiento de tu juego vendiendo objetos directamente a tus jugadores. En esta guía, repasaremos los pasos para implementar un contrato de Venta Primaria utilizando cualquier moneda personalizada o existente para una tienda web que utiliza objetos de juego de un contrato ERC1155. Utilizaremos las siguientes tecnologías de la plataforma Sequence:
+
+1. [Contrato de Ventas Primarias](/solutions/collectibles/contracts/deploy-primary-sales-contract/): Cómo configurar e implementar contratos para lanzar una venta primaria — adecuado para una Tienda Web, Lanzamiento de NFT y más.
+2. [Embedded Wallet](/solutions/wallets/embedded-wallet/overview): Usa Web SDK y Sequence Embedded Wallet para autenticar un usuario.
+3. [Sequence Indexer](/solutions/builder/indexer): Aprovechando el Sequence Indexer para consultar metadatos de NFT y activos de la billetera del usuario.
+4. [Sequence Metadata](/solutions/builder/collections): Actualizando y gestionando los metadatos de una colección o token a través de la UI y API de Sequence Builder.
+
+## Clonar el boilerplate de Ventas Primarias para Objetos de Juego
+
+<Tabs>
+  <Tab title="Sequence CLI">
+    #### Puedes clonar fácilmente el repositorio de Ventas Primarias usando el [Sequence CLI](https://github.com/0xsequence/sequence-cli/)
+
+    ```bash
+    npx sequence-cli boilerplates create-primary-drop-sale-starter
+    ```
+  </Tab>
+
+  <Tab title="Github">
+    #### Puedes clonar el Repositorio de Ventas Primarias desde Github
+
+    ```shell
+    git clone https://github.com/0xsequence-demos/primary-sale-1155-boilerplate.git
+    ```
+
+    <br />
+
+    Luego instala y ejecuta:
+
+    <br />
+
+    ```shell
+    pnpm install && pnpm dev
+    ```
+
+    <br />
+
+    Después de instalar las dependencias, `.env.example` se copiará automáticamente a `.env`, así que puedes probar las cosas con las claves proporcionadas previamente.
+
+    <br />
+
+    Cuando estés listo, reemplaza el contenido de `.env` con la información de tu proyecto.
+  </Tab>
+
+  <Tab title="Github Template">
+    #### Puedes usar la Plantilla del Repositorio de Ventas Primarias desde Github
+
+    Ve a [https://github.com/0xsequence-demos/primary-sale-1155-boilerplate](https://github.com/0xsequence-demos/primary-sale-1155-boilerplate) y haz clic en "Use this Template" en la esquina superior derecha.
+
+    <br />
+
+    Clona tu repositorio recién creado.
+
+    <br />
+
+    Luego instala y ejecuta:
+
+    <br />
+
+    ```shell
+    pnpm install && pnpm dev
+    ```
+
+    <br />
+
+    Después de instalar las dependencias, `.env.example` se copiará automáticamente a `.env`, así que puedes probar las cosas con las claves proporcionadas previamente.
+
+    <br />
+
+    Cuando estés listo, reemplaza el contenido de `.env` con la información de tu proyecto.
+  </Tab>
+</Tabs>
+
+## Configura tus propios Contratos de Ventas Primarias en el repositorio
+
+Proporcionamos algunos contratos y variables de ejemplo para ayudarte a comenzar. Sin embargo, probablemente querrás usar tus propios contratos. Para configurar esto, simplemente sigue los pasos a continuación:
+
+<Steps>
+  <Step title="Deploy a Primary Sales Contract in Sequence Builder.">
+    Primero necesitamos un Contrato de Ventas Primarias junto con un contrato ERC1155 que contendrá nuestros objetos de juego que queremos vender. Para hacer eso, por favor sigue la [guía](/solutions/collectibles/contracts/deploy-primary-sales-contract) aquí.
+  </Step>
+
+  <Step title="Set the Sales Configurations for the project.">
+    Una vez que tengamos nuestro contrato de ventas implementado, simplemente actualizaremos la configuración de ventas en el boilerplate. Ve a `src/salesConfigs.ts` y modifica la variable salesConfigs agregando cada contrato de venta en un array para tu proyecto con las redes que deseas soportar. Ejemplo:
+
+    ```ts
+    export const salesConfigs: SaleConfiguration[] = [
+      {
+        nftTokenAddress: "0x888a322db4b8033bac3ff84412738c096f87f9d0",
+        salesContractAddress: "0x0327b2f274e04d292e74a06809bcd687c63a4ba4",
+        chainId: 80002, //polygonAmoy
+        // Modify here to show different items
+        itemsForSale: ["0", "1"],
+      },
+      {
+        nftTokenAddress: "0xd4bb59d0ba1f7b2beea4c6d9b9f151ee1da02665",
+        salesContractAddress: "0x326d2fbe4808dd2a3e205aecc5e25a6322ad0a81",
+        chainId: 421614, //arbitrumSepolia,
+        // Modify here to show different items
+        itemsForSale: ["0"],
+      },
+    ];
+    ```
+
+    <Note>
+      Puedes ver todas las cadenas disponibles actualmente soportadas por sequence <a href="https://status.sequence.info" target="_blank" rel="noopener noreferrer" style={{ fontWeight: 700 }}>aquí</a>.
+    </Note>
+  </Step>
+
+  <Step title="Set a default chainId for the project.">
+    Para establecer el chainId predeterminado, ve a `src/salesConfigs.ts` y modifica la variable defaultChainId con el chainId que deseas mostrar por defecto en el proyecto. Debe coincidir con un chainId presente en tu variable salesConfigs. Por ejemplo:
+
+    ```ts
+    // In this case, the chosen `defaultChainId` is 80002 (amoy), which is present in the previously declared `salesConfigs` variable.
+    export const defaultChainId = 80002;
+    ```
+
+    ### ¡Listo!
+
+    Tus ventas primarias deberían aparecer y funcionar correctamente a partir de este momento. Para realizar una compra, asegúrate de tener el token correspondiente que estableciste como moneda para la venta en tu billetera, incrementa la cantidad y ¡haz clic en comprar!
+  </Step>
+</Steps>

@@ -1,0 +1,99 @@
+---
+title: Configuración de Apple Auth para Embedded Wallet
+description: Aprende cómo configurar la autenticación de Apple para tu Embedded Wallet
+  creando un cliente de Apple en la Consola de Desarrollador de Apple. Sigue las instrucciones
+  paso a paso para crear el Identificador de App y ID de App para aplicaciones iOS o web.
+sidebarTitle: Configuración de Apple
+---
+
+Para tener la autenticación de Apple integrada en tu instancia de Embedded Wallet, debes configurar un cliente de Apple en la Consola de Desarrollador de Apple. Dependiendo de si estás integrando Embedded Wallet en una aplicación iOS o web, debes elegir la configuración correcta según corresponda.
+
+## Crear Identificador de Aplicación
+
+Para empezar, accede a la [Consola de Desarrollador de Apple](https://developer.apple.com/account/) y navega a Certificados > Identificadores. Una vez allí, haz clic en el botón `+` para crear un nuevo identificador.
+
+<Frame>
+  ![Apple Developer Console Identifiers](/images/embedded_wallet/apple/1.png)
+</Frame>
+
+Ya sea que estés configurando para una aplicación iOS o no, necesitas un ID de Aplicación. Selecciona IDs de Aplicación y haz clic en Continuar.
+
+<Frame>
+  ![Apple Developer Console Identifier Creation](/images/embedded_wallet/apple/7.png)
+</Frame>
+
+## Crear ID de Aplicación
+
+Proporciona lo siguiente en el formulario:
+
+1. Descripción
+2. ID del Bundle: Este es el identificador único del bundle para tu proyecto iOS. Si estás configurando para una aplicación web, puedes proporcionar un valor provisional.
+
+<Frame>
+  ![Apple Developer Console App ID Creation](/images/embedded_wallet/apple/5.png)
+</Frame>
+
+Antes de continuar, necesitarás habilitar la capacidad de Iniciar Sesión con Apple para el ID de la Aplicación. Desplázate hacia abajo hasta la sección de Capacidades y habilita la capacidad de Iniciar Sesión con Apple.
+
+<Frame>
+  ![Apple Developer Console App ID Creation](/images/embedded_wallet/apple/6.png)
+</Frame>
+
+Haz clic en Continuar, y luego en Registrar para crear el ID de la Aplicación.
+
+En esta etapa, si estás configurando solo para una aplicación iOS, puedes omitir la siguiente sección y proceder a usar tu ID del Bundle como tu ID de Cliente en Sequence Builder.
+
+## Configurar ID de Servicios Web
+
+Si estás configurando tu ID de Cliente para una aplicación web, haz clic en el signo `+` en la sección de Identificadores y selecciona la opción IDs de Servicios. Haz clic en Continuar.
+
+<Frame>
+  ![Apple Developer Console Identifier Creation](/images/embedded_wallet/apple/2.png)
+</Frame>
+
+Luego proporciona lo siguiente en el formulario:
+
+1. Descripción
+2. Identificador: Este será el ID de cliente para tu aplicación web que usarás para identificarte en el SDK y Sequence Builder.
+
+Haz clic en Continuar, y luego en Registrar para crear el identificador.
+
+<Frame>
+  ![Web Application Configuration](/images/embedded_wallet/apple/3.png)
+</Frame>
+
+Una vez creado, haz clic en el identificador que ahora aparece en la sección de Identificadores. Ahora necesitarás configurar los dominios y URLs de redirección para el ID de Servicios. Para hacerlo, marca la casilla junto a "Iniciar Sesión con Apple" y luego haz clic en el botón Configurar.
+
+<Frame>
+  ![Web Application Configuration](/images/embedded_wallet/apple/4.png)
+</Frame>
+
+En el modal de Configuración de Autenticación Web, proporciona lo siguiente:
+
+1. ID de Aplicación Principal: Selecciona el ID de Aplicación que creaste anteriormente.
+2. Dominios y Subdominios: Una lista de dominios que serán autorizados para interactuar con este ID de Servicios.
+3. URLs de Retorno: Una lista de URIs de redirección a las que el usuario será redirigido después de una autenticación exitosa, los SDKs de Sequence por defecto redirigirán a la misma página que carga el SDK.
+
+<Note>
+  La autenticación de Apple no funcionará sin `https` cuando se prueba localmente. Si estás registrando una dirección localhost, recomendamos que uses una herramienta como [ngrok](https://ngrok.com/) para crear un túnel seguro a tu servidor local y usar la `https` URL proporcionada por ngrok.
+</Note>
+
+<Frame>
+  ![Web Application Configuration](/images/embedded_wallet/apple/8.png)
+</Frame>
+
+Haz clic en Siguiente, y luego en Listo para completar la configuración, no olvides hacer clic en Continuar para guardar los cambios.
+
+Finalmente, agrega este nuevo ID de Servicio a tu configuración de Apple en Sequence Builder, que ahora tendrá dos entradas: una para el ID del Bundle y otra para el ID de Servicio.
+
+<Frame>
+  ![Web Application Configuration](/images/embedded_wallet/apple/9.png)
+</Frame>
+
+<Note>
+  Si alguna vez necesitas actualizar los dominios o URLs de redirección para el ID de Servicios, simplemente editar el identificador no funcionará. Debido al agresivo almacenamiento en caché por parte de Apple, necesitarás eliminar el identificador y crear uno nuevo con los valores actualizados.
+</Note>
+
+## Obtén Tu ID de Cliente
+
+Como se mencionó anteriormente, para una aplicación iOS, puedes usar el ID del Bundle que creaste como tu ID de Cliente en Sequence Builder. Para una aplicación web y aplicación Android, puedes usar el ID de Servicio que registraste con Apple.

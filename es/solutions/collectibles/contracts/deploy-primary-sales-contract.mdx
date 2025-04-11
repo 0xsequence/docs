@@ -1,0 +1,92 @@
+---
+title: Deploying a Primary Sales Contract in Sequence Builder
+description: Esta guía proporciona un tutorial detallado sobre la configuración y
+  despliegue de un Contrato de Ventas Primarias en Builder. Discute las diferencias
+  entre contratos ERC721 y ERC1155, y guía a través de los pasos para desplegar un
+  contrato.
+sidebarTitle: Deploy a Primary Sales Contract
+---
+
+### Cómo Desplegar un Contrato de Ventas Primarias en Sequence Builder
+
+Esta guía explica cómo configurar y desplegar los contratos para lanzar una venta primaria - adecuada para un lanzamiento de NFT, tienda en el juego y más.
+
+<Steps>
+  <Step title="Step 1: Navigate to contracts">
+    Comienza seleccionando tu `project` deseado para el cual quieres crear una venta y dirígete a `Contracts > Deploy`.
+  </Step>
+
+  <Step title="Step 2: Deploy your chosen collectible contract">
+    Sigue esta [guía](/solutions/collectibles/contracts/deploy-an-item-collection) para desplegar un contrato de coleccionables así como cargar los metadatos de la colección para la cual deseas crear una venta.
+
+    <Frame>
+      ![select game item](/images/collectibles/select_web3_game_item.png)
+    </Frame>
+  </Step>
+
+  <Step title="Step 3: Deploy your Primary Sales contract">
+    Una vez desplegado exitosamente, regresa a la página de contratos y selecciona `+ Deploy new contract` nuevamente. Luego selecciona el contrato de venta ERC721 o ERC1155 apropiado que corresponda a tu contrato de coleccionables previamente desplegado en el paso 2 y haz clic en `Deploy sale contract`.
+
+    <Frame>
+      ![Deploy Sale Contract](/images/collectibles/primary-sales/docs_deploy_sale.png)
+    </Frame>
+  </Step>
+
+  <Step title="Step 4: Set your mint details on the Primary Sales contract.">
+    Navega a la pestaña de detalles de acuñación para tu contrato de ventas primarias. Completa los detalles de acuñación con tus parámetros de venta deseados.
+
+    <Frame>
+      ![Mint Access](/images/collectibles/primary-sales/docs_mint_access.png)
+    </Frame>
+
+    * `Supply Cap`: Esta es la cantidad de suministro de tokens que los usuarios pueden acuñar a través del contrato de Venta
+    * `Cost`: Es el costo en GWEI de acuñar un solo token. En este ejemplo, lo establecemos en 0 para acuñar fácilmente desde Builder, pero al implementar en producción esto debería coincidir con lo que deseas cobrar a tus usuarios.
+    * `Start and End Time`: Hora de inicio y fin de la venta. Si la hora actual está dentro del rango de fechas proporcionado, esto activará la venta. Considera establecer el rango de fechas en el futuro si lo deseas.
+    * `Payment Token`: Puedes seleccionar el token nativo en la cadena o también una moneda personalizada en la que se realiza la venta.
+    * `Sale Type`: También puedes optar por elegir entre una acuñación Pública o Privada. Al seleccionar una acuñación privada, también puedes elegir una lista de participantes permitidos que se carga usando nuestra función de [Audience](https://sequence.build/project/default/audience/). Es importante tener en cuenta que para una acuñación privada, necesitarás pasar una prueba merkle que corresponda a la raíz merkle agregada en los detalles de la venta para poder acuñar. Sin embargo, no te preocupes, proporcionamos esta lógica en nuestros boilerplates por defecto.
+
+    Para esta guía, asumiremos que estás creando una acuñación pública.
+  </Step>
+
+  <Step title="Step 5: Add MinterRole for Sales Contract to Collection Contract">
+    Copia la dirección del contrato de Ventas, luego puedes navegar al contrato específico y seleccionar la configuración para ver los Permisos.
+
+    <Frame>
+      ![contract settings](/images/builder/builder_contract_specific_settings.png)
+    </Frame>
+
+    Una vez que tengas el modal abierto, selecciona la`Permissions` pestaña y puedes`Edit`, o,`+ Add Collaborator`.
+
+    <Frame>
+      ![add collaborator](/images/builder/builder_contract_specific_permissions.png)
+    </Frame>
+
+    Luego completa el formulario con la dirección del contrato de Ventas para agregar como colaborador y selecciona el menú desplegable para asignar el rol`Minter`.
+
+    <Frame>
+      ![assign role](/images/builder/builder_contract_permissions_dropdown.png)
+    </Frame>
+
+    Finalmente, completa y firma la transacción para actualizar el Control de Acceso del contrato.
+  </Step>
+
+  <Step title="Step 6: ">
+    ¡Ahora que tienes tus contratos configurados, vamos a intentar hacer una acuñación de prueba!
+
+    Regresa a tu contrato de Venta implementado y selecciona`Write contract`. Luego haremos clic en la función`mint()` y pasaremos algunos parámetros:
+
+    * `to`: esta es la dirección a la que se está acuñando el NFT. Generalmente sería el usuario que pagó, pero simplemente podemos pasar nuestra dirección de Builder ubicada en la esquina superior derecha.
+    * `amount`: La cantidad de NFTs a acuñar, simplemente acuñaremos 1.
+    * `paymentToken`: Para una moneda personalizada, pasarías la dirección de esa moneda. Sin embargo, para tokens nativos será`0x0000000000000000000000000000000000000000`.
+    * `maxTotal`: La cantidad máxima de la moneda dada que se puede pagar.
+    * `proof`: Para una acuñación pública, puedes simplemente dejar este campo en blanco. En una acuñación privada, esto sería la prueba generada que corresponde a la dirección del usuario y la raíz merkle proporcionada anteriormente.
+
+    <Frame>
+      ![Grant Minter Role](/images/collectibles/primary-sales/docs_mint_sale.png)
+    </Frame>
+
+    Una vez que toda esa información esté completa, adelante y haz clic en`Write` para construir la transacción, luego`Confirm` para acuñar el token!
+  </Step>
+</Steps>
+
+¿Qué sigue? Ahora puedes utilizar los contratos de venta públicamente en tu sitio web para un lanzamiento de NFT o usar estos contratos para tu tienda en el juego para vender artículos del juego a tus jugadores. También recomendamos echar un vistazo a nuestro \[Sequence Pay boilerplate]\([https://github.com/0xsequence-demos/sequence-pay-boilerplate](https://github.com/0xsequence-demos/sequence-pay-boilerplate)), que aprovecha los contratos de venta para habilitar varios casos de uso como Pagos Fiat con tarjeta de crédito o la capacidad de pagar en cualquier moneda para tu venta.

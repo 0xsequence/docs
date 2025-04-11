@@ -1,0 +1,57 @@
+---
+title: Configuración de Embedded Wallet
+description: Configura una Sequence Embedded Wallet en Builder para incorporar
+  fácilmente usuarios a tus juegos integrando cuentas OAuth. Aprende cómo configurar
+  proveedores de inicio de sesión como Google Auth y Apple Auth, especificar orígenes permitidos para
+  seguridad, configurar una billetera de recuperación, crear una configuración inicial.
+sidebarTitle: Configuración
+---
+
+Puedes configurar una [Sequence Embedded Wallet](https://sequence.build/project/default/embedded-wallet?tab=config) en Builder e integrar tus propias cuentas OAuth para permitir una fácil incorporación a tus juegos. La página de configuración en Builder [está disponible aquí](https://sequence.build/project/default/embedded-wallet).
+
+Las siguientes secciones explicarán las diversas formas de configurar usando una Embedded Wallet en Builder:
+
+* [Proveedores de inicio de sesión](/solutions/builder/embedded-wallet#login-providers): Proveedores de autenticación basados en Web2
+* [Orígenes permitidos](/solutions/builder/embedded-wallet#allowed-origins): Especifica los orígenes de URL permitidos para llamar a tu instancia de Embedded Wallet y prevenir el mal uso de la clave de configuración
+* [Billetera de recuperación](/solutions/builder/embedded-wallet#recovery-wallet): En caso de un cambio de propiedad de la billetera por una billetera comprometida, especifica una billetera de recuperación para obtener la propiedad de la instancia de embedded wallet después del proceso de recuperación de Trust
+* [Contraseña de configuración inicial](/solutions/builder/embedded-wallet#initial-configuration-password): Crea una contraseña para asegurar tu instancia del proyecto Embedded Wallet en Builder
+* [Cambios de configuración](/solutions/builder/embedded-wallet#configuration-changes): Actualiza los detalles de configuración en cualquier momento con protección por contraseña
+* [Integraciones SDK](/solutions/builder/embedded-wallet#sdk-integrations): Productos SDK de Sequence que permiten a los desarrolladores implementar una Embedded Wallet en diferentes plataformas
+
+## Proveedores de inicio de sesión
+
+Sequence Embedded Wallet admite múltiples proveedores de inicio de sesión como correo electrónico, varios inicios de sesión sociales y billeteras de invitado. Para los inicios de sesión sociales, debes pasar por el proceso de configuración del proveedor para obtener un ID específico del cliente que se pasará a Sequence Builder. Recomendamos visitar la página de configuración específica del proveedor de inicio de sesión para obtener más información sobre el proceso de configuración de cada proveedor específico.
+
+## Orígenes permitidos
+
+Esta medida de seguridad adicional evitará el uso no autorizado de tu configuración de embedded wallet fuera de los dominios que hayas incluido en la lista blanca. Agrega cualquier URL de desarrollo y producción bajo Orígenes permitidos. Por defecto, todas las subrutas bajo estos hosts estarán permitidas.
+
+Debes definir los orígenes permitidos con un esquema válido (es decir, `https`).
+
+## Billetera de recuperación
+
+Embedded Wallet requiere la dirección pública de una billetera de recuperación que tú controles. Esta billetera de recuperación se utilizará para recuperar las billeteras de los usuarios en un escenario de desastre donde una billetera ha sido comprometida, por lo que debe ser controlada por ti y debe mantenerse segura en todo momento.
+
+Recomendamos que:
+
+* Utilices una billetera multisig segura como [Gnosis Safe](https://safe.global/) para configurar la billetera
+* Te asegures de tener al menos 2, idealmente 3+ firmantes configurados y requeridos para cada transacción
+* Cada firmante esté protegido por una billetera hardware
+
+Una vez que la billetera de recuperación esté configurada correctamente, proporciona la dirección pública para ella. La billetera de recuperación no se puede modificar una vez que se guarda tu configuración.
+
+## Contraseña de configuración inicial
+
+Una vez que tengas toda la información preparada, procede a crear tu configuración de Embedded Wallet. Durante la configuración inicial, Builder te pedirá que asignes una contraseña a la Embedded Wallet. Esta contraseña será requerida para todas las modificaciones posteriores a tu configuración de Embedded Wallet, por lo que debe almacenarse de manera segura.
+
+## Cambios de configuración
+
+Para hacer modificaciones a tu configuración de Embedded Wallet, navega a la sección de Embedded Wallet nuevamente y realiza los cambios necesarios. Luego haz clic en "Guardar configuración" e ingresa tu contraseña de billetera de recuperación para implementar los cambios.
+
+## Integraciones SDK
+
+Ahora que tienes tu configuración de Embedded Wallet lista, sigue nuestras guías sobre cómo integrar con los SDKs:
+
+* [TypeScript SDK](/solutions/wallets/embedded-wallet/overview)
+* [Unity SDK](/sdk/unity/overview)
+* [Unreal SDK](/sdk/unreal/introduction)

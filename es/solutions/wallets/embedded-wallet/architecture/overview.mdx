@@ -1,0 +1,102 @@
+---
+title: Descripción general
+description: Documentación de la Arquitectura de Billetera Integrada para la
+  pila de infraestructura sequence para juegos web3.
+sidebarTitle: Descripción general
+---
+
+## Arquitectura de Billetera Integrada
+
+Las Billeteras Integradas de Sequence son billeteras multifirma de contratos inteligentes nativos. La configuración de la multifirma es 2/2, donde ambas partes deben firmar para enviar una transacción.
+
+A diferencia de la arquitectura MPC más tradicional donde las claves se crean primero juntas y luego se separan, las claves WaaS de Sequence siempre se mantienen separadas y nunca tienen que combinarse para firmar.
+
+Sobre esta capa de seguridad central, la arquitectura de Sequence WaaS ofrece protecciones adicionales:
+
+* **Sequence Auth:** Ejecutándose en un AWS Nitro Enclave encriptado, Sequence Auth actúa como el primer firmante y está bloqueado en la última versión auditada públicamente por Quantstamp. Sequence no tiene la capacidad de acceder al enclave o implementar actualizaciones sin la aprobación de Quantstamp.
+* **Sequence Guard:** Ejecutándose independientemente de Sequence Auth, Guard es capaz de revisar tanto la identidad del usuario como su intención antes de firmar transacciones.
+* **Compatibilidad con OpenID Connect:** Sequence WaaS aprovecha proveedores establecidos de OpenID Connect como Google, Apple y cualquier otro proveedor que siga el mismo protocolo. A diferencia de cualquier otra solución en el mercado, WaaS también permite a los desarrolladores aprovechar sus propios identificadores OIDC con estos servicios.
+
+## Sequence Auth
+
+Sequence Auth es un servicio API que se ejecuta en la [AWS Nitro Enclaves](https://aws.amazon.com/ec2/nitro/nitro-enclaves/) plataforma y proporciona un firmante de autenticación que contribuye a la configuración multisig 2/2 por billetera de usuario. Sequence Auth proporciona una manera simple de agregar creación de cuenta, inicio de sesión, gestión de sesiones y soporte de billetera a tu aplicación, permitiendo a las aplicaciones proporcionar experiencias web tradicionales (es decir, inicio de sesión social, inicio de sesión por correo electrónico, etc.) mientras proporcionan acceso a billeteras crypto para interactuar con contratos inteligentes.
+
+### Clave de Configuración WaaS
+
+Para cada nueva instancia, se utiliza una Clave de Configuración WaaS para autenticar una Aplicación o Cliente de Juego. Esto proporciona acceso a la blockchain a través del SDK WaaS mediante las intenciones generadas enviadas a Sequence Auth. Dentro de una clave de configuración se pueden registrar múltiples IDs de cliente de Proveedores de Inicio de Sesión, que determinan individualmente las direcciones de billetera generadas por Proveedor. Esto significa que, si un ID de cliente para un Proveedor de Inicio de Sesión (por ejemplo, Google o Apple) se comparte entre instancias, los usuarios que utilicen el mismo Proveedor de Inicio de Sesión con credenciales de autenticación obtendrán la misma dirección.
+
+### Claves Privadas de la Billetera
+
+Las claves privadas de la billetera se almacenan encriptadas utilizando una estrategia de responsabilidad compartida entre Sequence y Quantstamp:
+
+1. Sequence solo puede acceder a los bloques encriptados almacenados en la base de datos sin medios de desencriptación.
+2. Quantstamp posee y opera el [KMS](https://aws.amazon.com/kms/) (módulo de seguridad de hardware AWS) utilizado para encriptar los datos de las claves de la billetera. No tienen forma de exportar el material de las claves ni acceso a los datos encriptados en sí.
+
+### Enclave WaaS
+
+El Enclave WaaS es la única entidad capaz de usar los datos encriptados de la billetera. Su seguridad está garantizada por:
+
+1. El hipervisor AWS Nitro genera y firma una atestación criptográfica basada en el código del enclave en ejecución. El documento incluye un PCR0 (un hash del código del enclave) firmado por la Infraestructura de Clave Pública de Amazon.
+2. El KMS operado por el Tercero de Confianza especifica una política que solo permite acceso a las operaciones criptográficas si la atestación es válida y el hash PCR0 del enclave coincide con el valor esperado. Esto significa que cualquier cambio, incluso el más pequeño, en el enclave resultará en una atestación y hash PCR0 diferentes, invalidándolo efectivamente.
+3. El código del enclave es de código abierto y cualquiera puede auditarlo y verificar que el servicio utiliza la versión exacta auditada del código fuente. [Aprende más sobre la verificación](/solutions/wallets/embedded-wallet/architecture/enclave-verification).
+
+El código fuente de Sequence Auth está [disponible públicamente y auditado de forma independiente](https://github.com/0xsequence/waas-authenticator), y las salvaguardas descritas anteriormente aseguran que no puede ser manipulado por ninguna parte.
+
+## Sequence Guard
+
+Sequence Guard es un servicio alojado por Sequence y es la otra clave de las billeteras que contribuye a la configuración 2/2 por billetera. Está destinado a ser otra línea de defensa, verificando no solo la *identidad* sino también su *intención*. Lo logra de dos maneras diferentes:
+
+1 - Límites y listas de permitidos: puedes (desde el panel de desarrollo) configurar qué tipo de acciones están permitidas, esto significa que el guard solo firmará transacciones dentro de estas restricciones. Por ejemplo, puedes definir que solo se puede llamar al contrato NFT X, y el guard asegurará que no se puedan realizar otras transacciones.
+
+2 - Autenticando al usuario: el Sequence Guard autenticará al usuario **independientemente de Sequence Auth**, realiza esta acción ya sea usando un token de id OAuth 2.0 de terceros (de Meta, Google, X, etc.) o comunicándose directamente con el usuario a través de correo electrónico/número de teléfono con un código OTP. La comunicación directa no siempre es necesaria y, cuando ocurre, es fluida y está marcada con los detalles de tu proyecto.
+
+### Modelo de amenazas
+
+Con estas salvaguardas en su lugar las carteras son **seguras** contra los siguientes escenarios:
+
+1. El backend de Sequence.app está comprometido, o las claves de guardia se filtran: en este escenario, la identidad del usuario aún debe ser verificada por Sequence Auth.
+
+2. Sequence Auth está comprometido: en este escenario Sequence Guard protege las carteras, porque autentica al usuario de forma independiente, un atacante en este escenario no podría acceder a ninguna cartera.
+
+El modelo también proporciona protección parcial contra el escenario:
+
+3. El frontend del socio está comprometido, o hay MITM en el lado del socio: Si un atacante pudiera vulnerar el frontend del socio, podría obtener acceso a las carteras en el momento del inicio de sesión, pero no puede obtener acceso a las carteras de usuarios que están actualmente inactivos. Esto significa que la recuperación de tal escenario es posible, con daños limitados.
+
+## Flujo de Datos Simplificado
+
+A continuación ilustramos el flujo de datos de un caso de uso común como la firma de una transacción a través de carteras integradas.
+
+<Frame>
+  ![data-flow-architecture](/images/diagrams/waas/waas-flow.png)
+</Frame>
+
+<Note>
+  Diseño simplificado que describe el ciclo de vida de una transacción en el sistema WaaS.
+  Azul: Software proporcionado por el socio
+  Naranja: Software proporcionado por Sequence pero ejecutado y gestionado por el socio
+  Amarillo: Software proporcionado y ejecutado por Sequence en un AWS Nitro Enclave seguro
+  Verde: Software proporcionado y ejecutado por Sequence
+</Note>
+
+#### 1. Generación de la Intención
+
+El usuario interactúa con el cliente para "hacer algo" que requiere una acción en nombre de la cartera (es decir, enviar algo de USDC o llamar a un método de contrato).
+
+El cliente solicita al `WaaS SDK` que genere una intención para dicha acción; esta intención está firmada con las claves de sesión del cliente. Esta clave de sesión es una clave generada que solo es válida mientras esa sesión OAuth es válida. Cada intención enviada al backend de WaaS está primero firmada por esta clave de sesión para validar que hay una sesión activa y autenticada en el lado del usuario.
+
+#### 2. SDK Reenvía la Intención a Sequence Auth
+
+La intención y su firma correspondiente se envían al servicio Sequence Auth que se ejecuta en un AWS Nitro Enclave.
+Sequence Auth solicita a la API de WaaS que construya una transacción para la intención dada y luego valida que la transacción no se desvíe de la intención original. En caso de validación exitosa, Sequence Auth firma la transacción y reenvía la transacción, la intención y la firma a la API de WaaS.
+
+#### 4. La API de WaaS Recolecta la Firma de Sequence Guard
+
+La API de WaaS recibe una solicitud de transacción "medio firmada", junto con una intención que ha sido firmada por el cliente. Necesita recolectar una firma más antes de poder transmitir la transacción, por lo que llama a Sequence Guard.
+
+#### 5. Sequence Guard Autentica al Usuario
+
+Sequence Guard recibe una solicitud de firma para una cartera determinada. Verifica que la intención existe, corresponde a la transacción y ha sido firmada por una sesión válida. Si todo es correcto, firma la transacción.
+
+#### 6. Transmisión y Recibo de Transacción
+
+La API de WaaS transmite la transacción y espera el recibo. El `txHash` resultante se envía de vuelta al cliente.

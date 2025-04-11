@@ -1,0 +1,33 @@
+---
+title: Checkout UI
+---
+
+El SDK viene con una interfaz de Checkout predeterminada que recomendamos usar como punto de partida y personalizar para tu juego.
+
+## Trabajando con la Interfaz de Checkout Incorporada
+
+Hemos proporcionado un `CheckoutPanel` como parte de nuestro ensamblaje de Boilerplates. Al igual que con el resto de los boilerplates, se accede a través de nuestro `BoilerplatesFactory`, ver [Bootstrap Your Game](/sdk/unity/bootstrap_game) para más información.
+
+En resumen, con el `CheckoutPanel` prefab ubicado en `Assets/**/Resources/Checkout/CheckoutPanel`, puedes abrir fácilmente el `CheckoutPanel` usando el `BoilerplateFactory`:
+
+```
+(CheckoutPanel, CheckoutPage) checkoutUi = BoilerplateFactory.OpenCheckoutPanel(parentTransform, checkoutHelperInstance, fiatCheckoutInstance, optionalOnCloseAction);
+```
+
+donde checkoutHelperInstance implementa la interfaz `ICheckoutHelper` y fiatCheckoutInstance implementa la interfaz `IFiatCheckout`.
+
+Actualmente hay dos implementaciones de `ICheckoutHelper` disponibles para ti, `NftCheckout` y `ERC1155SaleCheckout` para Mercados de Ventas Secundarias y Ventas Primarias ERC1155 respectivamente. Una implementación para Ventas Primarias ERC721 estará disponible próximamente.
+
+`SequenceCheckout` es actualmente la única implementación de `IFiatCheckout` disponible; soporta tanto Mercados de Ventas Secundarias como Ventas Primarias ERC1155; el soporte para Ventas Primarias ERC721 estará disponible próximamente en `SequenceCheckout`.
+
+## Cómo Funciona
+
+Puede ser útil entender cómo se integra el ecosistema de Checkout, especialmente si quieres construir tu propia lógica personalizada de panel/modal de checkout.
+
+Este diagrama debería ayudarte a comprender cómo está organizado el sistema.
+
+![ERG Diagram](/images/unity/ERG_SequencePayModal.png)
+
+[Fuente](https://github.com/0xsequence/sequence-unity/blob/Feature/marketplaceCheckout/Packages/Sequence-Unity/Sequence/SequenceSDK/Marketplace/ERG_CheckoutModal.mmd)
+
+Esto, junto con el `CheckoutPage` (y código relacionado) debería servir como una excelente referencia si decides escribir tu propia lógica de interfaz personalizada.

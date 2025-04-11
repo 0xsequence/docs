@@ -1,0 +1,120 @@
+---
+title: Gestión de Sesiones
+description: La función de Gestión de Sesiones en Auth + Embedded Wallet simplifica
+  la gestión de cuentas, autenticación y control de sesiones para tu aplicación.
+sidebarTitle: Manage Sessions
+---
+
+Se abre una sesión válida durante el proceso de Autenticación.
+
+Sequence Auth y Embedded Wallet maneja los siguientes aspectos de tu aplicación:
+
+* [Verificar Sesión Válida](/sdk/headless-wallet/manage-sessions#validation-status): Gestiona cuentas blockchain para registrar o iniciar sesión de usuarios.
+* [Control de Validación de Sesión](/sdk/headless-wallet/manage-sessions#control-session-validation): Sesiones de autenticación para devolver detalles importantes que serán consumidos por tu aplicación para mejorar la experiencia de juegos y aplicaciones.
+* [Cerrar Sesión](/sdk/headless-wallet/manage-sessions#close-session): Gestiona el listado y eliminación de sesiones manejadas por el stack WaaS.
+
+## Estado de validación
+
+Para verificar el estado de validación de la sesión actual, usa el método`isSessionValid`. Esto devuelve`true`para inicio de sesión por email y logins sociales confiables y`false`para logins personalizados hasta que se complete la validación por email.
+
+```ts
+const isValid = await sequence.isSessionValid();
+console.log(isValid);
+```
+
+```
+true
+```
+
+### Activar validación de sesión
+
+Activa manualmente una validación de sesión con el método`validateSession`. Esto enviará un código al email del usuario. Si se valida dentro de 10 minutos, el método devuelve`true`; de lo contrario, devuelve`false`.
+
+```ts
+const result = await sequence.validateSession();
+```
+
+```
+true
+```
+
+Una vez que el usuario recibe el código, puede validar la sesión con el método`finishValidateSession`que toma el código como argumento. Si el código es válido, el método devuelve`true`; de lo contrario, devuelve`false`.
+
+```ts
+const result = await sequence.finishValidateSession("123456");
+```
+
+```
+true
+```
+
+### **Control de Validación de Sesión**
+
+E&#x6C;**`onValidationRequired`**&#x63;allback se usa para determinar la necesidad de validación de sesión durante acciones como enviar transacciones o firmar mensajes. Si el callback devuelv&#x65;**`true`**, activa la validación de sesión. Si devuelv&#x65;**`false`**, la acción relacionada se cancela. Este mecanismo asegura que solo las sesiones validadas puedan proceder con operaciones sensibles.
+
+```ts
+const tx = await sequence.sendERC20({
+  validation: {
+    onValidationRequired: () => true,
+  },
+  chainId: 42161,
+  token: "0x6b175474e89094c44da98b954eedeac495271d0f", // DAI
+  to: "0x27CabC9700EE6Db2797b6AC1e1eCe81C72A2cD8D", // Recipient
+  value: "200000000000000000000", // 200 DAI
+});
+```
+
+### Escuchar validaciones de sesión
+
+Eventos como envíos de transacciones pueden solicitar silenciosamente la validación de sesión. Usa el hook`onValidationRequired`para capturar tales instancias.
+
+```ts
+sequence.onValidationRequired(() => {
+  console.log("Session has been triggered for validation");
+});
+
+await sequence.sendTransaction({ chainId: 1 }, { to: "0x...", value: "1" });
+```
+
+```
+Session has been triggered for validation
+```
+
+## Gestionar validación automática de sesión
+
+La validación automática de sesión ocurre durante acciones que requieren validación. Gestiona este proceso usando el hook onValidationRequired.
+
+```ts
+const tx = await sequence.sendTransaction({
+  chainId: 1,
+  validation: {
+    onValidationRequired: () => {
+      console.log("Session has been triggered for validation");
+      return true;
+    },
+  },
+  to: "0x061150e5574716DBb1a2cdf54b3DcE9F94395f65",
+  value: "1",
+});
+```
+
+Al devolver`true`o`false`desde el`onValidationRequired`hook, continúas o cancelas la acción, respectivamente.
+
+## Cerrar Sesión
+
+Una sesión puede cerrarse usando el`id`de la sesión. Cualquier sesión puede cerrarse desde cualquier dispositivo con una sesión activa.
+
+```ts
+import { SequenceWaaS } from '@0xsequence/waas'
+
+const sequence = new SequenceWaaS({
+  projectAccessKey: `${process.env.VITE_PROJECT_ACCESS_KEY}`,
+  waasConfigKey: `${process.env.VITE_WAAS_CONFIG_KEY}`,
+  network: 'arbitrum-nova'
+})
+
+await sequence.signIn({ idToken }, "MacBook Pro - Chrome")
+
+const sessions = await sequence.listSessions()
+await sequence.dropSession({ sessionId: sessions[0].id })
+```

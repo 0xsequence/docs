@@ -1,0 +1,71 @@
+---
+title: useOpenWalletModal
+description: Hook para abrir el modal de inventario de la cartera
+sidebarTitle: useOpenWalletModal
+---
+
+## Importar
+
+```tsx
+import { useOpenWalletModal } from '@0xsequence/wallet-widget'
+```
+
+## Uso
+
+```tsx
+import { useOpenWalletModal } from '@0xsequence/wallet-widget'
+
+function App() {
+  // Get the function to open/close the wallet modal
+  const { setOpenWalletModal } = useOpenWalletModal()
+  
+  // Function to handle opening the wallet inventory
+  const handleViewInventory = () => {
+    setOpenWalletModal(true) // Open the wallet modal to view tokens
+  }
+  
+  return (
+    <button 
+      onClick={handleViewInventory}
+      title="Inventory"
+    >
+      View all tokens in your wallet
+    </button>
+  )
+}
+```
+
+## Tipo de Retorno:`UseOpenWalletModalReturnType`
+
+El hook retorna un objeto con las siguientes propiedades:
+
+```tsx
+type UseOpenWalletModalReturnType = {
+  setOpenWalletModal: (isOpen: boolean) => void
+  openWalletModalState: boolean
+}
+```
+
+### Propiedades
+
+#### setOpenWalletModal
+
+`(isOpen: boolean) => void`
+
+Función para abrir o cerrar el modal de la Wallet.
+
+**Parámetros:**
+
+| Parámetro | Tipo      | Descripción                                                 |
+| --------- | --------- | ----------------------------------------------------------- |
+| `isOpen`  | `boolean` | Si el modal debe estar abierto (`true`) o cerrado (`false`) |
+
+#### openWalletModalState
+
+`boolean`
+
+El estado actual de apertura del modal de la Wallet (`true` si está abierto, `false` si está cerrado).
+
+## Notas
+
+Este hook proporciona métodos para controlar el modal del Inventario de la Wallet que permite a los usuarios ver sus tokens y NFTs. El modal de la Wallet muestra todos los tokens, NFTs y coleccionables presentes en la wallet conectada.

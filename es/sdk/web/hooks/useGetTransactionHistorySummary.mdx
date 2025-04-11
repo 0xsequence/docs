@@ -1,0 +1,151 @@
+---
+title: useGetTransactionHistorySummary
+description: Gancho para obtener y combinar el historial de transacciones a través de múltiples cadenas
+sidebarTitle: useGetTransactionHistorySummary
+---
+
+## Importar
+
+```tsx
+import { useGetTransactionHistorySummary } from '@0xsequence/hooks'
+```
+
+## Uso
+
+```tsx
+import { useGetTransactionHistorySummary } from '@0xsequence/hooks'
+import { useAccount } from 'wagmi'
+
+function TransactionHistory() {
+  const { address } = useAccount()
+  
+  const {
+    data: transactions,
+    isLoading,
+    isError,
+    error
+  } = useGetTransactionHistorySummary({
+    accountAddress: address || '',
+    chainIds: [1, 137] // Fetch from Ethereum and Polygon
+  })
+
+  if (isLoading) return <div>Loading...</div>
+  if (isError) return <div>Error: {error.message}</div>
+
+  return (
+    <div>
+      {transactions?.map(tx => (
+        <div key={tx.txnHash}>
+          <h3>Transaction: {tx.txnHash}</h3>
+          <p>Chain: {tx.chainId}</p>
+          <p>Time: {new Date(tx.timestamp).toLocaleString()}</p>
+          {tx.transfers?.map((transfer, index) => (
+            <div key={index}>
+              <p>From: {transfer.from}</p>
+              <p>To: {transfer.to}</p>
+              <p>Value: {transfer.value}</p>
+            </div>
+          ))}
+        </div>
+      ))}
+    </div>
+  )
+}
+```
+
+## Tipo de Retorno: `UseQueryResult<Transaction[]>`
+
+El gancho devuelve todas las propiedades de React Query's `UseQueryResult` con datos de transacción. Aquí está la estructura detallada:
+
+```tsx
+interface TxnTransfer {
+    transferType: TxnTransferType;
+    contractAddress: string;
+    contractType: ContractType;
+    from: string;
+    to: string;
+    tokenIds?: Array<string>;
+    amounts: Array<string>;
+    logIndex: number;
+    contractInfo?: ContractInfo;
+    tokenMetadata?: {
+        [key: string]: TokenMetadata;
+    };
+}
+
+interface Transaction {
+  txnHash: string
+  chainId: number
+  timestamp: string
+  blockNumber: number
+  blockHash: string
+  metaTxnID?: string
+  transfers?: Array<TxnTransfer>
+}
+```
+
+### Propiedades
+
+#### data
+
+`Transaction[] | undefined`
+
+Array de transacciones de todas las cadenas especificadas, ordenadas por marca de tiempo (las más recientes primero). Cada transacción incluye:
+
+* `txnHash`: Hash de la transacción
+* `chainId`: ID de la cadena donde ocurrió la transacción
+* `timestamp`: Marca de tiempo de la transacción
+* `blockNumber`: Número del bloque donde se minó la transacción
+* `blockHash`: Hash del bloque
+* `metaTxnID`: ID de meta transacción opcional
+* `transfers`: Array de objetos de transferencia con direcciones normalizadas
+
+#### isLoading
+
+`boolean`
+
+Estado de carga para la obtención inicial de datos.
+
+#### isError
+
+`boolean`
+
+Estado de error que indica si la consulta falló.
+
+#### error
+
+`Error | null`
+
+Cualquier error que ocurrió durante la obtención de datos.
+
+## Parámetros
+
+El gancho acepta dos parámetros:
+
+### args: `GetTransactionHistorySummaryArgs`
+
+```tsx
+interface GetTransactionHistorySummaryArgs {
+  accountAddress: string
+  chainIds: number[]
+}
+```
+
+| Parámetro        | Tipo       | Descripción                                              |
+| ---------------- | ---------- | -------------------------------------------------------- |
+| `accountAddress` | `string`   | La dirección de la cuenta para obtener las transacciones |
+| `chainIds`       | `number[]` | Array de IDs de cadena para obtener las transacciones    |
+
+### options: `HooksOptions`
+
+```tsx
+interface HooksOptions {
+  disabled?: boolean
+  retry?: boolean
+}
+```
+
+| Parámetro  | Tipo      | Descripción                                                        |
+| ---------- | --------- | ------------------------------------------------------------------ |
+| `disabled` | `boolean` | (Opcional) Deshabilitar que la consulta se ejecute automáticamente |
+| `retry`    | `boolean` | (Opcional) Si se deben reintentar las consultas fallidas           |

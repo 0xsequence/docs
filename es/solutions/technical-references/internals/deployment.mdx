@@ -1,0 +1,50 @@
+---
+title: Despliegue de Contratos
+description: El contenido discute el proceso de despliegue de las carteras de contratos Sequence, enfatizando su naturaleza determinista a través de redes compatibles con EVM.
+sidebarTitle: Despliegue
+---
+
+Las carteras de contratos Sequence son completamente deterministas; una cartera se mapeará a la misma dirección en cualquier red que sea compatible con EVM.
+
+Esto significa que cuando se crea una cartera, su dirección puede ser derivada por adelantado, y será la misma en redes como Ethereum, Arbitrum, Polygon y otras.
+
+<Warning>
+  **Limitaciones**<br />
+
+  Las carteras Sequence**pueden no** recibir la misma dirección en cadenas que no son 100% compatibles con EVM.
+
+  **Verifica dos veces tus direcciones** antes de enviar cualquier activo a ellas.
+</Warning>
+
+Para lograr esto, Sequence usa variaciones del[método de Nick](https://weka.medium.com/how-to-send-ether-to-11-440-people-187e332566b7), que permite el despliegue del mismo contrato en múltiples cadenas de una manera completamente sin confianza.
+
+El método de Nick se usa para desplegar un contrato "deployer", que luego se usa para desplegar los contratos principales de Sequence.
+
+Estos contratos son:
+
+#### Contrato Factory
+
+Crea nuevas carteras Sequence, con una configuración inicial.
+
+#### MainModule (v1 y v2)
+
+El módulo principal implementa la lógica central de la cartera, con una configuración fija.
+
+#### MainModuleUpgradable (v1 y v2)
+
+Similar al MainModule, pero con la capacidad de actualizar la configuración de la wallet.
+
+#### Contratos Auxiliares
+
+Tanto v1 como v2 tienen contratos auxiliares que son utilizados por el SDK para interactuar con la wallet; estos contratos no son críticos para el funcionamiento de la wallet, pero son necesarios para que el SDK funcione.
+
+Consulta la documentación de v1 y v2 para más información sobre los contratos.
+
+<Note>
+  Aviso<br />Un script completo para el despliegue se puede encontrar en el [Sequence Live Contracts repository](https://github.com/0xsequence/live-contracts).
+</Note>
+
+## Pasos Detallados de Despliegue
+
+* v1: [Desplegar Contratos v1](/solutions/technical-references/internals/v1/deploy)
+* v2: [Desplegar Contratos v2](/solutions/technical-references/internals/v2/deploy)

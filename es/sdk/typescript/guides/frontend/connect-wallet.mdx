@@ -1,0 +1,324 @@
+---
+title: Conectar Billetera
+description: Sequence ofrece una billetera flexible con múltiples formas de conectar/acceder.
+---
+
+Sequence es una billetera muy flexible que permite a los usuarios múltiples formas de conectar / acceder a su billetera. Esto incluye:
+
+1. **Billetera web Ethereum bajo demanda para nuevos usuarios** vía [0xsequence](https://www.npmjs.com/package/0xsequence) paquete npm + [https://sequence.app](https://sequence.app) -- esta opción permite a los desarrolladores ofrecer a los usuarios una billetera web3 bajo demanda. No se requiere instalación por parte del usuario -- cualquier navegador*simplemente funcionará*, y los usuarios pueden incorporarse con una experiencia Web2 familiar. Piensa en ello como*Paypal / Stripe pero para web3*.
+
+2. **Navega por todo web3** vía [Sequence Wallet Chrome Extension](https://chrome.google.com/webstore/detail/sequence-wallet/ocmccklecaalljlflmclidjeclpcpdim?hl=en) -- los usuarios que tienen instalada la Extensión de Chrome de Sequence Wallet pueden acceder a cualquier Dapp compatible con Ethereum en la Web :) Justo como funciona MetaMask, pero por supuesto con muchos de los beneficios de Sequence.
+
+3. **Acceso desde teléfono móvil** vía [WalletConnect](https://walletconnect.com/) soporte dentro de Sequence Wallet -- los usuarios pueden comunicarse con sus billeteras de forma remota a través del increíble protocolo Wallet Connect. Esta es una excelente opción si usas Sequence Wallet desde tu teléfono móvil y quieres conectar tu billetera a una dapp de escritorio.
+
+Sequence Wallet está construida sobre estándares Web Browser (W3C) y Ethereum web3 -- y está disponible en todos los lugares donde un navegador moderno pueda ejecutarse. Hemos diseñado cuidadosamente la billetera para una incorporación simple, mientras mantenemos la seguridad para los usuarios, y permitimos que los usuarios aumenten progresivamente el nivel de su seguridad a través de claves y medidas adicionales.
+
+Esto significa que si has desarrollado una dapp para trabajar con MetaMask, entonces Sequence también funcionará sin ningún cambio. Si estás usando web3.js o ethers.js, Sequence también funcionará. Esta es la belleza de la interoperabilidad en web3 :)
+
+## Conectando tu dapp con `0xsequence`
+
+<Note>
+  \[Una billetera encantadora sin requerir que tus usuarios instalen nada :D]
+  Al integrar `0xsequence`, los usuarios pueden acceder a tu dapp sin tener que instalar ninguna extensión especial, ¡y la billetera también funciona en navegadores móviles!
+</Note>
+
+Tu dapp puede conectarse a la billetera de tu usuario primero instanciando el proveedor de la Billetera:
+
+```ts
+import { sequence } from "0xsequence";
+
+const projectAccessKey = '<access_key>'
+
+// This assumes your dapp runs on Ethereum mainnet
+const wallet = sequence.initWallet(projectAccessKey);
+
+// If your dapp runs on a different EVM-compatible blockchain, you can specify its name
+// const wallet = sequence.initWallet(projectAccessKey, { defaultNetwork: 'polygon' });
+```
+
+Ten en cuenta que es posible recuperar la instancia anterior usando el método `getWallet()`:
+
+```ts
+import { sequence } from "0xsequence";
+const wallet = sequence.getWallet();
+```
+
+Una vez que tengas la instancia, puedes conectarte a la billetera:
+
+```ts
+const connectDetails = await wallet.connect({
+  app: "Your Dapp name",
+  authorize: true,
+  // And pass settings if you would like to customize further
+  settings: {
+    theme: "light",
+    bannerUrl: "https://yoursite.com/banner-image.png", // 3:1 aspect ratio, 1200x400 works best
+    includedPaymentProviders: ["moonpay", "ramp"],
+    defaultFundingCurrency: "matic",
+    lockFundingCurrencyToDefault: false,
+  },
+});
+
+console.log("user accepted connect?", connectDetails.connected);
+console.log(
+  "users signed connect proof to valid their account address:",
+  connectDetails.proof
+);
+```
+
+Puedes elegir/limitar las opciones de inicio de sesión disponibles con `signInOptions`. Se ignorará si el usuario ya ha iniciado sesión.
+
+```ts
+const wallet = sequence.getWallet();
+
+await wallet.connect({
+  app: "Your Dapp name",
+  settings: { signInOptions: ["google"] },
+});
+```
+
+Después de conectarte, puedes usar `wallet.openWallet()` para abrir la billetera:
+
+```ts
+const wallet = sequence.getWallet();
+wallet.openWallet();
+```
+
+También puedes opcionalmente pasar una ruta, y usar `openWithOptions` intención para pasar configuraciones cuando abres la billetera:
+
+```ts
+const settings: Settings = {
+  theme: "dark",
+  bannerUrl: "https://yoursite.com/banner-image.png", // 3:1 aspect ratio, 1200x400 works best
+  includedPaymentProviders: ["moonpay", "ramp"],
+  defaultFundingCurrency: "eth",
+  lockFundingCurrencyToDefault: false,
+};
+
+const intent: OpenWalletIntent = {
+  type: "openWithOptions",
+  options: {
+    settings: settings,
+  },
+};
+
+const wallet = sequence.getWallet();
+
+const path = "wallet/add-funds";
+wallet.openWallet(path, intent);
+```
+
+<Tip>
+  \[Revisa algunos ejemplos de código de Dapp]
+  Para ejemplos completos, ver [Demo-Dapp](https://github.com/0xsequence/demo-dapp) y [Demo-Dapp-Web3Modal](https://github.com/0xsequence/demo-dapp-web3modal).
+</Tip>
+
+<Warning>
+  \[Evitar que los navegadores bloqueen la ventana emergente de Sequence]
+  La mayoría de los navegadores bloquearán las ventanas emergentes si se llaman fuera de los manejadores de eventos activados por el usuario como `onclick`, o cuando toma demasiado tiempo procesar entre la acción del usuario y la ventana real
+
+  Lee más sobre el bloqueo de ventanas emergentes del navegador [aquí](https://javascript.info/popup-windows#popup-blocking).
+</Warning>
+
+<Frame caption="Sequence on-demand sign in">
+  ![Sequence on-demand sign in](/images/sign-in-fresh.png)
+</Frame>
+
+<Frame caption="Sequence on-demand sign in, connect">
+  ![Sequence on-demand sign in, connect](/images/sign-in-connect.png)
+</Frame>
+
+## Opciones de Inicio de Sesión y Conexión de la Billetera
+
+Las dapps con integración directa de sequence pueden especificar un objeto `ConnectOptions` al ejecutar `wallet.connect()`.
+
+```typescript
+const connectDetails = await wallet.connect(connectOptions)
+```
+
+Los parámetros de opción se describen a continuación.
+
+#### **app**
+
+Nombre de la aplicación de la dapp que se anunciará al usuario en la pantalla de conexión.
+
+Ejemplo: `await wallet.connect({ app: 'My defi app' })`
+
+#### **appProtocol**
+
+Protocolo personalizado para redirección de autenticación (unity/unreal).
+
+#### **origin**
+
+Sugerencia de origen del host de la dapp que abre la billetera. Este valor se determinará automáticamente y se verificará su integridad, y puede omitirse.
+
+#### **expiry**
+
+Número de expiración (en segundos) que se utiliza para la prueba ETHAuth. El valor predeterminado es 1 semana en segundos.
+
+Ejemplo: `await wallet.connect({ expiry: 36000 })`
+
+#### **authorize**
+
+`authorize` realizará una firma ETHAuth eip712 y devolverá la prueba a la dapp.
+
+Ejemplo: `await wallet.connect({ authorize: true })`
+
+#### **authorizeNonce**
+
+`authorizeNonce` es un número opcional que se pasa como reclamo de nonce de ETHAuth para protección contra repetición.
+
+Ejemplo: `await wallet.connect({ authorizeNonce: 123 })`
+
+#### **refresh**
+
+`refresh` forzará una reconexión completa (es decir, desconectar y luego conectar de nuevo).
+
+Ejemplo: `await wallet.connect({ refresh: true })`
+
+#### **keepWalletOpened**
+
+`keepWalletOpened` mantendrá la ventana de la billetera abierta después de conectar. Por defecto, la billetera se cierra automáticamente después de conectar.
+
+Ejemplo: `await wallet.connect({ keepWalletOpened: true })`
+
+#### **askForEmail**
+
+`askForEmail` preguntará al usuario si desea compartir el correo electrónico que usa para iniciar sesión en la billetera mientras se conecta, y se devolverá en `connectDetails`.
+
+Ejemplo: `await wallet.connect({ askForEmail: true })`
+
+#### **settings.theme**
+
+Nombre de uno de los temas disponibles proporcionados por sequence con el que se renderizará la billetera sequence.
+
+Ejemplo: `await wallet.connect({ settings: {theme: "light"}}`
+
+#### **settings.bannerUrl**
+
+URL de una imagen de banner que los usuarios verán al conectarse o iniciar sesión en tu dapp. La imagen del banner debe seguir una relación de aspecto 3:1 donde 1200x400 funciona mejor.
+
+Ejemplo: `await wallet.connect({ settings: {bannerUrl: "https://yoursite.com/banner-image.png"}}`
+
+#### **settings.signInWith**
+
+Especifica `signInWith` con un proveedor de autenticación compatible para iniciar sesión automáticamente con ese proveedor únicamente. Se ignorará si el usuario ya ha iniciado sesión.
+
+Ejemplo: `await wallet.connect({ settings: {signInWith: "google"}}`
+
+Proveedores compatibles: "google", "discord", "twitch", "apple", "facebook"
+
+#### **settings.signInWithEmail**
+
+Especifica signInWithEmail con una dirección de correo electrónico para permitir que el usuario inicie sesión automáticamente con la opción de correo electrónico. Se ignorará si el usuario ya ha iniciado sesión.
+
+Ejemplo: `await wallet.connect({ settings: {signInWithEmail: "user@email.com"}}`
+
+#### **settings.signInOptions**
+
+Especifica signInOptions para elegir/limitar las opciones de inicio de sesión disponibles. Se ignorará si el usuario ya ha iniciado sesión.
+
+Ejemplo: `await wallet.connect({ settings: {signInOptions: ["email", "google", "apple"]}}`
+
+#### **settings.includedPaymentProviders**
+
+Lista de proveedores de pago a los que los usuarios podrán acceder. Por defecto, los usuarios pueden acceder a todos los proveedores de pago integrados en Sequence.
+
+Ejemplo: `await wallet.connect({ settings: {includedPaymentProviders: ["moonpay", "ramp"]}}`
+
+#### **settings.defaultFundingCurrency**
+
+La etiqueta de la moneda predeterminada para mostrar cuando los usuarios abren la página del proveedor de pagos. La moneda debe ser compatible con los proveedores de pago integrados en sequence.
+
+Ejemplo: `await wallet.connect({ settings: {defaultFundingCurrency: "usdc"}}`
+
+#### **settings.defaultPurchaseAmount**
+
+Usar para especificar un monto de compra predeterminado, como un número entero, para prellenar el monto de financiamiento. Si no se especifica, el valor predeterminado es 100.
+
+Ejemplo: `await wallet.connect({ settings: {defaultPurchaseAmount: 200}}`
+
+#### **settings.lockFundingCurrencyToDefault**
+
+Si se debe permitir a los usuarios comprar solo la moneda predeterminada especificada por la opción `defaultFundingCurrency`. Si se establece en false, los usuarios también podrán comprar otros tokens. Bloquear la moneda de financiamiento predeterminada puede ser útil para evitar que los usuarios compren la moneda incorrecta o la moneda en la cadena incorrecta.
+
+Ejemplo: `await wallet.connect({ settings: {defaultFundingCurrency: true}}`
+
+## Conectando tu dapp con `web3.js` o `ethers.js`
+
+Para un ejemplo completo de una dapp que soporta Sequence (bajo demanda + extensión de chrome), Metamask, y WalletConnect, por favor consulta el [repositorio Demo-Dapp-Web3Modal](https://github.com/0xsequence/demo-dapp-web3modal).
+
+<Frame caption="Sequence Web3Modal Integration">
+  ![Sequence Web3Modal Integration](/images/web3modal.png)
+</Frame>
+
+## Conectando a cualquier dapp de Ethereum con la Extensión de Chrome de Sequence Wallet
+
+Extensión de Chrome de Sequence: [Instalar](https://chrome.google.com/webstore/detail/sequence-wallet/ocmccklecaalljlflmclidjeclpcpdim?hl=en)
+
+<Frame caption="Sequence Chrome Extension">
+  ![Sequence Chrome Extension](/images/build/seq-chrome-store.png)
+</Frame>
+
+## Conectando vía `WalletConnect`
+
+Sequence ya soporta la conexión a dapps vía [WalletConnect](https://walletconnect.com).
+Si tu dapp ya es compatible con WalletConnect y no necesitas funcionalidad específica de Sequence, no hay nada más que hacer.
+Desde la perspectiva del usuario, el flujo de WalletConnect funciona de la siguiente manera.
+
+Tomando [Uniswap](https://app.uniswap.org) como ejemplo, se le pide al usuario que conecte su billetera usando uno de varios protocolos posibles.
+
+<Frame caption="Uniswap swap page">
+  <img src="/images/walletconnect/connect-wallet.png" />
+</Frame>
+
+El usuario selecciona la opción de WalletConnect.
+
+<Frame caption="Uniswap select Wallet Connect option">
+  <img src="/images/walletconnect/select-walletconnect.png" />
+</Frame>
+
+Se muestra un código QR, que puede ser escaneado por Sequence.
+Alternativamente, el usuario también puede elegir copiar los detalles de conexión a través del portapapeles del sistema operativo.
+
+<Frame caption="Sign users in with a QR code using wallet connect">
+  <img src="/images/walletconnect/qr-code.png" />
+</Frame>
+
+De vuelta en la interfaz de Sequence, el usuario elige "Escanear".
+
+<Frame caption="scan a QR code to enable wallet sign in">
+  <img src="/images/walletconnect/scan-qr-code.png" />
+</Frame>
+
+Se escanea el código QR de la dapp.
+Alternativamente, el código se pega desde el portapapeles del sistema operativo si el usuario eligió esa opción anteriormente.
+
+<Frame caption="Camera to scan a Wallet Connect QR code">
+  <img src="/images/walletconnect/scan.png" />
+</Frame>
+
+El usuario confirma la solicitud de conexión.
+
+<Frame caption="A user confirming a request with Wallet Connect">
+  <img src="/images/walletconnect/confirm.png" />
+</Frame>
+
+La conexión se realizó con éxito y la dapp se actualiza para reflejarlo.
+
+<Frame caption="A success message for Wallet Connect">
+  <img src="/images/walletconnect/success.png" />
+</Frame>
+
+Mientras está conectada, la dapp puede hacer solicitudes de firma a Sequence.
+Sequence siempre solicitará confirmación del usuario para cualquier actividad iniciada por la dapp.
+
+<Frame caption="Confirmation by user activity to initiate a dapp transaction">
+  <img src="/images/walletconnect/activity.png" />
+</Frame>
+
+Una vez que el usuario ha terminado de usar la dapp, puede desconectar la billetera a través del menú de sesión.
+
+<Frame caption="A user disconnecting from the app using Wallet Connect">
+  <img src="/images/walletconnect/disconnect.png" />
+</Frame>

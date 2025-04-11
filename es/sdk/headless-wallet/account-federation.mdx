@@ -1,0 +1,84 @@
+---
+title: Federación de Cuentas de Billetera Integrada
+description: El contenido proporciona información detallada sobre la implementación de
+  la capacidad de federar y vincular una o múltiples billeteras a una sesión
+  principal de billetera integrada, describiendo las mejores prácticas cuando se
+  combina con billeteras de invitado efímeras para ser convertidas en billeteras
+  integradas permanentes en la cadena.
+sidebarTitle: Soporte Multi-cuenta
+---
+
+Las Billeteras Integradas de Sequence ofrecen la capacidad de federar múltiples cuentas sociales a una única dirección de billetera. Esto permite que las experiencias tengan una única dirección en la cadena, mientras permiten a los usuarios acceder a la billetera a través de múltiples puntos de autenticación de identidad.
+
+Una característica importante de la Federación de Cuentas de Billetera Integrada es que estas billeteras se agregarán según el primer proveedor de inicio de sesión, ya sea autenticado a través de redes sociales, correo electrónico o una billetera de invitado. Esto significa que la dirección de la billetera se basa en la primera billetera con la que se inició sesión y los inicios de sesión posteriores se vincularán a esa billetera inicial.
+
+Cuando una cuenta federada se ha conectado a una cuenta principal, cerrar sesión y usar individualmente esa cuenta previamente vinculada producirá la misma dirección en el futuro.
+
+## Federación de Cuentas de Proveedores Sociales
+
+Lo siguiente permite a un desarrollador iniciar una autenticación usando `initAuth` usando los [mismos parámetros que la primera sesión iniciada en el `WaaS` objeto](/sdk/headless-wallet/use-wallets#authenticated-embedded-wallet) con un invitado adicional o proveedor social, donde el proveedor `challenge` es devuelto y pasado a la `linkAccount` función:
+
+```ts
+const challenge = await sequence.initAuth({/* same params as signIn function */})
+const linkResponse = await sequence.linkAccount(challenge)
+```
+
+## Federación de Cuentas con Contraseña de Un Solo Uso por Email
+
+Usar el enfoque de contraseña de un solo uso por email para autenticar requiere que la contraseña enviada al email de los usuarios sea pasada al desafío, y llamada a través de la `linkAccount` función:
+
+```ts
+const challenge = await sequence.initAuth({ email })
+
+// if the linking account is email then you need to provide the answer (code)
+const linkResponse = await sequence.linkAccount(challenge.withAnswer(code))
+```
+
+## Federación de Cuentas con Billeteras de Invitado
+
+Es una práctica común para los juegos permitir que un usuario inicie sesión en segundo plano de una aplicación con una [billetera de invitado](/sdk/headless-wallet/authentication#guest-embedded-wallet), tener esa billetera almacenada en el caché por el SDK, y luego solicitar al usuario un proveedor de inicio de sesión social para vincular a la primera billetera inicial usando uno de los [enfoques explicados anteriormente](/sdk/headless-wallet/account-federation#embedded-wallet-account-federation).
+
+Por lo tanto, si se han acumulado activos en la billetera, se han realizado transacciones en la cadena o se han guardado firmas, la billetera puede tener continuidad.
+
+Usar un enfoque de billetera de invitado primero puede permitir que un usuario pruebe un juego o experiencia de manera invisible, antes de autenticarse a largo plazo y suavizar el proceso de incorporación.
+
+Los desarrolladores pueden usar las metodologías anteriores una vez que un invitado está autenticado para asegurar que el usuario pueda volver a acceder a su cuenta en el futuro.
+
+## Listar Cuentas
+
+Llamar a `listAccounts` devolverá un objeto con lo siguiente: un array de `accounts` objeto(s) (con `id`, `type`, y `issuer`), así como el `currentAccountId`, por ejemplo: `"Guest:0x0104...`:
+
+```ts
+import { SequenceWaaS } from "@0xsequence/waas";
+
+const sequence = new SequenceWaaS(
+  {
+    projectAccessKey: `${process.env.VITE_PROJECT_ACCESS_KEY}`,
+    waasConfigKey: `${process.env.VITE_WAAS_CONFIG_KEY}`,
+    network: "arbitrum-nova",
+  }
+)
+
+... // authentication
+
+const response = await sequence.listAccounts()
+
+console.log(response.accounts)
+console.log(response.currentAccountId)
+```
+
+## Eliminando cuentas
+
+También puedes eliminar cuentas de la lista de cuentas previamente asociadas con tu configuración:
+
+```ts
+// Call list accounts
+const accounts = await sequence.listAccounts();
+const accountId = accounts[0].id; // Get the ID of the first account
+
+try {
+    await sequence.removeAccount(accountId);
+} catch (error) {
+    console.error('Failed to remove account:', error);
+}
+```

@@ -1,0 +1,39 @@
+---
+title: Node Gateway
+sidebarTitle: Overview
+---
+
+La infraestructura de Sequence Node gateway te permite tener puntos finales RPC resistentes a fallos que pueden escalar con tu aplicación.
+
+Al utilizar nuestra infraestructura, ahorras dinero al no tener que implementar tu propia pila, y te beneficias de la función de agregar múltiples proveedores RPC públicos en un único punto final para su uso.
+
+## Pruébalo
+
+Instala `ethers` con `pnpm install ethers` o `yarn add ethers`
+
+Asegúrate de elegir un identificador de red de nuestras [opciones de red](https://status.sequence.info)
+
+Y obtén una [clave de acceso de Sequence Builder](https://sequence.build) para autenticar tu conexión y añadirla al punto final
+
+```js
+// Import the ethers library
+import { ethers } from "ethers";
+
+// Function to create a provider and fetch the latest block
+async function getLatestBlock() {
+  // Replace the following URL with your actual RPC endpoint
+  const rpcUrl =
+    "https://nodes.sequence.app/<chain_handle>/<project_access_key>";
+
+  // Create a provider using the RPC URL
+  const provider = new ethers.providers.JsonRpcProvider(rpcUrl);
+
+  // Fetch the latest block
+  const latestBlock = await provider.getBlock("latest");
+
+  console.log("Latest Block:", latestBlock);
+}
+
+// Call the function to get the latest block
+getLatestBlock().catch(console.error);
+```
