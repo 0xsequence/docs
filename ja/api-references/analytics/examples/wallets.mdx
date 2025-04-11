@@ -1,0 +1,226 @@
+---
+title: ウォレット分析の例
+sidebarTitle: ウォレット
+---
+
+一般的なユースケースは、プロジェクトと統合されているウォレットの数を確認することです。デバイス、国などの詳細なデータを追跡およびレポートするための様々なエンドポイントがあり、正確に識別することができます
+
+<Note>
+  PROJECT\_IDとSECRET\_API\_ACCESS\_KEY変数を、Sequence Builderから取得したプロジェクトIDとシークレットトークンに置き換えてください。
+</Note>
+
+## プロジェクトIDの時間間隔でウォレットを取得
+
+ここでは、特定の日付範囲とdateIntervalパラメータを渡して、時間間隔内のウォレットを取得できます。エンドポイントでは、"DAY"、"WEEK"、"MONTH"をオプションとして使用できます。
+
+<CodeGroup>
+  ```sh cURL
+  curl 'https://api.sequence.build/rpc/Builder/WalletsDaily' \
+    -H 'accept: */*' \
+    -H 'authorization: BEARER <SECRET_API_ACCESS_KEY>' \
+    -H 'content-type: application/json' \
+    --data-raw '{"filter":{"projectId":<PROJECT_ID>,"startDate":"2024-04-23","endDate":"2024-05-23", "dateInterval":"DAY"}}'
+  ```
+
+  ```ts TypeScript
+  // Works in both a Webapp (browser) or Node.js by importing cross-fetch:
+  // import fetch from "cross-fetch";
+
+  (async () => {
+    const res = await fetch(
+      "https://api.sequence.build/rpc/Builder/WalletsDaily",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+  		"filter":{
+  			"projectId":4859,
+  			"startDate":"2024-01-23",
+  			"endDate":"2024-05-23",
+  			"dateInterval":"DAY"
+  			}
+  		}),
+      }
+    );
+    console.log("res", await res.json());
+  })();
+  ```
+</CodeGroup>
+
+## 国別のウォレット取得
+
+ユーザーがログインしている場所を確認するために、国別にウォレットを取得することもできます。
+
+<CodeGroup>
+  ```sh cURL
+  curl 'https://api.sequence.build/rpc/Builder/WalletsByCountry' \
+    -H 'accept: */*' \
+    -H 'authorization: BEARER <SECRET_API_ACCESS_KEY>' \
+    -H 'content-type: application/json' \
+    --data-raw '{"filter":{"projectId":<PROJECT_ID>,"startDate":"2024-04-23","endDate":"2024-05-23", "dateInterval":"DAY"}}'
+  ```
+
+  ```ts TypeScript
+  // Works in both a Webapp (browser) or Node.js by importing cross-fetch:
+  // import fetch from "cross-fetch";
+
+  (async () => {
+    const res = await fetch(
+      "https://api.sequence.build/rpc/Builder/WalletsByCountry",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+  		"filter":{
+  			"projectId":4859,
+  			"startDate":"2024-01-23",
+  			"endDate":"2024-05-23",
+  			"dateInterval":"DAY"
+  			}
+  		}),
+      }
+    );
+    console.log("res", await res.json());
+  })();
+  ```
+</CodeGroup>
+
+## デバイス別のウォレット取得
+
+さらに、ユーザーが認証を行っている場所の集計スナップショットを取得するために、デバイス別にクエリを実行することもできます。
+
+<CodeGroup>
+  ```sh cURL
+  curl 'https://api.sequence.build/rpc/Builder/WalletsByDevice' \
+    -H 'accept: */*' \
+    -H 'authorization: BEARER <SECRET_API_ACCESS_KEY>' \
+    -H 'content-type: application/json' \
+    --data-raw '{"filter":{"projectId":<PROJECT_ID>,"startDate":"2024-04-23","endDate":"2024-05-23", "dateInterval":"DAY"}}'
+  ```
+
+  ```ts TypeScript
+  // Works in both a Webapp (browser) or Node.js by importing cross-fetch:
+  // import fetch from "cross-fetch";
+
+  (async () => {
+    const res = await fetch(
+      "https://api.sequence.build/rpc/Builder/WalletsByDevice",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+  		"filter":{
+  			"projectId":4859,
+  			"startDate":"2024-01-23",
+  			"endDate":"2024-05-23",
+  			"dateInterval":"DAY"
+  			}
+  		}),
+      }
+    );
+    console.log("res", await res.json());
+  })();
+  ```
+</CodeGroup>
+
+## ウォレット別のトランザクション取得
+
+最後に、ウォレット別のトランザクション数を取得することもできます - これは合計または固定の時間間隔のいずれかで使用できます。
+
+### 合計
+
+<CodeGroup>
+  ```sh cURL
+  curl 'https://api.sequence.build/rpc/Builder/WalletsTxnSentTotal' \
+    -H 'accept: */*' \
+    -H 'authorization: BEARER <SECRET_API_ACCESS_KEY>' \
+    -H 'content-type: application/json' \
+    --data-raw '{"filter":{"projectId":<PROJECT_ID>,"startDate":"2024-04-23","endDate":"2024-05-23"}}'
+  ```
+
+  ```ts TypeScript
+  // Works in both a Webapp (browser) or Node.js by importing cross-fetch:
+  // import fetch from "cross-fetch";
+
+  (async () => {
+    const res = await fetch(
+      "https://api.sequence.build/rpc/Builder/WalletsTxnSentTotal",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+  		"filter":{
+  			"projectId":4859,
+  			"startDate":"2024-01-23",
+  			"endDate":"2024-05-23",
+  			"dateInterval":"DAY"
+  			}
+  		}),
+      }
+    );
+    console.log("res", await res.json());
+  })();
+  ```
+</CodeGroup>
+
+### 時間間隔
+
+<CodeGroup>
+  ```sh cURL
+  curl 'https://api.sequence.build/rpc/Builder/WalletsTxnSentDaily' \
+    -H 'accept: */*' \
+    -H 'authorization: BEARER <SECRET_API_ACCESS_KEY>' \
+    -H 'content-type: application/json' \
+    --data-raw '{"filter":{"projectId":<PROJECT_ID>,"startDate":"2024-04-23","endDate":"2024-05-23", "dateInterval":"DAY"}}'
+  ```
+
+  ```ts TypeScript
+  // Works in both a Webapp (browser) or Node.js by importing cross-fetch:
+  // import fetch from "cross-fetch";
+
+  (async () => {
+    const res = await fetch(
+      "https://api.sequence.build/rpc/Builder/WalletsTxnSentDaily",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+  		"filter":{
+  			"projectId":4859,
+  			"startDate":"2024-01-23",
+  			"endDate":"2024-05-23",
+  			"dateInterval":"DAY"
+  			}
+  		}),
+      }
+    );
+    console.log("res", await res.json());
+  })();
+  ```
+</CodeGroup>
+
+## スキーマ
+
+全てのウォレット分析エンドポイントは同様のリクエストスキーマに従います
+
+* リクエスト: POST
+* Content-Type: application/json
+* ボディ (JSON形式):
+  * `projectId` (uint64) -- プロジェクトのprojectID、BuilderプロジェクトのURLで確認できます。
+  * `startDate` (timestamp) -- クエリの開始日（YYYY--MM--DD形式）
+  * `endDate` (timestamp) -- クエリの終了日（YYYY--MM--DD形式）
+  * `dateInterval` (string) -- クエリの日付間隔、オプションは"DAY"、"WEEK"、または"MONTH"
+* レスポンス (JSON形式):
+  * `walletStats` (walletStats\[])
+    * `value` (uint64) -- クエリに一致するウォレットの数
+    * `label` (string) -- 対応するエンドポイントに関連付けられたラベル

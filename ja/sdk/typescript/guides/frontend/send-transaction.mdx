@@ -1,0 +1,19 @@
+---
+title: トランザクションの送信
+description: Web3ゲーム向けのSequenceインフラストラクチャスタックでトランザクションを送信するためのTypescriptの使用方法に関するドキュメント。
+---
+
+トランザクションに署名すると、署名されたペイロードのみが取得されます。
+ウォレットにネットワークへのトランザクションの実際のディスパッチも行わせたい場合は、前の例にわずかな修正を加えるだけで済みます（`signTransactions`から`sendTransaction`への変更に注意してください）：
+
+```ts
+const transaction = {
+  to: recipientAddress,
+  value: 1000000000000000000
+}
+
+const signer = wallet.getSigner()
+const txnResponse = await signer.sendTransaction(transaction)
+console.log(txnResponse)
+
+```

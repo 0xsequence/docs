@@ -1,0 +1,123 @@
+---
+title: React Native組み込みウォレットデモ
+description: iOSとAndroid向けのReact NativeアプリでSequence組み込みウォレットモバイルSDKを統合する方法を学びます。
+---
+
+以下のウォークスルーでは、iOSとAndroid両方のSequence組み込みウォレットモバイルSDKを実装します。
+
+このウォークスルーでは、テンプレートリポジトリをクローンして[Expo](https://expo.dev/)ベースのアプリを構築する方法を説明します。このアプリはフォーク可能で、ユーザーは[Gmail](https://console.cloud.google.com/)または[Apple](https://developer.apple.com/)メールでモバイルアプリケーションにログインできます。
+
+このアプリケーションでは、ユーザーはReact Native組み込みウォレットアプリケーションでメッセージの署名とトランザクションの送信を`arbitrum-sepolia`ネットワーク上で行うことができます。
+
+## テンプレート
+
+<Note>
+  Sequence組み込みウォレットを活用した[テンプレート](https://github.com/0xsequence/demo-waas-react-native)で始めましょう。
+</Note>
+
+## ビルド手順
+
+### 前提条件
+
+::::steps
+
+#### Yarnのインストール
+
+```shell
+npm install --global yarn
+```
+
+#### Android Studioのダウンロード
+
+以下の[リンクからAndroid Studioをダウンロード](https://developer.android.com/studio)
+
+#### Java 22 SDKのダウンロード
+
+以下の[リンクからJava SDKをダウンロード](https://www.oracle.com/java/technologies/downloads/)
+
+#### Java SDKパスの設定
+
+macOSまたはLinuxを使用している場合は、以下の行を`~/.bashrc`（または`~/.zshrc`)
+
+```shell
+export ANDROID_HOME=$HOME/Android/Sdk
+export PATH=$PATH:$ANDROID_HOME/tools:$ANDROID_HOME/platform-tools
+```
+
+変更を有効にするために以下のコマンドを実行してください
+
+```shell
+source ~/.bashrc
+```
+
+#### XCodeをインストール（macOSの場合）
+
+以下のリンクに移動してください[Xcodeをダウンロードするリンク](https://developer.apple.com/xcode/)
+
+#### インストール`cocoapods`（macOSの場合）
+
+```
+sudo gem install cocoapods
+```
+
+::::
+
+### プロジェクトの実行
+
+::::steps
+
+#### リポジトリのクローン
+
+まずはコンピュータにリポジトリをクローンしてください
+
+```shell
+git clone git@github.com:0xsequence/demo-waas-react-native.git
+```
+
+#### キーファイルの作成
+
+フォルダに移動して`/android/app`フォルダで`cd`以下のコマンドを実行してkeystoreを作成します
+
+```
+keytool -genkey -v -keystore debug.keystore -storepass android -alias androiddebugkey -keypass android -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=Android Debug,O=Android,C=US"
+```
+
+#### `yarn install`
+
+`cd`クローンしたリポジトリのルートに移動して実行します
+
+```shell
+yarn install
+```
+
+#### Android Studioでプロジェクトを開く
+
+プロジェクトリポジトリをAndroid Studioで開き、エディタがプロジェクトのインデックス作成とビルドを行うのを待ちます
+
+#### Androidでアプリケーションを実行
+
+プロジェクトのコンパイルが完了したら、`cd`クローンしたリポジトリのルートに移動して実行します
+
+```shell
+yarn android
+```
+
+#### iOSでアプリケーションを実行（macOSの場合）
+
+```shell
+yarn ios 
+```
+
+サインインしてテストトランザクションを送信してみましょう
+
+#### WaaS設定の更新
+
+最後に、Embedded Walletインスタンスがあなたの特定のアプリケーションにサインインする際にウォレットを作成できるようにするために、[次のページ](https://sequence.build/project/default/wallet/embedded-wallet)からプロジェクトのWaaS設定キーを取得し、[このウォークスルー](/solutions/builder/embedded-wallet)を参考にコードで更新する必要があるEmbedded Wallet設定の様々な側面について理解してください。
+
+次に、以下のパスのファイル`waasSetup.ts`の5-13行目で、Sequence Builderから取得した`projectAccessKey`と`waasConfigKey`の値、およびGoogle ConsoleからのGoogleソーシャル認証クライアントIDを使用して、構築中の特定のアプリケーション用の変数を更新してください。
+
+次に、`app.json`ファイルの13行目でAppleの`bundleIdentifier`
+
+最後に、`clientId`の428行目と`redirectUri`の`App.tsx`432行目をApple Developer Consoleから更新してください。
+
+::::

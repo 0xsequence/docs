@@ -1,0 +1,195 @@
+---
+title: ユーザー認証
+description: web3ゲーミング向けのSequenceインフラストラクチャスタックのセッションを管理するためのUnreal SDK APIのドキュメント。
+---
+
+詳しくは[プラットフォーム要件](/sdk/unreal/platforms)ページをご覧ください。セットアップと選択した認証方法がBuilderプロジェクトで適切に設定されていることを確認するための詳細情報が記載されています。
+
+## メールOTPでサインイン
+
+任意のメールアドレスでユーザーをサインインさせると、受信トレイにワンタイムパスワードが送信されます。
+Email Requires Codeイベントをリッスンしてください。
+
+<Tabs>
+  <Tab title="Blueprint">
+    <Frame caption="Email Otp">
+      <img src="/images/unreal/email_otp.png" />
+    </Frame>
+  </Tab>
+</Tabs>
+
+## ソーシャルサインイン
+
+デスクトップでSSOベースの認証を開始するには、必要なid\_tokenを取得するためにブラウザに移動する必要があります。
+モバイルでは、SDKが統合されたプラグインを使用してこのプロセスを処理します。
+
+デスクトッププラットフォームでは、`Sign in Web View Required`イベントをリッスンし、返された`Sign In URL`を開いてください。
+モバイルプラットフォームでは、`Id Token Received`イベントをリッスンしてください。
+
+### Google Id Tokenの取得
+
+<Tabs>
+  <Tab title="Blueprint">
+    <Frame caption="Google Idtoken">
+      <img src="/images/unreal/google_idtoken.png" />
+    </Frame>
+  </Tab>
+</Tabs>
+
+### Apple Id Tokenの取得
+
+<Tabs>
+  <Tab title="Blueprint">
+    <Frame caption="Apple Idtoken">
+      <img src="/images/unreal/apple_idtoken.png" />
+    </Frame>
+  </Tab>
+</Tabs>
+
+### Id Tokenでセッションを開始
+
+GoogleまたはAppleの有効なIdトークンを使用してセッションを開始するには、このメソッドを使用します。
+
+<Tabs>
+  <Tab title="Blueprint">
+    <Frame caption="Token Session">
+      <img src="/images/unreal/token_session.png" />
+    </Frame>
+  </Tab>
+</Tabs>
+
+## PlayFab
+
+PlayFab Title IDを`SequenceConfig.ini`ファイルに含める必要があります[設定](/sdk/unreal/configuration) と [BuilderでPlayFabを設定](/solutions/builder/embedded-wallet/playfab-configuration)。
+
+### 新規PlayFabユーザーの登録
+
+<Tabs>
+  <Tab title="Blueprint">
+    <Frame caption="Playfab Registration">
+      <img src="/images/unreal/playfab_registration.png" />
+    </Frame>
+  </Tab>
+</Tabs>
+
+### 既存のPlayFabユーザーでログイン
+
+<Tabs>
+  <Tab title="Blueprint">
+    <Frame caption="Playfab Login">
+      <img src="/images/unreal/playfab_login.png" />
+    </Frame>
+  </Tab>
+</Tabs>
+
+### カスタムPlayFab統合
+
+独自のPlayFab統合をお持ちの場合は、それを使用することができます。PlayFabからSessionTicketを受け取ったら、Sequence APIで認証するために`PlayfabAuthenticateWithSessionTicket`メソッドを使用して`USequenceAthenticator`オブジェクトに渡してください。
+
+## ゲストとしてサインイン
+
+ユーザーをゲストとしてサインインさせることができます。ただし、アプリをアンインストールまたはサインアウトすると、ウォレットへのアクセスが失われることに注意してください。
+
+<Tabs>
+  <Tab title="Blueprint">
+    <Frame caption="Guest Session">
+      <img src="/images/unreal/guest_session.png" />
+    </Frame>
+  </Tab>
+</Tabs>
+
+## アカウントの連携
+
+アカウント連携により、1つのアカウントとウォレットに複数のログイン方法を関連付けることができます。
+ユーザーがゲストとしてサインインしている場合、後続のセッションでSequence Embedded Walletにアクセスするための永続的な認証情報を持つために、アカウントの連携を推奨することが非常に重要です。
+ユーザーがSequence APIで認証されている間、適切なアカウント連携呼び出しを使用して追加のログイン方法を追加できます。
+
+<Tabs>
+  <Tab title="Blueprint">
+    <Frame caption="Email Federation">
+      <img src="/images/unreal/email_federation.png" />
+    </Frame>
+  </Tab>
+</Tabs>
+
+## IDトークンの取得
+
+一般的なユースケースとして、アプリクライアントでユーザーがログインプロセスを完了した後、バックエンドでユーザーのIDを確認することがあります。
+ユーザーからSequence IDトークンを取得し、JWKSライブラリを使用してバックエンドで検証するために送信します。
+詳細については[バックエンド検証ガイド](/sdk/headless-wallet/verification)をご覧ください。
+
+<Tabs>
+  <Tab title="Blueprint">
+    <Frame>
+      <img src="/images/unreal/get_id_token.png" />
+    </Frame>
+  </Tab>
+
+  <Tab title="C++">
+    ```cpp
+    const TFunction<void (FSeqIdTokenResponse_Data)> OnSuccess = [this](const FSeqIdTokenResponse_Data& Data) { };
+    const TFunction<void (FSequenceError)> OnFailure = [this](const FSequenceError& Err){ };
+
+    const TOptional<USequenceWallet*> WalletOptional = USequenceWallet::Get();
+    if (WalletOptional.IsSet() && WalletOptional.GetValue())
+    {
+        const USequenceWallet* Wallet = WalletOptional.GetValue();
+        Wallet->GetIdToken(Nonce, OnSuccess, OnFailure);
+    }
+    ```
+  </Tab>
+</Tabs>
+
+## サインアウト
+
+認証情報のキャッシュをクリアし、現在のユーザーをサインアウトします。
+
+<Tabs>
+  <Tab title="Blueprint">
+    <Frame caption="Sign Out">
+      <img src="/images/unreal/sign_out.png" />
+    </Frame>
+  </Tab>
+
+  <Tab title="C++">
+    ```cpp
+    const TOptional<USequenceWallet*> WalletOptional = USequenceWallet::Get();
+    if (WalletOptional.IsSet() && WalletOptional.GetValue())
+    {
+        USequenceWallet * Api = WalletOptional.GetValue();
+        Api->SignOut();
+    }
+    ```
+  </Tab>
+</Tabs>
+
+## セッション一覧
+
+アクティブなセッションを一覧表示します。
+
+<Tabs>
+  <Tab title="Blueprint">
+    <Frame caption="List Sessions">
+      <img src="/images/unreal/list_sessions.png" />
+    </Frame>
+  </Tab>
+
+  <Tab title="C++">
+    ```cpp
+    const TSuccessCallback<TArray<FSession>> OnSuccess = [=](TArray<FSession> Response)
+    {
+        //Response is a list of Sessions
+    };
+    const FFailureCallback OnFailure = [=](const FSequenceError& Error)
+    {
+        UE_LOG(LogTemp,Display,TEXT("Error Message: %s"),*Error.Message);
+    };
+    const TOptional<USequenceWallet*> WalletOptional = USequenceWallet::Get();
+    if (WalletOptional.IsSet() && WalletOptional.GetValue())
+    {
+        USequenceWallet * Api = WalletOptional.GetValue();
+        Api->ListSessions(OnSuccess,OnFailure);
+    }
+    ```
+  </Tab>
+</Tabs>

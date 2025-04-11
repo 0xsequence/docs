@@ -1,0 +1,128 @@
+---
+title: useCheckWaasFeeOptions
+description: Sequence WaaSでのトランザクション手数料オプションを確認するためのフック
+sidebarTitle: useCheckWaasFeeOptions
+---
+
+## インポート
+
+```tsx
+import { useCheckWaasFeeOptions } from '@0xsequence/connect'
+```
+
+## 使用方法
+
+```tsx
+import { useCheckWaasFeeOptions } from '@0xsequence/connect'
+
+function App() {
+  const checkFeeOptions = useCheckWaasFeeOptions()
+  
+  const handleTransaction = async () => {
+    // Example transaction
+    const transaction = {
+      to: '0x...',
+      value: '1000000000000000000', // 1 ETH
+      data: '0x...'
+    }
+    
+    const { isSponsored, feeOptions, feeQuote } = await checkFeeOptions({
+      transactions: [transaction],
+      chainId: 1 // Ethereum Mainnet
+    })
+    
+    if (isSponsored) {
+      console.log('Transaction is sponsored!')
+    } else if (feeOptions) {
+      console.log('Available fee options:', feeOptions)
+      console.log('Fee quote:', feeQuote)
+      // Handle fee payment selection
+    }
+  }
+  
+  return (
+    <div>
+      <button onClick={handleTransaction}>
+        Check Transaction Fees
+      </button>
+    </div>
+  )
+}
+```
+
+## 戻り値の型
+
+このフックは以下のシグネチャを持つ関数を返します：
+
+```tsx
+(params: {
+  transactions: Transaction[]
+  chainId: number
+}) => Promise<{
+  feeQuote: string | undefined
+  feeOptions: FeeOption[] | undefined
+  isSponsored: boolean
+}>
+```
+
+### パラメータ
+
+#### transactions
+
+`Transaction[]`
+
+手数料オプションを確認するトランザクションの配列。
+
+```tsx
+interface Transaction {
+  to: string
+  value?: string
+  data?: string
+  // ... other transaction properties
+}
+```
+
+#### chainId
+
+`number`
+
+トランザクションが実行されるブロックチェーンネットワークのID。
+
+### 戻り値オブジェクトのプロパティ
+
+#### isSponsored
+
+`boolean`
+
+トランザクションがスポンサー付き（true）か手数料支払いが必要（false）かを示します。
+
+#### feeOptions
+
+`FeeOption[] | undefined`
+
+トランザクションがスポンサー付きでない場合の利用可能な手数料支払いオプション。
+
+```tsx
+interface FeeOption {
+  token: {
+    symbol: string
+    decimals: number
+    address: string
+  }
+  // ... other fee option properties
+}
+```
+
+#### feeQuote
+
+`string | undefined`
+
+利用可能な場合のトランザクション手数料の見積もり。
+
+## 注意事項
+
+このフックは特にSequence WaaS（Wallet as a Service）での使用のために設計されており、以下の機能を提供します：
+
+* トランザクションがスポンサー付きかどうかの確認
+* スポンサーなしトランザクションの利用可能な手数料オプションの取得
+* トランザクションの手数料見積もりの取得

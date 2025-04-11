@@ -1,0 +1,83 @@
+---
+title: ナビゲーション
+description: docs.jsonのナビゲーションフィールドは、ナビゲーションメニューに表示されるページを定義します
+icon: map
+---
+
+ナビゲーションメニューは、すべてのウェブサイトにあるリンクのリストです。
+
+新しいページを追加するたびに`docs.json`を更新する必要があります。ページは自動的には表示されません。
+
+## ナビゲーション構文
+
+私たちのナビゲーション構文は再帰的であり、ネストされたナビゲーショングループを作成できます。ページ名に`.mdx`を含める必要はありません。
+
+<CodeGroup>
+  ```json Regular Navigation
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Docs",
+        "groups": [
+          {
+            "group": "Getting Started",
+            "pages": ["quickstart"]
+          }
+        ]
+      }
+    ]
+  }
+  ```
+
+  ```json Nested Navigation
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Docs",
+        "groups": [
+          {
+            "group": "Getting Started",
+            "pages": [
+              "quickstart",
+              {
+                "group": "Nested Reference Pages",
+                "pages": ["nested-reference-page"]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+  ```
+</CodeGroup>
+
+## フォルダ
+
+MDXファイルをフォルダに配置し、`docs.json`のパスを更新するだけです。
+
+例えば、`https://yoursite.com/your-folder/your-page`にページを配置するには、`your-folder`という名前のフォルダを作成し、`your-page.mdx`というMDXファイルを含めます。
+
+<Warning>
+  別のフォルダ内にネストしない限り、`api`をフォルダ名として使用することはできません。MintlifyはNext.jsを使用しており、トップレベルの`api`フォルダは内部サーバーコール用に予約されています。`api-reference`のようなフォルダ名は受け入れられます。
+</Warning>
+
+```json Navigation With Folder
+"navigation": {
+  "tabs": [
+    {
+      "tab": "Docs",
+      "groups": [
+        {
+          "group": "Group Name",
+          "pages": ["your-folder/your-page"]
+        }
+      ]
+    }
+  ]
+}
+```
+
+## 非表示ページ
+
+に含まれていないMDXファイルは`docs.json`サイドバーには表示されませんが、検索バーや直接リンクを通じてアクセスできます。

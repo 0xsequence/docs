@@ -1,0 +1,391 @@
+---
+title: レスポンスペイロード
+description: Sequence Embedded Wallet APIを使用する際、各インテントペイロードは対応するレスポンスペイロードをトリガーし、成功を示すか、さらなるアクションを促します。
+sidebarTitle: レスポンスペイロード
+---
+
+Sequence Embedded Wallet APIと対話する際、各インテントペイロードは対応するレスポンスペイロードをトリガーします。これは成功レスポンスか、異なるアクションを促すプロンプトのいずれかとなります。
+
+## 一般的なレスポンス構造
+
+特定のレスポンスタイプに関係なく、すべてのレスポンスは以下のフィールドを持つ標準的な構造を持っています：
+
+| 名前   | 型      | 説明                        | 任意  |
+| ---- | ------ | ------------------------- | --- |
+| code | string | レスポンスの種類を識別します            | いいえ |
+| data | object | レスポンスタイプによって定義されたコンテンツを保持 | いいえ |
+
+## レスポンスの種類
+
+### トランザクションレシートレスポンス
+
+トリガーされるのは[send transaction intent](/solutions/wallets/embedded-wallet/architecture/action-payloads#send-transaction-payload)の成功実行時です。このレスポンスのコードは`transactionReceipt`です。
+
+この`data`フィールドには以下が含まれます：
+
+| 名前            | 型                                                                                                                                           | 説明                            | 任意  |
+| ------------- | ------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------- | --- |
+| txHash        | string                                                                                                                                      | Ethereumトランザクションのトランザクションハッシュ | いいえ |
+| metaTxHash    | string                                                                                                                                      | メタトランザクションのハッシュ               | いいえ |
+| request       | [SendTransactionPayload](https://docs.sequence.xyz/solutions/wallets/embedded-wallet/architecture/action-payloads#send-transaction-payload) | トランザクションの元のリクエストパケット          | いいえ |
+| receipt       | MetaTxnReceipt                                                                                                                              | メタトランザクションのレシート               | いいえ |
+| nativeReceipt | any                                                                                                                                         | Ethereumトランザクションのネイティブレシート    | はい  |
+| simulations   | SimulateResult\[]                                                                                                                           | シミュレーション結果の配列                 | はい  |
+
+`MetaTxnReceipt`:
+
+| 名前           | 型                    | 説明                      | 任意  |
+| ------------ | -------------------- | ----------------------- | --- |
+| id           | string               | レシートの一意の識別子             | いいえ |
+| status       | string               | トランザクションのステータス          | いいえ |
+| revertReason | string \| null       | トランザクションのリバート理由（存在する場合） | はい  |
+| index        | number               | レシートのインデックス番号           | いいえ |
+| logs         | MetaTxnReceiptLog\[] | メタトランザクションのログの配列        | いいえ |
+| receipts     | MetaTxnReceipt\[]    | メタトランザクションレシートの配列       | いいえ |
+| txnReceipt   | string               | トランザクションの文字列表現          | いいえ |
+
+`MetaTxnReceiptLog`:
+
+| 名前               | 型         | 説明                      | オプション |
+| ---------------- | --------- | ----------------------- | ----- |
+| address          | string    | ログを生成したアドレス             | いいえ   |
+| topics           | string\[] | ログに関連するトピックのリスト         | いいえ   |
+| data             | string    | ログと共に送信されたデータ           | いいえ   |
+| blockNumber      | number    | このログが発行されたブロック番号        | いいえ   |
+| transactionHash  | string    | ログを生成したトランザクションのハッシュ    | いいえ   |
+| transactionIndex | number    | ブロック内のトランザクションのインデックス   | いいえ   |
+| blockHash        | string    | ログを含むブロックのハッシュ          | いいえ   |
+| logIndex         | number    | ブロック内のログのインデックス         | いいえ   |
+| removed          | boolean   | チェーンの再編成によりログが削除されたかどうか | いいえ   |
+
+`SimulateResult`:
+
+| 名前        | 型              | 説明                 | オプション |
+| --------- | -------------- | ------------------ | ----- |
+| executed  | boolean        | シミュレーションが実行されたかどうか | いいえ   |
+| succeeded | boolean        | シミュレーションが成功したかどうか  | いいえ   |
+| result    | string \| null | シミュレーションの結果        | はい    |
+| reason    | string \| null | シミュレーションが失敗した場合の理由 | はい    |
+| gasUsed   | number         | シミュレーションで使用されたガス量  | いいえ   |
+| gasLimit  | number         | シミュレーションのガス制限      | いいえ   |
+
+#### 例
+
+```json
+{
+  "code": "transactionReceipt",
+  "data": {
+    "txHash": "0xf2e9f728abd65089f25efda5852e605ced377f4e2c89dbf143b124623ed09b2c",
+    "metaTxHash": "acc36ed4ef40db74137266e48d863083a5c7e85e2735d69adafcb5b362b6cfc0",
+    "nativeReceipt": {
+      "blockHash": "0x49be8c81414fae655f1f4615f5b437ca5160bdd4e4d8ce06275338ec6fe2e20b",
+      "blockNumber": "0x2f63834",
+      "contractAddress": "0x0000000000000000000000000000000000000000",
+      "cumulativeGasUsed": "0xdb374",
+      "gasUsed": "0x14a00",
+      "logs": [
+        {
+          "address": "0x4d4ee1b8583e31fe789eaf2e1b6e011c220c10b6",
+          "blockHash": "0x49be8c81414fae655f1f4615f5b437ca5160bdd4e4d8ce06275338ec6fe2e20b",
+          "blockNumber": "0x2f63834",
+          "data": "0x0000000000000000000000001119e72b4af230becebd933d0e07f0eec51d8c2a0000000000000000000000000000000000000000000000000000000000000001",
+          "logIndex": "0x14",
+          "removed": false,
+          "topics": [
+            "0x1f180c27086c7a39ea2a7b25239d1ab92348f07ca7bb59d1438fcf527568f881"
+          ],
+          "transactionHash": "0xf2e9f728abd65089f25efda5852e605ced377f4e2c89dbf143b124623ed09b2c",
+          "transactionIndex": "0x5"
+        },
+        {
+          "address": "0x4d4ee1b8583e31fe789eaf2e1b6e011c220c10b6",
+          "blockHash": "0x49be8c81414fae655f1f4615f5b437ca5160bdd4e4d8ce06275338ec6fe2e20b",
+          "blockNumber": "0x2f63834",
+          "data": "0x0000000000000000000000000000000000000000000000000000000000000000",
+          "logIndex": "0x15",
+          "removed": false,
+          "topics": [
+            "0x5c4eeb02dabf8976016ab414d617f9a162936dcace3cdef8c69ef6e262ad5ae7",
+            "0xacc36ed4ef40db74137266e48d863083a5c7e85e2735d69adafcb5b362b6cfc0"
+          ],
+          "transactionHash": "0xf2e9f728abd65089f25efda5852e605ced377f4e2c89dbf143b124623ed09b2c",
+          "transactionIndex": "0x5"
+        },
+        {
+          "address": "0x0000000000000000000000000000000000001010",
+          "blockHash": "0x49be8c81414fae655f1f4615f5b437ca5160bdd4e4d8ce06275338ec6fe2e20b",
+          "blockNumber": "0x2f63834",
+          "data": "0x000000000000000000000000000000000000000000000000001284e7c67266000000000000000000000000000000000000000000000000014c0fa753f2298415000000000000000000000000000000000000000000001386f7e2c243dcc978070000000000000000000000000000000000000000000000014bfd226c2bb71e15000000000000000000000000000000000000000000001386f7f5472ba33bde07",
+          "logIndex": "0x16",
+          "removed": false,
+          "topics": [
+            "0x4dfe1bbbcf077ddc3e01291eea2d5c70c2b422b415d95645b9adcfd678cb1d63",
+            "0x0000000000000000000000000000000000000000000000000000000000001010",
+            "0x00000000000000000000000000e91788bcb998379027d36e6407a9187d7f313c",
+            "0x000000000000000000000000959c65b72147faf3450d8b50a0de57e72ffc5e0d"
+          ],
+          "transactionHash": "0xf2e9f728abd65089f25efda5852e605ced377f4e2c89dbf143b124623ed09b2c",
+          "transactionIndex": "0x5"
+        }
+      ],
+      "logsBloom": "0x00000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000008800000002000000000001004000000000000000000000000000000000800000000000000000000100000000400000000200400000000000000000000000000000000000000080000000000000000000000000000000000000000000000000000000000000000000000000000000200000000000000000000000000002000000000000000000000000000000004000008000000000000001000000000000000000000000000000100000020000000000000000000000002000000020020002020040000000000000000040100000",
+      "root": "0x",
+      "status": "0x1",
+      "transactionHash": "0xf2e9f728abd65089f25efda5852e605ced377f4e2c89dbf143b124623ed09b2c",
+      "transactionIndex": "0x5"
+    },
+    "receipt": {
+      "id": "acc36ed4ef40db74137266e48d863083a5c7e85e2735d69adafcb5b362b6cfc0",
+      "index": 0,
+      "logs": [
+        {
+          "address": "0x4d4EE1b8583e31fe789eAF2e1b6e011C220c10B6",
+          "data": "0x0000000000000000000000001119e72b4af230becebd933d0e07f0eec51d8c2a0000000000000000000000000000000000000000000000000000000000000001",
+          "topics": [
+            "0x1f180c27086c7a39ea2a7b25239d1ab92348f07ca7bb59d1438fcf527568f881"
+          ]
+        },
+        {
+          "address": "0x4d4EE1b8583e31fe789eAF2e1b6e011C220c10B6",
+          "data": "0x0000000000000000000000000000000000000000000000000000000000000000",
+          "topics": [
+            "0x5c4eeb02dabf8976016ab414d617f9a162936dcace3cdef8c69ef6e262ad5ae7",
+            "0xacc36ed4ef40db74137266e48d863083a5c7e85e2735d69adafcb5b362b6cfc0"
+          ]
+        }
+      ],
+      "receipts": [
+        {
+          "id": "acc36ed4ef40db74137266e48d863083a5c7e85e2735d69adafcb5b362b6cfc0",
+          "index": 0,
+          "logs": null,
+          "receipts": null,
+          "revertReason": null,
+          "status": "SUCCEEDED",
+          "txnReceipt": ""
+        }
+      ],
+      "revertReason": null,
+      "status": "SUCCEEDED"
+    },
+    "request": {
+      "code": "sendTransaction",
+      "expires": 1699440762,
+      "identifier": "ts-sdk-1699440462686-0x153824576D03629b264683B430bBF9AcEA1d0975",
+      "issued": 1699440462,
+      "network": "137",
+      "transactions": [
+        {
+          "data": "0x",
+          "to": "0x4d4EE1b8583e31fe789eAF2e1b6e011C220c10B6",
+          "type": "transaction",
+          "value": "0x00"
+        }
+      ],
+      "wallet": "0x4d4EE1b8583e31fe789eAF2e1b6e011C220c10B6"
+    },
+    "simulations": [
+      {
+        "executed": true,
+        "gasLimit": 1147,
+        "gasUsed": 860,
+        "reason": null,
+        "result": "0x",
+        "succeeded": true
+      }
+    ]
+  }
+}
+```
+
+#### 検出方法
+
+```ts
+import { payloads } from '@0xsequence/waas';
+
+const res = ... // response from the Embedded Wallet API
+
+if (payloads.responses.isSentTransactionResponse(res)) {
+  // It's a transaction receipt
+}
+```
+
+### 失敗したトランザクションのレスポンス
+
+トランザクション送信インテントの実行に失敗した際にトリガーされます[send transaction intent](/solutions/wallets/embedded-wallet/architecture/action-payloads#send-transaction-payload)。このレスポンスのコードは`transactionFailed`。
+
+この`data`フィールドには以下が含まれます：
+
+| フィールド       | 型                                                                                                                                       | 説明                            |
+| ----------- | --------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------- |
+| error       | string                                                                                                                                  | トランザクションが失敗した理由を説明するエラーメッセージ。 |
+| request     | [SendTransactionPayload](https://docs.sequence.xyz//solutions/embedded-wallet/architecture/response-payloads/#send-transaction-payload) | 試行されたトランザクションのパケット。           |
+| simulations | SimulateResult\[]                                                                                                                       | トランザクションシミュレーション試行の結果。        |
+
+`SimulateResult`：
+
+| 名前        | 型              | 説明                 | オプション |
+| --------- | -------------- | ------------------ | ----- |
+| executed  | boolean        | シミュレーションが実行されたかどうか | いいえ   |
+| succeeded | boolean        | シミュレーションが成功したかどうか  | いいえ   |
+| result    | string \| null | シミュレーションの結果        | はい    |
+| reason    | string \| null | シミュレーションが失敗した場合の理由 | はい    |
+| gasUsed   | number         | シミュレーションで使用されたガス量  | いいえ   |
+| gasLimit  | 数値             | シミュレーションのガスリミット    | いいえ   |
+
+```json
+{
+  "code": "transactionFailed",
+  "data": {
+    "error": "This is an error message",
+    "request": {
+      "code": "sendTransaction",
+      "expires": 1699443005,
+      "identifier": "ts-sdk-1699442705965-0x153824576D03629b264683B430bBF9AcEA1d0975",
+      "issued": 1699442705,
+      "network": "137",
+      "transactions": [
+        {
+          "data": "0x",
+          "to": "0x839eE023B21f4Ffe2294025DE0AC30Ba7278D6Fd",
+          "type": "transaction",
+          "value": "0x00"
+        }
+      ],
+      "wallet": "0x4d4EE1b8583e31fe789eAF2e1b6e011C220c10B6"
+    },
+    "simulations": [
+      {
+        "executed": true,
+        "gasLimit": 7908,
+        "gasUsed": 5931,
+        "reason": "This is an error message",
+        "result": null,
+        "succeeded": false
+      }
+    ]
+  }
+}
+```
+
+#### 検出方法
+
+```ts
+import { payloads } from '@0xsequence/waas';
+
+const res = ... // response from the Embedded Wallet API
+
+if (payloads.responses.isFailedTransactionResponse(res)) {
+  // It's a failed transaction
+}
+```
+
+### 署名済みメッセージレスポンス
+
+正常に[sign message intent](/solutions/wallets/embedded-wallet/architecture/action-payloads#sign-message-payload)を実行した後に発生します。コードは`signedMessage`です。
+
+この`data`フィールドには以下が含まれます：
+
+| 名前        | 型      | 説明         | オプション |
+| --------- | ------ | ---------- | ----- |
+| message   | string | 署名されたメッセージ | いいえ   |
+| signature | string | 署名         | いいえ   |
+
+#### 例
+
+```json
+{
+  "code": "signedMessage",
+  "data": {
+    "message": "Hello World",
+    "signature": "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef"
+  }
+}
+```
+
+#### 検出方法
+
+```ts
+import { payloads } from '@0xsequence/waas';
+
+const res = ... // response from the Embedded Wallet API
+
+if (payloads.responses.isSignedMessageResponse(res)) {
+  // It's a signed message
+}
+```
+
+### セッション開始レスポンス
+
+正常に[open session intent](/solutions/wallets/embedded-wallet/architecture/action-payloads#open-session-payload)を実行した後に発生します。コードは`sessionOpened`です。
+
+この`data`フィールドには以下が含まれます：
+
+| 名前        | 型      | 説明                 | オプション |
+| --------- | ------ | ------------------ | ----- |
+| sessionId | string | セッションID（アドレスに似た形式） | いいえ   |
+| wallet    | string | Sequenceウォレットアドレス  | いいえ   |
+
+#### 例
+
+```json
+{
+  "code": "sessionOpened",
+  "data": {
+    "sessionId": "0xBdeAfd3ee0550a73f615D2BaEA2E3D6d48FC857D",
+    "wallet": "0x44c2Ea42Fb006a613a7b41D142576eD6B5055902"
+  }
+}
+```
+
+#### 検出方法
+
+```ts
+import { payloads } from '@0xsequence/waas';
+
+const res = ... // response from the Embedded Wallet API
+
+if (payloads.responses.isOpenSessionResponse(res)) {
+  // It's a session opened
+}
+```
+
+### 検証必要レスポンス
+
+一部のアクションでは追加の検証が必要な場合があります。そのような場合、レスポンスコードは`validationRequired`です。
+
+この`data`フィールドには以下が含まれます：
+
+| 名前        | 型      | 説明                 | オプション |
+| --------- | ------ | ------------------ | ----- |
+| sessionId | string | セッションID（アドレスに似た形式） | いいえ   |
+
+#### 検出方法
+
+```ts
+import { payloads } from '@0xsequence/waas';
+
+const res = ... // response from the Embedded Wallet API
+
+if (payloads.responses.isValidationRequiredResponse(res)) {
+  // Validation is required
+}
+```
+
+### 注意
+
+両方の`sendTransaction`と`signMessage`インテントで検証が必要になる可能性があります。トランザクションレシートや署名済みメッセージを受け取ったと判断する前に、必ず`validationRequired`レスポンスを確認してください。
+
+```ts
+import { payloads } from '@0xsequence/waas';
+
+const res = ... // response from the Embedded Wallet API
+
+if (payloads.responses.isValidationRequiredResponse(res)) {
+  // Handle validation
+}
+
+if (payloads.responses.isSendTransactionResponse(res)) {
+  // It's a transaction receipt
+}
+```

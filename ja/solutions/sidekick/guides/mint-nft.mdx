@@ -1,0 +1,58 @@
+---
+title: NFTのミント
+description: この例では、Sidekickを使用してNFTをミントする方法を説明します。
+---
+
+Sidekickを使用する場合、あなたの秘密鍵はSequenceスマートアカウントに関連付けられます。NFTのミントやトークンの転送などのアクションを実行する前に、このスマートアカウントがこれらの操作を実行するために必要な権限を持っていることを確認してください。
+
+以下では、Sidekickを使用してERC1155をミントするための準備と手順を説明します。
+
+<Note>
+  この例では、ERC1155のアクセスコントロールがロールベースであることを前提としています。
+</Note>
+
+<Note>
+  Sidekickからトランザクションを実行する予定がある場合、あなたのSidekickスマートウォレットは新しい`owner`になっている必要があります。Sidekickスマートウォレットに所有権を移転するか、ロールベースのアクセスコントロールを使用してSidekickスマートウォレットにミンターロールを付与しない限り、新しいトークンをミントすることはできません。
+</Note>
+
+## ロールベースのアクセスコントロールでNFTをミントする
+
+<Steps>
+  <Step title="Complete Sidekick Setup">
+    必ず[Sidekickセットアップ](/solutions/sidekick/overview)ガイドを完了してください。
+  </Step>
+
+  <Step title="Get your Sidekick smart wallet address">
+    GETリクエストを`/sidekick/smart-account-address`エンドポイントに送信して、Sidekickスマートウォレットアドレスを取得します。このアドレスはNFTコントラクトとの対話に使用されます。
+
+    <video controls className="w-full aspect-video" src="../../../video/sidekick/sidekick_getaddress.mp4" />
+  </Step>
+
+  <Step title="Grant the minter role to the Sidekick smart wallet address from the contract" />
+
+  <Step title="Mint the NFT">
+    Sidekickスマートウォレットがミンターロールを持っているので、POSTリクエストを`/write/erc1155/{chainId}/{contractAddress}/mint`エンドポイントに送信してバックエンドからNFTをミントできます。
+  </Step>
+</Steps>
+
+<Note>
+  NFTがロールベースでない場合、ミンターロールを付与する代わりに、コントラクトの所有権をSidekickスマートウォレットに移転する必要があります。
+</Note>
+
+## Sidekickからのデプロイとミント
+
+追加の手順なしで、Sidekickからコントラクトをデプロイしてミントすることもできます。
+
+<Steps>
+  <Step title="Deploy the NFT contract">
+    Sidekickを使用してNFTコントラクトをデプロイします。
+
+    <video controls className="w-full aspect-video" src="../../../video/sidekick/sidekick_deploy.mp4" />
+  </Step>
+
+  <Step title="Mint the NFT">
+    Sidekickを使用してNFTをミントします。
+
+    <video controls className="w-full aspect-video" src="../../../video/sidekick/sidekick_mint.mp4" />
+  </Step>
+</Steps>

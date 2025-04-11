@@ -1,0 +1,152 @@
+---
+title: useERC1155SaleContractCheckout
+description: ERC-1155セール契約のチェックアウトを管理するためのフック
+sidebarTitle: useERC1155SaleContractCheckout
+---
+
+## インポート
+
+```tsx
+import { useERC1155SaleContractCheckout } from '@0xsequence/checkout'
+```
+
+## 使用方法
+
+```tsx
+import { useERC1155SaleContractCheckout } from "@0xsequence/checkout"
+import { useAccount } from "wagmi"
+
+function App() {
+  const { address: userAddress } = useAccount()
+  const { openCheckoutModal } = useERC1155SaleContractCheckout({
+    chain: 80001, // chainId of the chain the collectible is on
+    contractAddress: "0x0327b2f274e04d292e74a06809bcd687c63a4ba4", // address of the contract handling the minting function
+    wallet: userAddress!, // address of the recipient
+    collectionAddress: "0x888a322db4b8033bac3ff84412738c096f87f9d0", // address of the collection contract
+    items: [
+      // array of collectibles to purchase
+      {
+        tokenId: "0",
+        quantity: "1",
+      },
+    ],
+    onSuccess: (txnHash: string) => {
+      console.log("success!", txnHash)
+    },
+    onError: (error: Error) => {
+      console.error(error)
+    },
+  })
+
+  const onClick = () => {
+    if (!userAddress) {
+      return
+    }
+    openCheckoutModal()
+  }
+
+  return <button onClick={onClick}>Buy ERC-1155 collectible!</button>
+}
+```
+
+## 戻り値の型：`UseERC1155SaleContractCheckoutReturnType`
+
+このフックは以下のプロパティを持つオブジェクトを返します：
+
+```tsx
+interface UseERC1155SaleContractCheckoutReturnType {
+  openCheckoutModal: () => void
+  closeCheckoutModal: () => void
+  selectPaymentSettings?: SelectPaymentSettings
+  isLoading: boolean
+  isError: boolean
+}
+```
+
+### プロパティ
+
+#### openCheckoutModal
+
+`() => void`
+
+設定されたERC-1155の購入のためのチェックアウトモーダルを開く関数。
+
+#### closeCheckoutModal
+
+`() => void`
+
+チェックアウトモーダルを閉じる関数。
+
+#### selectPaymentSettings
+
+`SelectPaymentSettings | undefined`
+
+```tsx
+export interface SelectPaymentSettings {
+  collectibles: Collectible[]
+  chain: number | string
+  currencyAddress: string | Hex
+  price: string
+  targetContractAddress: string | Hex
+  txData: Hex
+  collectionAddress: string | Hex
+  recipientAddress: string | Hex
+  approvedSpenderAddress?: string
+  transactionConfirmations?: number
+  onSuccess?: (txHash: string) => void
+  onError?: (error: Error) => void
+  onClose?: () => void
+  enableMainCurrencyPayment?: boolean
+  enableSwapPayments?: boolean
+  enableTransferFunds?: boolean
+  creditCardProviders?: string[]
+  copyrightText?: string
+  transakConfig?: TransakConfig
+  customProviderCallback?: (onSuccess: (txHash: string) => void, onError: (error: Error) => void, onClose: () => void) => void
+  supplementaryAnalyticsInfo?: SupplementaryAnalyticsInfo
+}
+```
+
+モーダルの現在の支払い設定構成。
+
+#### isLoading
+
+`boolean`
+
+契約データがまだ読み込み中かどうか。
+
+#### isError
+
+`boolean`
+
+契約データの読み込み中にエラーが発生したかどうか。
+
+## パラメータ
+
+このフックは以下のプロパティを持つ設定オブジェクトを受け入れます：
+
+| パラメータ               | 型                                            | 説明                             |
+| ------------------- | -------------------------------------------- | ------------------------------ |
+| `chain`             | `number`                                     | セール契約がデプロイされているチェーンID          |
+| `contractAddress`   | `string`                                     | ERC-1155セール契約のアドレス             |
+| `wallet`            | `string`                                     | NFTを受け取るウォレットのアドレス             |
+| `collectionAddress` | `string`                                     | ERC-1155トークン契約のアドレス            |
+| `items`             | `Array<{tokenId: string, quantity: string}>` | 購入するトークンIDと数量の配列               |
+| `onSuccess`         | `(txnHash: string) => void`                  | （オプション）トランザクションが成功した時のコールバック関数 |
+| `onError`           | `(error: Error) => void`                     | （オプション）エラーが発生した時のコールバック関数      |
+| `onClose`           | `() => void`                                 | （オプション）モーダルが閉じられた時のコールバック関数    |
+
+## 注意事項
+
+このフックは以下の処理を自動化することでERC-1155トークンの購入プロセスを簡素化します：
+
+* セール契約から価格情報を取得
+* 支払いオプションの決定（暗号通貨、クレジットカードなど）
+* 適切なトランザクションデータの生成
+* チェックアウトモーダルの開閉管理
+
+## 非推奨の通知
+
+<Warning>
+  この`useERC1155SaleContractPaymentModal`フックは非推奨です。代わりに`useERC1155SaleContractCheckout`を使用してください。
+</Warning>

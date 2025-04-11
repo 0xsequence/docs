@@ -1,0 +1,145 @@
+---
+title: すべてのネットワークにわたる特定のコントラクトからのトークン残高を取得します。
+description: このコンテンツは、特定のコントラクトからトークン残高を取得する手順を提供します。
+---
+
+# 残高更新API
+
+以下の例では、`GetTokenBalancesByContract`
+APIを使用します。
+
+## `GetTokenBalancesByContract`
+
+* リクエスト: POST /rpc/IndexerGateway/GetTokenBalancesByContract
+* Content-Type: application/json
+* ボディ（JSON形式）：
+  * `chainIds`（\[]int - オプション）-- 指定されたIDに一致するチェーンの結果のみを返します。
+  * `networks`（\[]string - オプション）-- 指定された名前に一致するチェーンの結果のみを返します。
+  * `filter`（オブジェクト）--
+    * `contractAddresses`
+    * `accountAddresses`
+    * `contractStatus`
+  * `omitMetadata`（ブール値 - オプション - デフォルト: false）
+
+### USDC残高を取得
+
+例：特定のアカウントのUSDCトークン残高を取得（`0xd8da6bf26964af9d7eed9e03e53415d37aa96045`）複数のネットワークにわたって
+
+* メインネット上のUSDC`0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48`
+* Polygon上のUSDC`0x3c499c542cef5e3811e1192ce70d8cc03d5c3359`
+* BSC上のUSDC`0x8ac76a51cc950d9822d68b83fe1ad97b32cd580d`
+
+<CodeGroup>
+  ```shell [Curl]
+  curl -X POST \
+    -H "Content-Type: application/json" \
+    -H "X-Access-Key: AQAAAAAAAF_JvPALhBthL7VGn6jV0YDqaFY" \
+    https://indexer.sequence.app/rpc/IndexerGateway/GetTokenBalancesByContract \
+    -d '{
+      "filter": {
+          "accountAddresses": [
+              "0xd8da6bf26964af9d7eed9e03e53415d37aa96045"
+          ],
+          "contractAddresses": [
+              "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+              "0x3c499c542cef5e3811e1192ce70d8cc03d5c3359",
+              "0x8ac76a51cc950d9822d68b83fe1ad97b32cd580d"
+          ]
+      }
+    }'
+  ```
+
+  ```ts [Typescript]
+  import { SequenceIndexerGateway } from '@0xsequence/indexer'
+
+  const INDEXER_TOKEN = 'AQAAAAAAAF_JvPALhBthL7VGn6jV0YDqaFY';
+  const ACCOUNT_ADDRESS = '0xd8da6bf26964af9d7eed9e03e53415d37aa96045';
+
+  const indexerGateway = new SequenceIndexerGateway(
+    'https://indexer.sequence.app',
+    INDEXER_TOKEN
+  )
+
+  const res = await indexerGateway.getTokenBalancesByContract({
+    filter: {
+      accountAddresses: [ACCOUNT_ADDRESS],
+      contractAddresses: [
+        '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48', // USDC on Ethereum
+        '0x3c499c542cef5e3811e1192ce70d8cc03d5c3359', // USDC on Polygon
+        '0x8ac76a51cc950d9822d68b83fe1ad97b32cd580d'  // USDC on BSC
+      ]
+    }
+  });
+
+  // Token Balances
+  res.balances.forEach(({ chainId, results }) => {
+    console.log(`chainId: ${chainId}`);
+    results.forEach(({ contractAddress, balance }) => {
+      console.log(`\tcontractAddress: ${contractAddress}, balance: ${balance}`);
+    });
+  });
+  ```
+
+  ```go [Go]
+  package main
+
+  import (
+  	"context"
+  	"fmt"
+  	"log"
+  	"net/http"
+
+  	"github.com/0xsequence/go-sequence/indexer"
+  	"github.com/0xsequence/go-sequence/lib/prototyp"
+  )
+
+  const indexerToken = "AQAAAAAAAF_JvPALhBthL7VGn6jV0YDqaFY"
+
+  func main() {
+  	ctx := context.TODO()
+
+  	seqIndexerGW := indexer.NewIndexerGatewayClient(
+  		"https://indexer.sequence.app",
+  		http.DefaultClient,
+  	)
+
+  	authCtx, err := indexer.WithHTTPRequestHeaders(ctx, http.Header{
+  		"X-Access-Key": []string{indexerToken},
+  	})
+  	if err != nil {
+  		log.Fatal(err)
+  	}
+
+  	accountAddress := prototyp.HashFromString("0xd8da6bf26964af9d7eed9e03e53415d37aa96045")
+  	contractAddresses := []prototyp.Hash{
+  		prototyp.HashFromString("0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48"), // USDC on Ethereum
+  		prototyp.HashFromString("0x3c499c542cef5e3811e1192ce70d8cc03d5c3359"), // USDC on Polygon
+  		prototyp.HashFromString("0x8ac76a51cc950d9822d68b83fe1ad97b32cd580d"), // USDC on BSC
+  	}
+
+  	_, balances, err := seqIndexerGW.GetTokenBalancesByContract(
+  		authCtx,
+  		nil, // No chainId filter
+  		nil, // No network filter
+  		&indexer.TokenBalancesByContractFilter{
+  			AccountAddresses:  []prototyp.Hash{accountAddress},
+  			ContractAddresses: contractAddresses,
+  		},
+  		nil, // Default omitMetadata
+  		nil, // Default page
+  	)
+  	if err != nil {
+  		log.Fatal(err)
+  	}
+
+  	// Token Balances
+  	for _, balance := range balances {
+  		fmt.Printf("chainId: %d\n", balance.ChainID)
+  		for _, result := range balance.Results {
+  			fmt.Printf("\tcontractAddress: %s, balance: %s\n",
+  				result.ContractAddress, result.Balance)
+  		}
+  	}
+  }
+  ```
+</CodeGroup>

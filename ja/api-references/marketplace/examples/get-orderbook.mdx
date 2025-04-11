@@ -1,0 +1,142 @@
+---
+title: オーダーブックの取得
+sidebarTitle: オーダーブックの取得
+---
+
+APIを使用することで`GetOrderbookOrders`開発者はAPIを活用してカスタムマーケットプレイスを構築できます。例えば、コレクティブルの特定の注文（最良価格だけでなく）を実行するフロントエンドを実装することができます
+
+<Frame>
+  ![GetOrderbookOrders](/images/marketplace/custom-marketplace-listings.png)
+</Frame>
+
+### 例
+
+`GetOrderbookOrders`SepoliaのコレクションアドレスからのトークンIDの
+
+<Note>
+  注意：metadata.propertiesキーでフィルタリングする場合、`min`と
+  `max`が必要で、これらがクエリに注文が表示されるために必要です
+</Note>
+
+<CodeGroup>
+  ```shell cURL
+
+  curl --request POST \
+    --url https://marketplace-api.sequence.app/arbitrum-sepolia/rpc/Marketplace/GetOrderbookOrders \
+    --header 'Content-Type: application/json' \
+    --data '{
+      "collectionAddress": "0x1693ffc74edbb50d6138517fe5cd64fd1c917709",
+      "currencyAddresses": [
+          "0xa9c88358862211870db6f18bc9b3f6e4f8b3eae7"
+      ],
+      "filters": {
+          "isListing": true,
+          "tokenIds": [
+              "0",
+              "1",
+              "4",
+              "5"
+          ]
+      },
+      "orderStatuses": [
+          "OPEN","CANCELLED"
+      ],
+      "page": {
+          "sort": [
+              {
+                  "column": "createdAt",
+                  "order": "ASC"
+              }
+          ]
+      },
+      "orderbookContractAddress": "0xfdb42A198a932C8D3B506Ffa5e855bC4b348a712"
+  }'
+  ```
+
+  ```js TypeScript
+  // Works in both a Webapp (browser) or Node.js:
+  import fetch from "cross-fetch";
+
+  (async () => {
+    const res = await fetch(
+      "https://marketplace-api.sequence.app/polygon/rpc/Marketplace/GetOrderbookOrders",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          collectionAddress: "0x1693ffc74edbb50d6138517fe5cd64fd1c917709",
+          currencyAddresses: ["0xa9c88358862211870db6f18bc9b3f6e4f8b3eae7"],
+          filters: {
+            isListing: true,
+            tokenIds: ["1", "4", "5"],
+          },
+          orderStatuses: ["OPEN", "CLOSED"],
+          page: {
+            sort: [
+              {
+                column: "createdAt",
+                order: "ASC",
+              },
+            ],
+          },
+          orderbookContractAddress: "0xfdb42A198a932C8D3B506Ffa5e855bC4b348a712",
+        }),
+      }
+    );
+
+    console.log("res", await res.json());
+  })();
+  ```
+</CodeGroup>
+
+### スキーマ
+
+様々なフィルターに基づいてプロトコルから注文を照会します。
+
+*Sequence Orderbook`GetOrderbookOrders`メソッド：*
+
+* リクエスト: POST /rpc/Marketplace/GetOrderbookOrders
+* Content-Type: application/json
+* ボディ（JSON形式）：
+  * `orderbookContractAddress`(string) -- プロトコルコントラクトのアドレス
+  * `collectionAddress`(string) -- NFTコレクションのアドレス
+  * `currencyAddresses`(string\[]) -- 通貨コントラクトアドレスの配列
+  * `filters`(OrderbookOrderFilter) -- クエリに適用するフィルター
+    * `tokenIds`(string\[]) -- 検索対象のアセットのトークンID
+    * `isListing?`(bool) -- `true`注文の場合、`false`オファーの場合
+    * `userAddress?`(string) -- ユーザーのアドレス
+  * `orderStatuses`(OrderStatus\[]) (オプション) -- 注文のステータスでフィルタリング：`OPEN`、`CLOSED`、`CANCELLED`文字列
+  * `metadataFilter`(Filter) (オプション) -- メタデータによる注文のフィルタリング
+    * `text?`(string) -- 検索するテキスト
+    * `properties?`(PropertyFilter\[]) --
+      * `name`(string) -- プロパティの名前、例：hero
+      * `type`(PropertyType) -- プロパティの値の型、以下の列挙型から選択：`"INT"`、`"STRING"`、`"ARRAY"`、または`"GENERIC"`
+      * `min?`(int64) -- 型がintの場合に使用、フィルタリングの値の範囲を指定
+      * `max?`(int64) -- 型がintの場合に使用、フィルタリングの値の範囲を指定
+      * `values?`\[]any -- 文字列の場合は値の配列、例：\["Ada", "Ari", "Axel", "Banjo" ...]
+  * `beforeExpiryTimestamp`(int64) -- 指定したタイムスタンプより前に期限切れとなる注文をフィルタリング
+  * `page?`-- ソート用のページオブジェクト
+    * `sort`(Sort\[]) -- キーのオブジェクト`"column"`と`"order"`例：`"createdAt"`と`"ASC"`、それぞれ
+* レスポンス（JSON形式）：
+  * `page`
+    * `page`(i32) -- ページ番号
+    * `pageSize`(i32) -- ページ内の注文数
+    * `more`(bool) -- さらに注文があるかどうか
+  * `orders`(OrderbookOrder\[])
+    \[
+    * `orderId`(string) -- 注文ID
+    * `tokenContract`(string) -- コレクションコントラクト
+    * `tokenId`(string) -- 注文内のコレクションのトークンID
+    * `isListing`(bool) -- 販売リストの場合はtrue、オファーの場合はfalse
+    * `quantity`(string) -- 注文のトークン数
+    * `quantityRemaining`(string) -- 注文後のトークン数
+    * `currencyAddress`(string) -- トークンが取引される通貨
+    * `pricePerToken`(string) -- トークンあたりの価格
+    * `expiry`(string) -- 注文が無効となる有効期限
+    * `orderStatus`(OrderStatus) -- 注文のステータス、以下の列挙型から：`"OPEN"`、`"CLOSED"`、`"CANCELLED"`
+    * `createdBy`(string) -- 注文を作成したアドレス
+    * `createdAt` (uint64) -- 注文が作成された時間
+    * `orderbookContractAddress` (string) -- オーダーブックのコントラクトアドレス
+      ]

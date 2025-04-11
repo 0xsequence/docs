@@ -1,0 +1,187 @@
+---
+title: 手数料オプション
+description: このコンテンツは、Sequenceスタックを使用してEmbedded Walletでトランザクションを送信する際のガス手数料のための手数料オプションの実装に関する詳細情報を提供します。
+sidebarTitle: 手数料オプション
+---
+
+Embedded Walletを実装する際、テストネット以外のネットワークでトランザクションを送信するためにガス手数料を支払う必要があります。
+
+手数料オプションは、一定期間（Sequenceスタック特有）のみ使用可能なガス手数料のみをカバーする見積もりを提供します。
+
+トランザクションを正常に送信するには、いくつかの方法があります：
+
+* **テストネット**: テストネットを使用する場合、SequenceでのトランザクションはSDKコールに手数料オプションを入力する必要がなく、無料です。
+* **スポンサード契約またはウォレット**: スマートコントラクトまたはウォレットがスポンサードされている場合、SDKコールに手数料オプションを入力する必要はありません。コントラクトまたはウォレットのスポンサーについては[こちら](/solutions/builder/gas-tank.mdx)で学ぶことができます。
+* **手数料オプション**: Sequence APIを使用してカスタム手数料見積もりと手数料オプションオブジェクトを取得し、両方をwaas sdkコールに渡します。[以下を参照](/sdk/headless-wallet/fee-options#implementing-fee-options)してください。
+
+<Note>
+  コントラクトやウォレットをスポンサーするか、手数料オプションを実装する必要があるかどうかは、WaaS APIから以下のようなレスポンスを受け取った場合に分かります：
+
+  ```shell
+  {
+      "error": "WebrpcEndpoint",
+      "code": 0,
+      "msg": "endpoint error",
+      "cause": "sending transaction: WebrpcEndpoint 0: endpoint error: failed to send transaction: Aborted 1005: Request aborted: failed to relay transaction: Aborted 1005: Request aborted: refusing to dispatch: missing required fee payment",
+      "status": 400
+  }
+  ```
+</Note>
+
+## 手数料オプションの実装
+
+以下の「手数料オプション」フローを実装する前に、特定のネットワーク上でトランザクションを支払うために、ウォレットにネイティブ通貨で十分な資金があることを確認する必要があります。
+
+ウォレットにトークンを転送するか、[オンランプ機能](/sdk/web/guides/on-ramp)をWeb SDKソリューションで使用することができます。
+
+そして、以下のパッケージがインストールされていることを確認してください：
+
+```shell
+pnpm install @0xsequence/waas ethers
+```
+
+<Steps>
+  <Step title="Generalized API for Fee Options & Fee Quote">
+    リクエストに渡す手数料オプションを実装するには、まず`sequence.feeOptions({...})`への呼び出しが必要です。これは以下の関数`checkTransactionFeeOptions`でラップされています：
+
+    <Note>
+      以下の例では、`sequence`変数は`@0xsequence/waas`npmパッケージから`WaasConfigKey`と`ProjectAccessKey`で初期化されたEmbedded Walletオブジェクトです。これを行う方法は[こちら](/sdk/headless-wallet/quickstart)
+    </Note>
+
+    ```typescript
+    import { FeeOption, Network, Transaction } from "@0xsequence/waas"
+
+    ....
+
+    async function checkTransactionFeeOptions({transactions, network}: {transactions: Transaction[], network: string | number }): Promise<{feeQuote: string | undefined, feeOptions: FeeOption[] | undefined, isSponsored: boolean}> {
+      const resp = await sequence.feeOptions({
+        transactions: transactions,
+        network: network,
+      })
+
+      if (resp.data.feeQuote && resp.data.feeOptions) {
+        return {feeQuote: resp.data.feeQuote, feeOptions: resp.data.feeOptions, isSponsored: false}
+      }
+      return {feeQuote: resp.data.feeQuote, feeOptions: resp.data.feeOptions, isSponsored: true}
+    }
+    ```
+  </Step>
+
+  <Step title="Crafting Fee Options & Fee Quote with Transaction">
+    #### ERC20トランザクションの実装
+
+    ```typescript
+    import { ethers } from 'ethers'
+    import { erc20 } from '@0xsequence/waas'
+
+    ...
+
+    const response = await checkTransactionFeeOptions({
+        transactions: [erc20({
+            token: customTokenAddress,
+            to: destinationAddress,
+            value: ethers.parseUnits(amount, decimals).toString()
+        })],
+        network: 'arbitrum-nova' // i.e. network or chainID e.g. 42170 
+    })
+
+    const tx = await sequence.sendERC20({
+        token: customTokenAddress,
+        to: destinationAddress,
+        value: ethers.parseUnits(amount, decimals),
+        network: 'arbitrum-nova',
+        transactionsFeeOption: response.feeOptions,
+        transactionsFeeQuote: response.feeQuote
+    })
+    ```
+
+    #### ERC1155 / ERC721トランザクションの実装
+
+    ERC721の場合は`erc1155({...})`を`erc721({...})`に置き換えて`sequence.sendERC721({...})`
+
+    ```typescript
+    import { ethers } from 'ethers'
+    import { erc1155, erc721 } from '@0xsequence/waas'
+
+    ...
+
+    const response = await checkTransactionFeeOptions({
+        transactions: [erc1155({
+            token: customTokenAddress,
+            to: destinationAddress,
+            values: [{
+              id: tokenID,
+              amount: ethers.parseUnits(amount, 0)
+            }]
+        })],
+        network: 'arbitrum-nova' // i.e. network or chainID e.g. 42170 
+    })
+
+    const tx = await sequence.sendERC1155({
+        token: customTokenAddress,
+        to: destinationAddress,
+        values: [{
+            id: tokenID,
+            amount: ethers.parseUnits(amount, 0)
+        }],
+        network: 'arbitrum-nova',
+        transactionsFeeOption: response.feeOptions,
+        transactionsFeeQuote: response.feeQuote
+    })
+    ```
+
+    #### ネイティブ通貨トランザクションの実装
+
+    ```typescript
+    import { ethers } from 'ethers'
+
+    const to = '0x...'
+
+    const response = await checkTransactionFeeOptions({
+        transactions: [{
+            to, value: ethers.parseEther(amount),
+        }],
+        network: 'arbitrum-nova'
+    })
+
+    const tx = await sequence.sendTransaction({
+        transactions: [{
+            to, value: ethers.parseEther(amount),
+        }],
+        network: 'arbitrum-nova',
+        transactionsFeeOption: feeOption,
+        transactionsFeeQuote: feeQuote
+    })
+    ```
+
+    #### カスタムコントラクトトランザクションの実装
+
+    ```typescript
+    import { delayedEncode } from '@0xsequence/waas'
+
+    ...
+
+    const response = await checkTransactionFeeOptions({
+        transactions: [delayedEncode({
+            to: contractAddress,
+            abi: contractAbi,
+            func: contractMethod, // e.g. "transfer"
+            args: JSON.parse(contractMethodArgs), // e.g. [0x..., 1000] or named { "to": "0x...", "amount": "1000" }
+            value: "0"
+        })],
+        network: 'arbitrum-nova'
+    })
+
+    const tx = await sequence.callContract({
+        network: 'arbitrum-nova',
+        to: contractAddress,
+        abi: contractAbi,
+        func: contractMethod, // e.g. "transfer"
+        args: JSON.parse(contractMethodArgs),
+        value: 0,
+        transactionsFeeOption: response.feeOption,
+        transactionsFeeQuote: response.feeQuote
+    })
+    ```
+  </Step>
+</Steps>

@@ -1,0 +1,378 @@
+---
+title: 初期化と認証
+description: 組み込みウォレットの認証機能は、アプリケーションのアカウント管理、認証、セッション制御を簡素化します。
+sidebarTitle: 認証
+---
+
+* [**SDKの初期化**](/sdk/headless-wallet/authentication#initialize-sdk): プロジェクトアクセスキーと組み込みウォレットテナントキーでSDKを初期化します。
+* [**ユーザー認証**](/sdk/headless-wallet/authentication#authentication-methods): WaaS機能を使用開始するには、提供されているサインインオプションのいずれかを使用して、ソーシャル、メール、またはゲストウォレットでSDKを初期化する必要があります。
+* [**ソーシャルからユーザー情報を取得**](/sdk/headless-wallet/authentication#retrieve-user-information-from-social-providers): ソーシャルプロバイダー認証方式からユーザーデータを取得します。
+
+## SDKのインストール
+
+<CodeGroup>
+  ```bash pnpm
+  pnpm install @0xsequence/waas
+  ```
+
+  ```bash npm
+  npm install @0xsequence/waas
+  ```
+
+  ```bash yarn
+  yarn add @0xsequence/waas
+  ```
+</CodeGroup>
+
+## SDKの初期化
+
+組み込みウォレットはソーシャル認証`OAuth`トークン（または[PlayFab`ticket`](/sdk/headless-wallet/authentication#authenticating-with-playfab)）、メール、または一時的な`Guest Wallet`ウォレット機能を提供するために使用できます。
+
+Sequence WaaS SDKを使用する前に、Sequence Builderから以下の設定キーを取得する必要があります：
+
+* `WaaSConfigKey`: このキーについては[こちら](/solutions/builder/embedded-wallet/configuration)
+* `ProjectAccessKey`: このキーについては[こちら](/solutions/builder/embedded-wallet/configuration)
+
+そして、以下のようにSDKを初期化します。これは`config.ts`ファイルでの実行を推奨します：
+
+```ts config.ts
+import { SequenceWaaS } from "@0xsequence/waas";
+
+export const sequence = new SequenceWaaS(
+  {
+    projectAccessKey: `${process.env.VITE_PROJECT_ACCESS_KEY}`,
+    waasConfigKey: `${process.env.VITE_WAAS_CONFIG_KEY}`,
+    network: "arbitrum-nova",
+  }
+);
+```
+
+次に、ユーザーを認証するアプローチを選択してください：
+
+* [ソーシャルプロバイダーによる認証](/sdk/headless-wallet/authentication#social-provider-authentication)
+* [メールによる認証](/sdk/headless-wallet/authentication#email-authentication)
+* [ゲストとしての認証](/sdk/headless-wallet/authentication#guest-embedded-wallet)
+
+<Note>
+  メール（レガシー）、Stytch、およびゲストウォレットを有効にするには、[アーリーアクセスページ](https://sequence.build/earlyaccess)に移動し、トグルで有効にしてください。
+</Note>
+
+## 認証方法
+
+サインインとサインアップは同じ操作です。アカウントが存在しない場合は自動的に作成され、ユーザーのWeb3ウォレットも自動的に作成されます。
+
+### ソーシャルプロバイダー認証
+
+ソーシャルプロバイダーでユーザーを認証するには、単純に[JWT](https://jwt.io/introduction) `idToken`（またはPlayFabチケット）をソーシャル認証方式から取得し、通常は`eyJh...`の形式で`OAuth`トークンを`signIn`関数に渡します：
+
+```typescript App.tsx
+await sequence.signIn({ idToken }, "Session name");
+```
+
+特定のプロバイダーでの認証の詳細な例については、組み込みウォレットの[設定](/sdk/headless-wallet)が対応する認証プロバイダーで設定されていることを確認し、以下の実装例を参照してください：
+
+* [PlayFabでの認証](/sdk/headless-wallet/authentication#authenticating-with-playfab)
+* [Googleでの認証](/sdk/headless-wallet/authentication#authenticating-with-google)
+* [Stytchでの認証](/sdk/headless-wallet/authentication#authenticating-with-stytch)
+
+### メール認証
+
+組み込みウォレットSDKは、開発者がメールを渡し、ワンタイムパスワードの正常な回答に基づいて組み込みウォレットセッションを開始することを可能にします。この機能は以下を提供します：
+
+* **直接メールサポート**: SDKは、キーがメールスコープで生成されている場合にメールサインインをサポートします。
+* **安全なユーザーフロー**: ユーザーメールを提供した後、組み込みウォレットNitro APIがこのメールにワンタイムパスワード（OTP）を送信します。
+* **認証**: ワンタイムパスワードをSDKに入力してユーザーウォレットを取得します。
+
+```ts
+import { SequenceWaaS } from '@0xsequence/waas'
+
+const sequence = new SequenceWaaS({
+  projectAccessKey: `${process.env.VITE_PROJECT_ACCESS_KEY}`,
+  waasConfigKey: `${process.env.VITE_WAAS_CONFIG_KEY}`,
+  network: 'arbitrum-nova'
+})
+
+sequence.onEmailAuthCodeRequired(async (respondWithCode: any) => {
+  // you can now store the `respondWithCode` callback somewhere and call it when user submits the code from email
+  // it may return error and be retried for maximum 3 times, while this is happening the promise returned from `signIn` is still pending
+  await respondWithCode(otpCode)
+})
+
+const emailResponse = await sequence.signIn({ email })
+```
+
+```json
+{
+  "sessionId": "0x63A21cCa14ed7454B9cF6466af422B5c597c6b57",
+  "wallet": "0xd6043fe6f06d90ec2cB36cA5CD1B193A8515f350",
+  "email": "email@domain"
+}
+```
+
+### ゲスト組み込みウォレット
+
+ゲストウォレットを使用すると、ソーシャルプロバイダーやメールでのログインを必要とせずに一時的なウォレットを作成してユーザーを認証できますが、関連するアプリデータが削除された場合は復元できません。
+
+ゲストウォレットを有効にするには、[アーリーアクセスページ](https://sequence.build/earlyaccess)に移動し、トグルで有効にしてください。
+
+ゲストウォレットを作成するには、ブール値の`guest`キーを`true`に設定して渡すと、アプリケーションで使用する一時的なウォレットが作成され、すべての組み込みウォレット機能が利用可能になります。
+
+```typescript App.tsx
+await sequence.signIn({ guest: true }, "Session name");
+```
+
+<Warning>
+  ブラウザキャッシュがクリアされた後、またはユーザーがアプリをアンインストールした後のゲストウォレットに保存された資産には、ユーザーはアクセスできなくなります。
+
+  ユーザーを保護するために、価値が転送されたり、ユーザーが請求可能な状態になった後は、資産の継続性を確保するためにソーシャルプロバイダーでサインインするようユーザーに促してください。
+</Warning>
+
+### ユーザーがサインインしているかの確認
+
+ユーザーセッションが以下の関数呼び出しでログインしているかどうかを確認できます：
+
+```ts
+if (await sequence.isSignedIn()){
+  ... // logged in
+} else {
+  ... // not logged in
+}
+```
+
+### 認証済みメールアドレスの取得
+
+WaaSオブジェクトがユーザーのサインインに使用される場合`idToken`、認証されたユーザーのメールアドレスは`email`プロパティとして返されるオブジェクトに含まれます：
+
+```typescript
+const { email } = await sequence.signIn({ idToken }, "Session name")
+```
+
+### アカウントフェデレーション
+
+ユーザーが異なるプロバイダー間で同じ認証情報（例：メールとGoogleで同じアドレス）を使用して認証を試みた場合、アカウントが既に存在することを示すコンフリクトがコールバックとして`sequence.onEmailConflict`返されます。この場合、以下のような対応を選択できます：
+
+1. ユーザーにアカウントが既に存在することを通知し、以前の認証方法でログインするよう促します。その後、ユーザーは[アカウントフェデレーション](/sdk/headless-wallet/account-federation#embedded-wallet-account-federation)を通じて異なる認証プロバイダーにアカウントをリンクできます。これにより、複数のプロバイダーで単一のアドレスを確保できます。
+2. あるいは、コールバックで非同期の`forceCreate`関数を実行することもできます。アカウントが既に存在するという警告は無視され、異なるログインプロバイダーに関連付けられた2つ目の別のウォレットアドレスがユーザーのために作成されます。
+
+を使用して`onEmailConflict`コールバックと`forceCreate`でユーザーの2つ目のウォレットを作成する：
+
+```typescript
+  const forceCreateFuncRef = useRef<(() => Promise<void>) | null>(null);
+
+  sequence.onEmailConflict(async (info, forceCreate) => {
+    forceCreateFuncRef.current = forceCreate; // Optionally choose to force create a second wallet for the user
+
+    setEmailConflictInfo(info); // Set the conflict info to inform the user
+    setIsEmailConflictModalOpen(true); // Display a modal to inform the user what to do that an account exists
+  });
+```
+
+## 特定のソーシャルプロバイダーでの認証
+
+### Playfabでの認証
+
+Playfabで認証を利用するには、まずPlayfabチケットを取得する必要があります。これはAPIを直接呼び出すか、PlayfabクライアントSDKを利用して行えます。その後、設定したtitleIdと一意のユーザー識別子を`CustomId`として渡します。例えば、以下のような呼び出しになります：
+
+```ts
+const playfabResponse = PlayFabClient.LoginWithCustomID({
+  TitleId: titleId,
+  CustomId: "<CUSTOM_ID>",
+  CreateAccount: true,
+})
+```
+
+Playfabから有効なセッションチケットを取得したら、それを単にsequenceの`signIn`関数にパラメータとして渡して、ユーザーを認証し有効なセッションを作成します：
+
+```ts
+const response = await sequence.signIn(
+  {
+    playFabTitleId: import.meta.env.VITE_PLAYFAB_TITLE_ID,
+    playFabSessionTicket: playfabResponse.data.SessionTicket
+  },
+  'playfab session'
+)
+```
+
+builderで設定されたタイトルIDがPlayFabに渡されるタイトルIDと一致することを確認することが重要です。一致しない場合、`Invalid Verifier`エラーが発生します。
+
+<Note>
+  セッションチケットを取得するためにPlayfabに渡すパラメータとして、Googleのアクセストークンやカスタムユーザーネームなど、様々な一意のユーザー情報を使用できます。
+</Note>
+
+### Googleでの認証
+
+例えばReactでは、`@react-oauth/google`パッケージを利用して`idToken`を生成し、Sequenceに渡すことができます：
+
+シンプルな`main.tsx`ファイルから始めて、WaaS SDK、ルーター、GoogleのOAuthプロバイダーをセットアップします。
+
+```ts
+import { SequenceWaaS } from '@0xsequence/waas'
+import { GoogleOAuthProvider } from '@react-oauth/google'
+import { createHashRouter, RouterProvider } from 'react-router-dom'
+
+const sequence = new SequenceWaaS({
+  projectAccessKey: `${process.env.VITE_PROJECT_ACCESS_KEY}`,
+  waasConfigKey: `${process.env.VITE_WAAS_CONFIG_KEY}`,
+  network: 'arbitrum-nova'
+})
+
+export const router = createHashRouter([
+  {
+    path: '/login',
+    element: <Login />
+  },
+  {
+    path: '/',
+    element: <App />
+  }
+])
+
+ReactDOM.createRoot(document.getElementById('root')!).render(
+  <React.StrictMode>
+      <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
+        <RouterProvider router={router} />
+      </GoogleOAuthProvider>
+  </React.StrictMode>
+)
+```
+
+次&#x306B;**`GoogleLogin`**&#x30B3;ンポーネント&#x3092;**`@react-oauth/google`**&#x30D1;ッケージからGoogle認証に使用します。認証後、**`handleGoogleLogin`**&#x95A2;数をユーザーがGoogleに正常にログインした時にトリガーします。
+
+```ts
+import { router, sequence } from './main'
+import { CredentialResponse, GoogleLogin } from '@react-oauth/google'
+
+function Login() {
+  const [signingIn, setSigningIn] = useState(false)
+
+  useEffect(() => {
+    (async () => {
+      if (await sequence.isSignedIn()) {
+        router.navigate('/')
+      }
+    })()
+  }, [])
+
+  const handleGoogleLogin = async (tokenResponse: CredentialResponse) => {
+    const walletAddress = await sequence.signIn({
+      idToken: tokenResponse.credential!
+    }, "MacBook Pro - Chrome")
+
+    console.log(`Wallet address: ${walletAddress}`)
+    router.navigate('/')
+  }
+
+  return (
+    {(<>
+      <GoogleLogin onSuccess={handleGoogleLogin} shape="circle" width={230} />
+    </>)}
+ )
+}
+
+export default Login
+```
+
+### Stytchでの認証
+
+<Note>
+  必ず[設定の詳細を完了](/sdk/headless-wallet/authentication#authenticating-with-stytch)してからStytchを使用してください。
+</Note>
+
+Stytchを使用したReactのサンプルアプリケーションは[こちら](https://github.com/0xsequence-demos/stytch-embedded-wallet-react-boilerplate/tree/master)でテスト用のキーと共に確認できます。
+
+### 実装
+
+単純に`idToken`を取得し、Embedded Wallet SDKに渡します。
+
+ウェブでサインインしたセッションに対してこれを行うには`@stytch/react`、以下のパッケージを使用して`browser-cookies`リダイレクト完了後に`stytch_session_jwt`をクッキーから取得します：
+
+```typescript
+import { SequenceWaaS } from '@0xsequence/waas'
+import cookies from 'browser-cookies'
+...
+export const sequence = new SequenceWaaS({
+  projectAccessKey: `${process.env.VITE_PROJECT_ACCESS_KEY}`,
+  waasConfigKey: `${process.env.VITE_WAAS_CONFIG_KEY}`,
+  network: "arbitrum-nova",
+});
+
+const idToken = cookies.get('stytch_session_jwt')
+await sequence.signIn({ idToken }, "Stytch Session name");
+```
+
+## ソーシャルプロバイダーからユーザー情報を取得
+
+認証プロバイダーの観点からアプリケーションがどのように設定されているかに基づいて、アプリケーションと統合できるユーザー詳細を解析するオプションがあります。
+
+例えば、体験にプロフィール機能のソーシャル性を含める簡単な方法として、それぞれのエコシステム（GoogleやApple）で既に使用されているプロフィール写真を参照できます。
+
+返されるJWTに含まれる詳細は以下の通りです：
+
+#### Google JWTの解析`idToken`の内容
+
+* `iss`（発行者）（文字列） - トークンの発行者。Googleからのトークンの場合、通常は[https://accounts.google.com](https://accounts.google.com)のようなURLです。
+* `azp` (別名：認証済みパーティー) (string) - 認証されたプレゼンターのクライアントID。このクレームはGoogle OAuth 2.0でトークンを使用する当事者を識別するために使用されます。
+* `aud` (別名：オーディエンス) (string) - トークンの対象となるオーディエンス。通常、これはあなたのアプリケーションのクライアントIDです。
+* `sub` (別名：サブジェクト) (string) - ユーザーの一意の識別子。複数のシステム間でユーザーを識別するために使用されることを意図しています。
+* `hd` (別名：ホストドメイン) (string) - 認証されたユーザーが該当するドメインからのものであることを意味します。
+* `email` (string) - 認証サービスに登録されているユーザーのメールアドレス。
+* `email_verified` (boolean) (string) - メールアドレスが本物として確認されたかどうかを表すブール値。
+* `nonce` (string) - クライアントセッションをIDトークンと関連付け、リプレイ攻撃を軽減するために使用される文字列。
+* `name` (string) - 認証サービスに登録されているユーザーのフルネーム。
+* `picture` (string) - ユーザーのプロフィール画像のURL。
+* `given_name` (string) - ユーザーの名。
+* `family_name` (string) - ユーザーの姓。
+* `iat` (別名：発行時刻) (number) - トークンが発行されたタイムスタンプ。Unixタイム（1970年1月1日からの秒数）で表されます。
+* `exp` (別名：有効期限) (number) - トークンの有効期限タイムスタンプ。この時刻を過ぎるとトークンは無効とみなされます。
+
+#### Apple JWTの解析`idToken` 内容
+
+* `iss` (string) - 発行者の登録済みクレームは、IDトークンを発行する主体を識別します。Appleがトークンを生成するため、値は[https://appleid.apple.com](https://appleid.apple.com)。
+* `sub` (string) - サブジェクトの登録済みクレームは、IDトークンの対象となる主体を識別します。このトークンはあなたのアプリ用なので、値はユーザーの一意の識別子となります。
+* `aud` (string) - オーディエンスの登録済みクレームは、IDトークンの受信者を識別します。トークンはあなたのアプリ用なので、値は開発者アカウントのclient\_idとなります。
+* `iat` (number) - 発行時刻の登録済みクレームは、AppleがIDトークンを発行した時刻を示します。UTCでのUnixエポックからの秒数で表されます。
+* `exp` (number) - 有効期限の登録済みクレームは、IDトークンの有効期限を識別します。UTCでのUnixエポックからの秒数で表されます。トークンを検証する際、この値は現在の日時よりも大きくなければなりません。
+* `nonce` (string) - クライアントセッションをIDトークンと関連付けるための文字列。この値はリプレイ攻撃を軽減し、認証リクエストで渡した場合にのみ存在します。
+* `nonce_supported` (boolean) - トランザクションがnonce対応プラットフォーム上にあるかどうかを示すブール値。認証リクエストでnonceを送信したにもかかわらず、IDトークンでnonceクレームが見つからない場合、このクレームをチェックして進め方を判断します。このクレームがtrueを返す場合、nonceを必須として扱いトランザクションを失敗させます。それ以外の場合は、nonceをオプションとして扱って進めることができます。
+* `email` (string) - ユーザーのメールアドレスを表す文字列値。メールアドレスは、プライベートメールリレーサービスの設定に応じて、ユーザーの実際のメールアドレスまたはプロキシアドレスのいずれかです。Sign in with Apple at Work & Schoolユーザーの場合、この値は空である可能性があります。例えば、若い学生はメールアドレスを持っていない場合があります。
+* `email_verified` (string || boolean) - サービスがメールを確認したかどうかを示す文字列またはブール値。値は文字列（"true"または"false"）またはブール値（trueまたはfalse）のいずれかです。システムはSign in with Apple at Work & Schoolユーザーのメールアドレスを確認しない場合があり、これらのユーザーの場合このクレームは"false"またはfalseとなります。
+* `is_private_email` (string || boolean) - ユーザーが共有するメールアドレスがプロキシアドレスであるかどうかを示す文字列またはブール値。値は文字列（"true"または"false"）またはブール値（trueまたはfalse）のいずれかです。
+* `real_user_status` (number) - ユーザーが実在の人物であるように見えるかどうかを示す整数値。このクレームの値を使用して不正を軽減します。可能な値は：0（またはUnsupported）、1（またはUnknown）、2（またはLikelyReal）です。このクレームはiOS 14以降、macOS 11以降、watchOS 7以降、tvOS 14以降でのみ存在します。このクレームはWeb基盤のアプリでは存在せず、サポートされていません。
+* `transfer_sub` (string) - ユーザーをあなたのチームに移行するための転送識別子を表す文字列値。このクレームはアプリを転送した後の60日間の転送期間中にのみ存在します。
+
+#### 解析のためのJSコード例
+
+```typescript
+function parseJwt(token) {
+    try {
+        // Split the token into its three parts
+        const parts = token.split('.');
+        if (parts.length !== 3) {
+            throw new Error('JWT token must consist of three parts');
+        }
+
+        // The payload is the second part. We decode it from base64 URL encoding.
+        const decodedPayload = atob(parts[1].replace(/_/g, '/').replace(/-/g, '+'));
+
+        // Parse the decoded payload as JSON
+        const payload = JSON.parse(decodedPayload);
+
+        // Return the payload object, which includes all the claims
+        return payload;
+    } catch (e) {
+        console.error('Failed to parse JWT:', e);
+        return null;
+    }
+}
+
+// Example usage
+const token = 'eyJ...'; // Your JWT token here
+const jwtDetails = parseJwt(token);
+
+if (jwtDetails) {
+    console.log('Email:', jwtDetails.email);
+    console.log('Name:', jwtDetails.name);
+    console.log('Picture:', jwtDetails.picture);
+    // Access other fields similarly
+}
+```

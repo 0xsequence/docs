@@ -1,0 +1,47 @@
+---
+title: アナリティクス
+sidebarTitle: 概要
+---
+
+# アナリティクス
+
+Sequence Analytics APIは、進捗状況の測定、ゲームやアプリケーションの成長の把握、Sequenceソリューションの使用状況の追跡、または更なる分析のために独自のデータパイプラインへの取り込みに最適です。
+
+このAPIを活用することで、ユーザー行動について深い洞察を得ることができます。ユーザーエンゲージメントの向上、パフォーマンスの最適化、または単に使用パターンを理解することを目指しているかに関わらず、Sequence Analytics APIはゲームの成功を推進するために必要な堅牢な分析機能を提供します。
+
+## サポートされているネットワークとエンドポイント
+
+こちらで[サポートされているネットワークの完全なリストを確認できます](https://status.sequence.info)。
+
+## はじめに
+
+### サービスアカウントとトークンの取得
+
+バックエンドから呼び出すには、まずサービスアカウントとトークンを取得する必要があります。重要なことに、これは秘密鍵であり、公開してはいけません。
+
+1. 私たちの[Builder](https://sequence.build)を使用して新しいプロジェクトを作成します。設定 > APIキー > サービスアカウントの追加に移動します。
+2. 表示されるモーダルで、権限のドロップダウンをクリックしてWriteに変更します。完了したら追加をクリックします。
+3. 次の画面で、シークレットAPIトークンが表示されます。再度表示することはできないため、キーをコピーして安全に保管してください。完了したら確認をクリックすると、APIを使用する準備が整います。
+
+パブリックAPIアクセスキーとは異なり、このシークレットAPIトークンは安全に保管し、公開して使用してはいけないことに注意してください。このトークンは、リクエストヘッダーでX-Access-Keyとして通常のJWTとして渡します。
+
+### リクエストの送信
+
+これでリクエストを送信する準備が整いました。以下のSECRET\_API\_ACCESS\_KEYをあなたのアクセスキーに変更し、PROJECT\_IDも[sequence.build](https://sequence.build)
+
+```sh cURL
+curl 'https://api.sequence.build/rpc/Builder/WalletsTotal' \
+  -H 'accept: */*' \
+  -H 'authorization: BEARER <SECRET_API_ACCESS_KEY>' \
+  -H 'content-type: application/json' \
+  --data-raw '{"filter":{"projectId":<PROJECT_ID>,"startDate":"2024-04-23","endDate":"2024-05-23"}}'
+```
+
+### その他の例
+
+始めたところで - 他のいくつかの例を試してみましょう：
+
+* [時間間隔内のウォレットを取得](/api-references/analytics/examples/wallets#fetch-wallets-for-a-time-interval-for-a-project-id)
+* [ウォレットごとのトランザクションを取得](/api-references/analytics/examples/wallets#fetch-transactions-by-wallets)
+* [デバイスごとのウォレットを取得](/api-references/analytics/examples/wallets#fetch-wallets-by-device)
+* [Sequenceマーケットプレイスでのトランザクションを取得](/api-references/analytics/examples/marketplace#fetch-transactions-on-your-marketplace)

@@ -1,0 +1,152 @@
+---
+title: useWallets
+description: 接続されたウォレットを管理するためのフック
+sidebarTitle: useWallets
+---
+
+## インポート
+
+```tsx
+import { useWallets } from '@0xsequence/connect'
+```
+
+## 使用方法
+
+```tsx
+import { useWallets } from '@0xsequence/connect'
+
+function App() {
+  const { 
+    wallets, 
+    linkedWallets, 
+    setActiveWallet, 
+    disconnectWallet,
+    refetchLinkedWallets
+  } = useWallets()
+  
+  return (
+    <div>
+      <h2>Connected Wallets</h2>
+      <div>
+        {wallets.map(wallet => (
+          <div key={wallet.address}>
+            <span>
+              {wallet.name}: {wallet.address.slice(0, 6)}...{wallet.address.slice(-4)}
+            </span>
+            {wallet.isActive ? ' (Active)' : ''}
+            {wallet.isEmbedded ? ' (Embedded)' : ''}
+            <button onClick={() => setActiveWallet(wallet.address)}>
+              Set Active
+            </button>
+            <button onClick={() => disconnectWallet(wallet.address)}>
+              Disconnect
+            </button>
+          </div>
+        ))}
+      </div>
+      
+      {linkedWallets && linkedWallets.length > 0 && (
+        <>
+          <h2>Linked Wallets</h2>
+          <button onClick={refetchLinkedWallets}>Refresh</button>
+          <div>
+            {linkedWallets.map(linkedWallet => (
+              <div key={linkedWallet.walletAddress}>
+                {linkedWallet.walletAddress.slice(0, 6)}...{linkedWallet.walletAddress.slice(-4)}
+              </div>
+            ))}
+          </div>
+        </>
+      )}
+    </div>
+  )
+}
+```
+
+## 戻り値の型：`UseWalletsReturnType`
+
+このフックは以下のプロパティを持つオブジェクトを返します：
+
+```tsx
+interface UseWalletsReturnType {
+  wallets: ConnectedWallet[]
+  linkedWallets: LinkedWallet[] | undefined
+  setActiveWallet: (address: string) => Promise<void>
+  disconnectWallet: (address: string) => Promise<void>
+  refetchLinkedWallets: () => Promise<void>
+}
+```
+
+### プロパティ
+
+#### wallets
+
+`ConnectedWallet[]`
+
+接続されているすべてのウォレットの配列。
+
+```tsx
+interface ConnectedWallet {
+  id: string       // Unique identifier for the wallet (connector id)
+  name: string     // Display name of the wallet
+  address: string  // The wallet's Ethereum address
+  isActive: boolean // Whether this wallet is currently active
+  isEmbedded: boolean // Whether this is an embedded wallet (WaaS)
+}
+```
+
+#### linkedWallets
+
+`LinkedWallet[] | undefined`
+
+アクティブな組み込みウォレット（存在する場合）のリンクされたウォレットの配列。WaaSウォレットを使用している場合のみ利用可能。
+
+```tsx
+interface LinkedWallet {
+  id: number;
+  walletType?: string;
+  walletAddress: string;
+  linkedWalletAddress: string;
+  createdAt?: string;
+}
+```
+
+#### setActiveWallet
+
+`(address: string) => Promise<void>`
+
+アドレスによってウォレットをアクティブに設定する関数。
+
+| パラメータ     | 型        | 説明                           |
+| --------- | -------- | ---------------------------- |
+| `address` | `string` | アクティブに設定するウォレットのEthereumアドレス |
+
+#### disconnectWallet
+
+`(address: string) => Promise<void>`
+
+アドレスによってウォレットを切断する関数。
+
+| パラメータ     | 型        | 説明                     |
+| --------- | -------- | ---------------------- |
+| `address` | `string` | 切断するウォレットのEthereumアドレス |
+
+#### refetchLinkedWallets
+
+`() => Promise<void>`
+
+リンクされたウォレットのリストを更新する関数。新しいウォレットをリンクした後に便利です。
+
+## 注意事項
+
+このフックは、組み込み（WaaS）ウォレットと外部ウォレットの両方を管理するための統一されたインターフェースを提供します。
+
+主な機能：
+
+* 接続されているすべてのウォレットに関する情報の取得
+* 特定のウォレットをアクティブに設定
+* ウォレットの切断
+* 組み込みウォレットのリンクされたウォレットの表示
+* リンクされたウォレットのリストの更新
+
+組み込みウォレット（Wallet-as-a-Service）の場合、利用可能な場合はフックが自動的にリンクされたウォレットを取得します。リンクされたウォレットは、プライマリの組み込みウォレットに接続された追加のウォレットです。

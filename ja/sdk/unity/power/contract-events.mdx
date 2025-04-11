@@ -1,0 +1,68 @@
+---
+title: スマートコントラクトイベント
+---
+
+## カスタムイベントの購読
+
+任意のコントラクトからカスタムまたは既存のイベントをリッスンするには`SubscribeEvents`を使用します。`event`
+
+Solidity のイベントシグネチャと一致する文字列であることを確認し、リッスンしたいコントラクトアドレスを定義してください。特定のウォレットやトークン ID からのイベントのみを受信するように追加のフィルターを定義できます。
+
+この`OnEventReceived`関数は`SubscribeEventsReturn`オブジェクトを提供し、これにはコントラクトタイプ、トランザクションハッシュなどの情報が含まれます。発行されたイベント値を取得したい場合は、`EventDecoded`オブジェクトを`SubscribeEventsReturn > EventLog > EventDecoded`で使用します。
+
+```csharp
+var indexer = new ChainIndexer(Chain.TestnetArbitrumSepolia);
+var streamOptions = new WebRPCStreamOptions<SubscribeEventsReturn>(
+    OnEventReceived,
+    OnWebRPCErrorReceived);
+
+var eventFilter = new EventFilter
+{
+    accounts = Array.Empty<string>(),
+    contractAddresses = new[] {"0x4ab3b16e9d3328f6d8025e71cefc64305ae4fe9c"},
+    tokenIDs = new[] {"0"},
+    events = new[] {"Transfer(address indexed from, address indexed to, uint256 value)"}
+};
+
+indexer.SubscribeEvents(new SubscribeEventsArgs(eventFilter), streamOptions);
+```
+
+## 残高更新の購読
+
+指定したコントラクトでウォレットの残高更新をリッスンします。`OnBalanceUpdateReceived`関数は`SubscribeBalanceUpdatesReturn`オブジェクトを提供し、これには指定したウォレットアドレスの現在の残高が含まれます。
+
+```csharp
+var indexer = new ChainIndexer(Chain.TestnetArbitrumSepolia);
+var streamOptions = new WebRPCStreamOptions<SubscribeBalanceUpdatesReturn>(
+    OnBalanceUpdateReceived,
+    OnWebRPCErrorReceived);
+
+var contractAddress = "0x4ab3b16e9d3328f6d8025e71cefc64305ae4fe9c";
+indexer.SubscribeBalanceUpdates(new SubscribeBalanceUpdatesArgs(contractAddress), streamOptions);
+```
+
+## レシートの購読
+
+指定したコントラクトでレシートの更新をリッスンします。`OnSubscribeReceiptsMessageReceived`関数は`SubscribeReceiptsReturn`オブジェクトを提供し、これには現在のレシート情報が含まれます。
+
+```csharp
+var indexer = new ChainIndexer(Chain.TestnetArbitrumSepolia);
+var streamOptions = new WebRPCStreamOptions<SubscribeReceiptsReturn>(
+    OnSubscribeReceiptsMessageReceived,
+    OnWebRPCErrorReceived);
+
+var filter = new TransactionFilter
+{
+    contractAddress = "0x4ab3b16e9d3328f6d8025e71cefc64305ae4fe9c"
+};
+
+indexer.SubscribeReceipts(new SubscribeReceiptsArgs(filter), streamOptions);
+```
+
+## ストリームの中止
+
+イベントを受信する必要がなくなった場合は、必ずストリームをキャンセルしてください。これによりゲーム内で実行中のすべてのリスナーが中止されます。
+
+```csharp
+new ChainIndexer(Chain.TestnetArbitrumSepolia).AbortStreams();
+```

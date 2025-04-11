@@ -1,0 +1,97 @@
+---
+title: SequenceのUnreal Engine SDKを使用したWeb3ゲーム機能の構築と統合
+description: SequenceのUnreal SDKを使用してSequence Walletを統合し、プレイヤーの資産を取得し、
+  メッセージに署名し、トランザクションを送信するなどの機能を実装。
+sidebarTitle: Unreal Engine Web 3ゲームの構築
+---
+
+# Cropout - Unreal Engineゲームガイドの紹介
+
+CropoutはUnreal Engineで構築されたトップダウンカジュアルRTSゲームです。このガイドでは、SequenceのUnreal SDKを使用してEmbedded Wallet機能を統合する方法を説明します。
+
+この統合により、プレイヤーはポップアップの中断やガス料金の要件なしに、スマートコントラクトウォレット、ゲーム内資産の所有権、トランザクション管理などの機能にアクセスできるようになります。
+
+このガイドの[ボイラープレートをチェックしてください。](https://github.com/0xsequence/sequence-unreal)
+
+[Embedded Walletsについてもっと学ぶ。](/solutions/wallets/overview#what-are-the-differences-between-these-options)
+
+## 1. セットアップ
+
+### ゲームサンプルをダウンロード
+
+Unreal Engineがインストールされている場合は、直接[UnrealのCropoutページ](https://www.unrealengine.com/en-US/blog/cropout-casual-rts-game-sample-project)に進んでください。
+
+インストールされていない場合は、まずEpic Games Launcherをインストールします：
+
+1. ランチャーを[Epic Gamesのウェブサイト](https://www.unrealengine.com/en-US/download)からダウンロードしてインストールします。
+
+2. ログイン：Epic Gamesアカウントにサインインするか作成します。
+
+3. プロジェクトを見つける：Unreal Engineタブに移動し、Learnセクションで「Cropout Sample Project」を検索します。
+
+4. ダウンロード：ライブラリに追加をクリックし、インストールをクリックしてプロジェクトファイルをダウンロードします。
+
+## Sequence Unreal Engine SDKをダウンロード
+
+始めるには、[最新バージョン](https://github.com/0xsequence/sequence-unreal/releases)のSequence SDKをダウンロードし、`SequencePlugin`フォルダをUnrealプロジェクトの`Plugin`フォルダに配置します。
+
+または、[Epic Games MarketplaceからSDKを入手してください。](/sdk/unreal/installation#using-epic-games-marketplace)
+
+### プロジェクトを設定
+
+1. [Sequence Builder Consoleにサインインします。](/solutions/builder/getting-started)
+
+2. [Builder Consoleでゲーム用のプロジェクトを作成します。](/support/builder/project-management)
+
+3. Builder Consoleで[Embedded Walletを設定します。](/solutions/builder/embedded-wallet#embedded-wallet-in-builder)
+
+4. あなたの`SequenceConfig.ini`ファイルに、`WaaS Config Key`と、Builder APIキーを追加します。[ビルダーコンソール](/solutions/builder/getting-started#claim-an-api-access-key) の `Settings > API Access Keys`。
+
+5. Builderの下で設定する必要がある、お好みのOauthクライアントIDの追加を忘れないでください`Onboard > Embedded Wallet > Configuration`。
+
+### 組み込みUIを使用したログイン
+
+メインメニューレベルのブループリントで、`Sequence Connector` アクターをスポーンし、ログインパネルを開始して表示します。
+
+開発目的では組み込みUIの使用をお勧めします。こちらが[詳細な説明です。](/sdk/unreal/user_interfaces/)
+
+さらにカスタマイズする場合は、[独自のUIの作成方法を学んでください。](/sdk/unreal/authentication/)
+
+## 2. ネットワークIDとチェーンの設定
+
+Sequence SDKとの対話を開始するには、*Sequence Connector*ブループリントを開き、`Auth Success`イベントを*Event Graph > Begin Play*で見つけ、`Api Update Network Id`SequenceWalletBPサブシステムから呼び出して、ウォレットをビルダープロジェクトで選択したチェーンに設定します。
+同じイベントで、`Set Chain`Sequence Indexerサブシステムから呼び出して、アセットを正しくフェッチできるようにします。
+
+## 3. ウォレットアドレスの取得
+
+ウォレットのアドレスを表示するには、まずSequenceWalletBPを使用してユーザーのウォレット参照を再度取得し、`Api GetWallet Address`SequenceWalletBPサブシステムから選択したネットワークのウォレットアドレスを取得して表示します。ユーザーアドレスはUI\_Layer\_Menuに表示されます。
+
+## 4. NFTの設定
+
+今回の場合、リソースバンドルパックとファーミングブースト用のERC-1155コントラクトから始めます。NFTを作成するには[Builder Console >  Deploy > Contracts](/solutions/builder/contracts/)に移動して`Web3 Game Item`。
+
+アイテムを作成したら、新しいコントラクトをデプロイして`Web 3 Game Item(Sale)`を選択し、それぞれの販売コントラクトを作成します。
+
+Web 3ゲームアイテムに、対応する報酬と販売コントラクトアドレスをプロパティとして追加します。
+
+### NFTのフェッチ
+
+新しく作成したNFTを取得するには、Indexerサブシステムを使用してGet Token Supplyを呼び出し、指定したコントラクトアドレスの情報とメタデータを取得します。これは`CUI_Purchase`ブループリントにあります。
+
+### NFTの購入
+
+プレイヤーがNFTを購入できるようにするには、SequenceSDKサブシステムを使用して`PrimaryPurchase`トランザクションを作成して送信し、`Web 3 Game Item(Sale)`を希望し、コントラクトの「Sale」プロパティを使用して`Web 3 Game Item(Sale)`を参照します。これは`CUI_PurchaseItem`ブループリントにあります。
+
+### プレイヤーのNFTのフェッチ
+
+プレイヤーのNFTを取得するには、Indexerサブシステムを使用して`Get Token Balances`を呼び出し、指定したウォレットアドレスのすべてのコントラクトの残高を取得します。返された後、各特定のコントラクトに対してGet Token Balancesを再度呼び出し、残高と指定したコントラクトの情報とメタデータを取得します。これは`CUI_Vault`ブループリントにあります。
+
+### プレイヤーのNFTのバーン
+
+プレイヤーがNFTを使用した報酬を与えるには、SequenceSDKサブシステムを使用して`Burn`トランザクションを作成して送信し、`Web 3 Game Item`を希望します。これにより、トランザクションのステータスとコントラクトアドレスが返され、アイテムのバーンが成功したことを確認できます。成功した場合、コントラクトのプロパティを使用してプレイヤーに報酬を与えます。これは`CUI_VaultItem`ブループリントにあります。
+
+より詳細な説明については、[ブロックチェーンからの読み取り](/sdk/unreal/read-from-blockchain/)と[ブロックチェーンへの書き込み](/sdk/unreal/write-to-blockchain/)のセクションを参照してください。
+
+## 5. プレイヤーのサインアウト
+
+プレイヤーをサインアウトしてセッションを終了するには、Sequence Sessionsサブシステムから\`Clear Session\`を呼び出します。これにより、保存された認証情報が削除され、ユーザーが戻ってきたときに再度ログインする必要があります。このメソッドはUI\_Layer\_Menuで呼び出します。

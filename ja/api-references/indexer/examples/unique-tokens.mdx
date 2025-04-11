@@ -1,0 +1,79 @@
+---
+title: コントラクト内のトークン
+sidebarTitle: ユニークトークン
+---
+
+## 特定のERC20/721/1155コントラクトにおけるすべてのユニークトークンを、総供給量を含めて取得
+
+**任意のERC20、ERC721、ERC1155コントラクトのトークン供給量とメタデータを取得します。**
+
+このクエリは、トークンコントラクト内のすべてのトークンを表示したり、トークンの総供給量を照会したりする際に役立ちます。
+この例では、Polygonネットワーク上のSkyweaverトークンコントラクトアドレス0x631998e91476DA5B870D741192fc5Cbc55F5a52Eを
+使用します。サポートされているネットワークの任意のコントラクトアドレスを照会できます（ただし、
+対応するネットワークのインデクサーに対して照会してください）。
+
+*Sequence Indexer`GetTokenSupplies`メソッド：*
+
+* リクエスト: POST /rpc/Indexer/GetTokenSupplies
+* Content-Type: application/json
+* ボディ（JSON形式）：
+  * `contractAddress`（文字列）-- ERC20 / ERC721 / ERC1155コントラクトアドレス
+  * `includeMetadata`（ブール値 - オプション - デフォルト: false）-- レスポンスにトークンメタデータを含めるかどうかを切り替え
+  * `metadataOptions`（オブジェクト - オプション）-- メタデータの追加オプション
+    * `verifiedOnly`（ブール値 - オプション）-- スパムを減らすために'検証済み'のコントラクトのみを返す
+    * `includeContracts`（文字列配列 - オプション）-- verifiedOnlyが有効な場合でも、常に含める特定のコントラクトアドレスのリスト
+
+**例：`GetTokenSupplies`を使用したPolygon上のSkyweaverコントラクトの`AQAAAAAAAF_JvPALhBthL7VGn6jV0YDqaFY`**
+
+<CodeGroup>
+  ```bash cURL
+  curl -X POST -H "Content-Type: application/json" -H "X-Access-Key: AQAAAAAAAF_JvPALhBthL7VGn6jV0YDqaFY" https://polygon-indexer.sequence.app/rpc/Indexer/GetTokenSupplies -d '{ "contractAddress": "0x631998e91476DA5B870D741192fc5Cbc55F5a52E", "includeMetadata": true }'
+  ```
+
+  ```ts Typescript
+  // Works in both a Webapp (browser) or Node.js:
+  import { SequenceIndexer } from '@0xsequence/indexer'
+
+  const indexer = new SequenceIndexer('https://polygon-indexer.sequence.app', 'AQAAAAAAAF_JvPALhBthL7VGn6jV0YDqaFY')
+
+  // here we query the Skyweaver contract address, but you can use any
+  const contractAddress = '0x631998e91476DA5B870D741192fc5Cbc55F5a52E'
+
+  // query Sequence Indexer for all token details / supplies
+  const tokenDetails = await indexer.getTokenSupplies({
+  	contractAddress: contractAddress,
+  	includeMetadata: true
+  })
+  console.log('token details of contract:', tokenDetails)
+  ```
+
+  ```go Go
+  go
+  import (
+  	"context"
+  	"fmt"
+  	"log"
+  	"net/http"
+
+  	"github.com/0xsequence/go-sequence/indexer"
+  )
+
+  func GetTokenSupplies(contractAddress string) {
+  	seqIndexer := indexer.NewIndexer("https://polygon-indexer.sequence.app", "AQAAAAAAAF_JvPALhBthL7VGn6jV0YDqaFY")
+
+  	metadataOptions := indexer.MetadataOptions{
+  		VerifiedOnly:     true, // Set to true if you want to fetch only verified contracts
+  		UnverifiedOnly:   false,
+  		IncludeContracts: nil, // Provide a list of specific contracts to include, if any
+  	}
+
+  	_, _, tokenDetails, err := seqIndexer.GetTokenSupplies(context.Background(), contractAddress, nil, &metadataOptions, nil)
+  	
+  	if err != nil {
+  		log.Fatal(err)
+  	}
+
+  	fmt.Println("token details:", tokenDetails)
+  }
+  ```
+</CodeGroup>

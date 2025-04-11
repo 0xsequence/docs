@@ -1,0 +1,88 @@
+---
+title: GetUserActivities
+sidebarTitle: ユーザーアクティビティの取得
+---
+
+特定のユーザーの注文や取引を含むアクティビティデータを取得することができます。`GetUserActivities`APIを使用することで、開発者は様々なインターフェースで特定のユーザーをフォローするためのカスタマイズされたパーソナライズされたソーシャルまたはトラッキング体験を構築できます。
+
+<Frame>
+  ![GetUserActivities](/images/marketplace/activities.png)
+</Frame>
+
+### 例
+
+`GetUserActivities`特定のトークンIDを持つユーザーの場合：
+
+<CodeGroup>
+  ```shell cURL
+  curl -X POST -H "Content-Type: application/json" https://marketplace-api.sequence.app/arbitrum-sepolia/rpc/Marketplace/GetUserActivities -d '{
+      "orderbookContractAddress": "0xfdb42A198a932C8D3B506Ffa5e855bC4b348a712",
+      "collectionAddress": "0x1693ffc74edbb50d6138517fe5cd64fd1c917709",
+      "currencyAddresses": [
+          "0xa9c88358862211870db6f18bc9b3f6e4f8b3eae7"
+      ],
+      "userAddress": "0xC2Be9CF6D9ee4fd211f88620760e829792659b16",
+      "tokenIDs": ["1"]
+  }'
+
+  ```
+
+  ```js TypeScript
+  // Works in both a Webapp (browser) or Node.js:
+  import fetch from "cross-fetch";
+
+  (async () => {
+    const res = await fetch(
+      "https://marketplace-api.sequence.app/arbitrum-sepolia/rpc/Marketplace/GetUserActivities",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          "orderbookContractAddress": "0xfdb42A198a932C8D3B506Ffa5e855bC4b348a712",
+          "collectionAddress": "0x1693ffc74edbb50d6138517fe5cd64fd1c917709",
+          "currencyAddresses": [
+              "0xa9c88358862211870db6f18bc9b3f6e4f8b3eae7"
+          ],
+          "userAddress": "0xC2Be9CF6D9ee4fd211f88620760e829792659b16",
+          "tokenIDs": ["1"]
+        }),
+      }
+    );
+
+    console.log("res", await res.json());
+  })();
+  ```
+</CodeGroup>
+
+### スキーマ
+
+* リクエスト: POST /api/Marketplace/GetUserActivities
+* Content-Type: application/json
+* ボディ（JSON形式）：
+  * `orderbookContractAddress`（string）-- プロトコルコントラクトのアドレス。
+  * `collectionAddress`（string）-- NFTコレクションのアドレス。
+  * `currencyAddresses`（string\[]）-- 通貨コントラクトアドレスの配列。
+  * `userAddress`（string）-- アクティビティを照会するユーザーのアドレス。
+  * `tokenIDs`（string\[]）-- アクティビティをフィルタリングするトークンIDの配列。
+* レスポンス（JSON形式）：
+  * `page`
+    * `page`（i32）-- ページ番号
+    * `pageSize`（i32）-- ページ上の注文数
+    * `more`（bool）-- さらに注文があるかどうか
+  * `orders`（OrderbookOrder\[]）
+    \[
+    * `orderId`（string）-- 注文ID
+    * `tokenContract`（string）-- コレクションコントラクト
+    * `tokenId`（string）-- 注文内のコレクションのトークンID
+    * `isListing`（bool）-- 販売のための出品の場合はtrue、オファーの場合はfalse
+    * `quantity`（string）-- 注文対象のトークン数
+    * `quantityRemaining`（string）-- 注文後のトークン数
+    * `currencyAddress`（string）-- トークンが取引される通貨
+    * `pricePerToken`（string）-- トークンあたりの価格
+    * `expiry`（string）-- 注文が無効になる有効期限
+    * `orderStatus`（OrderStatus）-- 注文のステータス（列挙型）`"OPEN"`、`"CLOSED"`、`"CANCELLED"`
+    * `createdBy` (string) -- 注文を作成したアドレス
+    * `createdAt` (uint64) -- 注文が作成された時間
+    * `orderbookContractAddress` (string) -- オーダーブックのコントラクトアドレス]

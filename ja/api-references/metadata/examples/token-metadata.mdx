@@ -1,0 +1,294 @@
+---
+title: トークンメタデータ
+sidebarTitle: トークンメタデータ
+---
+
+Sequenceは、任意のERC721またはERC1155コントラクトのトークンメタデータを取得するためのメタデータサービスを提供しています。[任意のEVMチェーン上で](https://status.sequence.info)。
+
+* [任意のコントラクトのトークンメタデータを直接クエリする方法を学ぶ](/api-references/metadata/examples/token-metadata#fetch-token-metadata-for-any-erc721-or-erc1155-contract)
+* [ERC721とERC1155トークンのトークンメタデータ標準とフォーマットについて学ぶ](/api-references/metadata/examples/token-metadata#token-metadata-standards)
+
+<Note>
+  \[プロのヒント：Sequence Indexerもトークンメタデータをサポートしています]
+
+  使用時は[Sequence Indexer](/api-references/indexer/overview)、`"includeMetadata": true`をリクエストに渡して、任意のERC721またはERC1155コントラクトのトークンメタデータをクエリします。以下で、トークンメタデータを直接フェッチする方法を確認してください。
+</Note>
+
+## 任意のERC721またはERC1155コントラクトのトークンメタデータをフェッチする
+
+*Sequence Metadata`GetTokenMetadata`メソッド：*
+
+* Request: POST /rpc/Metadata/GetTokenMetadata
+* Content-Type: application/json
+* Body (JSON形式)：
+  * `chainID`(文字列) -- チェーンID（名前または番号。例："1"または"mainnet"、"137"または"polygon"など）
+  * `contractAddress`(文字列) -- コントラクトアドレス
+  * `tokenIDs`(文字列の配列) -- メタデータを取得するトークンIDの配列
+
+**例：`GetTokenMetadata`のいくつかのトークンを使用した`AQAAAAAAAF_JvPALhBthL7VGn6jV0YDqaFY`**
+
+<Note>
+  このコードには[Sequence Builder](https://sequence.build)からのAPIアクセスキーが必要です。
+</Note>
+
+<CodeGroup>
+  ```shell cURL
+  curl -X POST -H "Content-Type: application/json" -H "X-Access-Key: AQAAAAAAAF_JvPALhBthL7VGn6jV0YDqaFY" https://metadata.sequence.app/rpc/Metadata/GetTokenMetadata -d '{"chainID":"polygon", "contractAddress": "0x631998e91476DA5B870D741192fc5Cbc55F5a52E", "tokenIDs": ["65537", "65538", "65539"] }'
+  ```
+
+  ```ts Typescript
+  // Works in both a Webapp (browser) or Node.js:
+  import { SequenceMetadata } from '@0xsequence/metadata'
+
+  const metadataClient = new SequenceMetadata("https://metadata.sequence.app", "AQAAAAAAAF_JvPALhBthL7VGn6jV0YDqaFY")
+
+  const tokenMetadata = await metadataClient.getTokenMetadata({
+    chainID: 'polygon',
+    contractAddress: '0x631998e91476DA5B870D741192fc5Cbc55F5a52E',
+    tokenIDs: ['65537', '65538', '65539']
+  })
+
+  console.log('token metadata: ', tokenMetadata)
+  ```
+
+  ```go Go
+  import (
+  	"github.com/0xsequence/go-sequence/metadata"
+  )
+
+  seqMetadata := metadata.NewMetadata("AQAAAAAAAF_JvPALhBthL7VGn6jV0YDqaFY")
+
+  collectibleInfo, err := seqMetadata.GetTokenMetadata(context.Background(), "polygon", "0x631998e91476DA5B870D741192fc5Cbc55F5a52E", []string{"1", "2"})
+  ```
+
+  ```shell Unity
+  To be completed
+  ```
+
+  ```shell Unreal
+  To be completed
+  ```
+
+  ```shell Other
+  Please contact our team for assistance with integrations to another target.
+  ```
+</CodeGroup>
+
+## トークンメタデータの更新
+
+新しいコントラクトをデプロイする場合やメタデータを更新する場合、Sequence Indexerメタデータサービスでデータをインデックス化できるように、コマンドラインまたはメタデータSDKを使用したプログラムを通じて、（Sequence Builder）からのアクセスキーを使用してトークンメタデータ更新URLにHTTPS POSTリクエストを送信する必要があります。
+
+*Sequence Metadata`enqueueTokensForRefresh`メソッド：*
+
+* Request: POST /rpc/Metadata/EnqueueTokensForRefresh
+* Content-Type: application/json
+* Body (JSON形式)：
+  * `chainID`(文字列) -- チェーンID（名前または番号。例："1"または"mainnet"、"137"または"polygon"など）
+  * `contractAddress`(文字列) -- コントラクトアドレス
+  * `tokenIDs`(文字列の配列) -- メタデータを取得するトークンIDの配列
+
+<CodeGroup>
+  ```shell cURL
+  curl -v -X POST -H "Content-type: application/json" -H "X-Access-Key: wuELppeX0pttvJABl8bIuxPAAAAAAAAAA" https://metadata.sequence.app/rpc/Metadata/EnqueueTokensForRefresh -d '{"chainID":"polygon", "contractAddress":"0x631998e91476DA5B870D741192fc5Cbc55F5a52E", "tokenIDs": ["1","2"]}'
+  ```
+
+  ```ts Typescript
+  // Works in both a Webapp (browser) or Node.js:
+  import { SequenceMetadata } from '@0xsequence/metadata'
+
+  const metadataClient = new SequenceMetadata("https://metadata.sequence.app", "AQAAAAAAAF_JvPALhBthL7VGn6jV0YDqaFY")
+
+  const jobID = await metadataClient.enqueueTokensForRefresh({
+      chainID: 'polygon',
+      contractAddress: '0x631998e91476DA5B870D741192fc5Cbc55F5a52E',
+      tokenIDs: ['65537', '65538', '65539']
+  })
+
+  console.log('refresh job id: ', tokenMetadata)
+  ```
+
+  ```go Go
+  import (
+  	"github.com/0xsequence/go-sequence/metadata"
+  )
+
+  seqMetadata := metadata.NewMetadata("AQAAAAAAAF_JvPALhBthL7VGn6jV0YDqaFY")
+
+  refreshJob, err := seqMetadata.EnqueueTokensForRefresh(context.Background(), "polygon", "0x631998e91476DA5B870D741192fc5Cbc55F5a52E", []string{"1", "2"}, nil)
+  ```
+
+  ```shell Other
+  Please [contact our team](/support) for assistance with integrations to another target.
+  ```
+</CodeGroup>
+
+*Sequence Metadata`getTokenRefreshStatus`メソッド：*
+
+* Request: POST /rpc/Metadata/GetTokenRefreshStatus
+* Content-Type: application/json
+* Body (JSON形式)：
+  * `taskId`(uint) -- から返されたタスクID`enqueueTokensForRefresh`
+
+<CodeGroup>
+  ```shell cURL
+  curl -v -X POST -H "Content-type: application/json" -H "X-Access-Key: wuELppeX0pttvJABl8bIuxPAAAAAAAAAA" https://metadata.sequence.app/rpc/Metadata/GetTokenRefreshStatus -d '{"taskId": 1234}'
+  ```
+
+  ```ts Typescript
+  // Works in both a Webapp (browser) or Node.js:
+  import { SequenceMetadata } from '@0xsequence/metadata'
+
+  const metadataClient = new SequenceMetadata("https://metadata.sequence.app", "AQAAAAAAAF_JvPALhBthL7VGn6jV0YDqaFY")
+
+  const refreshJobStatus = await metadataClient.getTokenRefreshStatus({
+      taskId: 1234
+  })
+
+  console.log('refresh job status: ', refreshJobStatus)
+  ```
+
+  ```go Go
+  import (
+  	"github.com/0xsequence/go-sequence/metadata"
+  )
+
+  seqMetadata := metadata.NewMetadata("AQAAAAAAAF_JvPALhBthL7VGn6jV0YDqaFY")
+
+  refreshJobStatus, err := seqMetadata.GetTokenRefreshStatus(context.Background(), uint64(1234))
+  ```
+
+  ```shell Other
+  Please contact our team for assistance with integrations to another target.
+  ```
+</CodeGroup>
+
+### テスト手順：
+
+1. 現在のトークンメタデータを[トークンメタデータフェッチ](/api-references/metadata/examples/token-metadata#fetch-token-metadata-for-any-erc721-or-erc1155-contract)
+2. オンチェーンまたはトークンbaseURIを介してトークンメタデータコンテンツを変更する
+3. を使用してトークンIDエンドポイントの更新を呼び出す[メタデータの更新](/api-references/metadata/examples/token-metadata#refreshing-token-metadata)
+4. トークンメタデータの変更を[トークンメタデータフェッチ](/api-references/metadata/examples/token-metadata#fetch-token-metadata-for-any-erc721-or-erc1155-contract)
+
+## トークンメタデータ標準
+
+人気のあるトークン標準である[EIP721](https://eips.ethereum.org/EIPS/eip-721)と[EIP1155](https://eips.ethereum.org/EIPS/eip-1155)は両方とも、わずかな違いはあるものの、類似したメタデータ標準フォーマットを持っています。標準に加えて、実際にはプロジェクトが標準から若干逸脱することがありますが、それらは理にかなっており、解析が容易で、Sequence Metadataサービスを含むエコシステムでよくサポートされています。以下では、プロジェクトのトークンメタデータをどのようにフォーマットするかを理解する助けとなるよう、標準とプロジェクト間での一般的な実践について説明します。
+
+## メタデータ標準
+
+### ERC721
+
+ERC721トークンコントラクトには、コントラクト上に`tokenURI(uint256) string`というメソッドがあります。`tokenURI`メソッドをコントラクト上でクエリすると、そのアセットの追加メタデータを含むURIが返されます。
+
+詳細については、EIPを参照してください：[https://github.com/ethereum/EIPs/blob/master/EIPS/eip-721.md](https://github.com/ethereum/EIPs/blob/master/EIPS/eip-721.md)
+
+[ここにBored Ape（トークンID 9）の例を示します](https://metadata.sequence.app/tokens/mainnet/0xbc4ca0eda7647a8ab7c2061c2e118a18a936f13d/9)
+
+レスポンス：
+
+```json
+{
+  "tokenId": "9",
+  "contractAddress": "0xbc4ca0eda7647a8ab7c2061c2e118a18a936f13d",
+  "name": "",
+  "description": "",
+  "image": "https://ipfs.sequence.info/ipfs/QmUQgKka8EW7exiUHnMwZ4UoXA11wV7NFjHAogVAbasSYy",
+  "decimals": 0,
+  "properties": null,
+  "attributes": [
+    {
+      "trait_type": "Earring",
+      "value": "Silver Stud"
+    },
+    {
+      "trait_type": "Eyes",
+      "value": "Sleepy"
+    },
+    {
+      "trait_type": "Mouth",
+      "value": "Small Grin"
+    },
+    {
+      "trait_type": "Fur",
+      "value": "Brown"
+    },
+    {
+      "trait_type": "Hat",
+      "value": "Seaman's Hat"
+    },
+    {
+      "trait_type": "Clothes",
+      "value": "Stunt Jacket"
+    },
+    {
+      "trait_type": "Background",
+      "value": "Purple"
+    }
+  ]
+}
+```
+
+このBored Apeの場合、名前や説明は設定されていませんが、"attributes"の配列があります`{ "trait_type": string, "value: string }`。
+
+さらに、詳細についてはOpenSeaを参照してください：[https://docs.opensea.io/docs/metadata-standards](https://docs.opensea.io/docs/metadata-standards)
+
+OpenSeaは技術的にERC1155標準に違反していることに注意してください。"attributes"の使用を提案していますが、実際にはERC1155では"attributes"の代わりに"properties"というフィールド名を使用しています。以下を参照してください
+[https://github.com/ethereum/EIPs/blob/master/EIPS/eip-1155.md#erc-1155-metadata-uri-json-schema](https://github.com/ethereum/EIPs/blob/master/EIPS/eip-1155.md#erc-1155-metadata-uri-json-schema)（以下のセクションを参照）。
+ただし、これは完全に問題なく、propertiesとattributesの混在使用は実際には互換性があります。
+Sequence Metadataでは、どちらのフォーマットを使用するトークンコントラクトに対しても両方の構造をサポートしています[properties/attributes](/api-references/metadata/examples/token-metadata#attributes-vs-properties)。
+
+[もう1つの例はNeon Districtからのものです](https://metadata.sequence.app/tokens/polygon/0x7227e371540CF7b8e512544Ba6871472031F3335/158456331411102687640546264635)
+
+### ERC1155
+
+ERC1155トークンコントラクトには、コントラクト上に呼び出されるメソッドがあります`uri(uint256) string`。`uri`メソッドをコントラクトで照会すると、そのアセットの追加メタデータを含むURIが返されます。
+
+詳細については、EIPを参照してください：[https://github.com/ethereum/EIPs/blob/master/EIPS/eip-1155.md#erc-1155-metadata-uri-json-schema](https://github.com/ethereum/EIPs/blob/master/EIPS/eip-1155.md#erc-1155-metadata-uri-json-schema)
+
+[ここにSkyweaverカード（トークンID 65548）の例を示します](https://metadata.sequence.app/tokens/polygon/0x27A11C1563a5dDa238379B95c91B3AbBaD9C0cf6/65548)
+
+```json
+{
+  "tokenId": "65548",
+  "contractAddress": "0x27a11c1563a5dda238379b95c91b3abbad9c0cf6",
+  "name": "Weighted Die (Silver)",
+  "description": "Give +1/+1, armor, and guard to a random ally unit, six times.\n\n\"I will not bow to fate. If the dice fall against me, I'll cut off the hand that cast them.\"\n -Horik",
+  "image": "https://assets.skyweaver.net/LV7xNcQh/webapp/cards/full-cards/6x/12-silver.png",
+  "decimals": 2,
+  "properties": {
+    "artists": {
+      "name": "Artist",
+      "value": [
+        {
+          "id": "xavi",
+          "name": "Henrique Xavier",
+          "url": "https://www.artstation.com/kitexavier"
+        }
+      ]
+    },
+    "baseCardId": 12,
+    "cardType": "Spell",
+    "element": "Metal",
+    "mana": 8,
+    "prism": "Strength",
+    "type": "Silver"
+  },
+  "attributes": null
+}
+```
+
+ご覧の通り、SkyweaverのERC1155トークンのメタデータは`properties`オブジェクトを使用しており、これは任意のデータのオブジェクト/ディクショナリ型です。
+
+### Attributes vs Properties
+
+ご覧の通り、トークンメタデータの標準フォーマットには`attributes`と`properties`の両方が含まれています。`attributes`フィールドはオブジェクトの配列です。`properties`フィールドは任意のデータのオブジェクト/ディクショナリです。技術的には、`attributes`型は以下のように定義されています
+`[]map<string,any>`そして`properties`型は以下のように定義されています`map<string,any>`。
+
+実際には、多くのプロジェクトが`attributes`と`properties`の両方を使用して同じデータを保存し、場合によっては、
+`attributes`に保存すべきデータを`properties`に保存したり、その逆も行っています。プロジェクトによっては両方のフィールドを使用することもありますが、マーケットプレイスやサービスは両方の領域を解析するため、実際には完全に問題ありません。
+
+最後に、プロジェクトに合わせてメタデータフォーマットを拡張したい場合は、ERC721またはERC1155のいずれかで`attributes`
+と`properties`フィールドのいずれかまたは両方を使用することをお勧めします。
+
+### ERC20
+
+最後に、ERC20トークンについて注記します。ERC20トークンは単一のトークンであり、トークンIDを持っていません。代わりにコントラクトアドレスによって完全に表現されます。コントラクトメソッドを照会することで、トークンに関する情報を推測することができます。例えば`name`や`decimals`などです。さらに、ERC20トークンはOpenSeaが使用する`contractURI`拡張機能を利用することができ、これについては[コントラクトメタデータ](/api-references/metadata/examples/contract-metadata)セクションで詳しく説明しています。

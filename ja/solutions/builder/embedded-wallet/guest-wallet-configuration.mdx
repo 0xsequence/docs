@@ -1,0 +1,43 @@
+---
+title: Embedded Wallet用のゲストウォレット設定
+description: Embedded Walletインスタンス用のゲストウォレットの設定方法を学びます。
+sidebarTitle: ゲストウォレットのセットアップ
+---
+
+ゲストウォレットは、Sequence Stackの機能で、ユーザーがブラウザキャッシュをクリアするか、再度サインインするまで持続する一時的な認証IDを作成することができます。
+
+このオンボーディング戦略は、ゲームや体験に自由にアクセスする方法を提供し、プレイヤーが情報を永続化したいと思うまでのコンバージョン率を向上させるのに役立ちます。
+
+重要な点として、ユーザーがキャッシュをクリアしたり、デバイスへのアクセスを失った場合、ゲストウォレット内の資産は回復できません。したがって、ウォレットに価値が関連付けられている場合、ユーザーは追加の認証方法を接続する必要があります。
+
+<Warning>
+  ゲストウォレット機能は現在アーリーアクセス段階です。有効にするには、[https://sequence.build/earlyaccess](https://sequence.build/earlyaccess)にアクセスして機能をオンにしてください。
+</Warning>
+
+組み込みウォレットをゲストウォレット用に設定するには、以下の手順で行うことができます：
+
+<Steps>
+  <Step title="Builder Configuration">
+    Sequence builderでプロジェクトにアクセスし、組み込みウォレット設定セクションに移動して、ログインプロバイダーを追加します：
+
+    <Frame>
+      ![add login provider](/images/builder/builder_guest_wallet_add_provider.png)
+    </Frame>
+
+    最後に、`Guest Wallet`をドロップダウンで選択します。
+
+    <Frame>
+      ![select guest wallet](/images/builder/builder_guess_wallet_select_provider.png)
+    </Frame>
+
+    そして紫色の`Update configuration`を選択してパスワードを入力し、設定を更新します。
+  </Step>
+
+  <Step title="Implementation">
+    設定が完了したら、以下のコードでゲストウォレットを実装し、他の組み込みウォレットと同様に使用することができます：
+
+    ```typescript App.tsx
+    await sequence.signIn({ guest: true }, "Session name");
+    ```
+  </Step>
+</Steps>

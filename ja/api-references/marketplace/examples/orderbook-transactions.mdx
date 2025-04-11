@@ -1,0 +1,141 @@
+---
+title: Sequence マーケット オーダーブック トランザクション
+sidebarTitle: マーケットオーダーとリスティングの作成
+---
+
+すべてのトランザクションはアドレス`0xfdb42A198a932C8D3B506Ffa5e855bC4b348a712` 現在提供されているすべてのネットワークで。
+
+## リクエストの作成
+
+sequence マーケットプレイスプロトコルでリクエストを作成するためには、マーケットプレイスに提出するトークン（ERC1155またはERC721）がマーケットプレイスコントラクトによって転送を承認される事前のトランザクションが必要です。
+
+この承認要件（トランザクション1）を満たすために、リクエストの作成（トランザクション2）のトランザクションも同時に送信するバッチトランザクションを実行できます。
+
+ユニバーサルウォレットを使用する場合、以下のようになります：
+
+## トランザクション1: `setApprovalForAll`
+
+* `operator`: (string) - トークンに対して操作するマーケットプレイスのアドレス
+* `approved`: (bool) - オペレーターの承認状態
+
+## トランザクション2: `createRequest`
+
+* `creator`: (string) - 注文リクエストを作成するウォレット
+* `isListing`: (bool) - 注文が出品（true）か提案（false）かを示す
+* `isERC1155`: (bool) - 注文がERC1155コントラクト用か（ERC721の場合はfalse）
+* `tokenContract`: (string) - 注文を作成したいトークン
+* `tokenId`: (string) - 注文を作成したいトークンID
+* `quantity`: (number) - 販売したいトークンの数量
+* `expiry`: (number) - ISO時間形式の数値
+* `currency`: (string) - 取引に使用するERC20通貨トークン
+* `pricePerToken`: (big number) - トークンのERC20価格（big number形式）
+
+### 例
+
+```js
+const wallet = sequence.getWallet();
+const signer = wallet.getSigner(421614); // on arbitrum-sepolia
+
+const sequenceMarketInterface = new ethers.Interface(
+  "function createRequest(tuple(bool isListing, bool isERC1155, address tokenContract, uint256 tokenId, uint256 quantity, uint96 expiry, address currency, uint256 pricePerToken)) external nonReentrant returns (uint256 requestId)"
+);
+
+const erc1155Interface = new ethers.Interface([
+  "function setApprovalForAll(address operator, bool approved) external",
+]);
+
+const amountBigNumber = ethers.parseUnits(String(price), 18); // currency price based on correct decimals for token contract
+
+const request = {
+  creator: await wallet.getAddress(),
+  isListing: true,
+  isERC1155: true,
+  tokenContract: "0x1693ffc74edbb50d6138517fe5cd64fd1c917709", // collectible you're looking to list or create an offer for
+  tokenId: selectedId,
+  quantity: quantity,
+  expiry: expiry,
+  currency: "0xa9c88358862211870db6f18bc9b3f6e4f8b3eae7",
+  pricePerToken: amountBigNumber,
+};
+
+const dataCreateRequest = sequenceMarketInterface.encodeFunctionData(
+  "createRequest",
+  [request]
+);
+
+const dataApprove = erc1155Interface.encodeFunctionData("setApprovalForAll", [
+  "0xfdb42A198a932C8D3B506Ffa5e855bC4b348a712", // sequence market contract (same address on all offered networks)
+  true,
+]);
+
+const tx = {
+  to: "0xfdb42A198a932C8D3B506Ffa5e855bC4b348a712", // sequence market contract (same address on all offered networks)
+  data: dataCreateRequest,
+};
+
+const txApprove = {
+  to: "0x1693ffc74edbb50d6138517fe5cd64fd1c917709", // an ERC1155 token contract
+  data: dataApprove,
+};
+
+await signer.sendTransaction([txApprove, tx]);
+```
+
+## リクエストの承認
+
+既存のリクエストを承認するためには、`get` リクエストエンドポイント（[getTopOrders](/api-references/marketplace/examples/get-top-orders)など）を使用して`orderId`を入力として`requestId`パラメータにトランザクションを送信する必要があり、その前にリクエストの通貨を承認するトランザクションが必要です。
+
+この通貨承認の要件（トランザクション1）を満たすために、リクエストの実行（トランザクション2）のトランザクションも同時に送信するバッチトランザクションを実行できます。
+
+ユニバーサルウォレットを使用する場合、以下のようになります：
+
+## トランザクション1: `approve`
+
+* `spender`: (string) - トークンに対して操作するマーケットプレイスのアドレス
+* `amount`: (bool) - 支出者への承認額
+
+## トランザクション2: `acceptRequest`
+
+* `requestId`: (string) - リクエストのID
+* `quantity`: (bool) - 承認するトークンの数量
+* `additionalFees`: (number\[]) - 追加で支払う手数料
+* `additionalFeeRecipients`: (address\[]) - 追加手数料を送信するアドレス
+
+### 例
+
+```js
+const wallet = sequence.getWallet();
+const signer = wallet.getSigner(421614); // on arbitrum-sepolia
+
+const erc20Interface = new ethers.Interface([
+  "function approve(address spender, uint256 amount) public returns (bool)",
+]);
+
+const sequenceMarketInterface = new ethers.Interface([
+  "function acceptRequest(uint256 requestId, uint256 quantity, address recipient, uint256[] calldata additionalFees, address[] calldata additionalFeeRecipients)",
+]);
+
+const amountBigNumber = ethers.parseUnits(String(price), 18); // currency price based on correct decimals for token contract
+
+const dataApprove = erc20Interface.encodeFunctionData("approve", [
+  "0xfdb42A198a932C8D3B506Ffa5e855bC4b348a712", // sequence market contract (same address on all offered networks)
+  amountBigNumber,
+]);
+
+const dataAcceptRequest = sequenceMarketInterface.encodeFunctionData(
+  "acceptRequest",
+  [requestId, quantity, recipientAddress, [], []]
+);
+
+const txApprove = {
+  to: "0xa9c88358862211870db6f18bc9b3f6e4f8b3eae7", // an ERC20 token contract
+  data: dataApprove,
+};
+
+const tx = {
+  to: "0xfdb42A198a932C8D3B506Ffa5e855bC4b348a712", // sequence market contract (same address on all offered networks)
+  data: dataAcceptRequest,
+};
+
+await signer.sendTransaction([txApprove, tx]);
+```

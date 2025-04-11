@@ -1,0 +1,29 @@
+---
+title: Setup
+description: web3ゲーミングのためのSequenceインフラストラクチャスタックのUnity SDKセットアップのドキュメント
+---
+
+# セットアップ
+
+1. サンプルを通じてインポートされたResourcesフォルダに移動し、`Setup`を見つけて`SequenceConfig`ScriptableObject
+
+   a) SDKを手動でインポートした場合、ResourcesフォルダとSequenceConfigを作成する必要があります
+
+   b) 作成：`Resources`フォルダを`Assets/Resources`に配置。SDKは[Resources.Load](https://docs.unity3d.com/ScriptReference/Resources.Load.html)を使用してconfig`ScriptableObject`を読み込みます（次のステップで作成します）。
+
+   c) トップバーで`Assets > Create > Sequence > SequenceConfig`をクリックし、新しく作成した`ScriptableObject`を`Resources`フォルダのルートに配置します。
+2. 入力：`SequenceConfig`にプロジェクトに適切な値を入力します。
+
+   a) `Url Scheme`- アプリケーション固有の一意の文字列に置き換える必要があります。これは非常に重要です。これを行わないと、ソーシャルサインインで予期しない動作が発生し、機能しなくなります。
+
+   b) `Builder API Keys`- これらは[Sequence Builder](https://sequence.build/)の`Settings > API Keys`
+
+   c) `WaaS Config Key`- このキーは[Sequence Builder](https://sequence.build/)の`Onboard > Embedded Wallet`
+
+   d) `StoreSessionPrivateKeyInSecureStorage`- 特定のプラットフォームで利用可能：プラットフォームのネイティブな安全なストレージシステムと統合しています。有効にすると、セッションウォレット情報（秘密鍵を含む）を安全なストレージに保存し、アプリを閉じた後にユーザーのセッションを自動的に復元しようとします（再度ログインする必要はありません）。これを無効（デフォルト）にした場合、またはサポートされていないプラットフォームでは、セッションウォレットの秘密鍵はアプリケーションのランタイムメモリから出ることはありません。ただし、アプリを閉じるたびにユーザーは再度サインインする必要があります。デフォルトの`LoginPanel`UI（[セッションの復元](/sdk/unity/onboard/recovering-sessions)を参照）は、この動作を自動的に処理し、適切なページに移動します。
+
+   e) `EnableMultipleAccountsPerEmail`- デフォルトでは、SDKはメールアドレスごとに1つのアカウントの作成のみを許可します。アカウントは最初に使用したログイン方法（メール + OTP、PlayFab、Google など）に関連付けられます。ユーザーは追加のログイン方法をアカウントに関連付けることができます（詳細は[認証セクション](/sdk/unity/onboard/authentication/federated-accounts)を参照）。`EnableMultipleAccountsPerEmail`が有効な場合、ユーザーはメールアドレスごとに複数のアカウントを作成することができます（異なるログイン方法に関連付けられます）。この機能は有効にしていますが、一般的にこの動作はエンドユーザーにとって混乱を招く可能性があると考えており、統合者にはこのオプションをデフォルトの無効状態に保つことをお勧めします。
+
+<Warning>続行する前に、BuilderでEmbedded Walletを適切に設定していることを確認してください。この[ガイド](/sdk/headless-wallet/quickstart)を参照してください。</Warning>
+
+<Warning>Builderから設定キーを正しくコピー＆ペーストしたことを必ず確認してください！これは、SDKを統合する際に報告される最も一般的な問題です。「無効なテナント」というレスポンスを受け取った場合、設定に誤りがあります！この[ガイド](/sdk/headless-wallet/quickstart)を参照してください。</Warning>

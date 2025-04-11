@@ -1,0 +1,130 @@
+---
+title: Sidekick概要とセットアップ
+description: Sequence Sidekickは、ゲームやアプリケーションのために、Ethereum互換ネットワーク上でのトランザクションのディスパッチを簡素化し、数百万人のユーザーにスケールします。
+---
+
+# Sequence Sidekick 👷‍♂️
+
+Sequence Sidekickは、Sequenceのインフラストラクチャを活用して、開発者向けのブロックチェーンインタラクションを効率化する、完全装備のバックエンドを提供します。Sidekickを使用することで、独自のバックエンドウォレットを使用して以下の操作をプログラムで実行できます：
+
+* 事前設定済みのバックエンドサービス：Redis、PostgreSQL、Transaction API、およびインデクサー - すべて設定済みですぐに使用可能です。
+* 簡単なデプロイメント：Dockerコンテナを作成する単一のコマンドで、数分でバックエンドを起動できます。
+* 柔軟なウォレットオプション：ローカルで管理される秘密鍵を持つSequence Smart Walletを使用するか、セキュリティを強化するためにAWS/GCP KMSを安全に統合できます。
+* シームレスなコントラクトデプロイメント：APIコールを通じてERC20、ERC721、ERC1155、またはカスタムスマートコントラクトをデプロイできます。
+* 信頼性の高いトランザクション管理：ゲームやアプリケーションのあらゆるコントラクトの読み取りと書き込みが可能で、自動ノンス管理、ガス価格の調整、その他の最適化により効率的な実行を保証します。
+* Webhookインテグレーション：高性能なインデクサーを活用してwebhookを完全に管理します。
+* 最適化されたガス価格：トランザクションは最適なガス価格で送信され、3ブロック以内にメモリプールに含まれない場合は自動的に再送信されます。
+* 組み込みユーザー報酬システム：単一のAPIコールでセルフクレームまたは定期的なユーザー報酬（ERC20、ERC721、ERC1155）を設定できます。
+* 組み込みBull MQダッシュボード：バックグラウンドジョブを監視および管理します。
+* Swagger UI：APIドキュメントを探索し、Swagger UIでエンドポイントをテストします
+* コントラクトユーティリティ：異なるチェーン上のコントラクトデプロイメントを簡単に確認できます。
+* シームレスなSequence Builderインテグレーション：1回のAPIコールですべてのSequence Builderコントラクトをサイドキックバックエンドにインポートするか、カスタムコントラクトを手動で追加します。
+
+## バックエンドウォレットについて
+
+Sidekickを通じて実行されるすべてのトランザクションはSequenceスマートウォレットを使用し、[自動的に作成されます](https://github.com/0xsequence-demos/sequence-sidekick/blob/e76a47d0b9ef19f23736c1e8f863ed4795b855a8/src/utils/wallet.ts#L25)指定された外部所有アカウント（EOA）に対して、最適化されたパフォーマンスの高い実行のために当社のインフラストラクチャを活用します。
+
+バックエンドウォレットを設定するには、以下の方法があります：
+
+* あなたの[EVM\_PRIVATE\_KEY](https://github.com/0xsequence-demos/sequence-sidekick/blob/e76a47d0b9ef19f23736c1e8f863ed4795b855a8/.env.example#L16)をローカルセットアップ用の.envファイルで宣言する（本番環境では推奨されません）
+* 推奨される方法：[AWS](https://aws.amazon.com/kms/)または[GCP](https://cloud.google.com/kms)KMSをセットアップし、.envファイルに必要な認証情報を追加する
+
+<Note>
+  ローカル、AWS、またはGCPウォレット設定に必要な認証情報を確認するには、[env.example](https://github.com/0xsequence-demos/sequence-sidekick/blob/master/.env.example)ファイルを参照してください。
+</Note>
+
+<Note>
+  AWS KMSとGCP KMSで正しいキータイプを選択していることを確認してください。
+
+  * AWS KMS：`ECC_NIST_P256_KEY_ALIAS`
+  * GCP KMS：`GCP_KEY_RING_NAME`
+</Note>
+
+SidekickはAWSとGCP KMSとシームレスに統合するように構築されており、KMSサイナーを使用できます。私たちは[アダプター](https://github.com/orgs/0xsequence/repositories?q=kms)を開発し、AWS/GCP KMSをethersサイナータイプと互換性を持たせ、最新バージョンとの互換性を確保しています。
+
+Sequence Sidekickは、開発者にブロックチェーンベースのアプリケーション向けのスケーラブルなプラグアンドプレイバックエンドソリューションを提供し、バックエンドの複雑さを気にすることなく開発に集中できるようにします。
+
+<Callout type="warning">
+  Sequence Sidekickを使用する際の注意点：
+
+  * `msg.sender`はEOAアドレスではなく、あなたのEOAのSequence Walletアドレスになります
+  * `tx.origin`はSequence Relayerアドレスの1つになります
+  * コントラクト関数呼び出しに対してSequence Walletアドレスに適切な権限が付与されていることを確認してください
+  * アクティブなリレーヤーアドレスは[メインネットステータスページ](https://mainnet-relayer.sequence.app/status)
+</Callout>
+
+## Sidekickバックエンドを開始するステップ
+
+<Steps>
+  <Step title="Clone the Sidekick repository">
+    ```shell
+    git clone https://github.com/0xsequence/sidekick
+    ```
+  </Step>
+
+  <Step title="Setup the required environment variables">
+    ### 必要な環境変数
+
+    | 変数                        | 説明                                |           |
+    | ------------------------- | --------------------------------- | --------- |
+    | PROJECT\_ACCESS\_KEY      | Sequence Builder APIキーからのアクセスキー   |           |
+    | SECRET\_KEY               | あなたのカスタムSidekickシークレットキー          |           |
+    | SEQUENCE\_RPC\_URL        | SequenceからのRPC URL                |           |
+    | BUILDER\_API\_SECRET\_KEY | Sequence Builder APIキーからのシークレットキー | `eyJh...` |
+    | INDEXER\_URL              | ネットワークに基づくインデクサーURL               |           |
+    | SIGNER\_TYPE              | 使用するサイナーのタイプ                      |           |
+
+    ### ウォレット設定変数
+
+    以下の設定から1つを選択してください：
+
+    ##### ローカルウォレット：
+
+    | 変数                | 説明                            |
+    | ----------------- | ----------------------------- |
+    | EVM\_PRIVATE\_KEY | トランザクションの署名に使用されるEOAのプライベートキー |
+
+    ##### AWS KMS設定：
+
+    | 変数                       | 説明              |
+    | ------------------------ | --------------- |
+    | AWS\_REGION              | AWSアカウントのリージョン  |
+    | AWS\_ACCESS\_KEY\_ID     | AWSアクセスキーID     |
+    | AWS\_SECRET\_ACCESS\_KEY | AWSシークレットアクセスキー |
+    | AWS\_KMS\_KEY\_ID        | 使用するKMSキーのID    |
+
+    ##### GCP KMS設定：
+
+    | 変数                   | 説明              |
+    | -------------------- | --------------- |
+    | PROJECT              | GCPプロジェクト名      |
+    | LOCATION             | GCPプロジェクトロケーション |
+    | KEY\_RING            | キーリング名          |
+    | CRYPTO\_KEY          | 暗号鍵名            |
+    | CRYPTO\_KEY\_VERSION | 暗号鍵バージョン        |
+  </Step>
+
+  <Step title="Make sure you have Docker installed">
+    こちらから取得してください[こちら](https://www.docker.com/get-started/)
+  </Step>
+
+  <Step title="Start Sidekick in a Docker container">
+    ```shell
+    pnpm docker:start
+    ```
+  </Step>
+
+  <Step title="Make your first API call to get back smart wallet address">
+    ```shell
+    curl -X GET 'http://localhost:3000/sidekick/smart-account-address'
+    ```
+  </Step>
+</Steps>
+
+## Dockerを使用しない開発モード
+
+コードベースに変更を加えてDockerを使用せずにテストしたい場合は、[README](https://github.com/0xsequence-demos/sequence-sidekick/blob/master/README.md)。
+
+## ガススポンサーシップ
+
+テストネットでは、すべてのトランザクションをスポンサーしています。ただし、メインネットでは、コントラクト自体をスポンサーすることで、トランザクションが正しく処理されるようにする必要があります。詳しくは、[ガススポンサーシップ](/solutions/builder/gas-tank)ソリューションをご覧ください。

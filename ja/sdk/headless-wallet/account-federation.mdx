@@ -1,0 +1,80 @@
+---
+title: 組み込みウォレットアカウントフェデレーション
+description: このコンテンツは、メインの組み込みウォレットセッションに単一または複数のウォレットを連携・リンクする機能の実装に関する詳細情報を提供し、永続的なオンチェーン組み込みウォレットに変換される一時的なゲストウォレットと組み合わせた場合のベストプラクティスを説明します。
+sidebarTitle: マルチアカウントサポート
+---
+
+Sequence組み込みウォレットは、単一のウォレットアドレスに複数のソーシャルアカウントを連携する機能を提供します。これにより、ユーザーが複数のアイデンティティ認証ポイントを通じてウォレットにアクセスできるようにしながら、単一のオンチェーンアドレスを持つエクスペリエンスが可能になります。
+
+組み込みウォレットアカウントフェデレーションの重要な機能は、これらのウォレットが、ソーシャル、メール、またはゲストウォレットを介して認証された場合でも、最初にサインインしたログインプロバイダーに基づいて集約されることです。これは、ウォレットアドレスが最初にサインインしたウォレットに基づいており、その後のサインインは最初のウォレットにリンクされることを意味します。
+
+フェデレーションアカウントがメインアカウントに接続されると、ログアウトして以前にリンクされたアカウントを個別に使用しても、将来的に同じアドレスが得られます。
+
+## ソーシャルプロバイダーアカウントフェデレーション
+
+以下により、開発者は`initAuth` を使用して[ オブジェクトで最初にサインインしたセッションと`WaaS` オブジェクト](/sdk/headless-wallet/use-wallets#authenticated-embedded-wallet) で追加のゲストまたはソーシャルプロバイダーを使用して認証を開始できます。プロバイダー`challenge` が返され、`linkAccount` 関数に渡されます：
+
+```ts
+const challenge = await sequence.initAuth({/* same params as signIn function */})
+const linkResponse = await sequence.linkAccount(challenge)
+```
+
+## メールワンタイムパスワードアカウントフェデレーション
+
+ワンタイムパスワードメールアプローチを使用して認証するには、ユーザーのメールに送信されたパスワードをチャレンジに渡し、`linkAccount` 関数を呼び出す必要があります：
+
+```ts
+const challenge = await sequence.initAuth({ email })
+
+// if the linking account is email then you need to provide the answer (code)
+const linkResponse = await sequence.linkAccount(challenge.withAnswer(code))
+```
+
+## ゲストウォレットを使用したアカウントフェデレーション
+
+ゲームでは、アプリケーションのバックグラウンドでユーザーに[ゲストウォレット](/sdk/headless-wallet/authentication#guest-embedded-wallet)でサインインさせ、SDKによってそのウォレットをキャッシュに保存し、その後ユーザーに[前述のアプローチ](/sdk/headless-wallet/account-federation#embedded-wallet-account-federation)のいずれかを使用してソーシャルログインプロバイダーを最初の初期ウォレットにリンクするよう促すことが一般的な方法です。
+
+したがって、ウォレットに資産が蓄積され、オンチェーンでトランザクションが実行され、または署名が保存されている場合、ウォレットの継続性を維持することができます。
+
+最初にゲストウォレットを使用するアプローチにより、ユーザーは長期的な認証を行う前にゲームやエクスペリエンスを目立たずに試すことができ、オンボーディングプロセスをスムーズにすることができます。
+
+開発者は、ゲストが認証された後、上記の方法を使用して、ユーザーが今後もアカウントに再アクセスできるようにすることができます。
+
+## アカウントの一覧表示
+
+呼び出し`listAccounts` は以下を含むオブジェクトを返します：`accounts` オブジェクト（`id`、`type`、および`issuer`を含む）の配列、および`currentAccountId`、例えば：`"Guest:0x0104...`：
+
+```ts
+import { SequenceWaaS } from "@0xsequence/waas";
+
+const sequence = new SequenceWaaS(
+  {
+    projectAccessKey: `${process.env.VITE_PROJECT_ACCESS_KEY}`,
+    waasConfigKey: `${process.env.VITE_WAAS_CONFIG_KEY}`,
+    network: "arbitrum-nova",
+  }
+)
+
+... // authentication
+
+const response = await sequence.listAccounts()
+
+console.log(response.accounts)
+console.log(response.currentAccountId)
+```
+
+## アカウントの削除
+
+設定に以前関連付けられていたアカウントのリストからアカウントを削除することもできます：
+
+```ts
+// Call list accounts
+const accounts = await sequence.listAccounts();
+const accountId = accounts[0].id; // Get the ID of the first account
+
+try {
+    await sequence.removeAccount(accountId);
+} catch (error) {
+    console.error('Failed to remove account:', error);
+}
+```

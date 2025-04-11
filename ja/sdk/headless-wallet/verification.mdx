@@ -1,0 +1,99 @@
+---
+title: 検証
+description: このコンテンツは、ノンスとオプションの時間切れを使用して組み込みウォレットアドレスの所有権を検証する詳細なガイドを提供します。
+sidebarTitle: バックエンド検証
+---
+
+一般的なユースケースとして、クライアント側でユーザーを認証し、バックエンドでもこのトークンとそれに対応するユーザー情報を検証したい場合があります。このケースでは、Sequenceは、お好みのフレームワーク用のJWTライブラリで検証できるJWTを取得する機能を提供しています。以下では、TypeScriptとexpressサーバーを使用した例を説明します。
+
+<Note>
+  以下を示すクライアントとサーバーの例が利用可能です[こちら](https://github.com/0xsequence-demos/embedded-wallet-verify-session)
+</Note>
+
+### 実装
+
+<Steps>
+  <Step title="Request IdToken via Client">
+    クライアント側で組み込みウォレットでユーザーが認証されたら、SequenceからJWTを取得するために対応する関数を呼び出すだけです。
+
+    ```typescript
+    // Using Sequence.js
+    const { idToken } = await sequence.getIdToken();
+    ```
+
+    ```typescript
+    // Using Web-SDK in React
+    const { connector } = useAccount()
+
+    const { idToken, expiry } = await connector.sequenceWaas.getIdToken()
+    ```
+  </Step>
+
+  <Step title="Pass JWT to Backend">
+    取得したJWTをバックエンドにPOSTリクエストで送信します。
+
+    ```typescript
+    const response = await fetch(BACKEND_ENDPOINT, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ sequenceToken: idToken }),
+    });
+    ```
+  </Step>
+
+  <Step title="Import JWT libraries and initialize JWKS">
+    JWTが渡されたexpressサーバーでは、情報を検証するために好みのJWTライブラリをインポートし、検証用のJWKSを初期化するだけです。また、クレームが適切に検証されるように、期待するaudienceが正しく設定されていることを確認することも重要です。
+
+    ```typescript
+    import * as jwt from "jsonwebtoken";
+    import * as jwksClient from "jwks-rsa";
+
+    ...serverConfig
+
+    // Initialize the JWKS client
+    const client = jwksClient({
+      jwksUri: "https://waas.sequence.app/.well-known/jwks.json",
+      cache: true,
+      cacheMaxAge: 86400000, // 1 day
+    });
+
+    // Should be equal to the audience claim in the JWT that you want to verify which will be of the form https://sequence.build/project/*projectID*
+    const EXPECTED_AUDIENCE = "https://sequence.build/project/*PROJECT_ID*"
+    ```
+  </Step>
+
+  <Step title="Decoding JWT and Verifying Claims">
+    これでJWTをパースし、JWKS URIに対して検証し、クレームを検証することができます。
+
+    ```typescript
+    const decodedToken = jwt.decode(token, { complete: true });
+    if (!decodedToken || typeof decodedToken === "string") {
+      throw new Error("Invalid token");
+    }
+
+    const kid = decodedToken.header.kid;
+    const signingKey = await getSigningKey(kid);
+    const publicKey = (
+      signingKey as jwksClient.CertSigningKey | jwksClient.RsaSigningKey
+    ).getPublicKey();
+
+    console.log(EXPECTED_AUDIENCE);
+
+    const verified = jwt.verify(token, publicKey, {
+      algorithms: ["RS256"], // Specify the expected algorithm
+      audience: EXPECTED_AUDIENCE, // Verify the audience claim
+    });
+
+      // Verifying Email claim
+    if (!verified.email || typeof verified.email !== "string") {
+      throw new Error("Invalid email claim");
+    }
+    ```
+  </Step>
+
+  <Step title="Update your backend">
+    これで、JWTに対応する情報が検証され、必要に応じてバックエンドを安全に更新できます。
+  </Step>
+</Steps>

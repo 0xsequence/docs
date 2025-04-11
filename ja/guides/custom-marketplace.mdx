@@ -1,0 +1,744 @@
+---
+title: オーダーブック取引
+description: このガイドでは、Sequenceスタックのツールを使用したカスタムマーケットプレイスの作成について説明します。トークンのミント、ウォレット認証、ブロックチェーンクエリ、マルチウォレットタイプ、リクエスト作成、注文の受け入れ、および組み込みウォレットのオプション統合の手順が含まれています。
+sidebarTitle: カスタムマーケットプレイスの構築
+---
+
+このガイドでは、Sequenceスタックのいくつかのシンプルなツールからカスタムマーケットプレイスを作成するプロセスを説明します。
+
+これらのツールで可能になること：
+
+1. [ミント](/guides/custom-marketplace#1-minting)：Sequence Builderからウォレットへのトークンのミント
+2. [ウォレット認証](/guides/custom-marketplace#2-wallet-authentication)：Web SDKを使用したユーザー認証
+3. [ブロックチェーンクエリ](/guides/custom-marketplace#3-blockchain-queries)：Indexerを使用したトークン残高の照会
+4. [マルチウォレットタイプ](/guides/custom-marketplace#4-multi-wallet-types)：ユーザーがSequence WalletまたはEOAを使用可能
+5. [リクエスト作成](/guides/custom-marketplace#5-request-creation)：Sequence Market Protocolでの販売リストリクエストの作成
+6. [注文の受け入れ](/guides/custom-marketplace#6-order-accepting)：マーケットプレイスからのトップオーダーの受け入れ
+7. [（オプション）組み込みウォレットの有効化](/guides/custom-marketplace#7-optional-integrate-embedded-wallet-into-sequence-kit)：確認不要のトランザクションでよりシームレスなUX体験を追加
+
+<Note>
+  例を見る[シンプル化されたマーケットプレイスdapp](https://simple-marketplace-boilerplate.pages.dev/)これにより、ユーザーはコレクティブルをミントし、Sequence Marketplace Protocolでコレクティブルを販売し、`base-sepolia`でマーケットプレイスからトップオーダーを取得してUSDCで購入することができます。
+
+  コードは[こちら](https://github.com/0xsequence-demos/simple-marketplace-boilerplate)
+</Note>
+
+## 1. ミント
+
+最初のステップは、Sequence Builderからコレクティブルを作成し、いくつかのトークンをミントすることです。これは[ガイド](/solutions/collectibles/contracts/deploy-an-item-collection)を使用して、`tokenId`ミントしたものを以下のステップでクエリと注文の履行に使用します。
+
+## 2. ウォレット認証
+
+プロジェクトには、ウォレットでユーザーを認証する方法が必要です。
+
+Sequenceスタックからの選択肢として、[Embedded Wallet](/sdk/headless-wallet/quickstart)でヘッドレスでweb2のようなUXを実現するか、[Ecosystem Wallet](/solutions/wallets/ecosystem/overview)と[Web SDK](/solutions/wallets/overview)でより多くのタイプのウォレットに対応することができます。
+
+このガイドでは`Universal Sequence Wallet`と`Web SDK`コネクタを使用します（`Embedded Wallet`のオプション付き）。これにより、GoogleやApple認証を使用したユーザー認証に加えて、CoinbaseやMetamaskなどのユーザーが持ち込むウォレットも認証できます。
+
+### パッケージのインストール
+
+バニラjs/html/cssプロジェクトを[このようなテンプレート](https://github.com/moskalyk/vanilla-js-sequence-kit-starter)から作成するか、ここでReactを最初から使用する方法を説明します。
+
+まず、お好みのフォルダにプロジェクトを作成します：
+
+```
+mkdir <project_name>
+cd <project_name>
+npx create-react-app . --template=typescript
+```
+
+次に、必要なパッケージをインストールします：`<project_name> folder`
+
+```
+pnpm install @0xsequence/kit @0xsequence/kit-connectors wagmi ethers viem 0xsequence @tanstack/react-query
+```
+
+次に`src`の隣の`index.tsx`フォルダに`config.ts`ファイルを作成し、以下の内容を追加します：
+
+```js
+import { arbitrumSepolia, Chain } from 'wagmi/chains'
+import { getDefaultConnectors } from '@0xsequence/kit-connectors'
+import { createConfig, http } from 'wagmi'
+
+const chains = [arbitrumSepolia] as [Chain, ...Chain[]]
+
+const projectAccessKey = process.env.REACT_APP_PROJECTACCESSKEY!;
+const walletConnectProjectId = process.env.REACT_APP_WALLETCONNECTID!;
+
+const connectors = getDefaultConnectors( "universal", {
+    walletConnectProjectId: walletConnectProjectId,
+    defaultChainId: 421614,
+    appName: 'demo app',
+    projectAccessKey
+})
+
+const transports: any = {}
+
+chains.forEach(chain => {
+    transports[chain.id] = http()
+})
+
+const config = createConfig({
+    transports,
+    connectors,
+    chains
+})
+
+export { config }
+
+```
+
+<Warning>
+  プロジェクトのルートに`.env`ファイルを必ず含めてクライアントシークレットを含めてください
+</Warning>
+
+次に、`config`をインポートして`WagmiProvider`で`index.tsx`
+
+```js
+import ReactDOM from "react-dom/client";
+import { KitProvider } from "@0xsequence/kit";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { WagmiProvider } from "wagmi";
+import App from './App'
+
+import { config } from "./config";
+
+const root = ReactDOM.createRoot(
+  document.getElementById("root") as HTMLElement,
+);
+
+const queryClient = new QueryClient();
+
+function Dapp() {
+  return (
+    <WagmiProvider config={config}>
+      <QueryClientProvider client={queryClient}>
+        <KitProvider config={{ defaultTheme: "light", signIn: { showEmailInput: false } }}>
+          <App />
+        </KitProvider>
+      </QueryClientProvider>
+    </WagmiProvider>
+  );
+}
+
+root.render(
+      <Dapp />
+);
+```
+
+最後に、`App.tsx`にボタンを追加してWeb SDKモーダルを表示させます
+
+```js
+import { useOpenConnectModal, useKitWallets } from "@0xsequence/kit";
+
+function App() {
+  const { address } = useAccount();
+  const { setOpenConnectModal } = useOpenConnectModal();
+  const {
+    wallets, // Array of connected wallets
+    linkedWallets, // Array of linked wallets (for embedded wallets)
+    setActiveWallet, // Function to set a wallet as active
+    disconnectWallet, // Function to disconnect a wallet
+  } = useKitWallets();
+
+  const isConnected = wallets.length;
+
+  const connect = async () => {
+    setOpenConnectModal(true);
+  };
+
+  return (
+    <>
+      {!isConnected && <button onClick={() => connect()}>Connect</button>}
+      {address && address}
+    </>
+  );
+}
+
+export default App;
+```
+
+素晴らしい！これでユーザーを認証してウォレットアドレスを返すアプリケーションができました。
+
+以下のコマンドでテストできます：
+
+```
+pnpm run start
+```
+
+## 3. ブロックチェーンクエリ
+
+1つまたは複数のコレクティブルをミントしたら、デプロイメントから取得できる契約アドレスからデータをクエリできます：
+
+<Frame>
+  ![copy contract address](/images/marketplace/copy_contract.png)
+</Frame>
+
+インデクサーを使用してデータをクエリできます。以下のコードでは、アカウントアドレスと契約アドレス（Sequence Builderでデプロイされた契約から取得）をインデクサーAPIに入力します
+
+これは、マーケットプレイスでリクエストを作成する際に重要になります`tokenID`。このデモでは、単一のトークンを扱うことを想定しています`tokenID`
+
+```js
+// Works in both a Webapp (browser) or Node.js:
+import { SequenceIndexer } from "@0xsequence/indexer";
+
+const indexer = new SequenceIndexer(
+  "https://arbitrum-sepolia-indexer.sequence.app",
+  "<access-key>"
+);
+
+// try any contract and account address you'd like :), as an example
+const contractAddress = "<your_deploy_contract_address"; // "0x1693ffc74edbb50d6138517fe5cd64fd1c917709";
+const accountAddress = address; // "0xc2be9cf6d9ee4fd211f88620760e829792659b16";
+
+// query Sequence Indexer for all nft balances of the account on Polygon
+const nftBalances = await indexer.getTokenBalances({
+  contractAddress: contractAddress,
+  accountAddress: accountAddress,
+  includeMetadata: true,
+});
+
+console.log("collection of items:", nftBalances);
+```
+
+インデクサー呼び出しのレスポンスは、以下のデータを返します：
+
+<Accordion title="Example Response">
+  * `contractType` (string) - 契約タイプ（ERC20、ERC721、またはERC1155など）
+  * `contractAddress` (string) - トークンの契約アドレス
+  * `accountAddress` (string) - デプロイしたアカウントアドレス
+  * `tokenID` (string) - トークンのトークンID（ERC20の場合は常に0）
+  * `balance` (string) - トークンの残高
+  * `blockHash` (string) - トークンがデプロイされたブロックのトランザクションマークルハッシュ
+  * `blockNumber` (number) - トークンがデプロイされたブロック番号
+  * `chainId` (number) - トークンのチェーンID
+  * `contractType`
+    * `chainId` (number) - トークンのチェーンID
+    * `address` (string) - トークンのアドレス
+    * `name` (string) - 契約レベルのトークン名
+    * `type` (string) - 契約タイプ（ERC20、ERC721、またはERC1155など）
+    * `symbol` (string) - トークンのシンボル
+    * `decimals` (number) - トークンの小数点以下の桁数
+    * `logoURI` (string) - sequence.appに表示されるトークンのロゴ
+    * `deployed` (boolean) - トークンがデプロイされているかどうか
+    * `bytecodeHash` (string) - ブロックチェーンにデプロイされたスマートコントラクトのバイトコードのハッシュ
+    * `extensions`
+      * `link` (string) - プロジェクトにリンクする関連ウェブサイト
+      * `description` (string) - トークンのメタデータの説明
+      * `ogImage` (string) - sequence.appでレンダリングされるトークンのバナー画像
+      * `originChainId` (number) - トークンが表す元のチェーンID
+      * `originAddress` (string) - トークンが表す元の契約アドレス
+      * `verified` (boolean) - トークンが検証され信頼されているかどうか
+      * `verifiedBy` (string) - スパムでないことを証明する検証ソース
+  * `updatedAt` (date) - インデクサーが最後に更新された日時
+  * `tokenMetadata`
+
+    * `tokenId` (string) - トークンのトークンID（ERC20の場合は常に0）
+    * `contractAddress` (string) - トークンの契約アドレス
+    * `name` (string) - トークンレベルの名前
+    * `description` (string) - トークンの説明
+    * `image` (string) - トークンの画像のURL
+    * `decimals` (string) - トークンの小数点以下の桁数
+    * `properties` (object) - トークンのメタデータのプロパティを含むオブジェクト
+    * `external_url` (string) - トークンや詳細情報を見つけるための外部URL
+    * `updatedAt` (date) - トークンのメタデータが最後に更新された日時
+</Accordion>
+
+## 4. マルチウォレットタイプ
+
+このサンプルでは`Web SDK`を使用しており、Sequenceウォレットに加えて、自分で持ち込んだウォレット`EOA wallet`も使用できます。ブロックチェーンへのトランザクション送信は、`Sequence wallet`ではガスコストを最適化するためにバッチトランザクションを送信できますが、`wagmi`EOAを使用する場合は一度に1つのトランザクションしか送信できないため、異なります。
+
+これを実現するために、認証されたウォレットをチェックするローカル状態変数を作成するいくつかのステップを実行します
+
+```ts
+import { useEffect } from "react";
+import { useConnect, useAccount } from "wagmi";
+
+function App() {
+  const { isConnected } = useAccount();
+  const { connectors } = useConnect();
+  const [isSequence, setIsSequence] = useState<boolean>(false);
+
+  useEffect(() => {
+    connectors.map(async (connector) => {
+      if ((await connector.isAuthorized()) && connector.id === "sequence") {
+        setIsSequence(true);
+      }
+    });
+  }, [isConnected]);
+}
+```
+
+<Note>
+  Sequence Marketプロトコルでは、リスティングを作成する際には`request`と呼ばれ、リクエストを受け入れる際には`order`と呼ばれます。
+</Note>
+
+## 5. リクエスト作成
+
+このサンプルでは、`Arbitrum Sepolia USDC`から[コミュニティフォーセット](https://faucet.circle.com/)
+
+まずはそちらでトークンを取得して、リクエストでリスティングを作成できるようにしましょう
+
+***
+
+次に、オーダーブックにリクエストを作成するために、マーケットプレイスのオーダーブック契約がトークンを転送できるように承認を有効にする必要があります
+
+まず、マーケットプレイスが契約に対して承認されているかどうかを、いくつかのロジックでチェックします
+
+```js
+const ERC1155Contract = '0x1693ffc74edbb50d6138517fe5cd64fd1c917709'
+const MarketPlaceContract = '0xfdb42A198a932C8D3B506Ffa5e855bC4b348a712'
+
+function App() {
+
+  async function checkERC1155Approval(ownerAddress: string, operatorAddress: string) {
+    const abi = [
+      "function isApprovedForAll(address account, address operator) external view returns (bool)"
+    ];
+    const provider = new ethers.providers.JsonRpcProvider(`https://nodes.sequence.app/arbitrum-sepolia/${process.env.REACT_APP_PROJECT_ACCESSKEY}`);
+    const contract = new ethers.Contract(ERC1155Contract, abi, provider);
+    return await contract.isApprovedForAll(ownerAddress, operatorAddress);
+  }
+
+  const createRequest = async () => {
+      ...
+    if(await checkERC1155Approval(address!,MarketPlaceContract)){
+      // is approved and only requires a single transaction
+      ...
+    } else { // is not approved, so requires multiple transactions
+
+      if(isSequence) { .. perform multi-batch transactions
+        ...
+      } else { // is not a sequence wallet
+        ...
+      }
+    }
+  };
+
+}
+```
+
+次に、承認されていない場合と承認されている場合、そしてSequenceウォレットかどうかの各パスに対して、期待されるコールデータを生成するための正しいABIでトランザクションを作成する必要があります。
+
+```ts
+const [requestData, setRequestData] = useState<any>(null);
+
+const createRequest = async () => {
+  const sequenceMarketInterface = new ethers.Interface([
+    "function createRequest(tuple(bool isListing, bool isERC1155, address tokenContract, uint256 tokenId, uint256 quantity, uint96 expiry, address currency, uint256 pricePerToken)) external nonReentrant returns (uint256 requestId)",
+  ]);
+
+  const amountBigNumber = ethers.parseUnits(String("0.01"), 6); // ensure to use the proper decimals
+
+  const request = {
+    isListing: true,
+    isERC1155: true,
+    tokenContract: ERC1155Contract,
+    tokenId: 1,
+    quantity: 1,
+    expiry: Date.now() + 7 * 24 * 60 * 60 * 1000, // 1 day
+    currency: ArbSepoliaUSDCContract,
+    pricePerToken: amountBigNumber,
+  };
+
+  const data = sequenceMarketInterface.encodeFunctionData("createRequest", [
+    request,
+  ]);
+
+  setRequestData(data); // we'll need this in the next step
+
+  if (await checkERC1155Approval(address!, MarketPlaceContract)) {
+    // is approved and only requires a single transaction
+
+    sendTransaction({
+      to: MarketPlaceContract,
+      data: `0x${data.slice(2, data.length)}`,
+      gas: null,
+    });
+  } else {
+    // is not approved, so requires multiple transactions
+
+    const erc1155Interface = new ethers.Interface([
+      "function setApprovalForAll(address _operator, bool _approved) returns ()",
+    ]);
+
+    // is not approved
+    const dataApprove = erc1155Interface.encodeFunctionData(
+      "setApprovalForAll",
+      ["0xfdb42A198a932C8D3B506Ffa5e855bC4b348a712", true]
+    );
+
+    const txApprove = {
+      to: ERC1155Contract,
+      data: dataApprove,
+    };
+
+    const tx = {
+      to: MarketPlaceContract,
+      data: data,
+    };
+
+    if (isSequence) {
+      const wallet = sequence.getWallet();
+      const signer = wallet.getSigner(421614);
+
+      try {
+        const res = signer.sendTransaction([txApprove, tx]);
+        console.log(res);
+      } catch (err) {
+        console.log(err);
+        console.log("user closed the wallet, or, an error occured");
+      }
+    } else {
+      // is not a sequence wallet
+      // todo: implement mutex
+
+      sendTransaction({
+        to: ERC1155Contract,
+        data: `0x${dataApprove.slice(2, data.length)}`,
+        gas: null,
+      });
+      // still need to send acceptRequest transaction
+    }
+  }
+};
+```
+
+最後に、トランザクションがSequenceウォレットから実行されず、承認もされていない場合、`useSendTransaction`フックからトランザクションレシートを受け取った後、ミューテックスを使用してハッシュがどのトランザクションから来たのかを確認する必要があります。これはReactの`useEffect`関数で行われます。
+
+<Note>
+  コンピュータプログラミングにおいて、相互排除（ミューテックス）は、複数のスレッドが同時に同じ共有リソースにアクセスすることを防ぐプログラムオブジェクトです。
+</Note>
+
+```ts
+import { useSendTransaction } from 'wagmi'
+import { useMutex } from 'react-context-mutex';
+
+function App() {
+  ...
+  const [requestData, setRequestData] = useState<any>(null)
+  const { data: hash, sendTransaction } = useSendTransaction()
+  const MutexRunner = useMutex();
+  const mutexApproveERC1155 = new MutexRunner('sendApproveERC1155');
+
+  const createRequest = async () => {
+    ...
+    if(await checkERC1155Approval(address!,MarketPlaceContract)){
+      ...
+    } else {
+      if (isSequence) { // is a sequence wallet
+        ...
+      } else { // is not a sequence wallet
+        mutexApproveERC1155.lock()
+        sendTransaction({
+          to: ERC1155Contract,
+          data: `0x${dataApprove.slice(2,data.length)}`,
+          gas: null
+        })
+      }
+    }
+  };
+
+  useEffect(() => {
+    if (mutexApproveERC1155.isLocked() && hash) {
+      sendTransaction({
+        to: MarketPlaceContract,
+        data: `0x${requestData.slice(2, requestData.length)}`,
+        gas: null,
+      });
+      mutexApproveERC1155.unlock();
+    }
+  }, [requestData, hash]);
+```
+
+素晴らしい、Sequence Marketプロトコルへのリクエストの作成が完了しました。次はボタンを実装してフローを試してみましょう。
+
+## 6. 注文の受け入れ
+
+マーケットプレイスに注文が出されたので、いくつかの作業が必要です：
+
+* `Query the Marketplace`：マーケットプレイスを検索して`orderId`を見つけ、注文を受け入れる
+* `Currency Balance`：インデクサーを使用して通貨残高を確認する
+* `Token Approval`：マーケットプレイスがトークンを転送するための通貨承認を確認する
+
+#### マーケットプレイスの検索
+
+マーケットプレイスのオーダーブックを検索して`pricePerToken`と`orderId`の注文を取得しましょう
+
+```ts
+  const getTopOrder = async (tokenID: string) => {
+    const res = await fetch(
+      "https://marketplace-api.sequence.app/arbitrum-sepolia/rpc/Marketplace/GetTopOrders",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          collectionAddress: ERC1155Contract,
+          currencyAddresses: [ArbSepoliaUSDCContract],
+          orderbookContractAddress: MarketPlaceContract,
+          tokenIDs: [tokenID],
+          isListing: true,
+          priceSort: "DESC", // descending based on price to get lowest offer first
+        }),
+      },
+    );
+    const result = await res.json();
+    return result.orders[0] // getting the first order from the list
+  }
+
+  const acceptOrder = async () => {
+    const tokenID = '1'
+    const topOrder: any = await getTopOrder(tokenID)
+    const requiredAmount = topOrder.pricePerToken
+    ...
+    if(await checkERC20Balance(requiredAmount)){
+      ...
+    } else {
+      ...
+    }
+  }
+```
+
+#### 通貨残高
+
+インデクサーを使用して残高を照会し、ユーザーが注文の支払いに十分なトークンを持っているかどうかを確認します。これは以下のコードで実現できます：
+
+<Warning>
+  トークンコントラクトアドレスの等価性チェックを行う際は、すべて小文字で入力されていることを確認する必要があります
+</Warning>
+
+```js
+import { SequenceIndexer } from '@0xsequence/indexer'
+...
+const checkERC20Balance = async (requiredAmount: any) => {
+    const indexer = new SequenceIndexer('https://arbitrum-sepolia-indexer.sequence.app', process.env.REACT_APP_PROJECT_ACCESSKEY)
+
+    const contractAddress = ArbSepoliaUSDCContract
+    const accountAddress = address
+
+    const tokenBalances = await indexer.getTokenBalances({
+      contractAddress: contractAddress,
+      accountAddress: accountAddress,
+    })
+
+    let hasEnoughBalance = false
+
+    tokenBalances.balances.map((token) => {
+      const tokenBalanceBN = ethers.BigNumber.from(token.balance);
+      const requiredAmountBN = ethers.BigNumber.from(requiredAmount);
+      if(token.contractAddress == ArbSepoliaUSDCContract && tokenBalanceBN.gte(requiredAmountBN)){
+        hasEnoughBalance = true
+      }
+    })
+
+    return hasEnoughBalance
+
+}
+
+const acceptOrder = async () => {
+  const tokenID = '1'
+  const topOrder: any = await getTopOrder(tokenID)
+  const requiredAmount = topOrder.pricePerToken
+  ...
+  if(await checkERC20Balance(requiredAmount)){
+  ...
+  } else {
+  ... // provide prompt on screen that user does not have balance
+  }
+}
+
+```
+
+#### トークン承認
+
+次に、マーケットプレイスが通貨トークンを転送できるようにトークン承認を確認します
+
+```ts
+  const checkERC20Approval = async (ownerAddress: string, spenderAddress: string, tokenContractAddress: string, requiredAmount: string) => {
+    const abi = [
+      "function allowance(address owner, address spender) external view returns (uint256)"
+    ];
+
+    const provider = new ethers.providers.JsonRpcProvider(`https://nodes.sequence.app/arbitrum-sepolia/${process.env.REACT_APP_PROJECT_ACCESSKEY}`);
+    const contract = new ethers.Contract(tokenContractAddress, abi, provider);
+    const allowance = await contract.allowance(ownerAddress, spenderAddress);
+
+    const requiredAmountBN = ethers.BigNumber.from(requiredAmount);
+    const allowanceBN = ethers.BigNumber.from(allowance);
+
+    return allowanceBN.gte(requiredAmountBN);
+  }
+
+  const acceptOrder = async () => {
+    const tokenID = '1'
+    const topOrder: any = await getTopOrder(tokenID)
+    const requiredAmount = topOrder.pricePerToken
+
+    if(await checkERC20Balance(requiredAmount)){
+      if(!(await checkERC20Approval(address!,MarketPlaceContract,ArbSepoliaUSDCContract,requiredAmount))){
+        ...
+      } else {
+
+      }
+      else {
+
+      }
+    }
+  }
+```
+
+最後に、実際にブロックチェーンにトランザクションを送信するために必要なロジックを完成させます
+
+以前と同じフローから始めます。Sequenceウォレットでない場合で承認が必要な場合はマルチバッチトランザクションを送信し、マーケットプレイスがトークンの使用を承認されている場合は単一のトランザクションのみを送信します
+
+```ts
+  ...
+  const mutexApproveERC20 = new MutexRunner('sendApproveERC20');
+  ...
+  const acceptOrder = async () => {
+    const topOrder: any = await getTopOrder('1')
+    const requiredAmount = topOrder.pricePerToken
+
+    const sequenceMarketInterface = new ethers.Interface([
+      "function acceptRequest(uint256 requestId, uint256 quantity, address recipient, uint256[] calldata additionalFees, address[] calldata additionalFeeRecipients)",
+    ]);
+
+    const quantity = 1
+    const data = sequenceMarketInterface.encodeFunctionData(
+      "acceptRequest",
+      [topOrder.orderId, quantity, address, [], []],
+    );
+
+    setAcceptData(data) // we'll need this later, only for Web SDK enabled transactions
+
+    const tx = {
+      to: MarketPlaceContract, // 0xfdb42A198a932C8D3B506Ffa5e855bC4b348a712
+      data: data
+    }
+
+    if(await checkERC20Balance(requiredAmount)){
+      if((await checkERC20Approval(address!,MarketPlaceContract,ArbSepoliaUSDCContract,requiredAmount))){
+        sendTransaction({
+          to: MarketPlaceContract,
+          data: `0x${data.slice(2,data.length)}`,
+          gas: null
+        })
+      } else {
+        ...
+        const erc20Interface = new ethers.Interface([
+          "function approve(address spender, uint256 amount) external returns (bool)"
+        ]);
+
+        const spenderAddress = "0xfdb42A198a932C8D3B506Ffa5e855bC4b348a712";
+        const maxUint256 = ethers.constants.MaxUint256;
+        const dataApprove = erc20Interface.encodeFunctionData("approve", [spenderAddress, maxUint256]);
+
+        if(isSequence){
+          const wallet = sequence.getWallet()
+          const signer = wallet.getSigner(421614)
+
+          const txApprove = {
+            to: ArbSepoliaUSDCContract, // The contract address of the ERC-20 token, replace with actual contract address
+            data: dataApprove
+          };
+
+          try {
+            const res = await signer.sendTransaction([txApprove, tx])
+            console.log(res)
+          } catch (err) {
+            console.log(err)
+            console.log('user closed the wallet, or, an error occured')
+          }
+        } else {
+          mutexApproveERC20.lock()
+
+          sendTransaction({
+            to: ArbSepoliaUSDCContract,
+            data: `0x${dataApprove.slice(2,dataApprove.length)}`,
+            gas: null
+          })
+        }
+      }
+    }
+```
+
+そして、Sequenceウォレットではなく承認が必要なフローでは、以前と同様にミューテックスチェックを実装した`useEffect`を含めます
+
+```ts
+  ...
+  const { data: hash, sendTransaction } = useSendTransaction()
+  ...
+  useEffect(() => {
+    if (acceptData && mutexApproveERC20.isLocked()) {
+      sendTransaction({
+        to: MarketPlaceContract,
+        data: `0x${acceptData.slice(2, acceptData.length)}`,
+        gas: null,
+      });
+      mutexApproveERC20.unlock();
+    }
+  }, [hash, acceptData]);
+```
+
+素晴らしい、ボタンにクリックハンドラー関数を追加すれば全て完了です
+
+## 7. (オプション) Embedded WalletをWeb SDKに統合する
+
+Web SDKコネクターを[Embedded Wallet](/sdk/headless-wallet/quickstart)対応にするために、いくつかのパッケージバージョンをインストールし、ガイドの最初に使用した`config.ts`を更新する必要があります
+
+Embedded Wallet機能により、確認不要のトランザクションが可能になり、よりスムーズなUXを実現できます
+
+```
+pnpm i @0xsequence/kit@2.0.5-beta.9 @0xsequence/kit-connectors@2.0.5-beta.9
+```
+
+```ts
+// config.ts
+import { arbitrumSepolia, Chain } from "wagmi/chains";
+import { getDefaultWaasConnectors } from "@0xsequence/kit-connectors"; // updated
+import { createConfig, http } from "wagmi";
+import { getKitConnectWallets } from "@0xsequence/kit"; // updated
+
+const chains = [arbitrumSepolia] as [Chain, ...Chain[]];
+
+// added environment variables
+const projectAccessKey = process.env.REACT_APP_PROJECTACCESSKEY!;
+const waasConfigKey = process.env.REACT_APP_WAASCONFIGKEY!;
+const googleClientId = process.env.REACT_APP_GOOGLECLIENTID!;
+const appleClientId = process.env.REACT_APP_APPLECLIENTID!;
+const walletConnectProjectId = process.env.REACT_APP_WALLETCONNECTID!;
+const appleRedirectURI = "https://" + window.location.host; // note: update slug to include correct homepage
+
+const connectors = [
+  ...getDefaultWaasConnectors({
+    // updated connector type
+    walletConnectProjectId: walletConnectProjectId,
+    defaultChainId: 421614,
+    waasConfigKey,
+    googleClientId,
+    appleClientId,
+    appleRedirectURI,
+    appName: "demo app",
+    projectAccessKey,
+    enableConfirmationModal: false,
+  }),
+  ...getKitConnectWallets(projectAccessKey, []),
+];
+
+const transports: any = {};
+
+chains.forEach((chain) => {
+  transports[chain.id] = http();
+});
+
+const config = createConfig({
+  transports,
+  connectors,
+  chains,
+});
+
+export { config };
+```
+
+最後のステップとして、GoogleとAppleの認証済みURL（例：[http://localhost:3000](http://localhost:3000)）を私たちのチームに更新して、Embedded Walletのログインフローを呼び出せるようにする必要があります

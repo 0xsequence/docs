@@ -1,0 +1,68 @@
+---
+title: 組み込みウォレット用のGoogle設定
+description: 組み込みウォレットインスタンス用のGoogle OAuth クライアントの設定方法を学びます。ウェブ、Android、またはiOSアプリケーション用のOAuth Client IDを作成する手順に従ってください。
+sidebarTitle: Google設定
+---
+
+Embedded WalletインスタンスにGoogle認証を統合するには、Google Developer Consoleで Google OAuth クライアントを設定する必要があります。Embedded Walletをネイティブモバイルアプリケーション、デスクトップアプリケーション、またはWebアプリケーションのいずれに統合するかに応じて、適切な設定を選択する必要があります。
+
+## OAuth クライアントIDの作成
+
+まず、[Google Developer Console](https://console.cloud.google.com/)にアクセスし、APIs & Services > Credentialsに移動します。そこで、Create Credentials > OAuth Client IDを選択します。まだ設定していない場合は、先に進むためにOAuth Consent Screenも設定する必要があるかもしれません。
+
+<Frame>
+  ![Google Developer Console Credentials](/images/embedded_wallet/google/1.png)
+</Frame>
+
+アプリケーションの種類に応じて、Web Application、iOS、またはAndroidオプションを選択してください：
+
+<Frame>
+  ![Application Type](/images/embedded_wallet/google/2.png)
+</Frame>
+
+残りの手順は、設定するアプリケーションの種類によって異なります。
+
+## Webアプリケーションの設定
+
+Webアプリケーション用にクライアントIDを設定する場合、以下を提供する必要があります：
+
+1. アプリケーション名
+2. 承認されたJavaScriptオリジン：このクライアントIDとの対話を許可するドメインのリスト。
+3. 承認されたリダイレクトURI：認証成功時にユーザーがリダイレクトされるURIのリスト。Sequence SDKはデフォルトでSDKを読み込んだ同じページにリダイレクトします。
+
+<Frame>
+  ![Web Application Configuration](/images/embedded_wallet/google/3.png)
+</Frame>
+
+<Note>
+  ポート付きのlocalhostアドレス（例：`localhost:4444`）を承認されたオリジンのリストに追加する場合、`localhost`ポート名なしでも追加する必要があります。これはテスト中に動作させるためです。
+</Note>
+
+## Androidアプリケーションの設定
+
+Androidアプリケーション用にクライアントIDを設定する場合、以下を提供する必要があります：
+
+1. アプリケーション名
+2. パッケージ名：これはAndroidプロジェクトの一意のアプリケーションパッケージ名です。
+3. SHA-1証明書フィンガープリント：これはアプリケーションバンドルのSHA-1フィンガープリントです。画面の指示に従って`keytool`を使用して生成できます。
+
+![Android Application Configuration](/images/embedded_wallet/google/4.png)
+
+## iOSアプリケーションの設定
+
+iOSアプリケーション用にクライアントIDを設定する場合、以下を提供する必要があります：
+
+1. アプリケーション名
+2. バンドルID：これはiOSプロジェクトの一意のバンドル識別子です。
+
+<Frame>
+  ![iOS Application Configuration](/images/embedded_wallet/google/5.png)
+</Frame>
+
+## クライアントIDの取得
+
+アプリケーションを作成すると、クライアントIDが表示されます。これをコピーして、Sequence BuilderでログインプロバイダーのクライアントIDとして使用してください。
+
+<Frame>
+  ![Client ID](/images/embedded_wallet/google/6.png)
+</Frame>

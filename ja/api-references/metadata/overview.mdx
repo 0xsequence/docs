@@ -1,0 +1,60 @@
+---
+title: メタデータ
+sidebarTitle: 概要
+---
+
+Sequence Metadata APIサービスは、Ethereum互換チェーンのトークンとNFTのメタデータを照会するためのシンプルで高速なAPIを提供しており、これは`@0xsequence/metadata`パッケージのサブモジュールまたはHTTPリクエストを通じて利用可能です。
+
+Sequence Metadataサービスの使用方法については、以下をお読みください：
+
+* [トークンメタデータAPIと標準](/api-references/metadata/examples/token-metadata)
+* [コントラクトレベルのメタデータAPIと標準](/api-references/metadata/examples/contract-metadata)
+* [代替のREST API使用法](/api-references/metadata/examples/rest-api)
+
+### Web / node.jsのインストール
+
+```bash Terminal
+npm install 0xsequence
+```
+
+または
+
+```bash Terminal
+npm install @0xsequence/metadata
+```
+
+<Note>
+  このインストールには[Sequence Builder](https://sequence.build)からのAPIアクセスキーが必要です。
+</Note>
+
+その後、アプリケーションで（`API Access Key`を使用して）、
+
+```ts
+import { SequenceMetadata } from '@0xsequence/metadata'
+
+const metadata = new SequenceMetadata('https://metadata.sequence.app', 'AQAAAAAAAF_JvPALhBthL7VGn6jV0YDqaFY')
+```
+
+**注意：**&#x6E;ode.jsで`@0xsequence/metadata`を使用する場合は、node v18.x以降を推奨します。
+
+### Goのインストール
+
+```bash
+go get -u github.com/0xsequence/go-sequence@latest
+```
+
+その後、アプリケーションで、
+
+```go
+import (
+	"github.com/0xsequence/go-sequence/metadata"
+)
+
+seqMetadata := metadata.NewMetadata("AQAAAAAAAF_JvPALhBthL7VGn6jV0YDqaFY")
+
+contractInfo, err := seqMetadata.GetContractInfo(context.Background(), "polygon", "0x631998e91476DA5B870D741192fc5Cbc55F5a52E")
+```
+
+### UnityまたはUnrealのインストール
+
+Sequence Metadataは[Sequence Unity](/sdk/unity/overview)と[Sequence Unreal](/sdk/unreal/introduction)SDKに直接統合されています。

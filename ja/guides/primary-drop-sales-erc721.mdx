@@ -1,0 +1,167 @@
+---
+title: Sequenceでのドロップ型NFTセールの作成
+description: このガイドでは、Sequenceのプライマリーセールス721の作成について説明します。セールス契約の作成、NFT契約の作成、コレクションの作成、非公開トークンの作成、非公開トークンの公開、ウォレットの認証、購入とミントの手順が含まれています。
+sidebarTitle: ドロップ型NFTセールの作成
+---
+
+ゲームの成長を加速させ、プレイヤーに非公開トークンを販売することで興奮を追加し、セール期間が終了すると、すべての非公開トークンがプレイヤーが愛する真の特徴を明らかにする素晴らしい報酬を提供します。このガイドでは、ERC721契約からのゲームアイテムを活用するドロップセール用に、カスタムまたは既存の通貨を使用してプライマリーセール契約をデプロイする手順を説明します。Sequenceプラットフォームから以下のテクノロジーを使用します：
+
+1. [プライマリーセール契約](/solutions/collectibles/contracts/deploy-primary-sales-contract/)：Webショップ、NFTドロップなどのプライマリーセールを開始するための契約のセットアップとデプロイ方法。
+2. [Embedded Wallet](/solutions/wallets/embedded-wallet/overview)：Web SDKとSequence Embedded Walletを使用してユーザーを認証します。
+3. [Sequence Indexer](/solutions/builder/indexer)：Sequence Indexerを活用してNFTメタデータとユーザーのウォレット資産を照会します。
+4. [Sequence Metadata](/solutions/builder/collections)：Sequence Builder UIとAPIを通じてコレクションまたはトークンのメタデータを更新および管理します。
+
+## ゲームアイテム用のプライマリーセールボイラープレートをクローン
+
+<Tabs>
+  <Tab title="Sequence CLI">
+    #### プライマリーセールリポジトリは[を使用して簡単にクローンできます](https://github.com/0xsequence/sequence-cli/)
+
+    ```bash
+    npx sequence-cli boilerplates create-primary-drop-sales-erc721-starter
+    ```
+  </Tab>
+
+  <Tab title="Github">
+    #### GitHubからプライマリーセールリポジトリをクローンできます
+
+    ```shell
+    git clone https://github.com/0xsequence-demos/primary-drop-sale-721-boilerplate.git
+    ```
+
+    <br />
+
+    その後、インストールして実行します：
+
+    <br />
+
+    ```shell
+    pnpm install && pnpm dev
+    ```
+
+    <br />
+
+    依存関係をインストールした後、`.env.example`が自動的に`.env`にコピーされ、事前に提供されたキーでテストできます。
+
+    <br />
+
+    準備ができたら、`.env`の内容をプロジェクトの情報に置き換えてください。
+  </Tab>
+
+  <Tab title="Github Template">
+    #### GitHubからプライマリーセールリポジトリテンプレートを使用できます
+
+    以下にアクセス：[https://github.com/0xsequence-demos/primary-drop-sale-721-boilerplate](https://github.com/0xsequence-demos/primary-drop-sale-721-boilerplate)そして右上の「Use this Template」をクリックします。
+
+    <br />
+
+    新しく作成したリポジトリをクローンします。
+
+    <br />
+
+    その後、インストールして実行します：
+
+    <br />
+
+    ```shell
+    pnpm install && pnpm dev
+    ```
+
+    <br />
+
+    依存関係をインストールした後、`.env.example`が自動的に`.env`にコピーされ、事前に提供されたキーでテストできます。
+
+    <br />
+
+    準備ができたら、`.env`の内容をプロジェクトの情報に置き換えてください。
+  </Tab>
+</Tabs>
+
+## このリポジトリの使用方法
+
+これで何ができるのでしょうか？隠されたメタデータを持つNFTを販売するというアイデアです—エキサイティングですよね？様々な特性とレアリティを持つトークンをユーザーに提供します！剣？盾？絵画？ランダムなバトルパス？もしかしたらゴールデンチケットかもしれません？その期待感を想像してください！ユーザーに謎を与え、最終的にトークンを公開したときに報酬を提供します。
+
+### 非公開トークンの作成
+
+このステップでは、スクリプトを使用してNFTコレクションの非公開トークンを作成する方法を説明します。コレクションが適切に設定されるように手順に注意深く従い、コレクションの詳細ビューのURLからIDをコピーしていることを確認してください。
+
+非公開トークンを作成するには、`collectionId`と`number`作成したいトークンの数を`scripts/utils/getBodyAndKeys.ts`ファイル内に設定してください。すでに例が含まれています。
+
+<Warning>
+  必ず`JWT_SECRET_KEY`、`VITE_PROJECT_ACCESS_KEY`、および`VITE_PROJECT_ID`を`.env`ファイルで設定してください。
+</Warning>
+
+#### スクリプト：
+
+```bash
+pnpm create-unrevealed-tokens
+```
+
+### プロジェクト接続フローとERC721セール契約のセットアップ
+
+この時点で、プロジェクトの完全な接続フローを完了し、非公開トークンを含むコレクションにリンクされるERC721セール契約をセットアップする必要があります。
+
+#### 重要な考慮事項：
+
+* プライマリーセール契約は、エンドポイントを通じて作成した非公開トークンの数と同じ在庫を持つ必要があります。
+* 例えば、300個の非公開トークンを生成した場合、契約と非公開トークンの間の一貫性を確保するために、セール契約で300ユニットの在庫を設定する必要があります。
+* 非公開トークンを含むコレクションを契約にリンクします。
+* ERC721セール契約の総供給量または在庫が非公開トークンの数と一致することを確認してください。これにより、契約が販売のために提供するものと利用可能な非公開トークンとの間の不一致を避けることができます。
+
+### リポジトリで独自のプライマリーセール契約を設定
+
+開始するためのいくつかのサンプル契約と変数を提供しています。ただし、おそらく独自の契約を使用したいと思われます。これを設定するには、以下の手順に従うだけです：
+
+<Steps>
+  <Step title="Deploy a Primary Sales Contract in Sequence Builder.">
+    まず、販売したいゲームアイテムを含むERC721コントラクトと共にプライマリーセールスコントラクトが必要です。そのために、以下の[ガイド](/solutions/collectibles/contracts/deploy-primary-sales-contract)に従ってください。
+  </Step>
+
+  <Step title="Set the Sales Configurations for the project.">
+    セールスコントラクトがデプロイされたら、ボイラープレートのセールス設定を更新するだけです。`src/salesConfigs.ts`に移動し、salesConfigs変数を変更して、サポートしたいネットワークでプロジェクトの各コントラクトセールを配列に追加します。例：
+
+    ```ts
+    export const salesConfigs: SaleConfiguration[] = [
+      {
+        nftTokenAddress: "0x70a2177079877e4aae639d1abb29ffa537b94970",
+        salesContractAddress: "0xa55574c5ed4cd1dbc5feba47a204fdfb483edadd",
+        chainId: 80002, //polygonAmoy
+      }
+    ];
+    ```
+
+    <Note>
+      現在sequenceでサポートされている全てのチェーンは<a href="https://status.sequence.info" target="_blank" rel="noopener noreferrer" style={{ fontWeight: 700 }}>こちら</a>で確認できます。
+    </Note>
+  </Step>
+
+  <Step title="Set a default chainId for the project.">
+    デフォルトのchainIdを設定するには、`src/salesConfigs.ts`に移動し、プロジェクトでデフォルトで表示したいchainIdでdefaultChainId変数を変更します。これはsalesConfigs変数に存在するchainIdと一致している必要があります。例：
+
+    ```ts
+    // In this case, the chosen `defaultChainId` is 80002 (amoy), which is present in the previously declared `salesConfigs` variable.
+    export const defaultChainId = 80002;
+    ```
+  </Step>
+
+  <Step title="Done!">
+    これで、プライマリードロップセールが正しく表示され、機能するはずです。購入するには、セール用の通貨として設定したトークンがウォレットにあることを確認し、数量を増やして購入をクリックしてください！
+  </Step>
+</Steps>
+
+### トークンの公開
+
+ワクワクしませんか？ユーザーは自分の運命を知るのを心待ちにしています—NFTの本当の属性を公開して、彼らを喜ばせましょう！皆さん、頑張ってください！このスクリプトは、未公開のトークンを全て公開し、ランダムに生成された実際の値をNFTに割り当てます。メタデータを希望通りに作成するために、このスクリプトを自由にカスタマイズしてください！
+
+未公開のトークンを公開するには、`collectionId`を`scripts/utils/getBodyAndKeys.ts`ファイル内に設定してください。すでに例が含まれています。
+
+<Warning>
+  必ず`JWT_SECRET_KEY`、`VITE_PROJECT_ACCESS_KEY`、および`VITE_PROJECT_ID`を`.env`ファイルで設定してください。
+  このステップの前に、有効期限を設定するか、コントラクトの在庫が切れるのを待つことで、プライマリーセールを無効にする必要があります（必須）。
+</Warning>
+
+#### スクリプト：
+
+```bash
+pnpm reveal-tokens
+```

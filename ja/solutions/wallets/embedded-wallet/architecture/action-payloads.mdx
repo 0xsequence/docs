@@ -1,0 +1,295 @@
+---
+title: アクションペイロード
+description: Sequence Embedded Walletは書き込み操作にJSONフォーマットのアクションペイロードを使用します。
+sidebarTitle: アクションペイロード
+---
+
+Sequence Embedded Walletの各書き込み操作ではペイロードを使用します。ペイロードはJSONオブジェクトです。アクションの意図とユーザーの署名に関するすべてのデータを保持します。
+
+Embedded Wallet SDKがペイロードを生成します。アクションを完了するには、それらをEmbedded Wallet APIに送信します。
+
+Embedded Wallet APIキーは、Embedded Wallet APIへのすべての呼び出しを認証します。これには`/sendPayload`エンドポイントへの呼び出しも含まれます。Embedded Wallet APIキーは秘密情報です。安全に保管し、決してクライアントサイドのアプリケーションで共有したり保存したりしないでください。
+
+## ペイロード構造
+
+Embedded Walletを統合する際に、ペイロードの内容を手動で変更する必要はありません。ただし、厳密な定義があります。必要な場合はそれらを使用してください。
+
+ペイロード構造は以下の通りです：
+
+| 名前             | 型            | 説明                          | オプション |
+| -------------- | ------------ | --------------------------- | ----- |
+| version        | string       | ペイロードを生成したSDKのバージョン         | いいえ   |
+| \* packet      | object       | 各ペイロードタイプで定義されるコンテンツ        | いいえ   |
+| signatures     | signature\[] | 既存のセッションによるペイロードの署名         | はい    |
+| packet.code    | string       | ペイロードタイプの識別子                | いいえ   |
+| packet.issued  | number       | ペイロードが発行された時のタイムスタンプ（秒単位）   | いいえ   |
+| packet.expires | number       | ペイロードが期限切れになる時のタイムスタンプ（秒単位） | いいえ   |
+
+\* packetは、そのフィールド（JSON構造内）が名前のアルファベット順に並んでいる必要があります。
+
+> 新しいセッションを開く際にウォレットはオプションです
+
+#### 署名タイプ
+
+| 名前           | 型      | 説明                     | オプション |
+| ------------ | ------ | ---------------------- | ----- |
+| session      | string | 署名セッションの識別子            | いいえ   |
+| \* signature | string | 指定されたペイロードに対するセッションの署名 | いいえ   |
+
+\* signatureはEIP-191署名である必要があります。参照：[https://eips.ethereum.org/EIPS/eip-191](https://eips.ethereum.org/EIPS/eip-191)
+
+```json
+{
+  "version": "1.0.0",
+  "packet": {
+    "code": "signMessage",
+    "expires": 1600086400,
+    "issued": 1600000000,
+    "message": "Join game: #284892",
+    "network": "137",
+    "wallet": "0xBc5F07A5852fdF3DBd57A76835109220D0ADd8E8"
+  },
+  "signatures": [{
+    "session": "0xCF67BCbD9D5DFD373b03f4fc8143e1c6744B5696",
+    "signature": "0x4b0fc0c7d42566958d60f92115ab95167c837c891e2f4fa62a75bfed30d86af7291051fe5c88985269286548a42bed5b70bb16588e48998206a2e7a547f527d101"
+  }]
+}
+```
+
+### セッションを開くペイロード
+
+Embedded Wallet SDKで新しいクライアントサイドセッションを開くと、このペイロードが生成されます。ユーザーを認証する「証明」とそれにリンクするセッションデータを保持します。
+
+または`idToken`、`email`または有効な署名*必須*です。もし`email`が指定された場合、Embedded Walletはこのセッションでの最初のトランザクション時にユーザーにメールを送信します。メールではその確認を求めます。
+
+この`wallet`パラメータはオプションで*のみ*このペイロードに対して有効です。指定された場合、開かれたセッションが要求されたウォレットと一致することを保証します。
+
+| 名前            | 型      | 説明                           | オプション |
+| ------------- | ------ | ---------------------------- | ----- |
+| code          | string | ペイロードの「code」（`openSession`）。 | いいえ   |
+| session       | string | セッションの一意の識別子                 | いいえ   |
+| proof         | object | JWTやメールなどの認証詳細を含む            | いいえ   |
+| proof.idToken | string | OAuth2 idトークン                | はい    |
+| proof.email   | string | ユーザーのメールアドレス                 | はい    |
+
+注意点として、`idToken`、`email`または有効な署名が*必ず*存在する必要があります。`email`が提供された場合、Embedded Walletはこのセッションでの最初のトランザクション時にユーザーにメールを送信し、確認を求めます。
+
+```json
+{
+  "version": "1.0.0",
+  "packet": {
+    "code": "openSession",
+    "expires": 1600086400,
+    "issued": 1600000000,
+    "proof": {
+      "idToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJodHRwOi8vbXktZG9tYWluLmF1dGgwLmNvbSIsInN1YiI6ImF1dGgwfDEyMzQ1NiIsImF1ZCI6IjEyMzRhYmNkZWYiLCJleHAiOjEzMTEyODE5NzAsImlhdCI6MTMxMTI4MDk3MCwibmFtZSI6IkphbmUgRG9lIiwiZ2l2ZW5fbmFtZSI6IkphbmUiLCJmYW1pbHlfbmFtZSI6IkRvZSJ9.bql-jxlG9B_bielkqOnjTY9Di9FillFb6IMQINXoYsw",
+      "email": "user@email.com"
+    },
+    "session": "0xCF67BCbD9D5DFD373b03f4fc8143e1c6744B5696"
+  }
+}
+```
+
+### メッセージ署名ペイロード
+
+このペイロードは`signMessage`がSDKで呼び出された時に生成されます。
+
+| 名前      | 型      | 説明                           | オプション |
+| ------- | ------ | ---------------------------- | ----- |
+| code    | string | ペイロードの「code」（`signMessage`）。 | いいえ   |
+| wallet  | string | ウォレットのアドレス。                  | いいえ   |
+| network | string | トランザクションを送信するネットワーク。         | いいえ   |
+| message | string | 署名するメッセージ。                   | いいえ   |
+
+```json
+{
+  "version": "1.0.0",
+  "packet": {
+    "code": "signMessage",
+    "expires": 1600086400,
+    "issued": 1600000000,
+    "message": "Join game: #284892"
+    "network": "1",
+    "wallet": "0xBc5F07A5852fdF3DBd57A76835109220D0ADd8E8",
+  },
+  "signatures": [{
+    "session": "0xCF67BCbD9D5DFD373b03f4fc8143e1c6744B5696",
+    "signature": "0x4f9555c73908b6a5b61e0a744cb4e00fce7b20743d5799e4cb1774081bc6b2ec192c740e50f1adec84605636e09c9cdf4d2f6629f9ce64d8d0f3ae10305ef90400"
+  }]
+}
+```
+
+### トランザクション送信ペイロード
+
+このペイロードは`sendTransaction`がSDKで呼び出された時に生成されます。
+
+| 名前           | 型                                                                           | 説明                             | オプション |
+| ------------ | --------------------------------------------------------------------------- | ------------------------------ | ----- |
+| code         | string                                                                      | ペイロードの「コード」`sendTransaction`）。 | いいえ   |
+| identifier   | string                                                                      | トランザクションの一意の識別子                | いいえ   |
+| wallet       | string                                                                      | ウォレットのアドレス。                    | いいえ   |
+| network      | string                                                                      | トランザクションを送信するネットワーク。           | いいえ   |
+| transactions | (transaction \| erc20send \| erc721send \| erc1155send \| delayedEncode)\[] | トランザクションオブジェクトの配列。             | いいえ   |
+
+#### 生のトランザクション
+
+| 名前    | 型      | 説明                                  | オプション |
+| ----- | ------ | ----------------------------------- | ----- |
+| type  | string | トランザクションタイプ、"transaction"である必要があります | いいえ   |
+| to    | string | 受信者のEthereumアドレス                    | いいえ   |
+| value | string | 転送される値                              | はい    |
+| data  | string | トランザクションの追加データ                      | はい    |
+
+トランザクションで`to === wallet`は厳密に禁止されており、拒否されます。
+
+#### sendERC20
+
+| 名前    | 型      | 説明                                | オプション |
+| ----- | ------ | --------------------------------- | ----- |
+| type  | string | トランザクションタイプ、"erc20send"である必要があります | いいえ   |
+| token | string | ERC20トークンのコントラクトアドレス              | いいえ   |
+| to    | string | 受信者のEthereumアドレス                  | いいえ   |
+| value | string | 送信するトークンの量                        | いいえ   |
+
+#### sendERC721
+
+| 名前    | 型      | 説明                                 | オプション |
+| ----- | ------ | ---------------------------------- | ----- |
+| type  | string | トランザクションタイプ、"erc721send"である必要があります | いいえ   |
+| token | string | ERC721トークンのコントラクトアドレス              | いいえ   |
+| to    | string | 受信者のEthereumアドレス                   | いいえ   |
+| id    | string | 送信するトークンID                         | いいえ   |
+| safe  | bool   | safeTransferFrom関数を使用するかどうか        | はい    |
+| data  | string | トランザクションの追加データ                     | はい    |
+
+注意点として`data`は以下の場合のみ使用できます`safe === true`。
+
+#### sendERC1155
+
+| 名前             | 型         | 説明                                  | オプション |
+| -------------- | --------- | ----------------------------------- | ----- |
+| type           | string    | トランザクションタイプ、"erc1155send"である必要があります | いいえ   |
+| token          | string    | ERC1155トークンのコントラクトアドレス              | いいえ   |
+| to             | string    | 受信者のEthereumアドレス                    | いいえ   |
+| vals           | object\[] | IDと数量を含むオブジェクトの配列                   | いいえ   |
+| vals\[].id     | string    | トークンのID                             | いいえ   |
+| vals\[].amount | string    | 送信する該当IDのトークン数量                     | いいえ   |
+| data           | string    | トランザクションの追加データ                      | はい    |
+
+#### delayedEncode
+
+遅延エンコードトランザクションは、ペイロードデータがクライアント側でエンコードされず、代わりにEmbedded Wallet APIによってエンコードされます。これによりクライアントの負担が軽減され、ライブラリが制限された環境での統合が容易になります。
+
+| 型                      | フィールド | データ型                                                                                   | 説明                                       |
+| ---------------------- | ----- | -------------------------------------------------------------------------------------- | ---------------------------------------- |
+| DelayedEncodeData      | abi   | string                                                                                 | コントラクトのABI（Application Binary Interface） |
+|                        | func  | 文字列                                                                                    | スマートコントラクト内で呼び出す関数。                      |
+|                        | args  | (string \| DelayedEncodeData)\[] \| \{ \[key: string]: (string \| DelayedEncodeData) } | 関数に渡す引数。配列またはオブジェクトを指定できます。              |
+| DelayedEncodeSubpacket | type  | 'delayedEncode'                                                                        | サブパケットのタイプ、この場合は`'delayedEncode'`。       |
+|                        | to    | 文字列                                                                                    | トランザクションの送信先アドレス。                        |
+|                        | value | 文字列                                                                                    | トランザクションで送信される値、Ethereumの場合は通常Etherで指定。  |
+|                        | data  | DelayedEncodeData                                                                      | ABI、呼び出す関数、引数を含むデータペイロード。                |
+
+お役に立てば幸いです！
+
+```json
+{
+  "version": "1.0.0",
+  "packet": {
+    "code": "sendTransaction",
+    "expires": 1600086400,
+    "identifier": "tx-id1-1600000000",
+    "issued": 1600000000,
+    "network": "137",
+    "transactions": [
+      {
+        "data": "0x3251ba32",
+        "to": "0x479F6a5b0C1728947318714963a583C56A78366A",
+        "type": "transaction",
+        "value": "39381"
+      },
+      {
+        "to": "0x7b1Bd3474D789e18e2E329E2c53F819B6E687b4A",
+        "token": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+        "type": "erc20send",
+        "value": "1000"
+      },
+      {
+        "data": "0x112233",
+        "id": "7",
+        "safe": true,
+        "to": "0x17fFA2d95b58228e1ECb0C6Ac25A6EfD20BA08E4",
+        "token": "0xF87E31492Faf9A91B02Ee0dEAAd50d51d56D5d4d",
+        "type": "erc721send"
+      },
+      {
+        "data": "0x223344",
+        "to": "0x91E8aC543C5fEDf9F3Ef8b9dA1500dB84305681F",
+        "token": "0x631998e91476da5b870d741192fc5cbc55f5a52e",
+        "type": "erc1155send",
+        "vals": [{
+          "amount": "5",
+          "id": "2"
+        }, {
+          "amount": "1",
+          "id": "500"
+        }]
+      },
+			{
+				"data": {
+					"abi": "[{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"_orderId\",\"type\":\"bytes32\"},{\"internalType\":\"uint256\",\"name\":\"_maxCost\",\"type\":\"uint256\"},{\"internalType\":\"address\",\"name\":\"_fees\",\"type\":\"address\"},{\"internalType\":\"bytes\",\"name\":\"_data\",\"type\":\"bytes\"}],\"name\":\"fillOrKillOrder\",\"outputs\":[],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"otherMethods\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"}]",
+					"args": [
+						"0x6bd55a2877890bd58871eefe886770a7734077a74981910a75d7b1f044b5bf28",
+						"1000000000000000000",
+						"[\"0x095aE61E8207C7856eA273235D6BAdb69d815F5e\", \"0xC9D9B33231d24dd8cC53fDD64F7ABdd156f2a7E2\"]",
+						{
+							"abi": "notExpired(uint256,string)",
+							"args": [
+								"1600000000",
+								"Nov 1st, 2020"
+							],
+							"func": "notExpired"
+						}
+					],
+					"func": "fillOrKillOrder"
+				},
+        "to": "0x140d72763D1ce39Ad4E2e73EC6e8FC53E5b73B64",
+				"type": "delayedEncode",
+        "value": "0"
+			}
+    ],
+    "wallet": "0xBc5F07A5852fdF3DBd57A76835109220D0ADd8E8"
+  },
+  "signatures": [{
+    "session": "0xCF67BCbD9D5DFD373b03f4fc8143e1c6744B5696",
+    "signature": "0x4f9555c73908b6a5b61e0a744cb4e00fce7b20743d5799e4cb1774081bc6b2ec192c740e50f1adec84605636e09c9cdf4d2f6629f9ce64d8d0f3ae10305ef90400"
+  }]
+}
+```
+
+### セッション終了ペイロード
+
+このペイロードは、クライアントが特定のセッションの終了を要求したときに生成されます。クライアントは*MAY*現在のセッション、または他のセッションを終了することができます。
+
+| 名前      | 型   | 説明                           | オプション |
+| ------- | --- | ---------------------------- | ----- |
+| code    | 文字列 | ペイロードの「コード」（`closeSession`）。 | いいえ   |
+| wallet  | 文字列 | ウォレットのアドレス。                  | いいえ   |
+| session | 文字列 | 終了するセッションの識別子                | いいえ   |
+
+```json
+{
+  "version": "1.0.0",
+  "packet": {
+    "code": "closeSession",
+    "expires": 1600086400,
+    "issued": 1600000000,
+    "session": "0xCF67BCbD9D5DFD373b03f4fc8143e1c6744B5696",
+    "wallet": "0xBc5F07A5852fdF3DBd57A76835109220D0ADd8E8"
+  },
+  "signatures": [{
+    "session": "0xCF67BCbD9D5DFD373b03f4fc8143e1c6744B5696",
+    "signature": "0x4f9555c73908b6a5b61e0a744cb4e00fce7b20743d5799e4cb1774081bc6b2ec192c740e50f1adec84605636e09c9cdf4d2f6629f9ce64d8d0f3ae10305ef90400"
+  }]
+}
+```

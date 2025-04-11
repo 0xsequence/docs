@@ -1,0 +1,221 @@
+---
+title: モジュールとウォレットの更新
+description: このコンテンツでは、Sequenceウォレットがモジュールを使用して実装される方法と、
+  ウォレット設定を更新する方法について説明します。
+---
+
+Sequenceモジュールはウォレットの基礎となるプログラム実装です。ウォレットは実行時にモジュールを変更できます。
+
+この`MainModule`は全てのSequenceウォレットの初期モジュールです。他のモジュールとは異なり、署名者のセットをコントラクトストレージに保存せず、[salt](/solutions/technical-references/internals/v1/wallet-factory)をFactoryコントラクトに提供します。
+
+## ウォレットの実装
+
+Sequenceモジュールは、ファクトリーによって、または初期デプロイメント後に更新することによってウォレットに割り当てることができます。一度に1つのモジュールのみをウォレットに割り当てることができます。
+
+### \_updateConfiguration
+
+この`updateImplementation`は、ウォレットプロキシの基礎となる実装を更新することを可能にします。この実装には、ウォレットの動作を定義する全てのコアコードが含まれています。
+
+<Warning>
+  無効な実装で`updateImplementation`を呼び出すと、ウォレットが破損する結果となります。
+
+  破損したウォレットは資金の損失につながる可能性があります。
+</Warning>
+
+```solidity
+function updateImplementation(
+  address _implementation
+) external override onlySelf
+```
+
+#### パラメータ：
+
+| 名前               | 型       | 説明               |
+| ---------------- | ------- | ---------------- |
+| \_implementation | address | 新しいウォレット実装のアドレス。 |
+
+このメソッドには`onlySelf`修飾子があり、これはウォレット自体が自己参照トランザクションを使用してのみ呼び出すことができることを意味します。他のアドレスからのこのメソッドへの呼び出しは、それらのアドレスがウォレットの署名者であっても拒否されます。
+
+### 現在の実装の読み取り
+
+ウォレットの実装は、ウォレット自体のアドレスによって定義されたコントラクトストレージスロットに保存されます。各ウォレットは一意のアドレスを持つため、実装スロットはウォレットごとに異なります。
+
+```js
+import {AbiCoder} "ethers"
+
+const address = "0x596af90cecdbf9a768886e771178fd5561dd27ab"
+const provider = new ethers.providers.JsonRpcProvider("http://localhost:8545")
+
+// Read storage slot address(address)
+const slot = await provider.getStorageAt(address, AbiCoder.defaultAbiCoder().encode(['address'], [address]))
+
+// Decode bytes32 as address value
+const implementation = AbiCoder.defaultAbiCoder().decode(['address'], slot)[0]
+
+console.log(implementation)
+```
+
+## ウォレット設定の検証
+
+<Note>
+  固定設定
+  を使用するウォレットの署名者設定`MainModule`は変更できません。署名者のセットまたはしきい値を変更する唯一の方法は、ウォレットのモジュールを更新することです。
+</Note>
+
+すべてのsequenceモジュールは`ModuleAuth`インターフェースを実装する必要があります。このインターフェースにより、モジュールの残りの部分がウォレットの署名を検証できます。`MainModule`の場合、このインターフェースは、コントラクトウォレット作成時にファクトリーに渡されたハッシュの反事実的検証として実装されています。
+
+### \_isValidImage
+
+```solidity
+  function _isValidImage(
+    bytes32 _imageHash
+  ) internal override view returns (bool _isValid)
+```
+
+提供された`imageHash`がウォレットで設定されたものと一致するかを検証します。この関数は、トランザクションとメッセージの署名を検証するために内部で呼び出されます。
+
+この`imageHash`は、ウォレットのしきい値、署名者、重みを含むウォレット設定のハッシュです。
+
+#### パラメータ：
+
+| 名前          | 型       | 説明                |
+| ----------- | ------- | ----------------- |
+| \_imageHash | bytes32 | 検証するウォレット設定のハッシュ。 |
+
+#### 戻り値：
+
+| 名前        | 型    | 説明                                       |
+| --------- | ---- | ---------------------------------------- |
+| \_isValid | bool | 指定された`imageHash`が現在のウォレット設定と一致する場合はTrue。 |
+
+## MainModuleUpgradeable
+
+`MainModuleUpgradable`は`MainModule`の動作を模倣しますが、ウォレット設定を更新できるようにするモジュールです。
+
+### `updateImageHash`
+
+ウォレットの`imageHash`を更新します。これはウォレット設定（署名者、重み、しきい値）を定義するハッシュです。
+
+```solidity
+  function updateImageHash(
+    bytes32 _imageHash
+  ) external override onlySelf
+```
+
+#### パラメータ：
+
+| 名前          | 型       | 説明                |
+| ----------- | ------- | ----------------- |
+| \_imageHash | bytes32 | ウォレットの新しい設定のハッシュ。 |
+
+<Warning>
+  この`imageHash`は検証されません。ハッシュが正しいことを確認するのは呼び出し元の責任です。不正なハッシュの原因には以下が含まれます：
+
+  * 署名者の合計重みがしきい値を下回っている。
+  * 署名者が有効なアドレスではない。
+  * 署名者がEIP-1271の適切なサポートを持たないスマートコントラクトウォレットである。
+  * この`imageHash`がどのウォレット設定にも対応していない（ランダムな文字列の可能性がある）。
+  * この`imageHash`が不明なウォレット設定に対応している。
+
+  これらのいずれかの場合、ウォレットは**使用不能になります**。
+</Warning>
+
+このメソッドには`onlySelf`修飾子があり、自己参照トランザクションを使用してウォレット自体からのみ呼び出すことができます。他のアドレスからのこのメソッドへの呼び出しは、そのアドレスがウォレットの署名者であっても拒否されます。
+
+## 最初の設定更新
+
+Sequenceウォレットが作成されるとき、ファクトリーコントラクトは`initialize` 関数。代わりに設定は`salt`によって工場に提供され、`MainModule`はウォレットアドレスに対するすべての署名の反事実的有効性を確認します。
+
+これは`MainModule`を使用しながらウォレットの設定を直接更新する方法がないことを意味します。最初の設定更新でウォレットの実装を`MainModuleUpgradable`に変更する必要があるため、`MainModule`は`MainModuleUpgradable`に更新され、`updateImageHash`メソッドが呼び出されてウォレットの設定が更新されます。
+
+```js
+const transactions = [
+  {
+    delegateCall: false,
+    revertOnError: true,
+    to: wallet,
+    data: walletInterface.encodeFunctionData(
+      walletInterface.getFunction('updateImplementation'), [this.context.mainModuleUpgradable]
+    ),
+    value: ethers.constants.Zero,
+    gasLimit: ethers.constants.Zero,
+  },
+  {
+    delegateCall: false,
+    revertOnError: true,
+    to: wallet,
+    data: mainModuleInterface.encodeFunctionData(
+      mainModuleInterface.getFunction('updateImageHash'), [newImageHash]
+    ),
+    value: ethers.constants.Zero,
+    gasLimit: ethers.constants.Zero,
+  }
+]
+```
+
+#### delegateCall: false
+
+`delegateCall`はモジュールで許可されている以上のウォレット機能を拡張するために使用されます。この場合、呼び出されるメソッドはモジュール自体で定義されているため、`delegateCall`を使用する必要はありません。
+
+#### revertOnError: true
+
+`revertOnError`は、フラグが付けられたトランザクションが失敗した場合にトランザクションバンドル全体を元に戻すために使用されます。この場合、部分的なウォレット設定の更新は**ウォレットを**使用不能にしてしまうため、操作はアトミックである必要があります。
+
+#### to: wallet
+
+呼び出されるメソッドはウォレット自体で定義されていますが、外部から呼び出す必要があるため、`to`アドレスはウォレット自体です。
+
+#### value: ethers.constants.Zero
+
+トランザクションの`value`は、トランザクションが自己参照トランザクションであり、資金の転送を必要としないため、常にゼロです。
+
+#### gasLimit: ethers.constants.Zero
+
+トランザクションの`gasLimit`は、無制限のガス量を表すため、常にゼロです。
+
+<Warning>
+  危険な操作
+
+  ウォレットが最初に`MainModuleUpgradable`に更新されたとき、まだ有効な`imageHash`を持っていません。`imageHash`がトランザクションバンドルの実行が終了する前に更新されることが不可欠です。もし`imageHash`がトランザクションバンドルの実行が終了する前に更新されない場合、ウォレットは使用不能になります。
+
+  このため、ウォレットを初めて更新する際には以下の考慮事項を考慮する必要があります：
+
+  * すべてのトランザクションには`revertOnError = true`のマークを付ける必要があります。
+  * `updateImplementation`と`updateImageHash`の両方を同じトランザクションバンドルで宣言する必要があります。
+  * 両方のトランザクションの`gasLimit`は無制限に設定する必要があります（`0`）。
+</Warning>
+
+### その後の設定更新
+
+ウォレットが`MainModuleUpgradable`に更新されると、`updateImageHash`メソッドを呼び出すことで、追加のトランザクションなしで更新できます。
+
+```js
+const transactions = [
+  {
+    delegateCall: false,
+    revertOnError: true,
+    to: wallet,
+    data: mainModuleInterface.encodeFunctionData(
+      mainModuleInterface.getFunction('updateImageHash'), [newImageHash]
+    ),
+    value: ethers.constants.Zero,
+    gasLimit: ethers.constants.Zero,
+  }
+]
+```
+
+### 現在の設定の取得
+
+ウォレットが`MainModuleUpgradable`に更新されている場合、`getImageHash`メソッドを呼び出すことで現在の設定を照会できます。
+
+このメソッドはウォレットの現在の設定ハッシュを返し、これを既知のウォレット設定のリストと比較して正しい設定を見つけることができます。
+
+#### ウォレット設定の取得
+
+`imageHash`メソッドは`bytes32(0)`を返します（ウォレットがまだ`MainModuleUpgradable`に更新されていない場合）。この場合、ウォレットは反事実的な状態にあり、`imageHash` 直接クエリすることはできません。
+
+これはデプロイされていないウォレットの場合も同様です。
+
+見つけるには`imageHash` デプロイされていない、もしくはアップデートされていないウォレットの`imageHash` をウォレットアドレスと比較する必要があります。
+
+参照：[ウォレットアドレスの計算](/solutions/technical-references/internals/v1/wallet-configuration)。

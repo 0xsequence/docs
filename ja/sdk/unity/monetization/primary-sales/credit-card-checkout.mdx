@@ -1,0 +1,31 @@
+---
+title: Credit Card Checkout
+---
+
+プライマリーセールスコントラクトのクレジットカード決済は、現在SardineとTransakによって提供されています（他の決済サービスプロバイダーのサポートも近日追加予定）。
+
+## セットアップ
+
+プライマリーセールスコントラクトをデプロイしたら、Sequenceチームに連絡し、プライマリーセールスコントラクトのアドレス、チェーン、選択した価格通貨、および監査レポート（Sequenceのプライマリーセールスコントラクトを使用していない場合）をホワイトリスト登録のために提供してください。決済サービスプロバイダーからホワイトリストリクエストの回答を受け取り次第、関連情報（`TransakContractId`）をお知らせします。
+
+<Tip>決済サービスプロバイダーとのコントラクトのホワイトリスト登録には時間がかかる場合があります！このプロセスを急いで処理することができない場合がありますので、早めに計画を立ててください！</Tip>
+
+### Transak
+
+Sequenceチームから`ContractId`を受け取ったら、`TransakContractId`のインスタンスを作成する必要があります。
+
+```
+TransakContractId contractId = new TransakContractId(contractIdStringFromSequenceTeam, saleContractAddress, chain, priceTokenSymbol);
+```
+
+上記のスニペットから`ConfigureSaleContractId`を`IFiatPay`インスタンスで呼び出し、`TransakContractId`を提供する必要があります`GetNftCheckoutLink`。
+
+## 仕組み
+
+高レベルでは、決済サービスプロバイダーのAPIやコントラクトに、コレクションコントラクトからコレクティブルをミントするための適切な権限が与えられます。
+
+ユーザーがウェブベースの決済フローに誘導されると、決済サービスプロバイダーが実行するために必要なトランザクションのコールデータが含まれます。ユーザーが支払いを完了すると、決済サービスプロバイダーは提供されたコールデータに署名して実行し、ユーザーにコレクティブルをミントします。
+
+![Sequence Diagram](/images/unity/SequenceDiagram-PrimarySalesCheckoutFlow.png)
+
+[ソース](https://github.com/0xsequence/sequence-unity/blob/Feature/marketplaceCheckout/Packages/Sequence-Unity/Sequence/SequenceSDK/Pay/SD_PrimarySalesCheckoutFlow.mmd)

@@ -1,0 +1,216 @@
+---
+title: useGetTokenMetadata
+description: コントラクト内の個々のトークンのトークン固有のメタデータを取得するためのフック
+sidebarTitle: useGetTokenMetadata
+---
+
+## インポート
+
+```tsx
+import { useGetTokenMetadata } from '@0xsequence/hooks'
+```
+
+## 使用方法
+
+```tsx
+import { useGetTokenMetadata } from '@0xsequence/hooks'
+
+// Example 1: Single NFT Details
+function NFTDetails({ contractAddress, tokenId }) {
+  const {
+    data: tokensMetadata,
+    isLoading,
+    isError
+  } = useGetTokenMetadata({
+    chainID: "1", // Ethereum mainnet
+    contractAddress, 
+    tokenIDs: [tokenId]
+  })
+
+  if (isLoading) return <div>Loading NFT details...</div>
+  if (isError) return <div>Error loading NFT</div>
+
+  const nft = tokensMetadata?.[0]
+  if (!nft) return <div>NFT not found</div>
+
+  return (
+    <div className="nft-details">
+      <img 
+        src={nft.image}
+        alt={nft.name}
+        className="nft-image"
+      />
+      <div className="nft-info">
+        <h1>{nft.name}</h1>
+        <p>{nft.description}</p>
+        
+        <div className="attributes-grid">
+          {nft.attributes?.map(attr => (
+            <div key={attr.trait_type} className="attribute-card">
+              <span className="trait-type">{attr.trait_type}</span>
+              <span className="trait-value">{attr.value}</span>
+              {attr.rarity && (
+                <span className="trait-rarity">{attr.rarity}%</span>
+              )}
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// Example 2: Batch NFT Collection Display
+function NFTCollectionGrid({ contractAddress, tokenIds }) {
+  const {
+    data: tokensMetadata,
+    isLoading,
+    isError
+  } = useGetTokenMetadata({
+    chainID: "1",
+    contractAddress,
+    tokenIDs: tokenIds // Will automatically chunk into batches of 50
+  })
+
+  if (isLoading) return <div>Loading collection...</div>
+  if (isError) return <div>Error loading collection</div>
+
+  return (
+    <div className="nft-grid">
+      {tokensMetadata?.map(token => (
+        <div key={token.tokenId} className="nft-tile">
+          <img 
+            src={token.image}
+            alt={token.name}
+            loading="lazy"
+          />
+          <div className="nft-tile-info">
+            <h3>{token.name}</h3>
+            {token.attributes && (
+              <div className="trait-pills">
+                {token.attributes.slice(0, 3).map(attr => (
+                  <span key={attr.trait_type} className="trait-pill">
+                    {attr.trait_type}: {attr.value}
+                  </span>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      ))}
+    </div>
+  )
+}
+```
+
+## 戻り値の型：`UseQueryResult<TokenMetadata[]>`
+
+このフックはReact Queryの`UseQueryResult`のすべてのプロパティをトークンメタデータと共に返します。以下が詳細な構造です：
+
+```tsx
+interface TokenMetadata {
+    tokenId: string;
+    source: string;
+    name: string;
+    description?: string;
+    image?: string;
+    video?: string;
+    audio?: string;
+    properties?: {
+        [key: string]: any;
+    };
+    attributes: Array<{
+        [key: string]: any;
+    }>;
+    image_data?: string;
+    external_url?: string;
+    background_color?: string;
+    animation_url?: string;
+    decimals?: number;
+    updatedAt?: string;
+    assets?: Array<Asset>;
+    status: ResourceStatus;
+    queuedAt?: string;
+    lastFetched?: string;
+}
+```
+
+### プロパティ
+
+#### data
+
+`TokenMetadata[] | undefined`
+
+リクエストされた各トークンのメタデータを含むオブジェクトの配列：
+
+* `tokenId`：特定のトークンのID
+* `source`：トークンメタデータのソース/オリジン（例："sequence"、"opensea"）
+* `name`：特定のトークンの名前（例："Bored Ape #1234"）
+* `description`：特定のトークンの説明
+* `image`：トークンの画像URL（画像サービスを通じて自動的にプロキシされる）
+* `video`：トークンに動画コンテンツがある場合の動画URL
+* `audio`：トークンに音声コンテンツがある場合の音声URL
+* `properties`：キーと値のペアとしての追加のメタデータプロパティ
+* `attributes`：NFTの特性オブジェクトの配列
+* `image_data`：提供された場合の生のSVG/画像データ
+* `external_url`：トークンに関連する外部URL
+* `background_color`：16進数形式の背景色
+* `animation_url`：アニメーションコンテンツのURL
+* `decimals`：トークンの小数点位置（ERC1155の代替可能トークン用）
+* `updatedAt`：最後のメタデータ更新のISOタイムスタンプ
+* `assets`：追加のアセットファイルの配列
+* `status`：メタデータの現在のステータス（"READY"、"PENDING"、"ERROR"）
+* `queuedAt`：メタデータのインデックス作成がキューに入れられた時のISOタイムスタンプ
+* `lastFetched`：最後の成功したフェッチのISOタイムスタンプ
+
+#### isLoading
+
+`boolean`
+
+データフェッチのローディング状態。
+
+#### isError
+
+`boolean`
+
+クエリが失敗したかどうかを示すエラー状態。
+
+#### error
+
+`Error | null`
+
+データフェッチ中に発生したエラー。
+
+## パラメータ
+
+このフックは2つのパラメータを受け取ります：
+
+### args：`GetTokenMetadataArgs`
+
+```tsx
+interface GetTokenMetadataArgs {
+  chainID: string
+  contractAddress: string
+  tokenIDs: string[]
+}
+```
+
+| パラメータ             | 型          | 説明                                     |
+| ----------------- | ---------- | -------------------------------------- |
+| `chainID`         | `string`   | チェーンIDを文字列で指定（例：Ethereumメインネットの場合は"1"） |
+| `contractAddress` | `string`   | トークン/NFTのコントラクトアドレス                    |
+| `tokenIDs`        | `string[]` | メタデータを取得するトークンIDの配列                    |
+
+### options：`HooksOptions`
+
+```tsx
+interface HooksOptions {
+  disabled?: boolean
+  retry?: boolean
+}
+```
+
+| パラメータ      | 型         | 説明                          |
+| ---------- | --------- | --------------------------- |
+| `disabled` | `boolean` | （オプション）クエリが自動的に実行されるのを無効にする |
+| `retry`    | `boolean` | （オプション）失敗したクエリを再試行するかどうか    |

@@ -1,0 +1,360 @@
+---
+title: マーケットプレイスデータフック
+description: マーケットプレイスの重要なデータを取得するためのGETフックのコレクション。UIでマーケットプレイス情報を取得および管理するのに便利です。
+sidebarTitle: マーケットプレイスデータフック
+---
+
+## useMarketplaceConfig
+
+useMarketplaceConfigフックは、Builderからコレクション、ソーシャルリンク、タイトル、その他の設定を含むマーケットプレイスの設定を取得します。
+
+```ts
+import { useMarketplaceConfig } from "@0xsequence/marketplace-sdk/react";
+
+## Into your React component:
+
+const data = useMarketplaceConfig();
+```
+
+<ResponseField name="useMarketplaceConfig">
+  <ResponseField name="* return properties" />
+
+  <Expandable>
+    <ParamField path="publisherId" type="string">
+      マーケットプレイス発行者の一意の識別子。
+    </ParamField>
+
+    <ParamField path="title" type="string">
+      マーケットプレイスのタイトル。
+    </ParamField>
+
+    <ParamField path="shortDescription" type="string">
+      マーケットプレイスの簡単な説明。
+    </ParamField>
+
+    <ParamField path="socials" type="MarketplaceSocials">
+      マーケットプレイスに関連するソーシャルメディアリンク。
+    </ParamField>
+
+    <ParamField path="faviconUrl" type="string">
+      マーケットプレイスのファビコンのURL。
+    </ParamField>
+
+    <ParamField path="landingBannerUrl" type="string">
+      ランディングページ用のマーケットプレイスバナーのURL
+    </ParamField>
+
+    <ParamField path="collections" type="MarketplaceCollection[]">
+      マーケットプレイスのコレクションの配列。
+    </ParamField>
+
+    <ParamField path="walletOptions" type="MarketplaceWalletOptions">
+      ウォレット統合の設定オプション。
+    </ParamField>
+
+    <ParamField path="landingPageLayout" type="string">
+      マーケットプレイスのランディングページのレイアウト設定。
+    </ParamField>
+
+    <ParamField path="logoUrl" type="string">
+      マーケットプレイスのロゴのURL。
+    </ParamField>
+
+    <ParamField path="bannerUrl" type="string">
+      マーケットプレイスのバナーのURL。
+    </ParamField>
+
+    <ParamField path="fontUrl" type="string | undefined">
+      マーケットプレイスで使用されるカスタムフォントのURL。
+    </ParamField>
+
+    <ParamField path="ogImage" type="string | undefined">
+      ogImageのURL
+    </ParamField>
+
+    <ParamField path="cssString" type="string">
+      マーケットプレイスのカスタムCSSスタイル。
+    </ParamField>
+
+    <ParamField path="manifestUrl" type="string">
+      マーケットプレイスのマニフェストファイルのURL。
+    </ParamField>
+  </Expandable>
+</ResponseField>
+
+## useListCollectibles
+
+useListCollectiblesフックは、マーケットプレイスのコレクションから現在のリストと提案を取得します。リストと提案を効率的にアクセスおよび管理するのに便利です。
+
+```ts
+import { OrderSide } from '@0xsequence/marketplace-sdk';
+import { useListCollectibles } from '@0xsequence/marketplace-sdk/react';
+
+## Into your React component:
+
+const {
+  data: collectibles,
+  isLoading: collectiblesLoading,
+  fetchNextPage: fetchNextCollectibles,
+} = useListCollectibles({
+  chainId,
+  collectionAddress,
+  filter: {
+    // # Optional filters
+    includeEmpty,
+    searchText,
+    properties,
+  },
+  side: OrderSide.listing,
+});
+
+const collectiblesFlat =
+  collectibles?.pages.flatMap((p) => p.collectibles) ?? [];
+
+return (
+  <div>
+    {collectiblesFlat?.map((collectible) => (
+      // Your Collectibles component
+    ))}
+  </div>
+);
+```
+
+<ResponseField name="useListCollectibles">
+  <ResponseField name="* params" />
+
+  <Expandable>
+    ```ts
+    interface UseListCollectiblesArgs {
+      chainId: string;
+      side: OrderSide;
+      collectionAddress: `0x${string}`;
+      page?: {
+        page: number;
+        pageSize: number;
+        sort?: {
+          order: SortOrder$1;
+          column: string;
+        }[];
+        more?: boolean;
+      };
+      filter?: {
+        includeEmpty: boolean;
+        searchText?: string;
+        properties?: {
+          type: PropertyType;
+          name: string;
+          values?: any[];
+          max?: number;
+          min?: number;
+        }[];
+        marketplaces?: MarketplaceKind[];
+        inAccounts?: string[];
+        notInAccounts?: string[];
+        ordersCreatedBy?: string[];
+        ordersNotCreatedBy?: string[];
+      };
+      query?: {
+        enabled?: boolean;
+      };
+    }
+    ```
+  </Expandable>
+
+  <ResponseField name="* return properties" />
+
+  <Expandable>
+    <ParamField path="data" type="ListCollectiblesReturn">
+      ページネーションされたコレクティブルオーダーデータを含みます。
+    </ParamField>
+
+    <ParamField path="data.pages" type="CollectibleOrder[]">
+      ページ単位で返されるコレクティブルオーダーのリスト。
+    </ParamField>
+
+    <ParamField path="isLoading" type="boolean">
+      データが現在読み込み中かどうかを示します。
+    </ParamField>
+
+    <ParamField path="fetchNextPage" type="(options?: FetchNextPageOptions) => Promise<UseInfiniteQueryResult>">
+      この関数を使用すると、結果の次の「ページ」を取得できます。
+    </ParamField>
+  </Expandable>
+</ResponseField>
+
+## useListCollectiblesPaginated
+
+useListCollectiblesPaginatedフックは、マーケットプレイスから現在のリストと提案を効率的に取得および管理し、コレクション内のNFTをページ分けして表示するのに最適です。
+
+```ts
+import { OrderSide } from '@0xsequence/marketplace-sdk';
+import { useListCollectiblesPaginated } from '@0xsequence/marketplace-sdk/react';
+
+const chainId = 137;
+const searchText = "";
+const enabled = true;
+const includeEmpty = true;
+const properties = [];
+const pageSize = 30;
+const currentPage = 1;
+const collectionAddress = "0x0e5566a108e617baedbebb44e3fcc7bf03e3a839";
+
+## Into your React component:
+
+const {
+    data: collectiblesResponse,
+    isLoading: collectiblesLoading,
+} = useListCollectiblesPaginated({
+  chainId: String(chainId),
+  collectionAddress,
+  side: OrderSide.listing,
+  filter: {
+    // # Optional filters
+    includeEmpty,
+    searchText,
+    properties,
+  },
+  page: {
+    page: currentPage,
+    pageSize,
+  },
+  query: {
+    page: currentPage,
+    pageSize,
+    enabled,
+  },
+});
+
+const collectiblesList = collectiblesResponse?.collectibles ?? [];
+
+return (
+  <div>
+    {collectiblesList?.map((collectible) => (
+      // Your Collectibles component
+    ))}
+  </div>
+);
+```
+
+<ResponseField name="useListCollectiblesPaginated details">
+  <ResponseField name="* params" />
+
+  <Expandable>
+    ```ts
+    interface UseListCollectiblesPaginatedArgs {
+      chainId: string;
+      side: OrderSide;
+      collectionAddress: `0x${string}`;
+      page?: {
+        page: number;
+        pageSize: number;
+        sort?: {
+          order: SortOrder$1;
+          column: string;
+        }[];
+        more?: boolean;
+      };
+      filter?: {
+        includeEmpty: boolean;
+        searchText?: string;
+        properties?: {
+          type: PropertyType;
+          name: string;
+          values?: any[];
+          max?: number;
+          min?: number;
+        }[];
+        marketplaces?: MarketplaceKind[];
+        inAccounts?: string[];
+        notInAccounts?: string[];
+        ordersCreatedBy?: string[];
+        ordersNotCreatedBy?: string[];
+      };
+      query: {
+        page: number;
+        pageSize: number;
+        enabled?: boolean;
+      };
+    }
+    ```
+  </Expandable>
+
+  <ResponseField name="* return properties" />
+
+  <Expandable>
+    <ParamField path="data" type="ListCollectiblesReturn">
+      コレクティブルオーダーのデータを含みます。
+    </ParamField>
+
+    <ParamField path="data.collectibles" type="CollectibleOrder[]">
+      コレクティブルオーダーのリスト。
+    </ParamField>
+
+    <ParamField path="isLoading" type="boolean">
+      データが現在読み込み中かどうかを示します。
+    </ParamField>
+  </Expandable>
+</ResponseField>
+
+## useCountOfCollectables
+
+useCountOfCollectablesフックは、コレクション内のNFTの数を返します。
+
+```ts
+import { OrderSide } from '@0xsequence/marketplace-sdk';
+import { useCountOfCollectables } from '@0xsequence/marketplace-sdk/react';
+
+const countOfCollectables = useCountOfCollectables({
+  chainId: String(chainId),
+  collectionAddress: collectionId,
+  side: OrderSide.listing,
+  filter: {
+    searchText: text,
+    includeEmpty,
+    properties,
+  },
+});
+```
+
+<ResponseField name="useCountOfCollectables details">
+  <ResponseField name="* params" />
+
+  <Expandable>
+    ```ts
+    interface UseCountOfCollectables {
+      chainId: ChainId;
+      collectionAddress: CollectionAddress;
+      query?: { enabled?: boolean };
+      filter?: {
+        includeEmpty: boolean;
+        searchText?: string;
+        properties?: {
+          name: string;
+          type: PropertyType;
+          min?: number;
+          max?: number;
+          values?: any[];
+        }[];
+        marketplaces?: MarketplaceKind[];
+        inAccounts?: string[];
+        notInAccounts?: string[];
+        ordersCreatedBy?: string[];
+        ordersNotCreatedBy?: string[];
+      };
+      side?: OrderSide;
+    }
+    ```
+  </Expandable>
+
+  <ResponseField name="* return properties" />
+
+  <Expandable>
+    <ParamField path="data" type="number">
+      数値のレスポンスデータ。
+    </ParamField>
+
+    <ParamField path="isLoading" type="boolean">
+      データが現在読み込み中かどうかを示します。
+    </ParamField>
+  </Expandable>
+</ResponseField>

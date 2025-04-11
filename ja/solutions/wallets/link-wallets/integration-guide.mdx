@@ -1,0 +1,276 @@
+---
+title: Sequence ウォレットリンク統合 - 組み込みウォレット認証と外部ウォレットサインイン
+description: このガイドでは、ウォレットリンクのために親の組み込みウォレットをWeb2認証方法と統合する方法を説明します。ソーシャルログインプロバイダーへのサインインと、Web SDKを介してサインインした外部ウォレットからの署名を使用したリンクについて説明し、それらを安全にプライベートに保存する方法を解説します。
+---
+
+# ウォレットリンクの統合
+
+所要時間：25-35分
+
+このガイドでは、[Embedded Wallet](/solutions/wallets/embedded-wallet/overview)にメールやソーシャルログインなどの従来の認証方式を使用してサインインする方法を紹介します。次に、Web SDK（現Web SDK）を使用して外部ウォレットアドレスをEmbedded Walletにリンクするために、メッセージに署名します。これにより、オフチェーンで非公開に保存される単一のユーザープロファイルに対して検索可能なアドレスのセットが作成されます。最後に、プライバシーを保護するための署名を使用して、リンクされたウォレットの総数の一覧表示やリンクされたウォレットの状態の削除など、APIの他の機能についても詳しく説明します。
+
+# デモ
+
+デモを[試してみてください](https://demo-waas-wallet-link.pages.dev/)または[ソースコード全体を確認してください](https://github.com/0xsequence-demos/demo-embedded-wallet-linking)。
+
+# クイックスタート
+
+ターミナルでCLIコマンドを使用してローカルで実行できるクイックスタートアプリケーションを試してください：
+
+### リポジトリをクローン
+
+```shell
+git clone https://github.com/0xsequence-demos/demo-embedded-wallet-linking.git && cd ./demo-embedded-wallet-linking
+```
+
+### 環境変数をコピー
+
+```shell
+cp .example.env .env
+```
+
+### ローカルで実行
+
+```shell
+pnpm install && pnpm dev
+```
+
+サンプルをテストしたら、`.env`ファイルを[Builder](https://sequence.build)でプロジェクトを作成した後のEmbedded Wallet設定で更新するだけです：
+
+1. `Waas Config Key` [Embedded Walletに使用](/solutions/builder/embedded-wallet)。
+2. `Project Access Key` [Embedded Walletに使用](/solutions/builder/getting-started#claim-an-api-access-key)。
+3. Embedded Walletsでソーシャル認証を行うための`Google Client ID`の取得方法[。](/solutions/builder/embedded-wallet/google-configuration).
+
+# ウォレットリンクAPIの使用
+
+## 1. APIインターフェースファイルの統合
+
+APIの使用を開始するために、クローンしたアプリケーションにインターフェースファイルを統合し、Sequence APIを便利に呼び出せるようにします。
+
+インターフェースの[ソースコードはこちらで確認できます](https://github.com/0xsequence-demos/demo-embedded-wallet-linking/blob/master/src/api/api.gen.ts)。これは既存のSequenceサーバーで以下のようにインスタンス化されます：
+
+```typescript
+import { 
+    API,            // API interface
+    LinkedWallet    // typed class
+} from "./api.gen";
+
+const api = new API("https://dev-api.sequence.app", fetch);
+```
+
+#### リポジトリに統合されたAPI関数を使用した簡単な例で、`0xsequence/waas`と`wagmi`パッケージを使用：
+
+1. [`linkWallet(...)`](/solutions/wallets/link-wallets/integration-guide#5-link-an-external-wallet-to-an-embedded-wallet)
+2. [`getLinkedWallets(...)`](/solutions/wallets/link-wallets/integration-guide#6-retrieve-linked-wallets)
+3. [`removeLinkedWallet(...)`](/solutions/wallets/link-wallets/integration-guide#7-remove-linked-wallet)
+
+## 2. 外部ウォレットをEmbedded Walletにリンク
+
+外部ウォレット（EOA、Sequence Universal Walletなど）をEmbedded Walletにリンクするには、まず`parent`ウォレットとして分類されるEmbedded Walletでユーザーを認証する必要があります。認証後、Web SDKを使用して再度認証を行い、そのウォレットの所有権を検証するためにメッセージに署名します。そのメッセージは`linkWallet`APIエンドポイントに渡され、以下の型付き引数と戻り値の型を持ちます（オプション値は除外）：
+
+```typescript
+interface LinkWalletArgs {
+  parentWalletAddress: string // Address of the Embedded Wallet
+  parentWalletMessage: string // Message from the Embedded Wallet
+  parentWalletSignature: string // Signature from Embedded Wallet
+  linkedWalletAddress: string // External wallet address you want to link
+  linkedWalletMessage: string // Message from the external wallet
+  linkedWalletSignature: string // Signature from the external wallet
+  signatureChainId: string // ChainId which you want to verify, using 137 in the example.
+  linkedWalletType?: string // Optional value to identify what type of wallet is being connected, i.e., 'sequence'
+}
+
+interface LinkWalletReturn {
+  status: boolean
+}
+
+linkWallet(args: LinkWalletArgs, headers?: object, signal?: AbortSignal): Promise<LinkWalletReturn>
+```
+
+### アドレス所有を証明するためのメッセージ署名
+
+2つの署名が必要です：Embedded WalletがWeb SDKウォレットアドレス（リンクされたウォレット）に署名する署名と、リンクされたウォレット（Web SDKから）が親ウォレットアドレス（Embedded Wallet）に署名する署名です。メッセージと署名が後でAPIに渡される内容と一致している限り、ユーザーに提示される任意のメッセージに署名できます。例えば、Sequenceを使用してこの情報を取得するために、ReactとWagmiを使用して以下のコードを使用できます：
+
+```typescript
+import {
+  ...
+  useSignMessage,
+  useAccount,
+  ...
+} from "wagmi";
+
+function App() {
+
+    const { signMessageAsync } = useSignMessage();
+    const { address: kitWalletAddress } = useAccount();
+    
+    const getSignaturesForLinking = async () => {
+        const parentWalletMessage = "linked wallet with address "
+        const linkedWalletMessage = "parent wallet with address "
+        const parentMessage = parentWalletMessage + kitWalletAddress
+        const parentWalletAddress = await sequenceWaas.getAddress()
+        const linkingMessage = "Link to " + linkedWalletMessage + parentWalletAddress
+
+        const response: any = await signMessageAsync({
+            message: linkingMessage,
+        })
+
+        const parentSignatureRes = await sequenceWaas.signMessage({
+            message: parentMessage
+        })
+
+        const parentSignature = parentSignatureRes.data.signature
+        const linkedSignature = response
+        const linkedWalletAddress = kitWalletAddress
+
+        return { parentWalletAddress, linkedWalletAddress, parentMessage, linkingMessage, parentSignature, linkedSignature }
+    }
+}
+```
+
+### APIを使用して署名ペイロードと親ウォレットアドレスを追加
+
+前述の`getSignaturesForLinking`関数を呼び出し、レスポンスを展開して`api.linkWallet`関数に渡します：
+
+```typescript
+function App(){
+    const connections = useConnections();
+    ...
+    const linkWallet = async () => {
+        const signaturesResult = await getSignaturesForLinking()
+        const { parentWalletAddress, linkedWalletAddress, parentMessage, linkingMessage, parentSignature, linkedSignature } = signaturesResult
+        const connectorName = connections[0]?.connector.name;
+
+        const response = await api.linkWallet({
+            signatureChainId: "137", // network chosen for both embedded wallet and Web SDK
+            linkedWalletType: connectorName,
+            parentWalletAddress,
+            parentWalletMessage: parentMessage,
+            parentWalletSignature: parentSignature,
+            linkedWalletAddress: linkedWalletAddress!,
+            linkedWalletMessage: linkingMessage,
+            linkedWalletSignature: linkedSignature,
+        })
+
+        console.log(`status: ${response.status}`)
+    }
+}
+```
+
+## 3. リンクされたウォレットの取得
+
+ユーザーのプライバシーを保護するために、親Embedded Walletから生成された署名を渡すことで、親ウォレットアドレスにリンクされているウォレットアドレスのリストを取得できます。
+
+APIは以下の形式でリンクされたウォレットオブジェクトを返します：
+
+```typescript
+interface LinkedWallet {
+  id: number
+  walletType?: string
+  walletAddress: string
+  linkedWalletAddress: string
+  createdAt?: string
+}
+
+interface GetLinkedWalletsReturn {
+  linkedWallets: Array<LinkedWallet>
+}
+```
+
+これは、メッセージを渡し、親のEmbedded Walletから署名を取得し、署名が読み取り可能かを確認してから、変数を渡すことで以下のように実現できます：`parentWalletAddress`、`parentWalletMessage`、`parentWalletSignature`および`signatureChainId`をAPIに：
+
+```typescript
+const getLinkedWallets = async () => {
+    const parentWalletAddress = await sequenceWaas.getAddress()
+    const message = "parent wallet with address " + parentWalletAddress
+    const signature = await sequenceWaas.signMessage({
+        message: message,
+    })
+
+    if (!signature.data.signature) {
+        console.error("Could not get signature from wallet to be linked")
+        throw new Error("Could not get signature from wallet to be linked")
+    }
+
+    const response = await api.getLinkedWallets({
+        parentWalletAddress: parentWalletAddress as `0x${string}`,
+        parentWalletMessage: message,
+        parentWalletSignature: signature.data.signature,
+        signatureChainId: "137",
+    })
+
+    response.linkedWallets.map((linkedWallet: LinkedWallet) => console.log(linkedWallet))
+
+    return response.linkedWallets
+}
+```
+
+## 4. リンクされたウォレットの削除
+
+最後に、親ウォレットにオフチェーンでリンクされたウォレットを維持したくない場合は、両方のウォレットインスタンス（Embedded WalletとWeb SDKリンクウォレット）による署名を実行し、リンクされたウォレットアドレスを渡すことができます、[ステップ6のように](/solutions/wallets/link-wallets/integration-guide#6-link-sequence-kit-signed-in-wallet)リンク状態を削除するために：
+
+### リンクされたアドレスの削除を証明するためのメッセージ署名
+
+```typescript
+import {
+  ...
+  useAccount,
+  useSignMessage
+  ...
+} from "wagmi";
+
+function App() {
+
+    const { address: kitWalletAddress } = useAccount();
+    const { signMessageAsync } = useSignMessage();
+
+    const getSignaturesForUnlinking = async () => {
+        const parentWalletMessage = "linked wallet with address "
+        const linkedWalletMessage = "parent wallet with address "
+        const parentWalletAddress = await sequenceWaas.getAddress()
+        const linkingMessage = "Unlink from " + linkedWalletMessage + parentWalletAddress
+
+        const response: any = await signMessageAsync({
+            message: linkingMessage,
+        })
+
+        const parentSignatureRes = await sequenceWaas.signMessage({
+            message: parentMessage
+        })
+
+        const parentSignature = parentSignatureRes.data.signature
+        const linkedSignature = response
+        const linkedWalletAddress = kitWalletAddress
+
+        return { parentWalletAddress, linkedWalletAddress, parentMessage, linkingMessage, parentSignature, linkedSignature }
+    }
+}
+```
+
+### 親アドレスの署名ペイロードを追加するためのAPIを使用
+
+```typescript
+function App(){
+    ...
+    const unLinkWallet = async () => {
+        const signaturesResult = await getSignaturesForUnlinking()
+        const { parentWalletAddress, linkedWalletAddress, parentMessage, linkingMessage, parentSignature, linkedSignature } = signaturesResult;
+
+        const response = await api.removeLinkedWallet({
+            signatureChainId: "137", // network chosen for both Embedded Wallet and Web SDK
+            parentWalletAddress,
+            parentWalletMessage: parentMessage,
+            parentWalletSignature: parentSignature,
+            linkedWalletAddress: linkedWalletAddress!,
+            linkedWalletMessage: linkingMessage,
+            linkedWalletSignature: linkedSignature,
+        });
+
+        console.log(`status: ${response.status}`)
+    }
+}
+```
+
+## 結論
+
+私たちは、Embedded Wallet設定でユーザーを認証し、外部ウォレットからのメッセージを検証し、Sequence Linking APIを使用してこれらを連携させることができるサンプルアプリケーションを提供しました。さらに、ReactとWagmiを使用した簡単な例を用いて、これらのAPI機能の使用方法について説明しました。提供されたスタンドアロンアプリケーションを使用するか、同じフローを独自のアプリケーションで活用することができます。

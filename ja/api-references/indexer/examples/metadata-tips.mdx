@@ -1,0 +1,14 @@
+---
+title: メタデータのヒントとスパムに関する注意事項
+sidebarTitle: メタデータのヒント
+---
+
+Sequence IndexerとSequence Metadataサービスは、ブロックチェーン上で公開されているすべてのものを取得します。私たちのサービスは、ブロックが採掘されるとリアルタイムでデータを提供し、一般的なERC20、ERC721、ERC1155メタデータ標準のすべてに準拠するように設計されているため*すぐに機能します*。
+
+これはアプリケーションがオンチェーン上の完全なデータセットにアクセスできるため非常に便利ですが、デフォルト設定でクエリを実行する際にスパムトークンも含まれることを意味します。
+
+スパム対策のため、`metadataOptions`引数を導入し、これをIndexer RPCコールに渡して返される結果を制御できるようにしました。
+
+Sequence Metadataサービスは、Coingecko、OpenSea、Sequence Builder（[https://sequence.build](https://sequence.build)）とSequence Token Directory（[https://github.com/0xsequence/token-directory](https://github.com/0xsequence/token-directory)）などの一般的なソースをチェックして「検証済み」のコントラクトを追跡します。
+`"metadataOptions": { "verifiedOnly": true }`、検証されていないコントラクトアドレスは結果から除外されます。この選択肢を常に使用することをお勧めしますが、プロジェクトのコントラクトが未検証の場合、それらも結果から除外されるというデメリットがあります。これに対処するには、上記のソースのいずれかで検証を受けるか、RPCコールで`"metadataOptions": { "verifiedOnly": true, "includeContracts": ["0x631998e91476DA5B870D741192fc5Cbc55F5a52E", "0x8bb759bb68995343ff1e9d57ac85ff5c5fb79334"] }`
+例として。

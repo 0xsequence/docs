@@ -1,0 +1,137 @@
+---
+title: Sequence Builderでアイテムコレクションコントラクトをデプロイする方法
+description: このガイドでは、BuilderでWeb3ゲームアイテムコントラクトをセットアップしデプロイする詳細な手順を説明します。ERC721とERC1155コントラクトの違いについて説明し、コントラクトのデプロイ手順を解説します。
+sidebarTitle: コレクションコントラクトのデプロイ
+---
+
+このガイドでは、BuilderでWeb3ゲームアイテムコントラクトをセットアップしデプロイする方法を説明します。
+
+<Warning>
+  前提条件：プロジェクトの作成
+
+  このガイドでは、すでに[Builderにサインアップしプロジェクトを作成している](/solutions/builder/getting-started)ことを前提としています。
+</Warning>
+
+#### ERC721 vs. ERC1155
+
+両方のコントラクトはNFTをミントしますが、ERC721は初期の標準として、特にデジタルコレクティブルの分野で広く採用されています。シンプルでセキュリティ監査が容易なことで知られるERC721トークンは、それぞれが固有であり、様々なNFTマーケットプレイスでの認知度に貢献しています。通常、同じアセットを複数扱う場合や、コレクション内で1つのアイテムを多数扱う場合にERC721コントラクトを使用します。
+
+例`ERC721`: [Azuki](https://etherscan.io/token/0xed5af388653567af2f388e6224dc7c4b3241c544)
+
+対照的に、ERC1155は単一のコントラクトで代替可能トークンと非代替性トークンの両方に対する効率的なバッチ操作を提供し、通常は多数のアイテムと多数の数量の関係を扱う場合に使用します。ただし、この柔軟性は複雑さを伴い、セキュリティに対する慎重な注意が必要です。
+
+例`ERC1155`: [Skyweaver](https://polygonscan.com/token/0x631998e91476da5b870d741192fc5cbc55f5a52e)
+
+## ステップ1：コントラクトへ移動
+
+左上で`project`コレクティブルを作成したいプロジェクトを選択し、`contracts`セクションを選択します`+ Deploy new contract`
+
+<Frame>
+  ![select project and new contract](/images/collectibles/deploy_new_contract.png)
+</Frame>
+
+## ステップ2：コレクティブルタイプの選択
+
+Web3ゲームアイテムコレクション（ERC1155）またはNFTコレクション（ERC721）を選択します。この例では、Web3ゲームアイテムコレクション（ERC1155）の手順を説明します。
+
+<Frame>
+  ![select game item](/images/collectibles/select_web3_game_item.png)
+</Frame>
+
+<Warning>
+  デプロイメントにおける`ERC1155`と`ERC721`の唯一の違いは、`symbol`ERC721 NFTコレクションに追加する
+</Warning>
+
+## ステップ3：コントラクトの詳細を指定
+
+コントラクトの`Contract Name`と`Owner`を指定し、ロイヤリティの入力オプションも含めてコントラクトの詳細を完成させます。オーナーアドレスが右上のSequenceウォレットであることを確認し、メインネットの場合はこのウォレットに資金があることを確認してください。テストネットの場合は、これらのトランザクションは無料で提供されます。
+
+<Frame>
+  ![deploy game item](/images/collectibles/deploy_game_item.png)
+</Frame>
+
+<Note>
+  注意：
+
+  後でbuilderインターフェースで`name`を変更することはできますが、人気のあるエクスプローラーは情報を再インデックスしないため、最初に入力した内容が残ります
+</Note>
+
+## ステップ4：コントラクトのデプロイ
+
+ポップアップウィンドウから[http://sequence.app/sign-transaction](http://sequence.app/sign-transaction)でコントラクトをデプロイし、`confirm`
+
+<Frame>
+  <img src="/images/collectibles/sign_deploy_transaction.png" width="200" alt="Deploy your contract by signing the message in the popup window from the Sequence Wallet" />
+</Frame>
+
+<Note>
+  すべてのテストネットでの取引は無料です。
+</Note>
+
+### オプション：コントラクトにミンターロールを追加
+
+Sequenceコントラクトにはデフォルトでアクセスコントロールオプションがあります。場合によっては、特定のアドレスに`mint()`などの様々な機能を呼び出す権限を付与したい場合があります。
+
+まず、`contracts`セクションで先ほどデプロイしたコントラクトを選択します
+
+<Frame>
+  ![select contract](/images/collectibles/select_deployed_contract.png)
+</Frame>
+
+次に、`Write Contract`セクションに移動します
+
+<Frame>
+  ![write contract](/images/collectibles/select_item_write_contract.png)
+</Frame>
+
+write contractタブナビゲーションの`grantRole`セクションで
+
+<Frame>
+  ![grant role](/images/collectibles/grant_role_game_item.png)
+</Frame>
+
+以下の詳細を入力してください：
+
+`bytes32 role`: `0x9f2df0fed2c77648de5860a4cc508cd0818c85b8b8a1ab4ceeef8d981c8956a6`
+
+`address account`: `<Wallet Address>`
+
+ここでウォレットアドレスは、特にSequenceウォレットの中で、ミント権限を付与したいアドレスを指定します。
+
+<Frame>
+  ![copy address](/images/collectibles/copy_address_game_item.png)
+</Frame>
+
+選択を完了して`write`前回同様、ポップアップウィンドウでトランザクションに署名します
+
+確認メッセージが表示されます`Response Success`
+
+<Note>
+  入力されたロール文字列は`solidityPackedKeccak256("MINTER_ROLE")`のSolidityでの結果、または`ethers.solidityPackedKeccak256(ethers.toUtf8Bytes("MINTER_ROLE"))`
+
+  JavaScriptでの結果です
+</Note>
+
+<Tip>
+  これは、トランザクションを送信するリレーヤーウォレットを持つCloudflare Workerなどのオフチェーン計算を使用する一般的なパターンで、アカウントフィールドに入力されます。これを実現する方法の詳細については
+
+  [こちら](/guides/mint-collectibles-serverless#mint-collectibles-using-a-gasless-serverless-transactions-api)
+</Tip>
+
+## ステップ6：ウォレットアドレスにトークンをミントする
+
+移動して`mint`カードを`Write Contract`セクションで`to`にトークンを受け取りたいウォレットアドレスを入力し、`tokenId`（通常0から始まる）、および`amount`トークンの数、最後に`data`セクションには単に`0x00`を入力します。これは通常、特定のフォーマットのない追加データを表します。
+
+<Frame>
+  ![mint tokens](/images/collectibles/mint_game_item.png)
+</Frame>
+
+## ステップ7：ミントしたコレクティブルを確認する
+
+これで完了です！
+
+ウォレットアドレスのブロックチェーンに送信されたトランザクションは`Transactions`タブナビゲーションで確認できます
+
+<Frame>
+  ![view currency transactions](/images/collectibles/transactions_game_items.png)
+</Frame>

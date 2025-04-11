@@ -1,0 +1,186 @@
+---
+title: マーケットプレイス分析の例
+sidebarTitle: マーケットプレイス
+---
+
+さらに、Sequence マーケットプレイスのパフォーマンスについて深い洞察を得ることができ、より多くの収益を得るためのレポート作成、追跡、改善が可能です。
+
+<Note>
+  PROJECT\_IDとSECRET\_API\_ACCESS\_KEY変数を、Sequence Builderから取得したプロジェクトIDとシークレットトークンに置き換えてください。
+</Note>
+
+## マーケットプレイスのトランザクションを取得
+
+Sequenceマーケットプレイスでのトランザクションイベント数を取得します - これは合計または固定の時間間隔のいずれかで使用できます。
+
+### 合計
+
+<CodeGroup>
+  ```sh cURL
+  curl 'https://api.sequence.build/rpc/Builder/MarketTxnEventTotal' \
+    -H 'accept: */*' \
+    -H 'authorization: BEARER <SECRET_API_ACCESS_KEY>' \
+    -H 'content-type: application/json' \
+    --data-raw '{"filter":{"projectId":<PROJECT_ID>,"startDate":"2024-04-23","endDate":"2024-05-23"}}'
+  ```
+
+  ```ts TypeScript
+  // Works in both a Webapp (browser) or Node.js by importing cross-fetch:
+  // import fetch from "cross-fetch";
+  (async () => {
+    const res = await fetch(
+      "https://api.sequence.build/rpc/Builder/MarketTxnEventTotal",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+  		"filter":{
+  			"projectId":4859,
+  			"startDate":"2024-01-23",
+  			"endDate":"2024-05-23",
+  			"dateInterval":"DAY"
+  			}
+  		}),
+      }
+    );
+    console.log("res", await res.json());
+  })();
+  ```
+</CodeGroup>
+
+### 時間間隔
+
+<CodeGroup>
+  ```sh cURL
+  curl 'https://api.sequence.build/rpc/Builder/MarketTxnEventDaily' \
+    -H 'accept: */*' \
+    -H 'authorization: BEARER <SECRET_API_ACCESS_KEY>' \
+    -H 'content-type: application/json' \
+    --data-raw '{"filter":{"projectId":<PROJECT_ID>,"startDate":"2024-04-23","endDate":"2024-05-23", "dateInterval":"DAY"}}'
+  ```
+
+  ```ts TypeScript
+  // Works in both a Webapp (browser) or Node.js by importing cross-fetch:
+  // import fetch from "cross-fetch";
+  (async () => {
+    const res = await fetch(
+      "https://api.sequence.build/rpc/Builder/MarketTxnEventDaily",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+  		"filter":{
+  			"projectId":4859,
+  			"startDate":"2024-01-23",
+  			"endDate":"2024-05-23",
+  			"dateInterval":"DAY"
+  			}
+  		}),
+      }
+    );
+    console.log("res", await res.json());
+  })();
+  ```
+</CodeGroup>
+
+## マーケットプレイスのウォレットを取得
+
+マーケットプレイスと対話したウォレットを取得します - 全期間の合計または日、週、月ごとの内訳で取得できます。
+
+### 合計
+
+<CodeGroup>
+  ```sh cURL
+  curl 'https://api.sequence.build/rpc/Builder/MarketWalletsTotal' \
+    -H 'accept: */*' \
+    -H 'authorization: BEARER <SECRET_API_ACCESS_KEY>' \
+    -H 'content-type: application/json' \
+    --data-raw '{"filter":{"projectId":<PROJECT_ID>,"startDate":"2024-04-23","endDate":"2024-05-23"}}'
+  ```
+
+  ```ts TypeScript
+  // Works in both a Webapp (browser) or Node.js by importing cross-fetch:
+  // import fetch from "cross-fetch";
+  (async () => {
+    const res = await fetch(
+      "https://api.sequence.build/rpc/Builder/MarketWalletsTotal",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+  		"filter":{
+  			"projectId":4859,
+  			"startDate":"2024-01-23",
+  			"endDate":"2024-05-23",
+  			"dateInterval":"DAY"
+  			}
+  		}),
+      }
+    );
+    console.log("res", await res.json());
+  })();
+  ```
+</CodeGroup>
+
+### 時間間隔
+
+<CodeGroup>
+  ```sh cURL
+  curl 'https://api.sequence.build/rpc/Builder/MarketWalletsDaily' \
+    -H 'accept: */*' \
+    -H 'authorization: BEARER <SECRET_API_ACCESS_KEY>' \
+    -H 'content-type: application/json' \
+    --data-raw '{"filter":{"projectId":<PROJECT_ID>,"startDate":"2024-04-23","endDate":"2024-05-23", "dateInterval":"DAY"}}'
+  ```
+
+  ```ts TypeScript
+  // Works in both a Webapp (browser) or Node.js by importing cross-fetch:
+  // import fetch from "cross-fetch";
+  (async () => {
+    const res = await fetch(
+      "https://api.sequence.build/rpc/Builder/MarketWalletsDaily",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+  		"filter":{
+  			"projectId":4859,
+  			"startDate":"2024-01-23",
+  			"endDate":"2024-05-23",
+  			"dateInterval":"DAY"
+  			}
+  		}),
+      }
+    );
+    console.log("res", await res.json());
+  })();
+  ```
+</CodeGroup>
+
+## スキーマ
+
+すべてのウォレット分析エンドポイントは同様のリクエストスキーマに従います
+
+* リクエスト: POST
+* Content-Type: application/json
+* ボディ (JSON形式):
+  * `projectId` (uint64) -- プロジェクトのprojectID、BuilderプロジェクトのURLで確認できます。
+  * `startDate` (timestamp) -- クエリの開始日（YYYY-MM-DD形式）
+  * `endDate` (timestamp) -- クエリの終了日（YYYY-MM-DD形式）
+  * `dateInterval` (オプション string) -- クエリの日付間隔、オプションは "DAY"、"WEEK"、または "MONTH"
+* レスポンス (JSON形式):
+  * `marketStats` (marketStats\[])
+    \[
+    * `value`
+      * `buyItems` (uint64) -- 購入されたアイテムの数。
+      * `sellItems` (uint64) -- 販売されたアイテムの数
+    * `label` (string) -- 対応するエンドポイントに関連付けられたラベル
+      ]

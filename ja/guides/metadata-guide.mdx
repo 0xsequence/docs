@@ -1,0 +1,248 @@
+---
+title: コレクションメタデータ管理
+description: Cloudflare Workersを使用してSequence Collections APIでメディアを保存し、
+  Metadata APIから読み取って画像をレンダリングする方法。
+sidebarTitle: コレクションメタデータの管理
+---
+
+所要時間：20分
+
+このガイドでは、Sequence Collections APIを使用してメディアを保存する方法を[Cloudflare Workers](https://www.cloudflare.com/)で説明し、また、Metadata APIから読み取って画像をレンダリングする方法も説明します
+
+これは8つのステップで実現できます
+
+1. [シークレットAPIキーを取得する](/guides/metadata-guide#1-obtain-a-secret-api-key)：[Sequence Builder Console](https://sequence.build)
+2. [コレクションを作成する](/guides/metadata-guide#2-create-collection-from-a-curl-request)：cURLリクエストを一度実行
+3. [トークンを作成する](/guides/metadata-guide#3-create-token-using-tokenid)：tokenIDを使用してトークンを作成
+4. [アセットの作成](/guides/metadata-guide#4-create-asset-using-tokenid) assetIDを作成する
+5. [画像の保存](/guides/metadata-guide#5-store-image-asset) 画像を処理して保存する
+6. [非プライベートに更新](/guides/metadata-guide#6-update-non-private-token) アセットを非プライベートに更新する
+7. [コレクションの公開](/guides/metadata-guide#7-publish-collection-from-a-curl-request) cURLリクエストを一回実行
+8. [APIからアセットをレンダリング](/guides/metadata-guide#8-render-asset-from-api-publicly) cURLリクエストを一回実行
+
+まず[Collectible Minting Service Guideのこのセクション](/guides/mint-collectibles-serverless#1-setup-cloudflare-environment-with-wrangler-cli-and-deploy-a-test) ガイドに従ってcloudflareワーカーを作成してください
+
+## 1. シークレットAPIキーの取得
+
+バックエンドサービスを使用するには、`Secret API` キーを取得してプロジェクトへのリクエストを認証する必要があります
+
+まず設定にアクセスし、[Sequence Builder Console](https://sequence.build/)
+
+<Frame>
+  ![builder settings access keys](/images/builder/builder_settings_access_keys.png)
+</Frame>
+
+下にスクロールして選択`+ Add Service Account`
+
+<Frame>
+  ![builder settings add service account](/images/builder/builder_settings_add_service_account.png)
+</Frame>
+
+次にアクセスを`write`に変更し`confirm`
+
+<Frame>
+  ![builder settings add service account](/images/builder/builder_settings_add_service_account_confirm.png)
+</Frame>
+
+最後に`copy`キーを`wrangler.toml`として`JWT_ACCESS_KEY`に保存してください。今後Sequence Builder Consoleからこのキーにアクセスすることはできません。
+
+## 2. cURLリクエストからコレクションを作成
+
+サービスにメディアをアップロードするための一回限りの要件として、まずコレクションを作成する必要があります。`Secret API Key`と`projectID`を[Builder Console](https://sequence.build/)
+
+サービスを呼び出して`collectionID`
+
+```shell
+curl --location 'https://metadata.sequence.app/rpc/Collections/CreateCollection' \
+--header 'Content-Type: application/json' \
+--header 'Authorization: Bearer <secret_API_key or jwt_access_key>' \
+--data '{
+    "projectId": <project_id>,
+    "collection": {
+        "metadata": {
+            "name": "<collection_name>",
+            "description": "<description>",
+            "external_link" : "<https://link>"
+        },
+        "image": "",
+        "decimals": <decimals_typically_as_0>,
+        "properties": null,
+        "attributes": null
+    }
+}'
+```
+
+次に`collectionID`をレスポンスから`wrangler.toml`として`COLLECTION_ID`
+
+## 3. TokenIDを使用してトークンを作成
+
+<Note>
+  Cloudflareワーカーを使用する場合は、`node_compat = true`を`wrangler.toml`に追加して、windowオブジェクトが`@0xsequence/metadata`パッケージで利用できるようにしてください
+</Note>
+
+メタデータパッケージをインストールして`SequenceCollections`を使用`pnpm install @0xsequence/metadata`
+
+```typescript
+import { SequenceCollections } from '@0xsequence/metadata'
+import { ethers } from 'ethers'
+...
+const METADATA_URL = 'https://metadata.sequence.app'
+const collectionsService = new SequenceCollections(METADATA_URL, JWT_ACCESS_KEY)
+
+const randomTokenIDSpace = ethers.BigNumber.from(ethers.hexlify(ethers.randomBytes(20)))
+
+const res1 = await collectionsService.createToken({
+	projectId: projectID,
+	collectionId: collectionID,
+	token: {
+		tokenId: String(randomTokenIDSpace),
+		name: name,
+		description: description,
+		decimals: 0,
+		attributes: attributes // can leave blank
+	}
+})
+
+```
+
+## 4. TokenIDを使用してアセットを作成
+
+リクエストで`metadadaField` (assetType)を`image`に設定し、次のステップで使用するアセットレスポンスを返すために必要な他のフィールドを入力します
+
+```typescript
+const jsonCreateAsset = await collectionsService.createAsset({
+	projectId: projectID,
+	asset: {
+		id: Number(String(randomTokenIDSpace).slice(0,10)),
+		collectionId: collectionID,
+		tokenId: String(randomTokenIDSpace),
+		metadataField: "image"
+	}
+})
+
+```
+
+## 5. 画像アセットの保存
+
+前の`asset.id`から渡された`jsonCreateAsset`オブジェクト
+
+```typescript
+	...
+	const uploadAsset = async (env: Env, projectID: any, collectionID: any, assetID: any, tokenID: any, url: any) => {
+		const response = await fetch(url);
+		if (!response.ok) throw new Error(`Failed to fetch file from ${url}: ${response.statusText}`);
+		const arrayBuffer = await response.arrayBuffer();
+		const blob = new Blob([arrayBuffer]);
+
+		const formData = new FormData();
+		
+		formData.append('file', blob, `image.png`); // You might want to dynamically determine the filename
+		
+		let METADATA_URL = 'https://metadata.sequence.app'
+
+		// Construct the endpoint URL
+		const endpointURL = `${METADATA_URL}/projects/${projectID}/collections/${collectionID}/tokens/${tokenID}/upload/${assetID}`;
+
+		try {
+			// Use fetch to make the request
+			const fetchResponse = await fetch(endpointURL, {
+				method: 'PUT',
+				body: formData,
+				headers: {
+					'X-Access-Key': env.PROJECT_ACCESS_KEY,
+					'Authorization': `Bearer ${env.JWT_ACCESS_KEY}`, // Put your token here
+				},
+			});
+		
+			// Assuming the response is JSON
+			const data = await fetchResponse.json();
+
+			return data;
+		}catch(err){
+			console.log(err)
+		}
+	}
+	...
+	const uploadAssetRes = await uploadAsset(env, projectID, collectionID, jsonCreateAsset.asset.id, String(randomTokenIDSpace), imageUrl)
+	...
+```
+
+返された`uploadAssetRes.url`はSequenceサーバー上のメディアファイルURLです
+
+## 6. 非プライベートトークンの更新
+
+次に、`private`ブール値を`false`
+
+```typescript
+const res3 = await collectionsService.updateToken({
+	projectId: projectID,
+	collectionId: collectionID,
+	private: false,
+	tokenId: String(randomTokenIDSpace),
+	token: {
+		name: name,
+		attributes: attributes,
+		tokenId: String(randomTokenIDSpace),
+	}
+})
+```
+
+***
+
+## 7. cURLリクエストからコレクションを公開
+
+最後に、同じく一回限りのリクエストとして、`projectID`と`collectionID`に基づいて以下のコマンドを実行してコレクションを公開します
+
+```shell
+curl --location 'https://metadata.sequence.app/rpc/Collections/PublishCollection' \
+--header 'Content-Type: application/json' \
+--header 'Authorization: Bearer <secrect_API_key or jwt_access_key> \
+--data '{
+    "projectId": <project_id>,
+    "collectionId": <collection_id>
+}'
+```
+
+これにより、コレクションとプライベートフラグが`false`に設定されているすべてのトークンが公開アクセス可能になり、他のものは変更されるまで非表示のままとなります
+
+## 8. APIから公開アセットをレンダリング
+
+更新された変数でこのcURLリクエストを呼び出すことで、これまでの作業をテストできます。これによりファイルがローカルターミナルにダウンロードされます。
+
+または、ブラウザにコピー＆ペーストして画像を確認することもできます
+
+同じコードを使用した場合、`<file_name>`は`image.png`
+
+```shell [cURL]
+curl --location 'https://metadata.sequence.app/projects/<project_id>/collections/<collection_id>/tokens/<token_id>/<file_name>' --output stored_file.png
+```
+
+そしてコレクションを`baseURI`の`ERC721`または`ERC1155`に使用する場合、スマートコントラクトに`setBaseMetadataURI`以下を`URI`
+
+```
+https://metadata.sequence.app/projects/<project_id>/collections/<collection_id>/tokens/
+```
+
+そしてスマートコントラクトは自動的に`tokenID`を末尾に追加します
+
+試してみてください
+
+```shell [cURL]
+curl https://metadata.sequence.app/projects/1229/collections/40/tokens/457657099779485875855215293997335918990635014431
+```
+
+または[ブラウザ](https://metadata.sequence.app/projects/1229/collections/40/tokens/457657099779485875855215293997335918990635014431)
+
+### APIからプライベートアセットをレンダリング
+
+あるいは、アセットをプライベートに保存したまま、`header`シークレットAPIキーをパラメータと共に渡してデータをレンダリングすることもできます。このガイドでは`metadata_field`は`image`
+
+```shell [cURL]
+curl --location 'https://metadata.sequence.app/projects/<project_id>/collections/<collection_id>/tokens/<token_id>/asset/<metadada_field>' \
+--header 'Authorization: Bearer <secret_api_key or jwt_access_key>' \
+--output stored_file.png
+```
+
+<Note>
+  このガイドの完全なコードは[こちら](https://github.com/0xsequence-demos/template-cloudflare-worker-collections-api/tree/master)
+</Note>

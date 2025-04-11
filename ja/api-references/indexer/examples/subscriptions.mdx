@@ -1,0 +1,101 @@
+---
+title: サブスクリプション
+sidebarTitle: Subscriptions
+---
+
+## ブロックチェーンイベントのサブスクリプション
+
+サブスクリプションエンドポイントを使用して、様々なブロックチェーンイベントをリアルタイムでサブスクライブできます。フィルターを使用して、特定のコントラクトアドレス、アカウントアドレス、および/またはトークンIDをリッスンできます。
+
+### イベントのサブスクリプション
+
+*Sequence Indexer`SubscribeEvents`メソッド：*
+
+* リクエスト：`POST /rpc/Indexer/SubscribeEvents`
+* Content-Type：`application/json`
+* ボディ（JSON形式）：
+  * `Filters`（\[]object）-- フィルターの配列
+    * `contractAddresses`（\[]string）-- ERC20 / ERC721 / ERC1155コントラクトアドレス
+    * `accounts`（\[]string）-- ウォレットアドレス
+    * `tokenIDs`（\[]int）*オプション* -- トークンIDの配列
+    * `events` (\[]string) -- イベント名の配列
+    * `topicHashes` (\[]string) -- トピックハッシュの配列
+
+以下のいずれか`contractAddresses`、`accounts`をフィルターに指定する必要があります。
+
+### 残高更新の購読
+
+*Sequence Indexer `SubscribeBalanceUpdates`メソッド：*
+
+### レシートの購読
+
+*Sequence Indexer `SubscribeBalanceUpdates`メソッド：*
+
+例`SubscribeEvents`
+
+<CodeGroup>
+  ```bash cURL
+  curl -X POST \
+    -H 'Content-type: application/json' \
+    -H "X-Access-Key: c3bgcU3LkFR9Bp9jFssLenPAAAAAAAAAA" \
+    https://polygon-indexer.sequence.app/rpc/Indexer/SubscribeBalanceUpdates \
+    -d '{"contractAddress":"0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359"}'
+  ```
+
+  ```go Go
+  import (
+    "context"
+    "log"
+
+    "github.com/0xsequence/go-sequence/indexer"
+    "github.com/0xsequence/go-sequence/lib/prototyp"
+  )
+
+  func SubscribeEvents() {
+    seqIndexer := indexer.NewIndexer("https://polygon-indexer.sequence.app", "c3bgcU3LkFR9Bp9jFssLenPAAAAAAAAAA")
+
+    reader, err := seqIndexer.SubscribeEvents(
+      context.Background(),
+      &indexer.EventFilter{
+        ContractAddresses: []prototyp.Hash{prototyp.HashFromString("0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359")},
+      },
+    )
+    if err != nil {
+      log.Fatalf("SubscribeEvents: %v", err)
+    }
+
+    for {
+      event, err := reader.Read()
+      if err != nil {
+        log.Fatalf("Read: %v", err)
+      }
+
+      log.Println("Event", event)
+    }
+  }
+  ```
+
+  ```typescript [TypeScript]
+  // Works in both a Webapp (browser) or Node.js:
+  import { SequenceIndexer, WebrpcError } from '@0xsequence/indexer'
+
+  const indexer = new SequenceIndexer('https://polygon-indexer.sequence.app', 'c3bgcU3LkFR9Bp9jFssLenPAAAAAAAAAA')
+
+  const req = {
+      filter: {
+        contractAddresses: ['0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359'],
+      },
+  }
+
+  const options = {
+    onMessage: (msg: any) => {
+      console.log('msg', msg)
+    },
+    onError: (err: WebrpcError) => {
+      console.error('err', err)
+    }
+  }
+
+  await indexer.subscribeEvents(req, options)
+  ```
+</CodeGroup>

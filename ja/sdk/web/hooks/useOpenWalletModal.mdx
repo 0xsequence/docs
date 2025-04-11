@@ -1,0 +1,71 @@
+---
+title: useOpenWalletModal
+description: ウォレットインベントリモーダルを開くためのフック
+sidebarTitle: useOpenWalletModal
+---
+
+## インポート
+
+```tsx
+import { useOpenWalletModal } from '@0xsequence/wallet-widget'
+```
+
+## 使用方法
+
+```tsx
+import { useOpenWalletModal } from '@0xsequence/wallet-widget'
+
+function App() {
+  // Get the function to open/close the wallet modal
+  const { setOpenWalletModal } = useOpenWalletModal()
+  
+  // Function to handle opening the wallet inventory
+  const handleViewInventory = () => {
+    setOpenWalletModal(true) // Open the wallet modal to view tokens
+  }
+  
+  return (
+    <button 
+      onClick={handleViewInventory}
+      title="Inventory"
+    >
+      View all tokens in your wallet
+    </button>
+  )
+}
+```
+
+## 戻り値の型：`UseOpenWalletModalReturnType`
+
+このフックは以下のプロパティを持つオブジェクトを返します：
+
+```tsx
+type UseOpenWalletModalReturnType = {
+  setOpenWalletModal: (isOpen: boolean) => void
+  openWalletModalState: boolean
+}
+```
+
+### プロパティ
+
+#### setOpenWalletModal
+
+`(isOpen: boolean) => void`
+
+ウォレットモーダルを開閉するための関数。
+
+**パラメータ：**
+
+| パラメータ    | 型         | 説明                                   |
+| -------- | --------- | ------------------------------------ |
+| `isOpen` | `boolean` | モーダルを開くべきか（`true`）または閉じるべきか（`false`） |
+
+#### openWalletModalState
+
+`boolean`
+
+ウォレットモーダルの現在の開閉状態（`true`が開いている、`false`が閉じている）。
+
+## 注意事項
+
+このフックは、ユーザーがトークンとNFTを表示できるウォレットインベントリモーダルを制御するためのメソッドを提供します。ウォレットモーダルは、接続されたウォレット内のすべてのトークン、NFT、コレクティブルを表示します。

@@ -1,0 +1,112 @@
+---
+title: Web SDKを始める
+description: 必要なパッケージをインストールし、組み込みウォレットまたはネイティブEOAウォレットを認証に使用するためのwagmiコネクタの使用方法を学びます。
+sidebarTitle: はじめに
+---
+
+# Dappのセットアップ
+
+アプリケーションにweb3ウォレットを接続するための`SequenceConnect`ラッパーを利用するには、以下の手順に従ってください：
+
+<Note>
+  Web SDKはwagmiの上に構築されているため、高度な設定、トランザクションの送信、コントラクトの呼び出しなどについては、[wagmiのドキュメント](https://wagmi.sh/react/WagmiConfig)を参照してください。
+</Note>
+
+<Steps>
+  <Step title="Create a React Project with Vite">
+    まずは[React](https://react.dev/)プロジェクトを[vite](https://vitejs.dev/)で作成します：
+
+    ```sh
+    npm create vite
+    # or
+    pnpm create vite
+    # or
+    yarn create vite
+    ```
+  </Step>
+
+  <Step title="Install the Web SDK dependencies">
+    ```bash
+    npm install @0xsequence/connect wagmi ethers@6.13.0 viem 0xsequence @tanstack/react-query
+    # or
+    pnpm install @0xsequence/connect wagmi ethers@6.13.0 viem 0xsequence @tanstack/react-query
+    # or
+    yarn add @0xsequence/connect wagmi ethers@6.13.0 viem 0xsequence @tanstack/react-query
+    ```
+  </Step>
+
+  <Step title="Create a Config">
+    次に、`SequenceConnect`の設定変数を`waas`（つまり[Embedded Wallet](/sdk/headless-wallet/quickstart)）または`universal`（つまり[Universal Wallet](/sdk/typescript/guides/frontend/connect-wallet)）のウォレットタイプとして作成する必要があります。
+
+    まず、`waas`については、[Sequence BuilderからWaaS Config Key](/sdk/headless-wallet/)、[Wallet Connect ID](https://cloud.reown.com/sign-in)を取得し、その他の[ログインプロバイダーの設定](/sdk/headless-wallet/#login-providers)を行います。両方のウォレットタイプのオプションについて、[プロジェクトアクセスキーを取得して使用](/support/builder/project-settings#copy-your-access-key)してください。
+
+    ```typescript [config.ts]
+    import { createConfig } from "@0xsequence/connect";
+
+    export const config: any = createConfig("waas" /*or, 'universal'*/, {
+      projectAccessKey: "<your-project-access-key>",
+      chainIds: [1, 137],
+      defaultChainId: 1,
+      appName: "Demo Dapp",
+      waasConfigKey: "<your-waas-config-key>", // for waas
+      google: {
+        clientId: "<your-google-client-id>",
+      },
+      walletConnect: {
+        projectId: "<your-wallet-connect-project-id>",
+      },
+    });
+    ```
+
+    さらにカスタマイズするには、[追加の設定パラメータを確認できます。](/sdk/web/custom-configuration)
+  </Step>
+
+  <Step title="Setup Provider Component">
+    ステップ2で作成した[ステップ2](/sdk/web/getting-started#create-a-config)の設定を以下のプロバイダーに渡す必要があります`main.tsx`。また、Sequence Design System`styles.css`スタイルシートも含める必要があります：
+
+    ```typescript [main.tsx]
+    import React from "react";
+    import ReactDOM from "react-dom/client";
+    import "index.css";
+
+    import App from "./App";
+    import { config } from "./config";
+    import { SequenceConnect } from "@0xsequence/connect";
+
+    function Dapp() {
+      return (
+        <SequenceConnect config={config}>
+          <App />
+        </SequenceConnect>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById("root")!).render(
+      <React.StrictMode>
+        <Dapp />
+      </React.StrictMode>
+    );
+    ```
+  </Step>
+
+  <Step title="Trigger the Connection Modal">
+    ```typescript [App.tsx]
+    import './App.css'
+    import { useOpenConnectModal } from '@0xsequence/connect'
+
+    function App() {
+      const {setOpenConnectModal} = useOpenConnectModal()
+      
+      return (
+        <>
+          <button onClick={() => setOpenConnectModal(true)}>Connect</button>
+        </>
+      )
+    }
+
+    export default App
+    ```
+
+    web3インタラクションについては、wagmiは一般的な機能（トランザクションの送信など）を便利に行えるReactフックのセットを提供しています。
+  </Step>
+</Steps>
