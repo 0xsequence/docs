@@ -1,0 +1,152 @@
+---
+title: useWallets
+description: Hook para gestionar billeteras conectadas
+sidebarTitle: useWallets
+---
+
+## Importar
+
+```tsx
+import { useWallets } from '@0xsequence/connect'
+```
+
+## Uso
+
+```tsx
+import { useWallets } from '@0xsequence/connect'
+
+function App() {
+  const { 
+    wallets, 
+    linkedWallets, 
+    setActiveWallet, 
+    disconnectWallet,
+    refetchLinkedWallets
+  } = useWallets()
+  
+  return (
+    <div>
+      <h2>Connected Wallets</h2>
+      <div>
+        {wallets.map(wallet => (
+          <div key={wallet.address}>
+            <span>
+              {wallet.name}: {wallet.address.slice(0, 6)}...{wallet.address.slice(-4)}
+            </span>
+            {wallet.isActive ? ' (Active)' : ''}
+            {wallet.isEmbedded ? ' (Embedded)' : ''}
+            <button onClick={() => setActiveWallet(wallet.address)}>
+              Set Active
+            </button>
+            <button onClick={() => disconnectWallet(wallet.address)}>
+              Disconnect
+            </button>
+          </div>
+        ))}
+      </div>
+      
+      {linkedWallets && linkedWallets.length > 0 && (
+        <>
+          <h2>Linked Wallets</h2>
+          <button onClick={refetchLinkedWallets}>Refresh</button>
+          <div>
+            {linkedWallets.map(linkedWallet => (
+              <div key={linkedWallet.walletAddress}>
+                {linkedWallet.walletAddress.slice(0, 6)}...{linkedWallet.walletAddress.slice(-4)}
+              </div>
+            ))}
+          </div>
+        </>
+      )}
+    </div>
+  )
+}
+```
+
+## Tipo de Retorno: `UseWalletsReturnType`
+
+El hook retorna un objeto con las siguientes propiedades:
+
+```tsx
+interface UseWalletsReturnType {
+  wallets: ConnectedWallet[]
+  linkedWallets: LinkedWallet[] | undefined
+  setActiveWallet: (address: string) => Promise<void>
+  disconnectWallet: (address: string) => Promise<void>
+  refetchLinkedWallets: () => Promise<void>
+}
+```
+
+### Propiedades
+
+#### wallets
+
+`ConnectedWallet[]`
+
+Array de todas las billeteras conectadas.
+
+```tsx
+interface ConnectedWallet {
+  id: string       // Unique identifier for the wallet (connector id)
+  name: string     // Display name of the wallet
+  address: string  // The wallet's Ethereum address
+  isActive: boolean // Whether this wallet is currently active
+  isEmbedded: boolean // Whether this is an embedded wallet (WaaS)
+}
+```
+
+#### linkedWallets
+
+`LinkedWallet[] | undefined`
+
+Array de billeteras vinculadas para la billetera embebida activa (si existe). Solo disponible cuando se usa una billetera WaaS.
+
+```tsx
+interface LinkedWallet {
+  id: number;
+  walletType?: string;
+  walletAddress: string;
+  linkedWalletAddress: string;
+  createdAt?: string;
+}
+```
+
+#### setActiveWallet
+
+`(address: string) => Promise<void>`
+
+Función para establecer una billetera como activa por su dirección.
+
+| Parámetro | Tipo     | Descripción                                                    |
+| --------- | -------- | -------------------------------------------------------------- |
+| `address` | `string` | La dirección Ethereum de la billetera a establecer como activa |
+
+#### disconnectWallet
+
+`(address: string) => Promise<void>`
+
+Función para desconectar una billetera por su dirección.
+
+| Parámetro | Tipo     | Descripción                                         |
+| --------- | -------- | --------------------------------------------------- |
+| `address` | `string` | La dirección Ethereum de la billetera a desconectar |
+
+#### refetchLinkedWallets
+
+`() => Promise<void>`
+
+Función para actualizar la lista de billeteras vinculadas. Útil después de vincular una nueva billetera.
+
+## Notas
+
+Este hook proporciona una interfaz unificada para gestionar billeteras conectadas, tanto embebidas (WaaS) como billeteras externas.
+
+Características principales:
+
+* Obtener información sobre todas las billeteras conectadas
+* Establecer una billetera específica como activa
+* Desconectar billeteras
+* Ver billeteras vinculadas para billeteras embebidas
+* Actualizar la lista de billeteras vinculadas
+
+Para billeteras embebidas (Wallet-as-a-Service), el hook automáticamente obtiene las billeteras vinculadas si están disponibles. Las billeteras vinculadas son billeteras adicionales que han sido conectadas a la billetera embebida principal.

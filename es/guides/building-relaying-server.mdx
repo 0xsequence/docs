@@ -1,0 +1,307 @@
+---
+title: Construyendo un Servidor de Retransmisión de Transacciones
+description: Aprende cómo construir un servidor de retransmisión de transacciones con Sequence,
+  permitiendo que tu servidor despache transacciones en nombre de los usuarios sin problemas.
+sidebarTitle: Construir un Servicio de Transacciones Backend
+---
+
+Con Sequence, puedes crear una billetera de contrato inteligente que tu servidor puede usar para despachar transacciones para tus usuarios
+sin tener que preocuparte por la velocidad de las transacciones, el rendimiento y las reorganizaciones.
+
+La única diferencia al usar una billetera Sequence típica cuando se envían transacciones a la blockchain, es que a nivel de contrato inteligente el `msg.sender` es una de las direcciones de billetera de los Retransmisores de Sequence. Para los contratos estándar de Sequence Builder, esto no es un problema cuando se combina con una solicitud de API de Transacciones retransmitidas.
+
+<Note>
+  Por defecto, las transacciones de Sequence se ejecutarán secuencialmente.
+</Note>
+
+Los siguientes pasos te guiarán a través de cómo crear tu servidor y acuñar coleccionables a una dirección de billetera:
+
+1. Configuración del Entorno con Servidor Express: Crea un servidor basado en NodeJs usando la biblioteca Express para aceptar solicitudes HTTP
+2. Gestión de Proyecto y Clave de Acceso: Reclama una clave de acceso pública para interactuar con el stack de Sequence
+3. Desplegar Contrato de Coleccionables: Despliega un contrato de coleccionables para poder enviar transacciones a la blockchain para acuñar tokens a una dirección de billetera
+4. Construir Retransmisor Patrocinado con API de Transacciones: Crea una función para usar en una ruta Express para llamar a la API de Transacciones de Sequence desde un contrato patrocinado
+
+Características Adicionales:
+
+* (Opcional) Retransmitir con Moneda Propia de la Billetera: Crea una función para usar en una ruta Express para llamar a la API de Transacciones de Sequence pagada usando una moneda propia de la billetera
+* (Opcional) Retransmitir Transacciones Paralelas: Realizar lotes de transacciones para enviar una moneda
+
+<Steps>
+  <Step title="Environment Setup with Express Server">
+    Asegúrate de que `pnpm` (u otro gestor de paquetes de node) esté instalado con el siguiente comando:
+
+    ```shell
+    curl -fsSL https://get.pnpm.io/install.sh | sh -
+    ```
+
+    Luego, clona el [siguiente código de plantilla express](https://github.com/0xsequence-demos/template-node-transactions-backend/tree/template-starter)
+
+    <Note>
+      Express es un framework de aplicación web Node.js minimalista y flexible que proporciona un conjunto robusto de características para aplicaciones web y móviles, que se utilizará en esta guía.
+    </Note>
+
+    Después de que el código esté localmente en tu máquina, ejecuta tu servidor y cliente con el siguiente comando:
+
+    ```shell
+    pnpm run start
+    ```
+
+    Contenido en el código hay una ruta llamada `/mint` que puede ser llamada desde la cli para pruebas.
+
+    Prueba con este ejemplo de solicitud curl:
+
+    ```shell
+    curl -X POST http://localhost:3000/mint -d '{"tokenID": 0, "address": "0x"}'
+    ```
+
+    Deberías ver la siguiente salida:
+
+    ```shell
+    {"txHash":"0x"}
+    ```
+  </Step>
+
+  <Step title="Project & Access Key Management">
+    Primero comienza siguiendo [esta guía](/support/builder/project-management) para saber cómo registrarte en el [Sequence Builder](https://sequence.build/) y aprender cómo crear un proyecto.
+
+    Luego, para usar la API de Transacciones, necesitarás actualizar tu Facturación a `Developer` que puede ser con [esta guía](/support/builder/project-settings#5-billing-settings).
+
+    Finalmente, un `Public Access Key` es requerido para la API de Transacciones, que puede ser adquirido siguiendo [esta guía](/solutions/builder/getting-started#claim-an-api-access-key).
+
+    Finalmente actualiza el `.env.example` a `.env` con lo siguiente:
+
+    ```shell
+    CHAIN_HANDLE='<CHAIN_HANDLE>' # e.g. `mainnet`, `xr-sepolia`, etc.
+    PROJECT_ACCESS_KEY='<PUBlIC_ACCESS_KEY>'
+    ```
+  </Step>
+
+  <Step title="Deploy Collectible Contract">
+    Sigue [esta guía](/solutions/collectibles/contracts/deploy-an-item-collection) para desplegar un contrato coleccionable.
+
+    <Note>
+      Si estás usando una red que no es testnet y necesitas patrocinar tu contrato, puedes realizar esta acción siguiendo [esta guía]()
+    </Note>
+
+    Finalmente, actualiza el `.env` con tu contrato coleccionable desplegado:
+
+    ```shell
+    ...
+    COLLECTIBLE_CONTRACT_ADDRESS="<ADDRESS>"
+    ```
+
+    ## Construir Relayer Patrocinado con la API de Transacciones
+
+    <Note>
+      El código completo para esta sección se puede encontrar [aquí](https://github.com/0xsequence-demos/template-node-transactions-backend)
+    </Note>
+
+    Primero, usando el código de plantilla proporcionado en el paso #1, necesitaremos agregar algunos paquetes
+
+    ```typescript
+    import { Session } from '@0xsequence/auth'
+    import { findSupportedNetwork, NetworkConfig } from '@0xsequence/network'
+    ```
+
+    Luego, tu servidor necesitará una billetera EOA que pueda firmar mensajes. Será el propietario de tu billetera Sequence del lado del servidor que se utilizará para despachar transacciones.
+
+    <Warning>
+      Abrir una sesión puede desencadenar una migración de tu billetera Sequence a una nueva versión, esto podría ser `v1` a `v2` o `v2` a versiones futuras.
+
+      La migración es un proceso unidireccional, una vez que tu billetera es migrada no puede revertirse a una versión anterior.
+
+      Para capturar cualquier migración no deseada, puedes usar el callback `onMigration`.
+    </Warning>
+
+    Para implementar la función `callContract`, incluye el siguiente código que usa un único firmante para retransmitir transacciones:
+
+    ```typescript
+    const callContract = async (address: string, tokenID: number): Promise<ethers.providers.TransactionResponse> => {
+    	
+    	const chainConfig: NetworkConfig = findSupportedNetwork(process.env.CHAIN_HANDLE!)!
+    	const provider = new ethers.providers.StaticJsonRpcProvider({
+    		url: chainConfig.rpcUrl
+    	})
+
+    	const walletEOA = new ethers.Wallet(process.env.PKEY!, provider);
+    	const relayerUrl = `https://${chainConfig.name}-relayer.sequence.app`
+
+    	// Create a single signer sequence wallet session
+    	const session = await Session.singleSigner({
+    		signer: walletEOA,
+    		projectAccessKey: process.env.PROJECT_ACCESS_KEY!
+    	})
+
+    	const signer = session.account.getSigner(chainConfig.chainId)
+    	
+    	// Standard interface for ERC1155 contract deployed via Sequence Builder
+    	const collectibleInterface = new ethers.Interface([
+    		'function mint(address to, uint256 tokenId, uint256 amount, bytes data)'
+    	])
+    		
+    	const data = collectibleInterface.encodeFunctionData(
+    		'mint', [`${address}`, `${tokenID}`, "1", "0x00"]
+    	)
+
+    	const txn = {
+    		to: process.env.COLLECTIBLE_CONTRACT_ADDRESS, 
+    		data: data
+    	}
+
+    	try {
+    		return await signer.sendTransaction(txn)
+    	} catch (err) {
+    		console.error(`ERROR: ${err}`)
+    		throw err
+    	}
+    }
+    ```
+
+    Finalmente, actualiza el `.env` con una clave privada para una billetera que puede ser generada desde la [siguiente aplicación](https://sequence-ethauthproof-viewer.vercel.app/) que se usa con fines de demostración. Para producción, recomendamos generar claves privadas de forma segura localmente en tu computadora a través de [este script de ejemplo](https://github.com/0xsequence-demos/script-generate-evm-private-key).
+
+    Luego, actualiza la `PKEY` variable con la clave:
+
+    ```shell
+    ...
+    PKEY='<WALLET_PRIVATE_KEY>'
+    ```
+
+    ### Otorgar Rol de Minter a la Dirección de la Billetera Relayer
+
+    Se debe actualizar el acceso de roles del contrato en el Builder para recibir solicitudes solo desde la dirección de la billetera minter.
+
+    Puedes hacer esto en Sequence Builder proporcionando `minter permission` a tu `Sequence Wallet Transactions API Address`.
+
+    Para hacerlo, abre tu proyecto, navega a la página `Contracts`, selecciona tu `Linked contracts` y bajo la `Write Contract` pestaña expande el método `grantRole`.
+
+    Completa con los siguientes detalles:
+
+    `bytes32 role`: `0x9f2df0fed2c77648de5860a4cc508cd0818c85b8b8a1ab4ceeef8d981c8956a6`
+
+    `address account`: `<Generated Sequence Transactions API Wallet Address>`
+
+    <Frame>
+      <img src="/images/relayer/grant_role.png" alt="Grant a role for the relayer" />
+    </Frame>
+
+    Donde la cadena `role` ingresada es el resultado de `keccak256("MINTER_ROLE")` en solidity o `ethers.solidityPackedKeccak256(ethers.toUtf8Bytes("MINTER_ROLE"))` en javascript
+
+    Esto hace que solo tu dirección específica pueda acuñar desde el contrato, de lo contrario dará error.
+
+    Completa la actualización de rol haciendo clic en `write` y firma la transacción patrocinada.
+
+    Tu aplicación está ahora lista para que envíes una transacción de prueba desde el frontend del cliente iniciando sesión en tu billetera y haciendo clic en mint.
+
+    ¡Pruébalo!
+
+    <Warning>
+      No olvides actualizar la clave de acceso en el cliente en la`initWallet` función
+    </Warning>
+  </Step>
+</Steps>
+
+## (Opcional) Retransmisión con Moneda Propiedad de la Billetera
+
+También puedes imponer una forma específica de pagar las tarifas de gas:
+
+```ts
+import { Session } from '@0xsequence/auth'
+import { ethers } from 'ethers'
+
+// where the <chain_handle> corresponds to https://docs.sequence.xyzhttps://status.sequence.info/
+const provider = new ethers.providers.JsonRpcProvider('https://nodes.sequence.app/<chain_handle>');
+
+// Create your server EOA
+const walletEOA = new ethers.Wallet(serverPrivateKey, provider)
+
+// Open a Sequence session, this will find or create
+// a Sequence wallet controlled by your server EOA
+const session = await Session.singleSigner({
+  signer: walletEOA,
+  projectAccessKey: '<access_key>'
+  // OPTIONAL: Multiple wallets could be found for the same EOA
+  // to enforce a specific wallet you can use the following callback
+  selectWallet: async (wallets: string[]) => {
+    const found = wallets.find(w => w === EXPECTED_WALLET_ADDRESS)
+    if (!found) throw Error('wallet not found')
+    // Returning the wallet address will make the session use it
+    // returning undefined will make the session create a new wallet
+    return found
+  }
+})
+
+const signer = session.account.getSigner(137, {
+  // OPTIONAL: You can also enforce a specific way to pay for gas fees
+  // if not provided the sdk will select one for you
+  selectFee: async (
+    _txs: any,
+    options: FeeOption[]
+  ) => {
+    // Find the option to pay with native tokens
+    const found = options.find(o => !o.token.contractAddress)
+    if (!found) throw Error('fee option not found')
+    return found
+  }
+})
+
+// Initialize the contract
+const usdc = new ethers.Contract(
+  '0x2791bca1f2de4661ed88a30c99a7a9449aa84174', // USDC on Polygon
+  ERC_20_ABI,
+  signer
+)
+
+// Send the transaction
+const txnResponse = await usdc.transfer(recipient, 1)
+
+// Check if transaction was successful
+if (txnReceipt.status != 1) {
+  console.log(`Unexpected status: ${txnReceipt.status}`)
+}
+```
+
+## (Opcional) Retransmisión de Transacciones Paralelas
+
+Si deseas enviar múltiples transacciones independientes sin necesidad de agruparlas, también puedes enviarlas en espacios de nonce distintos.
+
+El uso de espacios de nonce distintos para tus transacciones indica a la API de transacciones que no hay dependencia entre ellas y que pueden ejecutarse en la cadena en cualquier orden.
+
+Esto permite que las transacciones se envíen inmediatamente de forma no almacenada en búfer sin tener que esperar a un lote completo.
+
+Aquí hay un ejemplo de cómo hacer eso:
+
+```js
+// Generate random nonce spaces with ~0% probability of collision
+const randomNonceSpace1 = ethers.BigNumber.from(
+  ethers.hexlify(ethers.randomBytes(20))
+);
+const randomNonceSpace2 = ethers.BigNumber.from(
+  ethers.hexlify(ethers.randomBytes(20))
+);
+
+// Create signers for each nonce space
+const signer1 = session.account.getSigner(137, {
+  nonceSpace: randomNonceSpace1,
+});
+
+const signer2 = session.account.getSigner(137, {
+  nonceSpace: randomNonceSpace2,
+});
+
+// Generate transactions
+const txn1 = {
+  to: tokenContract.address,
+  data: erc20Interface.encodeFunctionData("transfer", [recipient1, amount1]),
+};
+
+const txn2 = {
+  to: tokenContract.address,
+  data: erc20Interface.encodeFunctionData("transfer", [recipient2, amount2]),
+};
+
+// Dispatch transactions, which can now be executed in parallel
+await Promise.all([
+  signer1.sendTransaction(txn1),
+  signer2.sendTransaction(txn2),
+]);
+```

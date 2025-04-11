@@ -1,0 +1,199 @@
+---
+title: Checkout Modal
+description: El Modal de Checkout proporciona a los desarrolladores una forma fácil de implementar pagos con criptomonedas.
+sidebarTitle: Checkout Modal
+---
+
+Sequence Checkout permite a los usuarios comprar fácilmente un token ERC721 o ERC1155 con un contrato de ventas primarias o secundarias como un marketplace, con las siguientes opciones de pago:
+
+* Comprar con cualquier criptomoneda en la billetera.
+* Recibir fondos desde otra billetera a una billetera Sequence y comprar.
+* Pagar usando una tarjeta de crédito o débito que detectará inteligentemente el proveedor correcto para cada región, cadena y moneda.
+* Pagar con otra criptomoneda en una billetera realizando un intercambio y compra automatizados.
+
+Tenemos un flujo de checkout integrado que puedes aprovechar instalando la biblioteca dedicada`@0xsequence/checkout` y usándola junto con`@0xsequence/connect`.
+
+<Frame>
+  ![](/images/kit/checkout-modal.png)
+</Frame>
+
+<Note>
+  Para habilitar los pagos con tarjeta de crédito para el checkout, por favor contacta con el equipo de Sequence ya que tu dirección de contrato necesitará ser incluida en la lista de permitidos. Los pagos con tarjeta de crédito solo funcionan en mainnet.
+</Note>
+
+# Instalación y Configuración
+
+Para integrar la función de checkout, sigue estos pasos:
+
+<Steps>
+  <Step title="Install the `@0xsequence/checkout` library:">
+    ```bash
+    npm install @0xsequence/checkout
+    # or
+    pnpm install @0xsequence/checkout
+    # or
+    yarn add @0xsequence/checkout
+    ```
+  </Step>
+
+  <Step title="Place the `SequenceCheckoutProvider` below the SequenceConnect Provider in your App:">
+    ```jsx
+    import { SequenceCheckoutProvider } from '@0xsequence/checkout'
+    import { SequenceConnect } from '@0xsequence/connect'
+    import { config } from './config'
+
+    const App = () => {
+      return (
+        <SequenceConnect config={config}>
+          <SequenceCheckoutProvider>
+            <Page />
+          </SequenceCheckoutProvider>
+        </SequenceConnect>
+      )
+    }
+    ```
+  </Step>
+</Steps>
+
+Ahora que tenemos la configuración lista, veamos cómo usar el modal de checkout para diferentes casos de uso.
+
+## Checkout con un Token ERC1155
+
+Tenemos funciones de utilidad convenientes para tokens ERC1155 que facilitan la configuración del modal de checkout.
+
+Aquí hay una configuración con variables de ejemplo:
+
+```jsx
+  import { useERC1155SaleContractCheckout } from "@0xsequence/checkout";
+  import { useAccount } from "wagmi";
+
+  const MyComponent = () => {
+    const { address: userAddress } = useAccount();
+    const { openCheckoutModal } = useERC1155SaleContractCheckout({
+      chain: 80001, // chainId of the chain the collectible is on
+      contractAddress: "0x0327b2f274e04d292e74a06809bcd687c63a4ba4", // address of the contract handling the minting function
+      wallet: userAddress!, // address of the recipient
+      collectionAddress: "0x888a322db4b8033bac3ff84412738c096f87f9d0", // address of the collection contract
+      items: [
+        // array of collectibles to purchase
+        {
+          tokenId: "0",
+          quantity: "1",
+        },
+      ],
+      onSuccess: (txnHash: string) => {
+        console.log("success!", txnHash);
+      },
+      onError: (error: Error) => {
+        console.error(error);
+      },
+    });
+
+    const onClick = () => {
+      if (!userAddress) {
+        return;
+      }
+      openCheckoutModal();
+    };
+
+    return <button onClick={onClick}>Buy ERC-1155 collectible!</button>;
+  };
+```
+
+## Contrato Personalizado
+
+Instanciamos el`useSelectPaymentModal` hook para abrir el modal de checkout y pasar un objeto de configuración. Además, para contratos personalizados, puedes especificar un ABI de contrato junto con la codificación de los datos de llamada, en este caso estamos usando`ethers` y`viem`de`encodeFunctionData` utilidad.
+
+```tsx
+import { useAccount } from 'wagmi'
+import { useSelectPaymentModal, type SelectPaymentSettings } from '@0xsequence/checkout'
+import { toHex } from 'viem'
+import { encodeFunctionData } from 'viem'
+
+const MyComponent = () => {
+    const { address } = useAccount()
+    const { openSelectPaymentModal } = useSelectPaymentModal()
+
+    const onClick = () => {
+        if (!address) {
+            return
+        }
+
+        const currencyAddress = '0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359'
+        const salesContractAddress = '0xe65b75eb7c58ffc0bf0e671d64d0e1c6cd0d3e5b'
+        const collectionAddress = '0xdeb398f41ccd290ee5114df7e498cf04fac916cb'
+        const price = '20000'
+
+        const chainId = 137
+
+        const erc1155SalesContractAbi = [
+            {
+                type: 'function',
+                name: 'mint',
+                inputs: [
+                    { name: 'to', type: 'address', internalType: 'address' },
+                    { name: 'tokenIds', type: 'uint256[]', internalType: 'uint256[]' },
+                    { name: 'amounts', type: 'uint256[]', internalType: 'uint256[]' },
+                    { name: 'data', type: 'bytes', internalType: 'bytes' },
+                    { name: 'expectedPaymentToken', type: 'address', internalType: 'address' },
+                    { name: 'maxTotal', type: 'uint256', internalType: 'uint256' },
+                    { name: 'proof', type: 'bytes32[]', internalType: 'bytes32[]' }
+                ],
+                outputs: [],
+                stateMutability: 'payable'
+            }
+        ]
+
+        const collectibles = [
+            {
+                tokenId: '1',
+                quantity: '1'
+            }
+        ]
+
+        const purchaseTransactionData = encodeFunctionData({
+            abi: erc1155SalesContractAbi,
+            functionName: 'mint',
+            args: [
+                address,
+                collectibles.map(c => BigInt(c.tokenId)),
+                collectibles.map(c => BigInt(c.quantity)),
+                toHex(0),
+                currencyAddress,
+                price,
+                [toHex(0, { size: 32 })]
+            ]
+        })
+
+        const selectPaymentModalSettings: SelectPaymentSettings = {
+            collectibles: [
+                {
+                    tokenId: '1',
+                    quantity: '1'
+                }
+            ],
+            chain: chainId,
+            price,
+            targetContractAddress: salesContractAddress,
+            recipientAddress: address,
+            currencyAddress,
+            collectionAddress,
+            creditCardProviders: ['sardine'],
+            copyrightText: 'ⓒ2024 Sequence',
+            onSuccess: (txnHash: string) => {
+                console.log('success!', txnHash)
+            },
+            onError: (error: Error) => {
+                console.error(error)
+            },
+            txData: purchaseTransactionData,
+        }
+
+        openSelectPaymentModal(selectPaymentModalSettings)
+    }
+
+    return <button onClick={onClick}>Buy ERC-1155 collectble!</button>
+}
+```
+
+¡Felicitaciones! Acabas de aprender cómo usar el Modal de Checkout con Web SDK.

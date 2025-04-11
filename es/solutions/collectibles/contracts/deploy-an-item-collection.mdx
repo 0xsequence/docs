@@ -1,0 +1,142 @@
+---
+title: Cómo Desplegar un Contrato de Colección de Ítems en Sequence Builder
+description: Esta guía proporciona un recorrido detallado sobre la configuración y
+  el despliegue de un contrato de Ítem de Juego Web3 en Builder. Analiza las diferencias
+  entre los contratos ERC721 y ERC1155, y explica los pasos para desplegar un
+  contrato.
+sidebarTitle: Desplegar un Contrato de Colección
+---
+
+Esta guía explica cómo configurar y desplegar un contrato de Ítem de Juego Web3 en Builder.
+
+<Warning>
+  Prerrequisito: Crear un Proyecto
+
+  Esta guía asume que ya has [registrado en Builder y creado un Proyecto](/solutions/builder/getting-started).
+</Warning>
+
+#### ERC721 vs. ERC1155
+
+Ambos contratos acuñan NFTs, pero ERC721, siendo el estándar más antiguo, ha ganado una adopción generalizada, particularmente en coleccionables digitales. Conocido por su simplicidad y facilidad para auditar su seguridad, los tokens ERC721 son distintos, contribuyendo a su reconocimiento en varios mercados de NFT. Típicamente usarías un contrato ERC721 si: estás tratando con el mismo activo único, multiplicado, o una multiplicidad de 1 ítem con muchos en una colección
+
+Ejemplo `ERC721`: [Azuki](https://etherscan.io/token/0xed5af388653567af2f388e6224dc7c4b3241c544)
+
+En contraste, ERC1155 ofrece versatilidad con operaciones por lotes eficientes tanto para tokens fungibles como no fungibles en un solo contrato, donde típicamente estarías tratando con una multiplicidad de una relación de muchos ítems a muchas cantidades. Sin embargo, esta flexibilidad introduce complejidad, necesitando una atención cuidadosa a la seguridad.
+
+Ejemplo `ERC1155`: [Skyweaver](https://polygonscan.com/token/0x631998e91476da5b870d741192fc5cbc55f5a52e)
+
+## Paso 1: Navegar a contratos
+
+Comienza seleccionando tu `project` en la esquina superior izquierda para lo que quieres crear el coleccionable, y dirígete a la sección `contracts` y selecciona `+ Deploy new contract`
+
+<Frame>
+  ![select project and new contract](/images/collectibles/deploy_new_contract.png)
+</Frame>
+
+## Paso 2: Elige tu tipo de coleccionable
+
+Luego elige entre Colección de Ítems de Juego Web3 (ERC1155) o Colección NFT (ERC721), para este ejemplo te guiaremos a través de una Colección de Ítems de Juego Web3 (ERC1155)
+
+<Frame>
+  ![select game item](/images/collectibles/select_web3_game_item.png)
+</Frame>
+
+<Warning>
+  La única diferencia en el despliegue entre un `ERC1155` vs `ERC721` es que tú
+  agregas un `symbol` a una Colección NFT ERC721
+</Warning>
+
+## Paso 3: Especifica los detalles del contrato
+
+Completa los detalles del contrato especificando un `Contract Name` y `Owner` para tu contrato, con la opción de ingresar Regalías. Asegúrate de que la dirección del Propietario sea la Billetera Sequence en la esquina superior derecha y que tengas fondos en esta billetera en la red principal, de lo contrario en la red de prueba - nosotros patrocinamos estas transacciones por ti.
+
+<Frame>
+  ![deploy game item](/images/collectibles/deploy_game_item.png)
+</Frame>
+
+<Note>
+  Nota:
+
+  Si bien puedes cambiar el `name` más tarde en la interfaz del builder donde se actualizará en toda la pila de sequence, los exploradores populares no reindexan la información, por lo que lo que pones primero permanece
+</Note>
+
+## Paso 4: Despliega tu contrato
+
+Despliega tu contrato desde la ventana emergente en [http://sequence.app/sign-transaction](http://sequence.app/sign-transaction), y firma el mensaje seleccionando `confirm`
+
+<Frame>
+  <img src="/images/collectibles/sign_deploy_transaction.png" width="200" alt="Deploy your contract by signing the message in the popup window from the Sequence Wallet" />
+</Frame>
+
+<Note>
+  Todas las redes de prueba serán gratuitas para transaccionar.
+</Note>
+
+### Opcional: Agregar un Rol de Acuñador al contrato
+
+Los contratos de Sequence tienen opciones de Control de Acceso por defecto. En algunos casos, es posible que desees otorgar permisos a una dirección específica para llamar a varias funciones como `mint()`.
+
+Primero comienza seleccionando el contrato que acabas de desplegar en la sección `contracts` sección
+
+<Frame>
+  ![select contract](/images/collectibles/select_deployed_contract.png)
+</Frame>
+
+Luego, dirígete a la sección `Write Contract` sección
+
+<Frame>
+  ![write contract](/images/collectibles/select_item_write_contract.png)
+</Frame>
+
+En la `grantRole` sección de la navegación de la pestaña de contrato de escritura
+
+<Frame>
+  ![grant role](/images/collectibles/grant_role_game_item.png)
+</Frame>
+
+Completa con los siguientes detalles:
+
+`bytes32 role`: `0x9f2df0fed2c77648de5860a4cc508cd0818c85b8b8a1ab4ceeef8d981c8956a6`
+
+`address account`: `<Wallet Address>`
+
+Donde la dirección de la billetera es la dirección a la que te gustaría dar permisos para acuñar, específicamente cualquier billetera Sequence.
+
+<Frame>
+  ![copy address](/images/collectibles/copy_address_game_item.png)
+</Frame>
+
+Complete seleccionando`write` y firmando la transacción en la ventana emergente, como antes
+
+Con un mensaje de confirmación mostrando`Response Success`
+
+<Note>
+  La cadena de rol introducida es el resultado de`solidityPackedKeccak256("MINTER_ROLE")` en solidity o`ethers.solidityPackedKeccak256(ethers.toUtf8Bytes("MINTER_ROLE"))`
+
+  en javascript
+</Note>
+
+<Tip>
+  Es un patrón típico usar computación fuera de la cadena como un trabajador de cloudflare con una
+  cartera de retransmisión enviando transacciones, que se introduciría en el campo
+  de cuenta, más información sobre cómo lograr esto
+  [aquí](/guides/mint-collectibles-serverless#mint-collectibles-using-a-gasless-serverless-transactions-api)
+</Tip>
+
+## Paso 6: Acuñar tokens a la dirección de tu cartera
+
+Navega a la`mint` tarjeta en la`Write Contract` sección e introduce el`to` siendo la dirección de la cartera a la que te gustaría recibir el token, el`tokenId` (típicamente comenzando en 0), y`amount` de tokens, y finalmente la`data` sección donde puedes simplemente introducir`0x00`, que típicamente representa datos adicionales sin un formato específico.
+
+<Frame>
+  ![mint tokens](/images/collectibles/mint_game_item.png)
+</Frame>
+
+## Paso 7: Confirma tu coleccionable acuñado
+
+¡Y has terminado!
+
+Puedes ver las transacciones enviadas a la blockchain para la dirección de tu cartera en la`Transactions` pestaña de navegación
+
+<Frame>
+  ![view currency transactions](/images/collectibles/transactions_game_items.png)
+</Frame>

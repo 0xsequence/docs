@@ -1,0 +1,24 @@
+---
+title: Flujo de Recuperación del Contrato Trust
+description: El documento del Flujo de Recuperación del Contrato Trust detalla la arquitectura
+  de los contratos Trust, que protegen las cuentas de Sequence WaaS.
+sidebarTitle: Flujo de Recuperación del Contrato Trust
+---
+
+Trust, un contrato de recuperación ante desastres, protege las cuentas de Sequence WaaS. Este documento explica la función del contrato Trust y el flujo de recuperación durante un desastre.
+
+## Arquitectura del Contrato Trust
+
+Trust, un contrato de bloqueo temporal, tiene dos instancias para cada proyecto inquilino de WaaS. Una instancia reside con la cartera de recuperación del proyecto, la otra con la cartera de recuperación de Sequence. Los contratos Trust comienzan en un estado bloqueado, denegando el acceso a las cuentas WaaS bajo la configuración del inquilino.
+
+Una parte controladora puede desbloquear un contrato Trust llamando al método setUnlocksAt en la instancia del contrato Trust de la otra parte. Esta acción convierte la instancia del contrato Trust en un estado de cuenta regresiva, iniciando una cuenta regresiva de 90 días que es visible públicamente.
+
+Después de la cuenta regresiva, la parte que llamó a setUnlocksAt puede controlar la instancia Trust del otro. Con el control sobre ambas instancias, pueden acceder a todas las cuentas creadas con la configuración del inquilino WaaS.
+
+## Monitoreo del Estado de Desbloqueo
+
+Sequence monitorea el estado de desbloqueo de todas las instancias del contrato Trust. Este servicio opera bajo el Sequence WaaS existente implementado en instancias AWS Nitro Secure Enclave. El sistema de monitoreo verifica cada instancia del contrato Trust y alerta tanto al equipo de Sequence como al propietario del proyecto cuando se detecta un estado de desbloqueo en un contrato. Esto evita que una parte llame a setUnlocksAt en el contrato de la otra sin su conocimiento.
+
+## Flujo de Recuperación ante Desastres
+
+Los contratos Trust recuperan cuentas si una parte desaparece y se pierde el acceso a las cuentas de configuración WaaS. En este caso, la contraparte puede iniciar el flujo de recuperación llamando al método setUnlocksAt en la instancia del contrato Trust del otro. Esto activa notificaciones de desbloqueo para ambas partes hasta que finaliza la cuenta regresiva. Después de la cuenta regresiva de 90 días, es posible recuperar las cuentas creadas y los tokens en las cuentas.

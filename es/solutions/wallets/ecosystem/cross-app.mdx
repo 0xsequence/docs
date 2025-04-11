@@ -1,0 +1,93 @@
+---
+title: Cross-App Ecosystem Wallets
+description: Sequence Ecosystem Wallets permite la creación de una billetera
+  unificada para usuarios a través de su ecosistema.
+sidebarTitle: Cross App Integration
+---
+
+La solución cross-app de Sequence permite a sus usuarios aprovechar sus billeteras integradas en el ecosistema en cualquier aplicación con la misma dirección de billetera - independientemente de si son externos a su ecosistema o están integrados con Sequence usando conectores de billetera comunes como wagmi. Esto incluye:
+
+* Mercados Externos
+* DEX Externos
+* Aplicaciones Externas
+
+<Frame>
+  ![Cross App Architecture](/images/ecosystem/architecture.png "Sequence Cross-App Architecture")
+</Frame>
+
+<Note>
+  Puede ver una demostración de nuestro conector de billetera integrada cross-app [aquí](https://cross-app-demo-dapp.pages.dev/).
+</Note>
+
+La billetera integrada cross-app implementa un flujo de comunicación entre la aplicación externa y la aplicación de billetera:
+
+* La aplicación externa se comunica con la billetera a través del conector de billetera integrada cross-app para Wagmi
+* El conector utiliza un ProviderTransport para manejar la comunicación
+* Los mensajes se envían entre el ProviderTransport y WalletTransport
+* El componente Wallet maneja tres funcionalidades principales:
+  * Autenticación de Usuario
+  * Firma de Transacciones
+  * Firma de Mensajes
+
+La billetera puede abrirse y enviar mensajes de vuelta a la aplicación externa a través de la capa de transporte, permitiendo una comunicación segura entre aplicaciones. Notablemente, para una integración cross-app, los usuarios tendrán que confirmar todas las interacciones.
+
+<Steps>
+  <Step title="Clone our Cross App Embedded Wallet App & connector">
+    ```bash
+    git clone https://github.com/0xsequence/cross-app-embedded-wallet/tree/master && cd cross-app-embedded-Wallet/wallet
+    cp .env.example .env
+    ```
+  </Step>
+
+  <Step title="Update Wallet Transport with your configuration">
+    Pase las variables de su billetera integrada del ecosistema al`.env`archivo. Luego simplemente construya la aplicación de billetera con`pnpm build`y despliegue en su plataforma preferida como Cloudflare Pages con una URL públicamente accesible.
+  </Step>
+
+  <Step title="Example External Application Configuration">
+    Ahora, configuraremos una aplicación externa de ejemplo donde pasaremos la URL del conector de billetera a wagmi.
+
+    Navegue a la aplicación de ejemplo e instale las dependencias, específicamente el paquete del conector cross-app de sequence`@sequence-wallet/cross-app-connector`:
+
+    ```bash
+    cd ../dapp && pnpm install
+    ```
+
+    Luego actualice las variables de entorno con nuestra clave de acceso del proyecto y la URL de la billetera alojada que desplegó anteriormente:
+
+    ```bash
+    cp .env.example .env
+    ```
+  </Step>
+
+  <Step title="Update Wagmi Connector">
+    Por último, puede editar la configuración del conector wagmi ubicada en`src/wagmiConfig.ts`para su billetera específica. Aquí hay un ejemplo de configuración que se puede proporcionar a la aplicación externa:
+
+    ```
+    import { sequenceCrossAppEmbeddedWallet } from '@0xsequence/cross-app-embedded-wallet-connector'
+    import { createConfig, http } from 'wagmi'
+    import { arbitrumNova, arbitrumSepolia } from 'wagmi/chains'
+
+    const urlParams = new URLSearchParams(window.location.search)
+    const walletAppUrl = urlParams.get('walletAppUrl') ?? import.meta.env.VITE_WALLET_URL
+
+    const connector = sequenceCrossAppEmbeddedWallet(
+      {
+        projectAccessKey: import.meta.env.VITE_PROJECT_ACCESS_KEY,
+        walletUrl: walletAppUrl,
+        chainId: arbitrumNova.id, // Change this to your desired chain
+      }
+    );
+
+    export const config = createConfig({
+      chains: [arbitrumNova, arbitrumSepolia],
+      connectors: [connector],
+      transports: {
+        [arbitrumNova.id]: http(), // add Chain ID Transport
+        [arbitrumSepolia.id]: http()
+      }
+    })
+    ```
+  </Step>
+</Steps>
+
+Ahora, puede compartir la configuración del conector de billetera con cualquier aplicación para permitirles aprovechar su billetera del ecosistema en su aplicación para que sus usuarios puedan usar la misma dirección de billetera.

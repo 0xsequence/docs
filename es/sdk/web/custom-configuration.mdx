@@ -1,0 +1,341 @@
+---
+title: Opciones de Configuración Personalizada
+description: La sección de Configuración permite a los desarrolladores personalizar el SDK Web
+  pasando opciones al wrapper `SequenceConnect`.
+sidebarTitle: Configuración Personalizada
+---
+
+Los desarrolladores pueden personalizar la experiencia del SDK Web pasando opciones de configuración al `SequenceConnect` wrapper.
+
+Así es como puedes configurar el kit usando estas opciones:
+
+```jsx
+  const connectConfig =  {
+		defaultTheme: 'light',
+		position: 'top-left',
+		...
+	}
+
+  <SequenceConnect config={connectConfig}>
+    <App />
+  </SequenceConnect>
+
+```
+
+## Resumen de Configuración
+
+Las siguientes son las opciones de personalización de configuración disponibles, o, [ver a continuación todas las opciones en detalle](/sdk/web/custom-configuration#available-options):
+
+```typescript
+interface CreateConfigOptions {
+  appName: string
+  projectAccessKey: string
+  chainIds?: number[]
+  defaultChainId?: number
+  disableAnalytics?: boolean
+  defaultTheme?: Theme
+  position?: ModalPosition
+  signIn?: {
+    logoUrl?: string
+    projectName?: string
+    useMock?: boolean
+  }
+  displayedAssets?: Array<{
+    contractAddress: string
+    chainId: number
+  }>
+  ethAuth?: EthAuthSettings
+  wagmiConfig?: WagmiConfig // optional wagmiConfig overrides
+  waasConfigKey: string
+  enableConfirmationModal?: boolean
+  walletConnect?:
+    | boolean
+    | {
+        projectId: string
+      }
+  google?:
+    | boolean
+    | {
+        clientId: string
+      }
+  apple?:
+    | boolean
+    | {
+        clientId: string
+        rediretURI: string
+      }
+  email?:
+    | boolean
+    | {
+        legacyEmailAuth?: boolean
+      }
+}
+```
+
+## Estilo y Diseño Personalizado
+
+Puedes personalizar la apariencia visual del modal de conexión del SDK Web proporcionando un objeto de tema personalizado a la `defaultTheme` opción de configuración. Aquí hay un ejemplo de cómo implementar un estilo personalizado:
+
+```typescript
+import { createConfig } from "@0xsequence/connect";
+
+const CUSTOM_THEME = {
+  backgroundPrimary: "rgba(35, 100, 32, 1)",
+  backgroundSecondary: "navy",
+};
+
+export const config = createConfig("waas", {
+  projectAccessKey: projectAccessKey,
+  defaultTheme: CUSTOM_THEME,
+  // ... other config options
+});
+```
+
+### Variables de Tema Disponibles
+
+Las siguientes variables de tema pueden ser personalizadas:
+
+```typescript
+// Text Colors
+text100: string; // 'rgba(255, 255, 255, 1)'
+text80: string; // 'rgba(255, 255, 255, 0.8)'
+text50: string; // 'rgba(255, 255, 255, 0.5)'
+textInverse100: string; // 'rgba(0, 0, 0, 1)'
+
+// Background Colors
+backgroundPrimary: string; // 'rgba(0, 0, 0, 1)'
+backgroundSecondary: string; // 'rgba(255, 255, 255, 0.1)'
+backgroundContrast: string; // 'rgba(0, 0, 0, 0.5)'
+backgroundMuted: string; // 'rgba(255, 255, 255, 0.05)'
+backgroundControl: string; // 'rgba(255, 255, 255, 0.25)'
+backgroundInverse: string; // 'rgba(255, 255, 255, 1)'
+backgroundBackdrop: string; // 'rgba(34, 34, 34, 0.9)'
+backgroundOverlay: string; // 'rgba(0, 0, 0, 0.7)'
+backgroundRaised: string; // 'rgba(54, 54, 54, 0.7)'
+
+// Button Colors
+buttonGlass: string; // 'rgba(255, 255, 255, 0.15)'
+buttonEmphasis: string; // 'rgba(0, 0, 0, 0.5)'
+buttonInverse: string; // 'rgba(255, 255, 255, 0.8)'
+
+// Border Colors
+borderNormal: string; // 'rgba(255, 255, 255, 0.25)'
+borderFocus: string; // 'rgba(255, 255, 255, 0.5)'
+```
+
+Puedes sobrescribir cualquier combinación de estas variables para crear tu tema personalizado. Los valores pueden ser proporcionados en cualquier formato válido de color CSS (rgba, hex, nombres de colores, etc.).
+
+# Opciones Disponibles
+
+## Desarrollo de Aplicaciones Sequence
+
+### `appName`
+
+| Tipo   | Predeterminado |
+| ------ | -------------- |
+| string | undefined      |
+
+Un valor de nomenclatura de software interno que no se presenta al usuario.
+
+### `projectAccessKey`
+
+| Tipo   | Predeterminado |
+| ------ | -------------- |
+| string | undefined      |
+
+La clave de acceso del proyecto que es requerida, obtenida desde [Sequence Builder](https://sequence.build)
+
+### `ethAuth` como EthAuthSettings
+
+```typescript
+{
+  /*app name*/
+  app?: string
+  /** expiry number (in seconds) that is used for ETHAuth proof. Default is 1 week in seconds. */
+  expiry?: number
+  /** origin hint of the dapp's host opening the wallet. This value will automatically
+   * be determined and verified for integrity, and can be omitted. */
+  origin?: string
+  /** nonce is an optional number to be passed as ETHAuth's nonce claim for replay protection. **/
+  nonce?: number
+}
+```
+
+### `waasConfigKey`
+
+| Tipo   | Predeterminado |
+| ------ | -------------- |
+| string | undefined      |
+
+La clave de configuración de Embedded Wallet requerida para billeteras WaaS, configurada dentro de [Sequence Builder](https://sequence.build).
+
+## Red
+
+### `chainIds`
+
+| Tipo      | Predeterminado |
+| --------- | -------------- |
+| number\[] | undefined      |
+
+Una lista de IDs de cadena. por ejemplo \[1, 137]
+
+### `defaultChainId`
+
+| Tipo   | Predeterminado |
+| ------ | -------------- |
+| number | undefined      |
+
+El ID de cadena que se usa primero para firmas y transacciones.
+
+## UI
+
+Parámetros basados en la Interfaz de Usuario que aumentan la interfaz modal.
+
+### Configuración del Modal de Inicio de Sesión (`signIn`)
+
+El `signIn` objeto se usa para configurar el modal de inicio de sesión.
+
+#### `signIn.logoUrl`
+
+<Frame>
+  ![Enable a dark theme to Web SDK](/images/kit/sign-in-modal-with-logo.png)
+</Frame>
+
+| Tipo   | Predeterminado |
+| ------ | -------------- |
+| string | undefined      |
+
+URL del logo que se mostrará en el modal de inicio de sesión.
+
+#### `signIn.projectName`
+
+<Frame>
+  ![Add a project name to Web SDK](/images/kit/sign-in-modal-project-name.png)
+</Frame>
+
+| Tipo   | Predeterminado |
+| ------ | -------------- |
+| string | undefined      |
+
+Nombre del proyecto que se mostrará en el modal de inicio de sesión.
+
+#### `signIn.useMock`
+
+| Tipo    | Predeterminado |
+| ------- | -------------- |
+| boolean | undefined      |
+
+Elimina la capacidad de hacer solicitudes en vivo a la blockchain si se establece en `true` usando el [conector mock de wagmi](https://wagmi.sh/core/api/connectors/mock#mock)
+
+### `position`
+
+| Tipo   | Predeterminado |
+| ------ | -------------- |
+| string | center         |
+
+El parámetro de posición determina la ubicación de los diversos modales en la pantalla. Los valores posibles incluyen:
+
+* center
+* middle-right
+* middle-left
+* top-center
+* top-right
+* top-left
+* bottom-center
+* bottom-right
+* bottom-left
+
+### `defaultTheme`
+
+| Tipo            | Predeterminado |
+| --------------- | -------------- |
+| string u objeto | dark           |
+
+El defaultTheme determina la paleta de colores utilizada para estilizar el modal. Los valores posibles incluyen:
+
+* 'light'
+* 'dark'
+* object
+
+Los colores específicos pueden ser sobrescritos pasando un objeto de anulación de tema. El [Sequence Builder](https://sequence.build/) proporciona un útil espacio de pruebas para experimentar con los colores en Web SDK.
+
+## Billetera
+
+Parámetros que implican opciones de configuración de la billetera
+
+### `disableAnalytics`
+
+| Tipo    | Predeterminado |
+| ------- | -------------- |
+| boolean | undefined      |
+
+Activar y desactivar la función de análisis que está conectada a tu [Sequence Builder](http://sequence.build) proyecto.
+
+### `displayedAssets`
+
+| Tipo                                                  | Predeterminado |
+| ----------------------------------------------------- | -------------- |
+| \[\{ contractAddress: string, chainId: number }, ...] | undefined      |
+
+Si se proporciona, esto determinará qué activos se mostrarán en la vista principal del modal de la billetera en el juego.
+Al pasar una lista de activos mostrados, solo los activos de la lista proporcionada se mostrarán en la vista principal.
+En caso de que no se proporcionen activos, todos los activos en propiedad pueden mostrarse en la vista principal.
+
+### `enableConfirmationModal`
+
+| Tipo    | Predeterminado |
+| ------- | -------------- |
+| boolean | undefined      |
+
+Habilitar confirmaciones al enviar transacciones
+
+## Proveedores de inicio de sesión
+
+Los diversos proveedores de inicio de sesión que crean conexiones de billetera para el usuario:
+
+### `walletConnect`
+
+| Tipo                               | Predeterminado |
+| ---------------------------------- | -------------- |
+| `false` \| `{ projectId: string }` | `undefined`    |
+
+### `google`
+
+| Tipo                              | Predeterminado |
+| --------------------------------- | -------------- |
+| `false` \| `{ clientId: string }` | `undefined`    |
+
+### `apple`
+
+| Tipo                                                   | Predeterminado |
+| ------------------------------------------------------ | -------------- |
+| `false` \| `{ clientId: string, redirectURI: string }` | `undefined`    |
+
+### `email`
+
+| Tipo                                        | Predeterminado |
+| ------------------------------------------- | -------------- |
+| `boolean` \| `{ legacyEmailAuth: boolean }` | `undefined`    |
+
+# Crear Conectores Universales Predeterminados
+
+Si bien generalmente recomendamos usar Embedded Wallets con SequenceKit, como alternativa, también puedes aprovechar nuestra configuración de Universal Wallet. Al crear una variable wagmi`connectors` importa la `getDefaultConnectors` función del `@0xsequence/kit` paquete, e incluye un ID de Wallet Connect obtenido de [aquí](https://cloud.walletconnect.com/app), un ID de cadena predeterminado, nombre de la aplicación, y el `projectAccessKey`, luego [continúa con la integración desde el inicio rápido](/sdk/web/getting-started).
+
+```typescript [config.ts]
+import { getDefaultConnectors } from '@0xsequence/kit'
+...
+export const projectAccessKey = '<access-key>'
+
+const connectors = getDefaultConnectors( "universal", {
+  walletConnectProjectId: 'wallet-connect-id',
+  defaultChainId: 1,
+  appName: 'demo app',
+  projectAccessKey
+})
+
+export const config = createConfig({
+  transports,
+  connectors,
+  chains
+})
+```

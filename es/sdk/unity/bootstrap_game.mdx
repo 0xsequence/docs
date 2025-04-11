@@ -1,0 +1,211 @@
+---
+title: Inicia tu Juego
+description: Usando los códigos base proporcionados para poner en marcha rápidamente tu integración.
+---
+
+El SDK de Unity de Sequence incluye una variedad de características para ayudarte a iniciar tu juego.
+Importa nuestros códigos base desde los`Setup` ejemplos en la interfaz del Package Manager.
+y puedes crearlos usando el`BoilerplateFactory` como se muestra a continuación. Siéntete libre de ajustar la interfaz de usuario y la lógica dentro de los ejemplos según tus necesidades.
+
+Asegúrate de que tu código base tenga acceso al`Sequence.Boilerplates.asmdef` assembly.
+
+Revisa los`BoilerplateController.cs` para más ejemplos de integración.
+
+## Inicio de Sesión
+
+Crea el`SequenceLoginWindow` prefab para autenticar usuarios como Invitado, con Email OTP, Google o Apple Sign In.
+
+[Revisa la sección de Autenticación](/sdk/unity/onboard/authentication/intro) para más detalles sobre cómo configurar
+tu proyecto para cada opción de inicio de sesión.
+
+<Frame>
+  <img src="/images/unity/unity_boilerplate_login.png" />
+</Frame>
+
+```csharp
+BoilerplateFactory.OpenSequenceLoginWindow(parent);
+```
+
+<Accordion title="Parameters">
+  **parent (Transform)**
+
+  Transform dentro de un objeto Canvas.
+</Accordion>
+
+## Tienda en el Juego
+
+Acelera el crecimiento de tu juego vendiendo artículos directamente a tus jugadores. Crea el`SequencePlayerProfile` prefab para
+mostrar una Tienda en el Juego que utiliza elementos del juego desde un contrato ERC1155, que los usuarios compran usando cualquier moneda
+ERC20 personalizada o existente.
+
+[Contrato de Ventas Primarias](/solutions/collectibles/contracts/deploy-primary-sales-contract/): Aprende cómo configurar y desplegar contratos para lanzar una venta primaria.
+
+<Frame>
+  <img src="/images/unity/unity_boilerplate_shop.png" />
+</Frame>
+
+```csharp
+BoilerplateFactory.OpenSequenceLoginWindow(parent, wallet, chain, collectionAddress, saleContractAddress, itemsForSale, onClose);
+```
+
+<Accordion title="Parameters">
+  **parent (Transform)**
+
+  Transform dentro de un objeto Canvas.
+
+  **wallet (IWallet)**
+
+  La instancia de wallet que recibes del evento SequenceWallet.OnWalletCreated después de completar el proceso de inicio de sesión.
+
+  **chain (Chain)**
+
+  El tipo de cadena (Ethereum, Sepolia, ..) en la que está desplegado el contrato especificado.
+
+  **collectionAddress (string)**
+
+  Dirección del contrato ERC1155. Despliega primero tu propio contrato en Builder.
+
+  **saleContractAddress (string)**
+
+  Dirección del contrato de venta ERC1155 cuando despliegas tu venta en Builder.
+
+  **itemsForSale (int\[])**
+
+  Array de IDs de tokens que deseas vender a tus jugadores.
+
+  **onClose (Action)**
+
+  Opcional. Callback cuando el usuario cierra esta ventana.
+</Accordion>
+
+## Recompensas Diarias
+
+Recompensa a los usuarios con NFTs o Coleccionables por jugar tu juego durante días consecutivos. Despliega nuestro código base del servidor
+que realiza la transacción de acuñación cuando reclaman su recompensa.
+
+Asegúrate de desplegar nuestro[Código Base del Servidor de Recompensas Diarias](https://github.com/0xsequence-demos/daily-rewards-server-boilerplate)
+
+<Frame>
+  <img alt="img" src="/images/unity/unity_boilerplate_daily_rewards.png" />
+</Frame>
+
+```csharp
+BoilerplateFactory.OpenSequenceDailyRewards(parent, wallet, chain, apiUrl, onClose);
+```
+
+<Accordion title="Parameters">
+  **parent (Transform)**
+
+  Transform dentro de un objeto Canvas.
+
+  **wallet (IWallet)**
+
+  La instancia de wallet que recibes del evento SequenceWallet.OnWalletCreated después de completar el proceso de inicio de sesión.
+
+  **chain (Chain)**
+
+  El tipo de cadena (Ethereum, Sepolia, ..) en la que está desplegado el contrato especificado.
+
+  **apiUrl (string)**
+
+  La URL de la API que recibes después de desplegar el código base del servidor requerido.
+
+  **onClose (Action)**
+
+  Opcional. Callback cuando el usuario cierra esta ventana.
+</Accordion>
+
+## Perfil del Jugador
+
+Crea el`SequencePlayerProfile` prefab para gestionar tu perfil actual. Esto incluye funcionalidades como Cerrar Sesión,
+vinculación de wallets externos, envío de tokens nativos y código QR para recibir fondos.
+
+<Frame>
+  <img alt="img" src="/images/unity/unity_boilerplate_profile.png" />
+</Frame>
+
+```csharp
+BoilerplateFactory.OpenSequencePlayerProfile(parent, wallet, chain, onClose);
+```
+
+<Accordion title="Parameters">
+  **parent (Transform)**
+
+  Transform dentro de un objeto Canvas.
+
+  **wallet (IWallet)**
+
+  La instancia de wallet que recibes del evento SequenceWallet.OnWalletCreated después de completar el proceso de inicio de sesión.
+
+  **chain (Chain)**
+
+  El tipo de cadena (Ethereum, Sepolia, ..) en la que está desplegado el contrato especificado.
+
+  **onClose (Action)**
+
+  Opcional. Callback cuando el usuario cierra esta ventana.
+</Accordion>
+
+## Inventario
+
+Crea el`SequenceInventory` prefab para mostrar todos los elementos que posee un usuario de cualquier contrato ERC1155 o ERC721.
+
+<Frame>
+  <img alt="img" src="/images/unity/unity_boilerplate_inventory.png" />
+</Frame>
+
+```csharp
+BoilerplateFactory.OpenSequenceInventory(parent, wallet, chain, collections, onClose);
+```
+
+<Accordion title="Parameters">
+  **parent (Transform)**
+
+  Transform dentro de un objeto Canvas.
+
+  **wallet (IWallet)**
+
+  La instancia de wallet que recibes del evento SequenceWallet.OnWalletCreated después de completar el proceso de inicio de sesión.
+
+  **chain (Chain)**
+
+  El tipo de cadena (Ethereum, Sepolia, ..) en la que está desplegado el contrato especificado.
+
+  **collectionAddress (string\[])**
+
+  Array de direcciones de contratos ERC1155 o ERC721. Despliega primero tu propio contrato en Builder.
+
+  **onClose (Action)**
+
+  Opcional. Callback cuando el usuario cierra esta ventana.
+</Accordion>
+
+## Firmar Mensajes
+
+Crear el `SequenceSignMessage` prefab para mostrar un modal que te permite firmar un texto específico.
+
+<Frame>
+  <img alt="img" src="/images/unity/unity_boilerplate_signmessage.png" />
+</Frame>
+
+```csharp
+BoilerplateFactory.OpenSequenceSignMessage(parent, wallet, chain, onClose);
+```
+
+<Accordion title="Parameters">
+  **parent (Transform)**
+
+  Transform dentro de un objeto Canvas.
+
+  **wallet (IWallet)**
+
+  La instancia de wallet que recibes del evento SequenceWallet.OnWalletCreated después de completar el proceso de inicio de sesión.
+
+  **chain (Chain)**
+
+  El tipo de cadena (Ethereum, Sepolia, ..) en la que está implementado el contrato especificado.
+
+  **onClose (Action)**
+
+  Opcional. Callback cuando el usuario cierra esta ventana.
+</Accordion>

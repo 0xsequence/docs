@@ -1,0 +1,116 @@
+---
+title: Comenzando con Web SDK
+description: Aprende cómo empezar con Web SDK instalando los paquetes necesarios
+  y usando los conectores wagmi para utilizar una Embedded Wallet o
+  Native EOA Wallet para autenticación.
+sidebarTitle: Comenzando
+---
+
+# Configurando tu Dapp
+
+Para utilizar el `SequenceConnect` wrapper para conectar billeteras web3 a tu aplicación, sigue estos pasos:
+
+<Note>
+  Web SDK está construido sobre wagmi, así que para configuraciones avanzadas, envío de
+  transacciones, llamadas a contratos, etc., por favor consulta la [documentación
+  de wagmi](https://wagmi.sh/react/WagmiConfig).
+</Note>
+
+<Steps>
+  <Step title="Create a React Project with Vite">
+    Comenzaremos creando un proyecto [React](https://react.dev/) con [vite](https://vitejs.dev/):
+
+    ```sh
+    npm create vite
+    # or
+    pnpm create vite
+    # or
+    yarn create vite
+    ```
+  </Step>
+
+  <Step title="Install the Web SDK dependencies">
+    ```bash
+    npm install @0xsequence/connect wagmi ethers@6.13.0 viem 0xsequence @tanstack/react-query
+    # or
+    pnpm install @0xsequence/connect wagmi ethers@6.13.0 viem 0xsequence @tanstack/react-query
+    # or
+    yarn add @0xsequence/connect wagmi ethers@6.13.0 viem 0xsequence @tanstack/react-query
+    ```
+  </Step>
+
+  <Step title="Create a Config">
+    A continuación, se necesitará crear una variable de configuración para `SequenceConnect` ya sea como `waas` (significa una [Embedded Wallet](/sdk/headless-wallet/quickstart)) o `universal` (significa una [Universal Wallet](/sdk/typescript/guides/frontend/connect-wallet)) tipo de billetera.
+
+    Para `waas`, primero obtén una [Clave de Configuración WaaS del Sequence Builder](/sdk/headless-wallet/), [ID de Wallet Connect](https://cloud.reown.com/sign-in), y configura otros [ajustes del Proveedor de Login](/sdk/headless-wallet/#login-providers). Para ambas opciones de tipo de billetera, [obtén y usa una clave de acceso al proyecto](/support/builder/project-settings#copy-your-access-key).
+
+    ```typescript [config.ts]
+    import { createConfig } from "@0xsequence/connect";
+
+    export const config: any = createConfig("waas" /*or, 'universal'*/, {
+      projectAccessKey: "<your-project-access-key>",
+      chainIds: [1, 137],
+      defaultChainId: 1,
+      appName: "Demo Dapp",
+      waasConfigKey: "<your-waas-config-key>", // for waas
+      google: {
+        clientId: "<your-google-client-id>",
+      },
+      walletConnect: {
+        projectId: "<your-wallet-connect-project-id>",
+      },
+    });
+    ```
+
+    Para personalizar más, [puedes ver parámetros de configuración adicionales.](/sdk/web/custom-configuration)
+  </Step>
+
+  <Step title="Setup Provider Component">
+    La configuración que creamos en el [paso 2](/sdk/web/getting-started#create-a-config) necesita ser pasada a los providers de abajo en el `main.tsx`, así como la inclusión de la hoja de estilos del Sistema de Diseño de Sequence `styles.css`:
+
+    ```typescript [main.tsx]
+    import React from "react";
+    import ReactDOM from "react-dom/client";
+    import "index.css";
+
+    import App from "./App";
+    import { config } from "./config";
+    import { SequenceConnect } from "@0xsequence/connect";
+
+    function Dapp() {
+      return (
+        <SequenceConnect config={config}>
+          <App />
+        </SequenceConnect>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById("root")!).render(
+      <React.StrictMode>
+        <Dapp />
+      </React.StrictMode>
+    );
+    ```
+  </Step>
+
+  <Step title="Trigger the Connection Modal">
+    ```typescript [App.tsx]
+    import './App.css'
+    import { useOpenConnectModal } from '@0xsequence/connect'
+
+    function App() {
+      const {setOpenConnectModal} = useOpenConnectModal()
+      
+      return (
+        <>
+          <button onClick={() => setOpenConnectModal(true)}>Connect</button>
+        </>
+      )
+    }
+
+    export default App
+    ```
+
+    Para las interacciones web3, wagmi expone un conjunto de hooks de React que facilitan funciones comunes como el envío de transacciones.
+  </Step>
+</Steps>

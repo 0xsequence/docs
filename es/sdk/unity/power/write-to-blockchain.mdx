@@ -1,0 +1,357 @@
+---
+title: Escribir en la Blockchain
+description: El contenido proporciona instrucciones detalladas sobre cómo escribir en una
+  blockchain usando el SDK de Sequence. Explica cómo manejar transacciones
+  de forma asíncrona, incluyendo transacciones sin procesar, transferencias de tokens
+  ERC20, ERC721 y ERC1155, así como interacciones con contratos inteligentes.
+---
+
+# Escribir en la Blockchain
+
+La blockchain puede considerarse como una base de datos de propósito general, visible públicamente y verificada. Para escribir en una blockchain, de manera similar a una base de datos típica, debes hacer una <u>transacción</u>.
+
+Típicamente, crear una transacción en la blockchain es bastante complejo, pero Embedded Wallet maneja esa complejidad por ti y expone 5 tipos de `Transactions`.
+
+Enviar una transacción es una [Tarea asíncrona](https://medium.com/@sonusprocks/async-await-in-c-unity-explained-in-easy-words-571ebb6a9369). Puedes usar `await` al llamar `SequenceWallet.SendTransaction` si deseas obtener el `TransactionReturn` objeto directamente. O puedes tomar el enfoque recomendado que es configurar funciones manejadoras para los eventos `SequenceWallet.OnSendTransactionComplete` y `SequenceWallet.OnSendTransactionFailed` eventos y llamar al `SequenceWallet.SendTransaction` método desde cualquier lugar (sin await). Por ejemplo:
+
+```csharp
+public void OnSendTransactionCompleteHandler(SuccessfulTransactionReturn result) {
+    // Do something
+}
+
+public void OnSendTransactionFailedHandler(FailedTransactionReturn result) {
+    // Do something
+}
+
+public void OnWalletCreatedHander(SequenceWallet wallet) {
+    wallet.OnSendTransactionComplete += OnSendTransactionCompleteHandler;
+    wallet.OnSendTransactionFailed += OnSendTransactionFailedHandler;
+}
+```
+
+Si no estás familiarizado con el trabajo con eventos en Unity, consulta esta excelente [publicación de Reddit](https://www.reddit.com/r/gamedev/comments/u3hz2v/how_to_use_events_a_supersimple_unity_example/)!
+
+## RawTransaction
+
+La forma más básica de una `Transaction`, una transacción sin procesar, es muy útil para enviar ETH o la moneda de gas de la red con la que estás interactuando a una `Address`.
+
+Por ejemplo, para enviar un MATIC a `0x9766bf76b2E3e7BCB8c61410A3fC873f1e89b43f` puedes usar este fragmento de código:
+
+```csharp
+_wallet.SendTransaction(
+    Chain.Polygon,
+    new Sequence.EmbeddedWallet.Transaction[]
+    {
+        new RawTransaction("0x9766bf76b2E3e7BCB8c61410A3fC873f1e89b43f", DecimalNormalizer.Normalize(1))
+    });
+```
+
+donde \_wallet es un SequenceWallet.
+
+Nota: el [EVM](https://ethereum.org/en/developers/docs/evm/) no admite números de punto flotante. Como resultado, los valores de tokens (y moneda de gas) están representados por números enteros y un valor de "decimales". 1 ETH (o en el ejemplo anterior 1 MATIC) está representado como `1000000000000000000` (1 \* 10^18) ya que ETH, MATIC y la mayoría de las monedas de gas tienen un valor de "decimales" de 18. `DecimalNormalizer.Normalize` (arriba) es una función auxiliar básica que devolverá `input value * 10^decimals` y opcionalmente acepta un valor de "decimales" como segundo parámetro (por defecto es 18 cuando no se proporciona).
+
+Además, puedes incluir datos con una transacción sin procesar en formato hexadecimal como una cadena. Para más información sobre esto, consulta la sección avanzada de esta documentación.
+
+## sendERC20
+
+Un [ERC20](https://docs.openzeppelin.com/contracts/4.x/erc20) token es el estándar de token fungible. Puedes desplegar fácilmente un contrato ERC20 y acuñar tokens usando nuestro [Builder](https://sequence.build/). Aprende cómo en nuestra [documentación del Builder](/solutions/builder/contracts).
+
+Para enviar una transacción de token ERC20, puedes usar este fragmento de código:
+
+```csharp
+_wallet.SendTransaction(Chain.Polygon, new Sequence.EmbeddedWallet.Transaction[]
+    {
+        new SendERC20(
+            erc20TokenAddress,
+            ToAddress,
+            AmountAsString),
+    });
+```
+
+Nota: como arriba, se recomienda usar `DecimalNormalizer.Normalize` para convertir la cantidad del formato legible por humanos al formato EVM. Asegúrate de incluir el parámetro opcional "decimals" int si tu token ERC20 tiene un valor de "decimals" que no sea 18. Si no estás seguro de cuántos "decimals" tiene tu ERC20, esto se puede leer fácilmente en el Builder usando el método "decimals" bajo "Read Contract".
+
+### Interacciones Complejas con ERC20
+
+Para interacciones con tokens ERC20 más allá de las transferencias básicas, querrás usar nuestra `SequenceEthereum` biblioteca proporcionada con el SDK. Hemos creado funciones wrapper de contratos inteligentes ERC20 para tu conveniencia que te permiten crear y enviar `RawTransactions` con Embedded Wallets.
+
+Primero, necesitarás crear un `ERC20` objeto proporcionando una dirección de contrato y opcionalmente, un [ABI](https://docs.soliditylang.org/en/latest/abi-spec.html#json) string, si estás usando una variación personalizada del estándar ERC20 (no recomendado).
+
+```csharp
+ERC20 myToken = new ERC20(myTokenAddress);
+```
+
+con esta referencia, tendrás acceso a todos los métodos implementados por la clase ERC20. Cualquier método que devuelva un `CallContractFunction`, por ejemplo `Mint`, puede ser usado cuando se crea una RawTransaction con Embedded Wallets. Por ejemplo:
+
+```csharp
+ERC20 myToken = new ERC20(myTokenAddress);
+_wallet.SendTransaction(Chain.Polygon, new Sequence.EmbeddedWallet.Transaction[]
+    {
+        new RawTransaction(myToken.Mint(toAddress, DecimalNormalizer.NormalizeAsBigInteger(amount))),
+    });
+```
+
+## sendERC721
+
+Un [ERC721](https://docs.openzeppelin.com/contracts/4.x/erc721) token es el estándar no fungible, probablemente has oído hablar de ellos como NFTs. Puedes desplegar fácilmente un contrato ERC721 y acuñar tokens usando nuestro [Builder](https://sequence.build/). Aprende cómo en nuestra [documentación del Builder](/solutions/builder/contracts).
+
+Para enviar una transacción de token ERC721, puedes usar este fragmento de código:
+
+```csharp
+_wallet.SendTransaction(Chain.Polygon, new Sequence.EmbeddedWallet.Transaction[]
+    {
+        new SendERC721(
+            erc721TokenAddress,
+            ToAddress,
+            TokenIdAsString),
+    });
+```
+
+### Interacciones Complejas con ERC721
+
+Para interacciones con tokens ERC721 más allá de las transferencias básicas, querrás usar nuestra`SequenceEthereum`biblioteca proporcionada con el SDK. Hemos creado funciones wrapper de contratos inteligentes ERC721 para tu conveniencia que te permiten crear y enviar`RawTransactions`con Embedded Wallets.
+
+Primero, necesitarás crear un objeto`ERC721`proporcionando una dirección de contrato y opcionalmente, un[ABI](https://docs.soliditylang.org/en/latest/abi-spec.html#json)string, si estás usando una variación personalizada del estándar ERC721 (no recomendado).
+
+```csharp
+ERC721 myToken = new ERC721(myTokenAddress);
+```
+
+con esta referencia, tendrás acceso a todos los métodos implementados por la clase ERC721. Cualquier método que devuelva un`CallContractFunction`, por ejemplo`SafeMint`, puede ser usado cuando se crea una RawTransaction con Embedded Wallets. Por ejemplo:
+
+```csharp
+ERC721 myToken = new ERC721(myTokenAddress);
+_wallet.SendTransaction(Chain.Polygon, new Sequence.EmbeddedWallet.Transaction[]
+    {
+        new RawTransaction(myToken.SafeMint(toAddress)),
+    });
+```
+
+## sendERC1155
+
+Un[ERC1155](https://docs.openzeppelin.com/contracts/4.x/api/token/erc1155)token es el estándar multi token, frecuentemente referido como SFTs (tokens semi-fungibles). Como[co-creadores del estándar ERC1155](https://eips.ethereum.org/EIPS/eip-1155)somos firmes creyentes en su utilidad sin igual para juegos. Puedes desplegar fácilmente un contrato ERC1155 y acuñar tokens usando nuestro[Builder](https://sequence.build/). Aprende cómo en nuestra[documentación del Builder](/solutions/builder/contracts).
+
+Para enviar una transacción de token ERC1155, puedes usar este fragmento de código:
+
+```csharp
+_wallet.SendTransaction(Chain.Polygon, new Sequence.EmbeddedWallet.Transaction[]
+    {
+        new SendERC1155(
+            erc1155TokenAddress,
+            ToAddress,
+            new SendERC1155Values[]
+            {
+                new SendERC1155Values(TokenIdAsString, AmountAsString),
+                ...
+            }),
+    });
+```
+
+Nota: puedes enviar múltiples ids de token del mismo contrato ERC1155 en una sola transacción incluyendo múltiples`SendERC1155Values`objetos en la transacción
+
+### Interacciones Complejas con ERC1155
+
+Para interacciones con tokens ERC1155 más allá de las transferencias básicas, querrás usar nuestra`SequenceEthereum`biblioteca proporcionada con el SDK. Hemos creado funciones wrapper de contratos inteligentes ERC1155 para tu conveniencia que te permiten crear y enviar`RawTransactions`con Embedded Wallets.
+
+Primero, necesitarás crear un`ERC1155`objeto proporcionando una dirección de contrato y opcionalmente, un[ABI](https://docs.soliditylang.org/en/latest/abi-spec.html#json)string, si estás usando una variación personalizada del estándar ERC1155 (no recomendado).
+
+```csharp
+ERC1155 myToken = new ERC1155(myTokenAddress);
+```
+
+con esta referencia, tendrás acceso a todos los métodos implementados por la clase ERC1155. Cualquier método que devuelva un`CallContractFunction`, por ejemplo`Mint`, puede ser usado cuando se crea una RawTransaction con Embedded Wallets. Por ejemplo:
+
+```csharp
+ERC1155 myToken = new ERC1155(myTokenAddress);
+_wallet.SendTransaction(Chain.Polygon, new Sequence.EmbeddedWallet.Transaction[]
+    {
+        new RawTransaction(myToken.Mint(toAddress, tokenId, amount)),
+    });
+```
+
+## SequenceContractCall
+
+Cuando se llama a un contrato inteligente en una red basada en EVM, el cliente pasa por un proceso complejo conocido como "codificación ABI" donde la firma de la función que deseas llamar así como los parámetros que estás proporcionando son codificados en un formato binario. Este proceso es complicado y propenso a errores, por lo que lo hemos abstraído para que no tengas que lidiar con él. Pero, si tienes curiosidad por aprender cómo funciona, por favor consulta[este documento](https://docs.soliditylang.org/en/develop/abi-spec.html).
+
+Una transacción SequenceContractCall te permite llamar a cualquier método en un contrato inteligente arbitrario, permitiéndonos manejar el complicado proceso de codificación ABI del lado del servidor.
+
+Para enviar una transacción SequenceContractCall, puedes usar este fragmento de código:
+
+```csharp
+_wallet.SendTransaction(Chain.Polygon, new Sequence.EmbeddedWallet.Transaction[]
+    {
+        new SequenceContractCall(ContractAddress, new AbiData(
+            FunctionABIAsString,
+            ParametersAsObjectArray), ValueAsString),
+    });
+```
+
+Examinemos lo anterior para obtener una mejor comprensión de algunas variables que pueden no ser obvias.
+
+ValueAsString: Esto<i>usualmente</i>será "0" a menos que estés llamando a un[método pagable](https://solidity-by-example.org/payable/)denotado por la`payable`palabra clave en la definición del contrato inteligente. Si estás llamando a un método pagable, se recomienda usar`DecimalNormalizer.Normalize`para convertir la cantidad de formato legible por humanos a formato EVM. Ten en cuenta que el usuario necesitará tener los fondos requeridos en su billetera para pagar el valor especificado a una función pagable. Este parámetro puede omitirse para usar el valor predeterminado "0".
+
+FunctionABIAsString: La función con la que planeas interactuar. Recomendamos copiar y pegar la firma de la función (con parámetros) del código fuente del contrato en Etherscan (o el explorador de bloques apropiado para tu red) y eliminar los espacios en blanco y nombres de variables.
+
+ParametersAsObjectArray: Los parámetros que deseas proporcionar al método que deseas llamar. No es necesario proporcionar los nombres de los parámetros, solo sus valores en el orden en que aparecen en el ABI. Proporciona los parámetros en formato string cuando tengas dudas.
+
+Juntando todo esto, un ejemplo de uso de`SequenceContractCall`para llamar a la función "mint" en un ERC20 se vería así:
+
+```csharp
+_wallet.SendTransaction(Chain.Polygon, new Sequence.EmbeddedWallet.Transaction[]
+    {
+        new SequenceContractCall(ContractAddress, new AbiData(
+            "mint(address,uint256)",
+            new object[]
+            {
+                ToAddress, DecimalNormalizer.Normalize(1)
+            })),
+    });
+```
+
+## Transacciones por Lotes
+
+Usando la magia de la billetera de Contratos Inteligentes de Sequence, nuestro SDK te permite agrupar transacciones sin problemas. Agrupar transacciones es extremadamente beneficioso ya que proporciona ahorros significativos en gas y te permite crear transacciones complejas, que todas pasan o todas fallan, sin implementar contratos inteligentes personalizados para cada caso de uso específico, ¡abriendo un nuevo mundo de posibilidades de diseño!
+
+¡Enviar una transacción por lotes es fácil! Simplemente incluye múltiples transacciones, de cualquier tipo, en tu array de transacciones al hacer la`SendTransaction` solicitud.
+
+Por ejemplo - enviando una transacción de cada tipo en un lote:
+
+```csharp
+_wallet.SendTransaction(
+    Chain.Polygon,
+    new Sequence.EmbeddedWallet.Transaction[]
+    {
+        new RawTransaction(ToAddress, DecimalNormalizer.Normalize(1)),
+        new SendERC20(
+            erc20TokenAddress,
+            ToAddress,
+            AmountAsString),
+        new RawTransaction(new ERC20(erc20TokenAddress).Burn(DecimalNormalizer.NormalizeAsBigInteger(amount))),
+        new SendERC721(
+            erc721TokenAddress,
+            ToAddress,
+            TokenIdAsString),
+        new SendERC1155(
+            erc1155TokenAddress,
+            ToAddress,
+            new SendERC1155Values[]
+            {
+                new SendERC1155Values(TokenIdAsString, AmountAsString),
+                ...
+            }),
+        new SequenceContractCall(ContractAddress, new AbiData(
+            FunctionABIAsString,
+            ParametersAsObjectArray), ValueAsString),
+    });
+```
+
+Dado que estas transacciones están todas agrupadas en una sola transacción por la Billetera de Contratos Inteligentes de Sequence antes de ser enviadas a la red, recibirás solo un recibo de transacción.
+
+## FeeOptions
+
+Por defecto, el SDK patrocinará automáticamente todas las transacciones de Embedded Wallet usando tus créditos de Builder API. Sin embargo, en algunos casos específicos, podrías preferir no patrocinar las transacciones de tus usuarios. Esto requiere que tus usuarios sean usuarios más experimentados de Web3 y tengan tokens/moneda de gas en su billetera que puedan usar para pagar las tarifas de gas. Además de la moneda de gas para la red seleccionada, las tarifas de gas también se pueden pagar usando tokens ERC20 y ERC1155 seleccionados.
+
+<Info>El patrocinio de transacciones solo está disponible para el nivel Developer y superiores. Para más información sobre el patrocinio de gas, por favor consulta[este documento](/solutions/builder/gas-tank). Para más información sobre cómo actualizar el nivel de facturación de tu proyecto, por favor consulta[esta guía](/support/builder/project-settings#update-your-project-subscription-plan).</Info>
+
+Primero, necesitarás ensamblar la(s) transacción(es) que deseas enviar en un lote. Luego, necesitas solicitar las FeeOptions.
+
+```csharp
+Transaction[] transactions = new Transaction[]
+{
+    // Create your transactions here
+};
+FeeOptionsResponse response = await _wallet.GetFeeOptions(chain, transactions);
+```
+
+El`FeeOptionsResponse` contiene un FeeQuote (string) que fija el precio para cada`FeeOptionReturn` en el array de FeeOptions que se devuelve por un tiempo limitado; necesitarás esto en un momento cuando envíes tus transacciones. Para tu conveniencia, el SDK consultará automáticamente la billetera del usuario para ver cuáles de las FeeOptions puede pagar el usuario usando el[Indexer](/sdk/unity/power/read-from-blockchain).
+
+Desde aquí, puedes mostrar una interfaz de usuario para permitir que el usuario seleccione cómo le gustaría pagar la tarifa de sus transacciones.
+
+Una vez que el usuario ha seleccionado cómo le gustaría pagar su tarifa, puedes enviar las transacciones, incluyendo la FeeOption seleccionada y el string FeeQuote.
+
+```csharp
+_wallet.SendTransactionWithFeeOptions(chain, transactions, response.FeeOptions[selectionIndex].FeeOption, response.FeeQuote);
+```
+
+En el`Demo Scene` que se puede importar vía`Package Manager > Samples`, puedes ver un ejemplo básico de uso de FeeOptions. Aquí, no proporcionamos una interfaz de usuario y en su lugar optamos por usar la primera FeeOption disponible en la billetera del usuario. No recomendamos usar este enfoque en un juego real, pero sirve como un ejemplo útil para tu propia integración. Mira nuestro código de ejemplo a continuación:
+
+```csharp
+private async Task WaitForFeeOptionsAndSubmitFirstAvailable(Address toAddress, string amount)
+{
+    Transaction[] transactions = new Transaction[]
+    {
+        new RawTransaction(toAddress, amount)
+    };
+    FeeOptionsResponse response = await _wallet.GetFeeOptions(_chain, transactions)
+    int options = response.FeeOptions.Length;
+    for (int i = 0; i < options; i++)
+    {
+        if (response.FeeOptions[i].InWallet)
+        {
+            await _wallet.SendTransactionWithFeeOptions(_chain, transactions, response.FeeOptions[i].FeeOption,
+                response.FeeQuote);
+            return;
+        }
+    }
+    
+    Debug.LogError("The user does not have enough of the valid FeeOptions in their wallet");
+}
+```
+
+## Encoladores de Transacciones
+
+Cuando se trabaja con la blockchain, es importante[agrupar transacciones](/sdk/unity/power/write-to-blockchain#batch-transactions) para minimizar las tarifas de gas. Para hacer esto más fácil, hemos proporcionado un flexible`TransactionQueuer` con el SDK que puede ser configurado o extendido según tus necesidades. Para aprender más sobre la Construcción de Juegos con Muchas Transacciones en Unity y qué considerar, por favor revisa[nuestra guía sobre el tema](/guides/building-transaction-heavy-games-with-unity).
+
+Cuando agregas un`TransactionQueuer` MonoBehaviour a tu escena, hay algunas variables de configuración que puedes establecer.
+
+* `AutoSubmitTransactions`: por defecto es false, habilitarlo configurará tu`TransactionQueuer` para enviar automáticamente cualquier transacción en cola cuando`ThresholdTimeBetweenTransactionsAddedBeforeSubmittedInSeconds` haya pasado sin agregar una nueva transacción a la cola
+* `ThresholdTimeBetweenTransactionsAddedBeforeSubmittedInSeconds`: si`AutoSubmitTransactions == true`, envía automáticamente las transacciones en cola si no se ha agregado ninguna en los últimos`ThresholdTimeBetweenTransactionsAddedBeforeSubmittedInSeconds` segundos
+* `MinimumTimeBetweenTransactionSubmissionsInSeconds`: un tiempo mínimo entre el envío de transacciones en cola. Con esto, puedes llamar`TransactionQueuer.SubmitTransactions()` tan frecuentemente como quieras en tu código y las transacciones no se enviarán a menos que hayan pasado`MinimumTimeBetweenTransactionSubmissionsInSeconds` segundos desde la última transacción enviada. Nota: si`TransactionQueuer.SubmitTransactions(overrideWait: true)` es llamado con el`overrideWait` bool opcional establecido en true, el`TransactionQueuer` enviará las transacciones en cola independientemente de si el`MinimumTimeBetweenTransactionSubmissionsInSeconds` ha pasado.
+
+El`TransactionQueuer` expone algunos métodos para ti:
+
+* Setup: antes de llamar a otros métodos en un`TransactionQueuer`, por favor llama`Setup` en él; esto creará y almacenará en caché las dependencias requeridas
+* Enqueue: agregar una transacción a la cola
+* SubmitTransactions(bool overrideWait = false, bool waitForReceipt = true): envía las transacciones en cola si `MinimumTimeBetweenTransactionSubmissionsInSeconds` ha pasado entre la última presentación de transacción por el `TransactionQueuer`. Si `overrideWait = true`, envía inmediatamente cualquier transacción en cola. Si `waitForReceipt = false`, devuelve el `TransactionReturn` tan pronto como obtengamos una respuesta de la API WaaS (nota: esto solo es relevante si la API WaaS se agota mientras espera un recibo de transacción; si `waitForReceipt = true`, continuaremos consultando a un nodo para obtener un recibo de transacción antes de devolver)
+* ToString(): una anulación de la función típica ToString(), proporcionándote mejor soporte de registro
+
+<Warning>¡No olvides llamar a `Setup` en tu `TransactionQueuer`!</Warning>
+
+Actualmente, el SDK expone dos diferentes herederos de la clase `TransactionQueuer`.
+
+### SequenceWalletTransactionQueuer
+
+El `SequenceWalletTransactionQueuer` te permite poner en cola transacciones para la Cartera Integrada Sequence de tu usuario.
+
+El `SequenceWalletTransactionQueuer` espera que pongas en cola `IQueueableTransaction`s. Esta interfaz está implementada por la clase `QueuedTokenTransaction`. Por favor, siéntete libre de crear otras clases que implementen la interfaz `IQueueableTransaction` según sea necesario.
+
+### PermissionedMinterTransactionQueuer
+
+El `PermissionedMinterTransactionQueuer` está destinado a ser utilizado para poner en cola transacciones que están siendo enviadas por tu servidor backend cuando recibe un mensaje firmado desde la cartera integrada del jugador. Es útil para acuñar tokens en la cartera del jugador cuando se interactúa con contratos que requieren permisos para acuñar (la mayoría de los contratos de tokens).
+
+El `PermissionedMinterTransactionQueuer` espera que pongas en cola un `PermissionedMintTransaction`, un objeto básico de transferencia de datos que especifica el TokenId y Amount a ser acuñado, y opcionalmente un IMinter. Si no se proporciona, el `PermissionedMinterTransactionQueuer` usará por defecto la clase `PermissionedMinter`. La clase `PermissionedMinter` será útil para la mayoría de los casos de uso; envía una carga útil en el siguiente formato:
+
+```json
+ProofPayload: 
+{
+    "app": "Made with Sequence Unity SDK App",
+    "iat": (uint)DateTimeOffset.UtcNow.ToUnixTimeSeconds(), // issued at time 
+    "exp": (uint)DateTimeOffset.UtcNow.ToUnixTimeSeconds() + 300, // expiry time 
+    "ogn": "Sequence Unity SDK",
+    "payload": {
+        "contractAddress": "0xabc123...",
+        "tokenId": "11",
+        "amount": 5
+    }
+}
+
+This JSON get stringified and included in the MintingRequestProof:
+{
+    "Proof": "{\"app\": \"Made with Sequence Unity SDK App\", \"iat\": ...}",
+    "SignedProof": "0x123def...", // proof signed by the player's embedded wallet
+    "SigningAddress": "0xa1b2c3..." // the player's embedded wallet address
+}
+```
+
+Luego puedes validar esta carga útil en tu servidor y acuñar el token en la dirección del usuario. Para un ejemplo de implementación y configuración, por favor consulta [esta parte de nuestra guía de Jelly Forest](/guides/jelly-forest-unity-guide#4-deploy-a-remote-minter).
+
+Para otros casos de uso, es posible que desees proporcionar tu propia implementación de la clase IMinter. Esto te permite modificar el formato y la información proporcionada en la carga útil a tu servidor según sea necesario.

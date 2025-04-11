@@ -1,0 +1,72 @@
+---
+title: useOpenConnectModal
+description: Hook para abrir el modal de conexión
+sidebarTitle: useOpenConnectModal
+---
+
+## Importar
+
+```tsx
+import { useOpenConnectModal } from '@0xsequence/connect'
+```
+
+## Uso
+
+```tsx
+import { useOpenConnectModal } from '@0xsequence/connect'
+
+function App() {
+  const { setOpenConnectModal, openConnectModalState } = useOpenConnectModal()
+  
+  const handleConnect = () => {
+    setOpenConnectModal(true) // Open the connect modal
+  }
+  
+  return (
+    <>
+      <button onClick={handleConnect}>
+        Connect Wallet
+      </button>
+      
+      {openConnectModalState && (
+        <div>Connect modal is open!</div>
+      )}
+    </>
+  )
+}
+```
+
+## Tipo de Retorno: `UseOpenConnectModalReturnType`
+
+El hook retorna un objeto con las siguientes propiedades:
+
+```tsx
+type UseOpenConnectModalReturnType = {
+  setOpenConnectModal: (isOpen: boolean) => void
+  openConnectModalState: boolean
+}
+```
+
+### Propiedades
+
+#### setOpenConnectModal
+
+`(isOpen: boolean) => void`
+
+Función para abrir o cerrar el modal de Conexión.
+
+**Parámetros:**
+
+| Parámetro | Tipo      | Descripción                                                 |
+| --------- | --------- | ----------------------------------------------------------- |
+| `isOpen`  | `boolean` | Si el modal debe estar abierto (`true`) o cerrado (`false`) |
+
+#### openConnectModalState
+
+`boolean`
+
+El estado actual de apertura del modal de Conexión (`true` si está abierto, `false` si está cerrado).
+
+## Notas
+
+Este hook proporciona métodos para controlar el modal Connect que permite a los usuarios conectar sus billeteras a su aplicación. El modal Connect proporciona varias opciones de conexión de billetera, incluyendo Sequence wallet y billeteras externas.

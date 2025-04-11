@@ -1,0 +1,293 @@
+---
+title: Metadatos del Token
+sidebarTitle: Metadatos del Token
+---
+
+Sequence proporciona un servicio de metadatos para obtener metadatos de tokens para cualquier contrato ERC721 o ERC1155, en[cualquier cadena EVM](https://status.sequence.info).
+
+* [Aprende cómo consultar metadatos de tokens directamente para cualquier contrato](/api-references/metadata/examples/token-metadata#fetch-token-metadata-for-any-erc721-or-erc1155-contract)
+* [Aprende sobre los estándares y formatos de metadatos de tokens para tokens ERC721 y ERC1155](/api-references/metadata/examples/token-metadata#token-metadata-standards)
+
+<Note>
+  \[CONSEJO PRO: Sequence Indexer también soporta metadatos de tokens]
+
+  Cuando uses el[Sequence Indexer](/api-references/indexer/overview), pasa`"includeMetadata": true` a tu solicitud para consultar metadatos de tokens para cualquier contrato ERC721 o ERC1155. Ver abajo cómo obtener metadatos de tokens directamente.
+</Note>
+
+## Obtener metadatos de tokens para cualquier contrato ERC721 o ERC1155
+
+*Sequence Metadata`GetTokenMetadata` Método:*
+
+* Solicitud: POST /rpc/Metadata/GetTokenMetadata
+* Content-Type: application/json
+* Cuerpo (en JSON):
+  * `chainID` (string) -- el id de la cadena, como nombre o número (ej. "1" o "mainnet", "137" o "polygon", etc.)
+  * `contractAddress` (string) -- la dirección del contrato
+  * `tokenIDs` (array de strings) -- array de strings que contiene los ids de tokens para obtener metadatos
+
+**Ejemplo:`GetTokenMetadata` de algunos tokens usando un`AQAAAAAAAF_JvPALhBthL7VGn6jV0YDqaFY`**
+
+<Note>
+  Este código requiere una Clave de Acceso API de[Sequence Builder](https://sequence.build).
+</Note>
+
+<CodeGroup>
+  ```shell cURL
+  curl -X POST -H "Content-Type: application/json" -H "X-Access-Key: AQAAAAAAAF_JvPALhBthL7VGn6jV0YDqaFY" https://metadata.sequence.app/rpc/Metadata/GetTokenMetadata -d '{"chainID":"polygon", "contractAddress": "0x631998e91476DA5B870D741192fc5Cbc55F5a52E", "tokenIDs": ["65537", "65538", "65539"] }'
+  ```
+
+  ```ts Typescript
+  // Works in both a Webapp (browser) or Node.js:
+  import { SequenceMetadata } from '@0xsequence/metadata'
+
+  const metadataClient = new SequenceMetadata("https://metadata.sequence.app", "AQAAAAAAAF_JvPALhBthL7VGn6jV0YDqaFY")
+
+  const tokenMetadata = await metadataClient.getTokenMetadata({
+    chainID: 'polygon',
+    contractAddress: '0x631998e91476DA5B870D741192fc5Cbc55F5a52E',
+    tokenIDs: ['65537', '65538', '65539']
+  })
+
+  console.log('token metadata: ', tokenMetadata)
+  ```
+
+  ```go Go
+  import (
+  	"github.com/0xsequence/go-sequence/metadata"
+  )
+
+  seqMetadata := metadata.NewMetadata("AQAAAAAAAF_JvPALhBthL7VGn6jV0YDqaFY")
+
+  collectibleInfo, err := seqMetadata.GetTokenMetadata(context.Background(), "polygon", "0x631998e91476DA5B870D741192fc5Cbc55F5a52E", []string{"1", "2"})
+  ```
+
+  ```shell Unity
+  To be completed
+  ```
+
+  ```shell Unreal
+  To be completed
+  ```
+
+  ```shell Other
+  Please contact our team for assistance with integrations to another target.
+  ```
+</CodeGroup>
+
+## Actualizando metadatos de tokens
+
+Al desplegar nuevos contratos o actualizaciones de metadatos, la url de actualización de metadatos de tokens debe ser llamada con una clave de acceso de (Sequence Builder) a través de una solicitud HTTPS POST por línea de comandos o vía SDK de metadatos en un programa para que los datos sean indexables en el servicio de metadatos de Sequence Indexer.
+
+*Sequence Metadata`enqueueTokensForRefresh` Método:*
+
+* Solicitud: POST /rpc/Metadata/EnqueueTokensForRefresh
+* Content-Type: application/json
+* Cuerpo (en JSON):
+  * `chainID` (string) -- el id de la cadena, como nombre o número (ej. "1" o "mainnet", "137" o "polygon", etc.)
+  * `contractAddress` (string) -- la dirección del contrato
+  * `tokenIDs` (array de strings) -- array de strings que contiene los ids de tokens para obtener metadatos
+
+<CodeGroup>
+  ```shell cURL
+  curl -v -X POST -H "Content-type: application/json" -H "X-Access-Key: wuELppeX0pttvJABl8bIuxPAAAAAAAAAA" https://metadata.sequence.app/rpc/Metadata/EnqueueTokensForRefresh -d '{"chainID":"polygon", "contractAddress":"0x631998e91476DA5B870D741192fc5Cbc55F5a52E", "tokenIDs": ["1","2"]}'
+  ```
+
+  ```ts Typescript
+  // Works in both a Webapp (browser) or Node.js:
+  import { SequenceMetadata } from '@0xsequence/metadata'
+
+  const metadataClient = new SequenceMetadata("https://metadata.sequence.app", "AQAAAAAAAF_JvPALhBthL7VGn6jV0YDqaFY")
+
+  const jobID = await metadataClient.enqueueTokensForRefresh({
+      chainID: 'polygon',
+      contractAddress: '0x631998e91476DA5B870D741192fc5Cbc55F5a52E',
+      tokenIDs: ['65537', '65538', '65539']
+  })
+
+  console.log('refresh job id: ', tokenMetadata)
+  ```
+
+  ```go Go
+  import (
+  	"github.com/0xsequence/go-sequence/metadata"
+  )
+
+  seqMetadata := metadata.NewMetadata("AQAAAAAAAF_JvPALhBthL7VGn6jV0YDqaFY")
+
+  refreshJob, err := seqMetadata.EnqueueTokensForRefresh(context.Background(), "polygon", "0x631998e91476DA5B870D741192fc5Cbc55F5a52E", []string{"1", "2"}, nil)
+  ```
+
+  ```shell Other
+  Please [contact our team](/support) for assistance with integrations to another target.
+  ```
+</CodeGroup>
+
+*Sequence Metadata`getTokenRefreshStatus` Método:*
+
+* Solicitud: POST /rpc/Metadata/GetTokenRefreshStatus
+* Content-Type: application/json
+* Cuerpo (en JSON):
+  * `taskId` (uint) -- el id de tarea devuelto de`enqueueTokensForRefresh`
+
+<CodeGroup>
+  ```shell cURL
+  curl -v -X POST -H "Content-type: application/json" -H "X-Access-Key: wuELppeX0pttvJABl8bIuxPAAAAAAAAAA" https://metadata.sequence.app/rpc/Metadata/GetTokenRefreshStatus -d '{"taskId": 1234}'
+  ```
+
+  ```ts Typescript
+  // Works in both a Webapp (browser) or Node.js:
+  import { SequenceMetadata } from '@0xsequence/metadata'
+
+  const metadataClient = new SequenceMetadata("https://metadata.sequence.app", "AQAAAAAAAF_JvPALhBthL7VGn6jV0YDqaFY")
+
+  const refreshJobStatus = await metadataClient.getTokenRefreshStatus({
+      taskId: 1234
+  })
+
+  console.log('refresh job status: ', refreshJobStatus)
+  ```
+
+  ```go Go
+  import (
+  	"github.com/0xsequence/go-sequence/metadata"
+  )
+
+  seqMetadata := metadata.NewMetadata("AQAAAAAAAF_JvPALhBthL7VGn6jV0YDqaFY")
+
+  refreshJobStatus, err := seqMetadata.GetTokenRefreshStatus(context.Background(), uint64(1234))
+  ```
+
+  ```shell Other
+  Please contact our team for assistance with integrations to another target.
+  ```
+</CodeGroup>
+
+### Instrucciones de prueba:
+
+1. Verificar los metadatos actuales del token usando [token metadata fetch](/api-references/metadata/examples/token-metadata#fetch-token-metadata-for-any-erc721-or-erc1155-contract)
+2. Modificar el contenido de los metadatos del token ya sea en la cadena o a través del token baseURI
+3. Llamar a los endpoints de actualización del ID del token usando [refresh metadata](/api-references/metadata/examples/token-metadata#refreshing-token-metadata)
+4. Verificar los cambios en los metadatos del token usando [token metadata fetch](/api-references/metadata/examples/token-metadata#fetch-token-metadata-for-any-erc721-or-erc1155-contract)
+
+## Estándares de Metadatos de Token
+
+Los estándares de token populares como [EIP721](https://eips.ethereum.org/EIPS/eip-721) y [EIP1155](https://eips.ethereum.org/EIPS/eip-1155) ambos tienen formatos de estándares de metadatos similares con algunas diferencias sutiles. Además de los estándares, hemos visto en la práctica que los proyectos a menudo se desvían ligeramente de los estándares pero son sensatos, fáciles de analizar y están bien soportados en el ecosistema, incluyendo el servicio de Metadatos de Sequence. A continuación describimos los estándares y las prácticas comunes entre proyectos para ayudar a desmitificar cómo formatear los metadatos de tus tokens para tus proyectos.
+
+## Estándares de Metadatos
+
+### ERC721
+
+Los contratos de token ERC721 contienen un método en el contrato llamado `tokenURI(uint256) string`. Al consultar el método `tokenURI` en el contrato, devolverá un URI que contiene metadatos adicionales para ese activo.
+
+Ver EIP para detalles específicos: [https://github.com/ethereum/EIPs/blob/master/EIPS/eip-721.md](https://github.com/ethereum/EIPs/blob/master/EIPS/eip-721.md)
+
+[Aquí hay un ejemplo de Bored Ape (token id 9)](https://metadata.sequence.app/tokens/mainnet/0xbc4ca0eda7647a8ab7c2061c2e118a18a936f13d/9)
+
+respuesta:
+
+```json
+{
+  "tokenId": "9",
+  "contractAddress": "0xbc4ca0eda7647a8ab7c2061c2e118a18a936f13d",
+  "name": "",
+  "description": "",
+  "image": "https://ipfs.sequence.info/ipfs/QmUQgKka8EW7exiUHnMwZ4UoXA11wV7NFjHAogVAbasSYy",
+  "decimals": 0,
+  "properties": null,
+  "attributes": [
+    {
+      "trait_type": "Earring",
+      "value": "Silver Stud"
+    },
+    {
+      "trait_type": "Eyes",
+      "value": "Sleepy"
+    },
+    {
+      "trait_type": "Mouth",
+      "value": "Small Grin"
+    },
+    {
+      "trait_type": "Fur",
+      "value": "Brown"
+    },
+    {
+      "trait_type": "Hat",
+      "value": "Seaman's Hat"
+    },
+    {
+      "trait_type": "Clothes",
+      "value": "Stunt Jacket"
+    },
+    {
+      "trait_type": "Background",
+      "value": "Purple"
+    }
+  ]
+}
+```
+
+En el caso de este Bored Ape, parece que no hay nombre ni descripción establecidos, pero tienen "attributes" como un array de `{ "trait_type": string, "value: string }`.
+
+Además, consulta OpenSea para más información: [https://docs.opensea.io/docs/metadata-standards](https://docs.opensea.io/docs/metadata-standards)
+
+Ten en cuenta que OpenSea técnicamente rompe el estándar ERC1155 al sugerir usar "attributes", cuando en realidad, el ERC1155 usa el nombre de campo "properties" en lugar de "attributes", ver
+[https://github.com/ethereum/EIPs/blob/master/EIPS/eip-1155.md#erc-1155-metadata-uri-json-schema](https://github.com/ethereum/EIPs/blob/master/EIPS/eip-1155.md#erc-1155-metadata-uri-json-schema) (lee la sección de abajo). Sin embargo, esto está completamente bien y el uso mixto de properties / attributes es compatible en la práctica. En Sequence Metadata, soportamos ambas estructuras para los contratos de token que usan cualquier formato para sus [properties/attributes](/api-references/metadata/examples/token-metadata#attributes-vs-properties).
+
+[Otro ejemplo es de Neon District](https://metadata.sequence.app/tokens/polygon/0x7227e371540CF7b8e512544Ba6871472031F3335/158456331411102687640546264635)
+
+### ERC1155
+
+Los contratos de token ERC1155 contienen un método en el contrato llamado `uri(uint256) string`. Al consultar el método `uri` en el contrato, devolverá un URI que contiene metadatos adicionales para ese activo.
+
+Ver EIP para detalles específicos: [https://github.com/ethereum/EIPs/blob/master/EIPS/eip-1155.md#erc-1155-metadata-uri-json-schema](https://github.com/ethereum/EIPs/blob/master/EIPS/eip-1155.md#erc-1155-metadata-uri-json-schema)
+
+[Aquí hay un ejemplo de carta de Skyweaver (token id 65548)](https://metadata.sequence.app/tokens/polygon/0x27A11C1563a5dDa238379B95c91B3AbBaD9C0cf6/65548)
+
+```json
+{
+  "tokenId": "65548",
+  "contractAddress": "0x27a11c1563a5dda238379b95c91b3abbad9c0cf6",
+  "name": "Weighted Die (Silver)",
+  "description": "Give +1/+1, armor, and guard to a random ally unit, six times.\n\n\"I will not bow to fate. If the dice fall against me, I'll cut off the hand that cast them.\"\n -Horik",
+  "image": "https://assets.skyweaver.net/LV7xNcQh/webapp/cards/full-cards/6x/12-silver.png",
+  "decimals": 2,
+  "properties": {
+    "artists": {
+      "name": "Artist",
+      "value": [
+        {
+          "id": "xavi",
+          "name": "Henrique Xavier",
+          "url": "https://www.artstation.com/kitexavier"
+        }
+      ]
+    },
+    "baseCardId": 12,
+    "cardType": "Spell",
+    "element": "Metal",
+    "mana": 8,
+    "prism": "Strength",
+    "type": "Silver"
+  },
+  "attributes": null
+}
+```
+
+Como puedes ver, los metadatos del token ERC1155 de Skyweaver utilizan el objeto `properties`, que es un tipo de objeto/diccionario de datos arbitrarios.
+
+### Attributes vs Properties
+
+Como puedes ver, el formato estándar de metadatos de token contiene tanto `attributes` como `properties`. El campo `attributes` es un array de objetos. El campo `properties` es un objeto/diccionario de datos arbitrarios. En términos técnicos, el tipo `attributes` se define como
+`[]map<string,any>` y el tipo `properties` se define como `map<string,any>`.
+
+En la práctica, hemos visto que muchos proyectos usan tanto `attributes` como `properties` para almacenar los mismos datos, y en algunos casos, usan
+`attributes` para almacenar datos que deberían estar en `properties` y viceversa. A veces los proyectos usan ambos campos, y esto está completamente bien en la práctica, ya que los mercados y servicios analizarán ambas áreas.
+
+Finalmente, si estás buscando extender el formato de metadatos para adaptarlo a tu proyecto, recomendamos utilizar uno o ambos `attributes`
+
+y `properties` campos para ERC721 o ERC1155.
+
+### ERC20
+
+Finalmente, una nota sobre los tokens ERC20. Los tokens ERC20 son solo un único token, por lo que ellos mismos no tienen un ID de token, sino que están representados enteramente por su dirección de contrato. Podemos inferir alguna información sobre el token consultando los métodos del contrato como `name` y `decimals`. Adicionalmente, los tokens ERC20 pueden aprovechar la extensión `contractURI` utilizada por OpenSea y descrita con más detalle en nuestra sección de [Metadatos del contrato](/api-references/metadata/examples/contract-metadata).

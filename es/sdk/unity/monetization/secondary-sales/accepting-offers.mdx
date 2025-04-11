@@ -1,0 +1,34 @@
+---
+title: Aceptando Ofertas
+---
+
+Si hay ofertas pendientes, los usuarios pueden ser habilitados para "aceptar" ofertas, vendiendo su(s) coleccionable(s) al usuario que hizo la oferta.
+
+Puedes leer las ofertas pendientes usando`ListCollectibleOffersWithHighestPricedOfferFirst`:
+
+```csharp
+IMarketplaceReader reader = new MarketplaceReader(chain);
+ListCollectibleListingsReturn collectiblesResponse = await reader.ListCollectibleOffersWithHighestPricedOfferFirst(collectibleContractAddress, optionalCollectiblesFilter);
+```
+
+o, si quieres obtener todas las ofertas vendibles para tu usuario, puedes usar el método auxiliar`ListAllSellableOffers` (o simplemente proporcionar el`CollectiblesFilter` a continuación):
+
+```csharp
+IMarketplaceReader reader = new MarketplaceReader(chain);
+CollectibleOrder[] sellableOffers = await reader.ListAllSellableOffers(userAddress, collectionContractAddress, optionalCollectiblesFilter);
+```
+
+Esto añadirá la dirección del usuario (dirección del vendedor) al`inAccounts` y`ordersNotCreatedBy` filtros en el objeto CollectiblesFilter. Este método también manejará la paginación por ti - continuamente haciendo solicitudes hasta que no haya más páginas - así que úsalo con precaución si esperas un gran número de ofertas. Si esperas un gran número de ofertas, simplemente usa`ListCollectibleOffersWithHighestPricedOfferFirst` y proporciona el`CollectiblesFilter`.
+
+Una vez que el usuario ha seleccionado la oferta que desea aceptar y la cantidad de instancias de coleccionables que quiere vender, puedes completar la oferta/vender el/los coleccionable(s):
+
+```csharp
+ICheckout checkout = new Checkout(_wallet, _chain);
+Step[] steps = await checkout.GenerateSellTransaction(selectedOrders, amount);
+TransactionReturn result = await steps.SubmitAsTransactions(_wallet, _chain);
+if (result is SuccessfulTransactionReturn successTransaction) {
+    // Handle success case
+}else {
+    // Handle fail case
+}
+```

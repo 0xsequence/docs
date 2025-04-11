@@ -1,0 +1,66 @@
+---
+title: Cuentas Federadas
+---
+
+Por defecto, la API de WaaS solo permite una cuenta por correo electrónico. Si un usuario intenta iniciar sesión usando un método diferente pero con el mismo correo electrónico que antes, recibirá un`EmailAlreadyInUse` error.
+
+Por ejemplo: si el usuario creó su cuenta usando Google Sign In y luego intenta iniciar sesión con Email + OTP usando el mismo método, recibirá este error.
+
+Por defecto (si se usa el`LoginPanel`), el SDK abrirá automáticamente el`FederatedAuthPopupPanel` prefab ubicado en`SequenceFrontend > Prefabs > FederatedAuthPopupPanel`. Este prefab puede ser personalizado a su vinculación o reemplazado en el`LoginPanel` prefab. Este panel explicará al usuario que no se permiten métodos de inicio de sesión duplicados y le pedirá que regrese a la pantalla de inicio de sesión y acceda con su método de inicio de sesión asociado (o un correo electrónico diferente).
+
+<Info>Si`EnableMultipleAccountsPerEmail` está habilitado en`SequenceConfig` el`FederatedAuthPopupPanel` dará al usuario la opción de crear otra cuenta asociada con su correo electrónico.</Info>
+
+Una vez que el usuario ha iniciado sesión en su cuenta; el SDK realizará automáticamente una`FederateAccount` solicitud (ver`SequenceLogin`). Esto asociará el método de inicio de sesión fallido con ese correo electrónico también, para que el usuario pueda iniciar sesión con cualquiera de los dos en el futuro. Usando nuestro ejemplo anterior, el usuario ahora podría iniciar sesión en su cuenta usando Google Sign In o Email + OTP.
+
+## Federación Manual de Cuentas
+
+Es posible que desee agregar un botón a su aplicación que permita al usuario asociar un método de inicio de sesión adicional con su correo electrónico (especialmente si está usando Inicio de Sesión como Invitado). Necesitará obtener una referencia a`SequenceLogin` y luego llamar al`FederateAccount` método apropiado para el método de inicio de sesión.
+
+```csharp
+SequenceLogin login = SequenceLogin.GetInstance();
+
+// PlayFab
+login.FederateAccountPlayFab(titleId, sessionTicket, email, walletAddress);
+
+// OIDC (Social)
+login.FederateAccountSocial(idToken, loginMethod, walletAddress);
+
+// Guest
+login.FederateAccountGuest(walletAddress);
+
+// Email
+login.Login(email);
+// Later ... Once you've received the OTP code from the user
+login.FederateAccountEmail(email, code, walletAddress); 
+```
+
+donde walletAddress es la dirección del`SequenceWallet` que recuperó después de autenticar al usuario.
+
+### Reutilización del Panel de Inicio de Sesión Predeterminado
+
+Para permitir que un usuario federe/vincule sus cuentas manualmente usando el Panel de Inicio de Sesión predeterminado, simplemente llame a`SetConnectedWalletAddress` en su`SequenceLogin` instancia o llame a`SequenceLogin.GetInstanceToFederateAuth` con la dirección de billetera actualmente autenticada proporcionada.
+
+```csharp
+SequenceLogin login = SequenceLogin.GetInstance();
+login.SetConnectedWalletAddress(authenticatedSequenceWalletAddress);
+
+// or
+
+SequenceLogin.GetInstanceToFederateAuth(authenticatedSequenceWalletAddress);
+```
+
+Esto configurará su instancia de SequenceLogin para federar las cuentas en lugar de crear una nueva sesión.
+
+<Tip>Una vez que el usuario haya cerrado sesión, no olvide llamar a`SetConnectedWalletAddress(null)` para reconfigurar SequenceLogin para crear nuevas sesiones nuevamente.</Tip>
+
+p.ej.
+
+```csharp
+private void OnDropSessionCompleteHandler(string sessionId) {
+    if (sessionId == Wallet.SessionId)
+    {
+        SequenceLogin.GetInstance().SetConnectedWalletAddress(null);
+        SceneManager.LoadScene("LoginScene"); // Re-open your scene or UI to allow the user to log back in and create a new session here
+    }
+}
+```

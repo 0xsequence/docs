@@ -1,0 +1,108 @@
+---
+title: Integrando Web SDK con Mini-apps de Telegram
+description: Aprende cómo integrar Web SDK con tu Mini-app o Juego de Telegram
+  para una funcionalidad web3 sin problemas.
+sidebarTitle: Build a Telegram Mini-App with Sequence
+---
+
+Esta guía te llevará a través de la configuración de Web SDK con tu Mini-app o Juego de Telegram, habilitando la funcionalidad web3 en cadenas EVM para tus usuarios con métodos de autenticación por correo electrónico e invitado.
+
+## Prerrequisitos
+
+Antes de comenzar, asegúrate de tener:
+
+* Una cuenta de Telegram
+* Cuenta y Acceso al [Panel de Cloudflare](https://dash.cloudflare.com)
+
+## Pasos de Integración
+
+<Steps>
+  <Step title="Create a Telegram Bot with BotFather">
+    1. Abre Telegram y busca "@BotFather"
+    2. Inicia una conversación haciendo clic en "Start" o escribiendo `/start`
+    3. Crea un nuevo bot escribiendo `/newbot`
+    4. Sigue las indicaciones:
+       * Ingresa un nombre para tu bot
+       * Elige un nombre de usuario (debe terminar en 'bot')
+  </Step>
+
+  <Step title="Obtain Required Tokens">
+    Después de crear tu bot, BotFather proporcionará:
+
+    * Token del Bot (Token de API HTTP)
+    * Nombre de usuario del Bot
+
+    Guarda estas credenciales - las necesitarás para los siguientes pasos.
+
+    <Warning>
+      Nunca compartas ni hagas commit de tu token de bot. Debe tratarse como un secreto.
+    </Warning>
+  </Step>
+
+  <Step title="Install and Configure Your Project">
+    1. Clona el starter de Sequence Telegram:
+
+    ```shell
+    git clone https://github.com/0xsequence-demos/telegram-kit-embedded-wallet-react-boilerplate
+    ```
+
+    2. Copia los archivos de ejemplo en la raíz de tu proyecto:
+
+    ```shell
+    cp .env.example .env && cp example.wrangler.toml wrangler.toml
+    ```
+
+    Actualiza el `.env` archivo con el `VITE_PROJECT_ACCESS_KEY` y `VITE_WAAS_CONFIG_KEY` con tus claves de [Sequence Builder](https://sequence.build/project/default/embedded-wallet) después de la configuración.
+
+    3. Instala las dependencias:
+
+    ```shell
+    pnpm install
+    ```
+
+    4. Construye la aplicación:
+
+    ```shell
+    pnpm run build
+    ```
+
+    4. Actualiza el `VARS` en el `wrangler.toml` archivo con un secreto proporcionado por el usuario para `BOT_SECRET` y el token del bot de BotFather para `BOT_TOKEN`.
+  </Step>
+
+  <Step title="Authenticate with Cloudflare Account">
+    Despliega la aplicación y la lógica de funciones en Cloudflare
+
+    1. Ejecuta `pnpm wrangler pages deploy`
+
+    Esto te pedirá que te autentiques con Cloudflare si aún no has iniciado sesión. Al desplegar exitosamente, copia la URL donde tu aplicación está ahora alojada.
+  </Step>
+
+  <Step title="Register Webhook with Telegram">
+    Ahora llamamos a nuestro `registerWebhook` endpoint en nuestra aplicación para registrar la función webhook con la URL de tu aplicación desplegada para habilitar el acceso para la API de Telegram.
+
+    ```shell
+    curl -X POST \
+         "<YOUR_CLOUDFLARE_DEPLOYED_URL>/api/registerWebhook"
+    ```
+  </Step>
+
+  <Step title="Update Allowed Origins">
+    Asegúrate de que en la configuración de tu billetera hayas agregado la URL de tu aplicación desplegada como un origen permitido a través de la página de configuración en [Sequence Builder](https://sequence.build/project/default/embedded-wallet).
+  </Step>
+
+  <Step title="Test out the Bot!">
+    ¡Envía un mensaje a tu bot en Telegram y mira si responde! Debería responderte con la capacidad de compartir, jugar y obtener más información sobre el bot.
+  </Step>
+</Steps>
+
+A partir de aquí, tienes un bot de Telegram completamente funcional que puede interactuar con billeteras integradas de Sequence para todas las cadenas EVM integradas. Puedes personalizar las respuestas del bot y la aplicación del lado del cliente con funcionalidades específicas para tu juego o aplicación - ¡simplemente vuelve a desplegar y actualiza los orígenes permitidos!
+
+## Pasando a producción
+
+Para tu `BOT_TOKEN`, puedes encriptar y almacenarlo en Cloudflare mediante el siguiente comando para prevenir fugas de datos:
+
+```shell
+pnpm wrangler pages secret put BOT_TOKEN
+```
+
+Ingresa tu token de bot cuando se te solicite.

@@ -1,0 +1,141 @@
+---
+title: Cómo Desplegar Moneda del Juego en Sequence Builder
+description: Aprende cómo crear tu propia moneda del juego desplegando y
+  acuñando desde un contrato ERC20. Comprende la diferencia entre tokens
+  fungibles y no fungibles.
+sidebarTitle: Desplegar una Moneda del Juego(ERC20)
+---
+
+## Introducción
+
+En esta guía, te mostraremos el proceso de crear tu propia moneda dentro del juego mediante el despliegue y acuñación de un contrato ERC20.
+
+Los tokens de moneda agregan nuevas e interesantes dimensiones a las economías del juego, las transacciones y las interacciones entre jugadores para desbloquear y distribuir valor.
+
+#### ¿Qué es un token ERC20?
+
+Un token ERC20 es una moneda digital - lo que lo hace especial es que sigue un [conjunto de reglas llamado ERC20](https://ethereum.org/en/developers/docs/standards/tokens/erc-20/), lo que facilita su uso en diferentes lugares de internet. Estos tokens a menudo representan valor o se utilizan para propósitos específicos. A diferencia del otro token común - los NFT, estos tokens son fungibles.
+
+#### Fungibilidad vs No-Fungibilidad
+
+Esta es la distinción clave para entender.
+
+Los tokens fungibles (como los tokens ERC20) son intercambiables, y cada unidad es igual a todas las demás unidades, como los dólares o euros. Pueden dividirse o combinarse fácilmente en diferentes cantidades.
+
+Los tokens no fungibles (como los tokens ERC721) representan elementos únicos con propiedades individuales, como arte digital o coleccionables. Cada token es distinto y no es directamente intercambiable con otro en una base uno a uno.
+
+<Warning>
+  Prerrequisito: Crear un Proyecto
+
+  Esta guía asume que ya has [registrado en Builder y creado un Proyecto](/solutions/builder/getting-started).
+</Warning>
+
+## Paso 1: Navega a contratos
+
+Comienza seleccionando tu `project` en la esquina superior izquierda para lo que quieres crear la moneda, y dirígete a la sección `contracts` y selecciona `+ Deploy new contract`
+
+<Frame>
+  ![select project and new contract](/images/collectibles/select_project_new_contract.png)
+</Frame>
+
+## Paso 2: Selecciona Token de Moneda
+
+Haz clic en `View more contracts`
+
+<Frame>
+  ![view more contracts](/images/collectibles/view_more_contracts.png)
+</Frame>
+
+Selecciona el contrato de Token de Moneda y haz clic en `deploy` para desplegar tu contrato auditado por Sequence
+
+<Frame>
+  ![select currency and deploy button](/images/collectibles/select_currency_deploy.png)
+</Frame>
+
+## Paso 3: Especifica los detalles del contrato
+
+Completa los detalles del contrato especificando un `name` y `symbol` para tu contrato.
+
+<Frame>
+  ![select currency and deploy button](/images/collectibles/currency_contract_details.png)
+</Frame>
+
+<Warning>
+  Nota:
+
+  Aunque puedes cambiar el `name` y `symbol` más tarde en la interfaz del builder donde se actualizará en toda la pila de sequence, los exploradores populares no reindexan la información, por lo que lo que pones primero permanece
+</Warning>
+
+## Paso 4: Despliega tu contrato
+
+Despliega tu contrato desde la ventana emergente en [http://sequence.app/sign-transaction](http://sequence.app/sign-transaction), y firma el mensaje seleccionando `confirm`
+
+<Frame>
+  <img src="/images/collectibles/sign_deploy_transaction.png" width="200" />
+</Frame>
+
+<Note>
+  Todas las redes de prueba serán gratuitas para transaccionar
+</Note>
+
+## Paso 5: Añade un Rol de Acuñador al contrato
+
+Primero comienza seleccionando el contrato que acabas de desplegar en la sección `contracts` sección
+
+<Frame>
+  ![select contract](/images/collectibles/select_contract.png)
+</Frame>
+
+Luego, dirígete a la `Write Contract` sección
+
+<Frame>
+  ![write contract](/images/collectibles/select_write_contract.png)
+</Frame>
+
+En la `grantRole` sección de la pestaña de navegación del contrato de escritura, completa con los siguientes detalles:
+
+`bytes32 role`: `0x9f2df0fed2c77648de5860a4cc508cd0818c85b8b8a1ab4ceeef8d981c8956a6`
+
+`address account`: `<Wallet Address>`
+
+Donde la dirección de la billetera se copia simplemente desde la esquina superior derecha para poder enviar tokens a tu billetera
+
+<Frame>
+  ![copy address](/images/collectibles/copy_address.png)
+</Frame>
+
+<Frame>
+  ![grant role](/images/collectibles/grant_role.png)
+</Frame>
+
+Completa seleccionando `write` y firmando la transacción en la ventana emergente, como antes
+
+Con un mensaje de confirmación mostrando `Response Success`
+
+<Note>
+  La cadena del rol introducida es el resultado de `solidityPackedKeccak256("MINTER_ROLE")` en
+  solidity o `ethers.solidityPackedKeccak256(ethers.toUtf8Bytes("MINTER_ROLE"))`
+  en javascript
+</Note>
+
+<Tip>
+  Es un patrón típico usar computación fuera de la cadena como un trabajador de cloudflare con una billetera de retransmisión enviando transacciones, que se introduciría en el campo de cuenta, más información sobre cómo lograr esto [aquí](/guides/mint-collectibles-serverless#mint-collectibles-using-a-gasless-serverless-transactions-api)
+</Tip>
+
+## Paso 6: Acuña tokens a tu dirección de billetera
+
+Navega al `mint` tarjeta en la `Write Contract` sección e ingresa la dirección de tu billetera donde deseas recibir los tokens y la cantidad de tokens en 18 decimales. Entonces para 100 tokens ingresarías: `100000000000000000000`
+
+<Frame>
+  ![mint tokens](/images/collectibles/mint_currency.png)
+</Frame>
+
+## Paso 7: Confirma tu moneda acuñada
+
+¡Y listo!
+
+Puedes ver las transacciones enviadas a la blockchain para tu dirección de billetera en la `Transactions` pestaña de navegación
+
+<Frame>
+  ![view currency transactions](/images/collectibles/view_currency_transactions.png)
+</Frame>

@@ -1,0 +1,170 @@
+---
+title: useGetTokenBalancesByContract
+description: Hook para obtener múltiples saldos de tokens por direcciones de contrato
+sidebarTitle: useGetTokenBalancesByContract
+---
+
+## Importar
+
+```tsx
+import { useGetTokenBalancesByContract } from '@0xsequence/hooks'
+```
+
+## Uso
+
+```tsx
+import { useGetTokenBalancesByContract } from '@0xsequence/hooks'
+import { useAccount } from 'wagmi'
+import { ContractVerificationStatus } from '@0xsequence/connect'
+
+function TokenBalances() {
+  const { address } = useAccount()
+  
+  const {
+    data: balances,
+    isLoading,
+    isError
+  } = useGetTokenBalancesByContract({
+    chainIds: [1], // Ethereum mainnet
+    filter: {
+      contractAddresses: [
+        '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48', // USDC
+        '0xdac17f958d2ee523a2206206994597c13d831ec7'  // USDT
+      ],
+      accountAddresses: [address || ''],
+      contractStatus: ContractVerificationStatus.VERIFIED // Optional: only fetch verified contracts
+    }
+  }, {
+    hideCollectibles: true // Optional: filter out NFTs
+  })
+
+  if (isLoading) return <div>Loading...</div>
+  if (isError) return <div>Error fetching balances</div>
+
+  return (
+    <div>
+      {balances?.map(balance => (
+        <div key={`${balance.chainId}-${balance.contractAddress}`}>
+          <h3>{balance.contractInfo?.symbol || 'Unknown Token'}</h3>
+          <p>Balance: {balance.balance}</p>
+          <p>Contract: {balance.contractAddress}</p>
+          {balance.contractInfo && (
+            <img 
+              src={balance.contractInfo.logoURI} 
+              alt={balance.contractInfo.symbol}
+              width={24} 
+              height={24} 
+            />
+          )}
+        </div>
+      ))}
+    </div>
+  )
+}
+```
+
+## Tipo de Retorno: `UseQueryResult<TokenBalance[]>`
+
+El hook devuelve todas las propiedades de React Query's `UseQueryResult` con datos de saldo de tokens. Aquí está la estructura detallada:
+
+```tsx
+interface TokenBalance {
+  contractType: ContractType
+  contractAddress: string
+  accountAddress: string
+  tokenID?: string
+  balance: string
+  blockHash: string
+  blockNumber: number
+  chainId: number
+  uniqueCollectibles: string
+  isSummary: boolean
+  contractInfo?: ContractInfo
+  tokenMetadata?: TokenMetadata
+}
+```
+
+### Propiedades
+
+#### data
+
+`TokenBalance[] | undefined`
+
+Array de objetos de saldo de tokens que contienen:
+
+* `contractType`: Tipo del contrato de token (ERC20, ERC721, ERC1155)
+* `contractAddress`: Dirección del contrato de token
+* `accountAddress`: Dirección de la cuenta que posee los tokens
+* `balance`: Saldo del token como string (en unidades base)
+* `chainId`: ID de la cadena donde existe el token
+* `blockHash`: Hash del bloque donde se actualizó por última vez el saldo
+* `blockNumber`: Número del bloque donde se actualizó por última vez el saldo
+* `tokenID`: ID de token opcional para NFTs
+* `contractInfo`: Información opcional del contrato de token incluyendo nombre, símbolo, decimales y URL del logo
+* `tokenMetadata`: Metadatos opcionales sobre el token
+* `uniqueCollectibles`: Número de coleccionables únicos
+* `isSummary`: Si el saldo es un resumen
+
+#### isLoading
+
+`boolean`
+
+Estado de carga para la obtención de datos.
+
+#### isError
+
+`boolean`
+
+Estado de error que indica si la consulta falló.
+
+#### error
+
+`Error | null`
+
+Cualquier error que ocurrió durante la obtención de datos.
+
+## Parámetros
+
+El hook acepta dos parámetros:
+
+### args: `GetTokenBalancesByContractArgs`
+
+```tsx
+enum ContractVerificationStatus {
+    VERIFIED = "VERIFIED",
+    UNVERIFIED = "UNVERIFIED",
+    ALL = "ALL"
+}
+
+interface GetTokenBalancesByContractArgs {
+  chainIds: number[]
+  filter: {
+    contractAddresses: string[]
+    accountAddresses?: string[]
+    contractStatus?: ContractVerificationStatus
+  }
+}
+```
+
+| Parámetro                  | Tipo                         | Descripción                                                         |
+| -------------------------- | ---------------------------- | ------------------------------------------------------------------- |
+| `chainIds`                 | `number[]`                   | Array de IDs de cadena para obtener los saldos                      |
+| `filter.contractAddresses` | `string[]`                   | Array de direcciones de contratos de tokens para obtener los saldos |
+| `filter.accountAddresses`  | `string[]`                   | (Opcional) Array de direcciones de cuentas para obtener los saldos  |
+| `filter.contractStatus`    | `ContractVerificationStatus` | (Opcional) Filtro para el estado de verificación del contrato       |
+
+### options: `BalanceHookOptions`
+
+```tsx
+interface BalanceHookOptions {
+  disabled?: boolean
+  retry?: boolean
+  hideCollectibles?: boolean
+}
+```
+
+| Parámetro          | Tipo      | Descripción                                                        |
+| ------------------ | --------- | ------------------------------------------------------------------ |
+| `disabled`         | `boolean` | (Opcional) Deshabilitar que la consulta se ejecute automáticamente |
+| `retry`            | `boolean` | (Opcional) Si se deben reintentar las consultas fallidas           |
+| `hideCollectibles` | `boolean` | (Opcional) Si es verdadero, filtra los tokens ERC721 y ERC1155     |

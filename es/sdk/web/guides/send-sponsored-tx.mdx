@@ -1,0 +1,63 @@
+---
+title: Send a sponsored transaction
+description: En este tutorial, aprenderemos cómo enviar transacciones patrocinadas usando Web SDK.
+sidebarTitle: Sponsor transactions
+---
+
+<Steps>
+  <Step title="Setup Web SDK">
+    Asegúrese de haber completado la guía de [Primeros Pasos](/sdk/web/getting-started).
+  </Step>
+
+  <Step title="Setup your Gas Tank (for Mainnet only)">
+    Si planea enviar transacciones en mainnet, necesita configurar su tanque de gas. Vaya a [Patrocinio de Gas](/solutions/builder/gas-tank) para aprender cómo configurar su tanque de gas.
+
+    <Note>
+      Todas las transacciones de billetera inteligente de Sequence están patrocinadas por defecto en las redes de prueba.
+    </Note>
+  </Step>
+
+  <Step title="Send a sponsored transaction">
+    A continuación, crearemos un componente simple para enviar una transacción patrocinada.
+
+    ```typescript
+    import React, { useState, useEffect } from 'react';
+    import { Button, Card, Select, Text } from '@0xsequence/design-system';
+    import { useAccount, useSendTransaction } from 'wagmi';
+
+    export const SponsoredTransactionExample = () => {
+      const { address } = useAccount();
+
+      const {
+        sendTransaction,
+        isPending,
+        isSuccess,
+        data: txHash
+      } = useSendTransaction();
+
+      const sendSponsoredTx = () => {
+        if (!address) return;
+        // Sending a dummy tx
+        sendTransaction({
+          to: address,
+          value: BigInt(0),
+          gas: null
+        });
+      };
+
+      return (
+        <>
+          <div>
+            <Text>Address: {address}</Text>
+            <Button onClick={sendSponsored}>Send Sponsored</Button>
+            {isPending && <Text>Pending...</Text>}
+            {isSuccess && <Text>Success! Tx Hash: {txHash}</Text>}
+          </div>
+        </>
+      )
+    }
+    ```
+  </Step>
+</Steps>
+
+¡Felicitaciones! Acabas de aprender cómo enviar una transacción patrocinada usando Web SDK.

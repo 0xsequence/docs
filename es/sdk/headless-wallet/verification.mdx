@@ -1,0 +1,100 @@
+---
+title: Verificación
+description: El contenido proporciona una guía detallada sobre la verificación de propiedad de una
+  dirección de Billetera Integrada usando un nonce y tiempo de expiración opcional.
+sidebarTitle: Backend Verification
+---
+
+Un caso de uso común es que autentiques al usuario en el cliente, pero también quieras validar este token así como la información correspondiente del usuario en tu backend. En este caso, Sequence proporciona una función para obtener un JWT que puede ser verificado usando tu biblioteca JWT de elección para tu framework específico. A continuación, presentamos un ejemplo usando Typescript y un servidor express.
+
+<Note>
+  Un ejemplo de cliente y servidor que demuestra lo siguiente está disponible [aquí](https://github.com/0xsequence-demos/embedded-wallet-verify-session)
+</Note>
+
+### Implementación
+
+<Steps>
+  <Step title="Request IdToken via Client">
+    Una vez que un usuario se ha autenticado con una billetera integrada en el cliente, simplemente llama a la función correspondiente para obtener un JWT de Sequence.
+
+    ```typescript
+    // Using Sequence.js
+    const { idToken } = await sequence.getIdToken();
+    ```
+
+    ```typescript
+    // Using Web-SDK in React
+    const { connector } = useAccount()
+
+    const { idToken, expiry } = await connector.sequenceWaas.getIdToken()
+    ```
+  </Step>
+
+  <Step title="Pass JWT to Backend">
+    Realiza una solicitud POST a tu backend con el JWT consultado.
+
+    ```typescript
+    const response = await fetch(BACKEND_ENDPOINT, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ sequenceToken: idToken }),
+    });
+    ```
+  </Step>
+
+  <Step title="Import JWT libraries and initialize JWKS">
+    Desde nuestro servidor express al que se pasó el JWT, simplemente importamos nuestra biblioteca JWT preferida para verificar la información e inicializamos nuestro JWKS para verificar. También es importante asegurarse de que tu audiencia esperada esté configurada correctamente para que el reclamo se verifique adecuadamente.
+
+    ```typescript
+    import * as jwt from "jsonwebtoken";
+    import * as jwksClient from "jwks-rsa";
+
+    ...serverConfig
+
+    // Initialize the JWKS client
+    const client = jwksClient({
+      jwksUri: "https://waas.sequence.app/.well-known/jwks.json",
+      cache: true,
+      cacheMaxAge: 86400000, // 1 day
+    });
+
+    // Should be equal to the audience claim in the JWT that you want to verify which will be of the form https://sequence.build/project/*projectID*
+    const EXPECTED_AUDIENCE = "https://sequence.build/project/*PROJECT_ID*"
+    ```
+  </Step>
+
+  <Step title="Decoding JWT and Verifying Claims">
+    Ahora podemos analizar el JWT, verificarlo contra nuestro URI JWKS, y luego validar cualquiera de los reclamos.
+
+    ```typescript
+    const decodedToken = jwt.decode(token, { complete: true });
+    if (!decodedToken || typeof decodedToken === "string") {
+      throw new Error("Invalid token");
+    }
+
+    const kid = decodedToken.header.kid;
+    const signingKey = await getSigningKey(kid);
+    const publicKey = (
+      signingKey as jwksClient.CertSigningKey | jwksClient.RsaSigningKey
+    ).getPublicKey();
+
+    console.log(EXPECTED_AUDIENCE);
+
+    const verified = jwt.verify(token, publicKey, {
+      algorithms: ["RS256"], // Specify the expected algorithm
+      audience: EXPECTED_AUDIENCE, // Verify the audience claim
+    });
+
+      // Verifying Email claim
+    if (!verified.email || typeof verified.email !== "string") {
+      throw new Error("Invalid email claim");
+    }
+    ```
+  </Step>
+
+  <Step title="Update your backend">
+    A partir de aquí, ya has verificado la información correspondiente al JWT y puedes actualizar tu backend de manera segura según sea necesario.
+  </Step>
+</Steps>

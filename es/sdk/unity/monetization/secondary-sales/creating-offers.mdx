@@ -1,0 +1,18 @@
+---
+title: Creando Ofertas
+---
+
+Al construir tu marketplace, es posible que quieras dar a tus usuarios la oportunidad de hacer ofertas para comprar coleccionables. Probablemente querrás mostrar una interfaz de usuario que muestre los coleccionables que se pueden vender en tu marketplace.
+
+Una vez que tu usuario haya seleccionado el coleccionable, la cantidad y el precio que desea ofrecer para la compra, querrás crear la oferta.
+
+```
+ICheckout checkout = new Checkout(_wallet, _chain);
+Step[] steps = await checkout.GenerateOfferTransaction(collectionContractAddress, tokenId, amount, ContractType.ERC1155, currencyTokenAddress, pricePerTokenInstance, expiryDateTime);
+TransactionReturn result = await steps.SubmitAsTransactions(_wallet, _chain);
+if (result is SuccessfulTransactionReturn successTransaction) {
+    // Handle success case
+}else {
+    // Handle fail case
+}
+```

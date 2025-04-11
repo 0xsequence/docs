@@ -1,0 +1,21 @@
+---
+title: Firmar Mensajes
+---
+
+Firmar un mensaje es una [asynchronous Task](https://medium.com/@sonusprocks/async-await-in-c-unity-explained-in-easy-words-571ebb6a9369). Puedes usar `await` al llamar `WaaSWallet.SignMessage` desde dentro de una tarea asíncrona si deseas obtener el objeto `SignMessageReturn` directamente. O puedes tomar el enfoque recomendado que es configurar una función manejadora para el evento `WaaSWallet.OnSignMessageComplete` y llamar al método `WaaSWallet.SignMessage` desde cualquier lugar (sin await). Por ejemplo:
+
+```csharp
+public void OnSignMessageCompleteHandler(string signature) {
+    // Do something
+}
+
+public void OnWalletCreatedHander(SequenceWallet wallet) {
+    wallet.OnSignMessageComplete += OnSignMessageCompleteHandler;
+}
+```
+
+```csharp
+_wallet.SignMessage(Chain.Polygon, "Message to sign");
+```
+
+Si no estás familiarizado con el trabajo con eventos en Unity, consulta esta excelente [publicación de Reddit](https://www.reddit.com/r/gamedev/comments/u3hz2v/how_to_use_events_a_supersimple_unity_example/)!

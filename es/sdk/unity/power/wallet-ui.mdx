@@ -1,0 +1,59 @@
+---
+title: Interfaz de Billetera
+---
+
+Como un producto de Billetera como Servicio, este SDK no requiere interfaz de usuario. Sin embargo, como esperamos que algunas aplicaciones aún elijan proporcionar algún tipo de interfaz de billetera a los usuarios, estamos haciendo esfuerzos para proporcionar una interfaz de usuario predeterminada que pueda utilizar.
+
+Esta interfaz de usuario se puede encontrar en`SequenceFrontend`.
+
+Para agregar la interfaz de usuario a tu escena, puedes añadir el`WalletPanel` prefab que se encuentra en`SequenceFrontend > Prefabs`. Se abre usando el método Open; debes proporcionar un`Sequence.EmbeddedWallet.IWallet` (por ejemplo, un`SequenceWallet`) como argumento.
+
+Notarás que la interfaz de usuario todavía está en desarrollo y también está usando mocks en algunos lugares (obtención del historial de transacciones y precios). Estos serán reemplazados en próximas actualizaciones del SDK, pero siéntete libre de reemplazarlos por tu cuenta (¡y para puntos extra, envía un PR!).
+
+## Cómo Funciona
+
+La interfaz de usuario de muestra de Sequence está compuesta por algunos componentes importantes.
+
+### UIPage
+
+Un`UIPage` es la implementación base de una "página" en la interfaz de usuario de muestra. Páginas de ejemplo:`LoginPage`,`TokenInfoPage`
+
+Es responsable de abrir/cerrar la página y gestionar el`ITween`.
+
+### ITween
+
+Un`ITween` es una interfaz para una animación (entrada/salida) que se puede aplicar a un`RectTransform` (un componente requerido de un`UIPage`). Si no te gustan las animaciones para un`UIPage` o`UIPanel` específico, puedes cambiarlo fácilmente por cualquier otro MonoBehaviour que implemente la interfaz`ITween`, ¡incluso uno propio!
+
+Consejo: para ahorrar tiempo creando tus propias animaciones, considera usar el popular conjunto de herramientas[DOTween](https://assetstore.unity.com/packages/tools/animation/dotween-hotween-v2-27676)
+
+### UIPanel
+
+Heredando de`UIPage`, un`UIPanel` es la implementación base de un "panel" en la interfaz de usuario de muestra. Paneles de ejemplo:`LoginPanel`,`WalletPanel`
+
+Además de las`UIPage` responsabilidades, los UIPanels mantienen una pila de UIPages y`object[]` (argumentos de apertura) y son responsables de gestionar cualquier escucha de eventos requerida y las transiciones de UI entre sus páginas hijas (según la jerarquía del inspector de escena), incluyendo el manejo del botón "Atrás".
+
+### SequenceSampleUI
+
+`SequenceSampleUI` puede considerarse como el "gestor" de la interfaz de usuario de muestra. Mantiene una referencia a todos los UIPanels y es responsable de abrirlos según sea necesario, incluso en`Start()`. Si estás integrando toda o parte de la interfaz de usuario de muestra proporcionada en tu proyecto, puede ser más práctico reemplazar`SequenceSampleUI` con tu propio "gestor" de UI, usando`SequenceSampleUI` como referencia.
+
+## Personalización de la Interfaz de Usuario
+
+Construida sobre el sistema de UI de Unity, la interfaz es completamente personalizable. ¡Te animamos a hacerla tuya y "embellecerla" para que se adapte a tu aplicación!
+
+### Gestor de Esquema de Colores
+
+Para ayudarte con el proceso, hemos añadido un script básico`ColorSchemeManager` con el que puedes experimentar en nuestra escena Demo, que puede ser[importado a través del Gestor de Paquetes](/sdk/unity/installation#samples).
+
+Para usar el`ColorSchemeManager`, por favor realiza lo siguiente en modo de edición.
+
+1. Crea un`Color Scheme` [objeto scriptable](https://docs.unity3d.com/Manual/class-ScriptableObject.html) navegando a la barra superior`Assets > Create > Sequence > Color Scheme` y dale un nombre apropiado.
+2. Establece los colores deseados en tu nuevo objeto scriptable - ¡no olvides establecer los valores alfa! Unity los establece por defecto en 0.
+3. Localiza el`ColorSchemeManager` MonoBehaviour en tu escena en el inspector. En nuestra escena demo, esto está adjunto al objeto de juego`SequenceCanvas`.
+4. Establece tu objeto scriptable recién creado como el Esquema de Colores.
+5. Haz clic en "Aplicar". Ten en cuenta que esto puede tardar unos segundos en aplicarse y<i>puede que</i> necesites hacer clic en aplicar varias veces debido a la forma en que Unity se actualiza después de los cambios en el inspector (dependiendo de la versión).
+
+El`ColorSchemeManager` no está diseñado para darte resultados perfectos y una interfaz de usuario perfecta desde el principio, ¡pero esperamos que te ahorre algo de tiempo en el camino!
+
+### Más Herramientas de Personalización Próximamente
+
+¡Esperamos traerte más herramientas de conveniencia para ayudarte a personalizar la interfaz de usuario de manera más rápida y fácil! Si bien tenemos nuestras propias ideas, nadie entiende tus necesidades mejor que tú, ¡así que no dudes en contactarnos con cualquier idea que tengas! O mejor aún, ¡envía un PR!

@@ -1,0 +1,248 @@
+---
+title: Gestión de Metadatos de Colección
+description: Cómo almacenar medios usando la API de Colecciones de Sequence con
+  Cloudflare Workers, así como leer desde la API de Metadatos para renderizar imágenes.
+sidebarTitle: Gestionar Metadatos de Colección
+---
+
+Tiempo para completar: 20 minutos
+
+En esta guía te mostraremos cómo almacenar medios usando la API de Colecciones de Sequence con [Cloudflare Workers](https://www.cloudflare.com/), así como leer desde la API de Metadatos para renderizar imágenes
+
+Esto se puede lograr en 8 pasos
+
+1. [Obtener una Clave API Secreta](/guides/metadata-guide#1-obtain-a-secret-api-key) desde la [Sequence Builder Console](https://sequence.build)
+2. [Crear Colección](/guides/metadata-guide#2-create-collection-from-a-curl-request) desde una petición cURL una vez
+3. [Crear Token](/guides/metadata-guide#3-create-token-using-tokenid) crear un token usando un tokenID
+4. [Crear Asset](/guides/metadata-guide#4-create-asset-using-tokenid) crear un assetID
+5. [Almacenar una Imagen](/guides/metadata-guide#5-store-image-asset) procesar y almacenar una imagen
+6. [Actualizar a No-privado](/guides/metadata-guide#6-update-non-private-token) actualizar un asset para que no sea privado
+7. [Publicar Colección](/guides/metadata-guide#7-publish-collection-from-a-curl-request) desde una petición cURL una vez
+8. [Renderizar Asset desde API](/guides/metadata-guide#8-render-asset-from-api-publicly) desde una petición cURL una vez
+
+Primero sigue [esta sección de la Guía del Servicio de Acuñación de Coleccionables](/guides/mint-collectibles-serverless#1-setup-cloudflare-environment-with-wrangler-cli-and-deploy-a-test) guía para crear un worker de cloudflare
+
+## 1. Obtener una Clave API Secreta
+
+Para usar el servicio backend, se debe obtener una `Secret API` Clave para autenticar las solicitudes a tu proyecto
+
+Primero comienza accediendo a la configuración y seleccionando las Claves API desde la [Sequence Builder Console](https://sequence.build/)
+
+<Frame>
+  ![builder settings access keys](/images/builder/builder_settings_access_keys.png)
+</Frame>
+
+Desplázate hacia abajo y selecciona `+ Add Service Account`
+
+<Frame>
+  ![builder settings add service account](/images/builder/builder_settings_add_service_account.png)
+</Frame>
+
+Luego cambia el acceso a `write` y `confirm`
+
+<Frame>
+  ![builder settings add service account](/images/builder/builder_settings_add_service_account_confirm.png)
+</Frame>
+
+Finalmente `copy` la clave y guárdala en tu `wrangler.toml` como `JWT_ACCESS_KEY`, ya que no tendrás acceso a esto en el futuro desde la Sequence Builder Console.
+
+## 2. Crear Colección desde una Petición cURL
+
+Como requisito único para subir medios al servicio, primero se debe crear una colección. Usando el `Secret API Key` y `projectID` obtenidos del [Builder Console](https://sequence.build/)
+
+Llamamos al servicio para obtener un `collectionID`
+
+```shell
+curl --location 'https://metadata.sequence.app/rpc/Collections/CreateCollection' \
+--header 'Content-Type: application/json' \
+--header 'Authorization: Bearer <secret_API_key or jwt_access_key>' \
+--data '{
+    "projectId": <project_id>,
+    "collection": {
+        "metadata": {
+            "name": "<collection_name>",
+            "description": "<description>",
+            "external_link" : "<https://link>"
+        },
+        "image": "",
+        "decimals": <decimals_typically_as_0>,
+        "properties": null,
+        "attributes": null
+    }
+}'
+```
+
+Luego establecemos el `collectionID` de la respuesta recibida en el `wrangler.toml` como `COLLECTION_ID`
+
+## 3. Crear Token usando TokenID
+
+<Note>
+  Si usas un worker de Cloudflare, asegúrate de agregar `node_compat = true` a tu `wrangler.toml` para permitir que el objeto window esté disponible para el paquete `@0xsequence/metadata` package
+</Note>
+
+Instala el paquete de metadata para usar el `SequenceCollections` con `pnpm install @0xsequence/metadata`
+
+```typescript
+import { SequenceCollections } from '@0xsequence/metadata'
+import { ethers } from 'ethers'
+...
+const METADATA_URL = 'https://metadata.sequence.app'
+const collectionsService = new SequenceCollections(METADATA_URL, JWT_ACCESS_KEY)
+
+const randomTokenIDSpace = ethers.BigNumber.from(ethers.hexlify(ethers.randomBytes(20)))
+
+const res1 = await collectionsService.createToken({
+	projectId: projectID,
+	collectionId: collectionID,
+	token: {
+		tokenId: String(randomTokenIDSpace),
+		name: name,
+		description: description,
+		decimals: 0,
+		attributes: attributes // can leave blank
+	}
+})
+
+```
+
+## 4. Crear Asset usando TokenID
+
+En la solicitud, establece el `metadadaField` (assetType) a `image`, con los otros campos necesarios completados para devolver una respuesta de asset que se usará en el siguiente paso
+
+```typescript
+const jsonCreateAsset = await collectionsService.createAsset({
+	projectId: projectID,
+	asset: {
+		id: Number(String(randomTokenIDSpace).slice(0,10)),
+		collectionId: collectionID,
+		tokenId: String(randomTokenIDSpace),
+		metadataField: "image"
+	}
+})
+
+```
+
+## 5. Almacenar Asset de Imagen
+
+Con el `asset.id` pasado del anterior `jsonCreateAsset` objeto
+
+```typescript
+	...
+	const uploadAsset = async (env: Env, projectID: any, collectionID: any, assetID: any, tokenID: any, url: any) => {
+		const response = await fetch(url);
+		if (!response.ok) throw new Error(`Failed to fetch file from ${url}: ${response.statusText}`);
+		const arrayBuffer = await response.arrayBuffer();
+		const blob = new Blob([arrayBuffer]);
+
+		const formData = new FormData();
+		
+		formData.append('file', blob, `image.png`); // You might want to dynamically determine the filename
+		
+		let METADATA_URL = 'https://metadata.sequence.app'
+
+		// Construct the endpoint URL
+		const endpointURL = `${METADATA_URL}/projects/${projectID}/collections/${collectionID}/tokens/${tokenID}/upload/${assetID}`;
+
+		try {
+			// Use fetch to make the request
+			const fetchResponse = await fetch(endpointURL, {
+				method: 'PUT',
+				body: formData,
+				headers: {
+					'X-Access-Key': env.PROJECT_ACCESS_KEY,
+					'Authorization': `Bearer ${env.JWT_ACCESS_KEY}`, // Put your token here
+				},
+			});
+		
+			// Assuming the response is JSON
+			const data = await fetchResponse.json();
+
+			return data;
+		}catch(err){
+			console.log(err)
+		}
+	}
+	...
+	const uploadAssetRes = await uploadAsset(env, projectID, collectionID, jsonCreateAsset.asset.id, String(randomTokenIDSpace), imageUrl)
+	...
+```
+
+Donde el `uploadAssetRes.url` devuelto es la URL del archivo multimedia alojado en los servidores de Sequence
+
+## 6. Actualizar Token a No-privado
+
+Ahora, hacemos que el token no sea privado estableciendo un `private` booleano a `false`
+
+```typescript
+const res3 = await collectionsService.updateToken({
+	projectId: projectID,
+	collectionId: collectionID,
+	private: false,
+	tokenId: String(randomTokenIDSpace),
+	token: {
+		name: name,
+		attributes: attributes,
+		tokenId: String(randomTokenIDSpace),
+	}
+})
+```
+
+***
+
+## 7. Publicar Colección Desde Una Petición cURL
+
+Finalmente, también como una solicitud única, publicamos la colección basada en el `projectID` y `collectionID` ejecutando el siguiente comando
+
+```shell
+curl --location 'https://metadata.sequence.app/rpc/Collections/PublishCollection' \
+--header 'Content-Type: application/json' \
+--header 'Authorization: Bearer <secrect_API_key or jwt_access_key> \
+--data '{
+    "projectId": <project_id>,
+    "collectionId": <collection_id>
+}'
+```
+
+Esto haría que la colección y todos los tokens con la bandera privada establecida como `false` sean accesibles públicamente, mientras que otros permanecen ocultos hasta que se cambien
+
+## 8. Renderizar Asset desde API Públicamente
+
+Puedes probar tu trabajo anterior llamando a esta petición cURL con las variables actualizadas, que descargará el archivo a tu terminal local.
+
+O puedes copiar y pegar en un navegador y ver la imagen
+
+Donde si usaste el mismo código, el `<file_name>` será `image.png`
+
+```shell [cURL]
+curl --location 'https://metadata.sequence.app/projects/<project_id>/collections/<collection_id>/tokens/<token_id>/<file_name>' --output stored_file.png
+```
+
+Y si estuvieras usando la colección para el `baseURI` de un `ERC721` o `ERC1155` escribirías en un contrato inteligente `setBaseMetadataURI` lo siguiente `URI`
+
+```
+https://metadata.sequence.app/projects/<project_id>/collections/<collection_id>/tokens/
+```
+
+Y el contrato inteligente añadirá automáticamente el `tokenID` al final
+
+Pruébalo
+
+```shell [cURL]
+curl https://metadata.sequence.app/projects/1229/collections/40/tokens/457657099779485875855215293997335918990635014431
+```
+
+O en un [navegador](https://metadata.sequence.app/projects/1229/collections/40/tokens/457657099779485875855215293997335918990635014431)
+
+### Renderizar Asset desde API de forma Privada
+
+Alternativamente, puedes decidir mantener tus assets almacenados de forma privada, pero aún renderizar los datos con una `header` clave api secreta pasada con los parámetros completados, y para esta guía el `metadata_field` está establecido en `image`
+
+```shell [cURL]
+curl --location 'https://metadata.sequence.app/projects/<project_id>/collections/<collection_id>/tokens/<token_id>/asset/<metadada_field>' \
+--header 'Authorization: Bearer <secret_api_key or jwt_access_key>' \
+--output stored_file.png
+```
+
+<Note>
+  El código completo para esta guía se puede encontrar [aquí](https://github.com/0xsequence-demos/template-cloudflare-worker-collections-api/tree/master)
+</Note>

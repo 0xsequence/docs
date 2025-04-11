@@ -1,0 +1,72 @@
+---
+title: Eventos de Contratos Inteligentes
+---
+
+## Suscribirse a Eventos Personalizados
+
+Usa la `SubscribeEvents` llamada para escuchar eventos personalizados o existentes de cualquier contrato. Asegúrate de que la `event`
+cadena coincida con la firma del evento en Solidity y define la dirección del contrato que deseas escuchar. Puedes definir
+filtros adicionales para recibir solo eventos de carteras específicas o IDs de token.
+
+La `OnEventReceived` función proporciona un `SubscribeEventsReturn` objeto que incluye
+cualquier información como tipo de contrato, hash de transacción y más. Cuando quieras recuperar los valores del evento emitido,
+usa `EventDecoded` objeto en `SubscribeEventsReturn > EventLog > EventDecoded`.
+
+```csharp
+var indexer = new ChainIndexer(Chain.TestnetArbitrumSepolia);
+var streamOptions = new WebRPCStreamOptions<SubscribeEventsReturn>(
+    OnEventReceived,
+    OnWebRPCErrorReceived);
+
+var eventFilter = new EventFilter
+{
+    accounts = Array.Empty<string>(),
+    contractAddresses = new[] {"0x4ab3b16e9d3328f6d8025e71cefc64305ae4fe9c"},
+    tokenIDs = new[] {"0"},
+    events = new[] {"Transfer(address indexed from, address indexed to, uint256 value)"}
+};
+
+indexer.SubscribeEvents(new SubscribeEventsArgs(eventFilter), streamOptions);
+```
+
+## Suscribirse a Actualizaciones de Saldo
+
+Escucha las actualizaciones de saldo para carteras en un contrato específico. La función `OnBalanceUpdateReceived` proporciona
+un `SubscribeBalanceUpdatesReturn` objeto que incluye el saldo actual de la dirección de cartera que especificaste.
+
+```csharp
+var indexer = new ChainIndexer(Chain.TestnetArbitrumSepolia);
+var streamOptions = new WebRPCStreamOptions<SubscribeBalanceUpdatesReturn>(
+    OnBalanceUpdateReceived,
+    OnWebRPCErrorReceived);
+
+var contractAddress = "0x4ab3b16e9d3328f6d8025e71cefc64305ae4fe9c";
+indexer.SubscribeBalanceUpdates(new SubscribeBalanceUpdatesArgs(contractAddress), streamOptions);
+```
+
+## Suscribirse a Recibos
+
+Escucha las actualizaciones de recibos en un contrato específico. La función `OnSubscribeReceiptsMessageReceived` proporciona
+un `SubscribeReceiptsReturn` objeto que incluye la información actual del recibo.
+
+```csharp
+var indexer = new ChainIndexer(Chain.TestnetArbitrumSepolia);
+var streamOptions = new WebRPCStreamOptions<SubscribeReceiptsReturn>(
+    OnSubscribeReceiptsMessageReceived,
+    OnWebRPCErrorReceived);
+
+var filter = new TransactionFilter
+{
+    contractAddress = "0x4ab3b16e9d3328f6d8025e71cefc64305ae4fe9c"
+};
+
+indexer.SubscribeReceipts(new SubscribeReceiptsArgs(filter), streamOptions);
+```
+
+## Abortar Streams
+
+Asegúrate de cancelar los streams cuando ya no quieras recibir eventos. Esto abortará todos los listeners en ejecución en tu juego.
+
+```csharp
+new ChainIndexer(Chain.TestnetArbitrumSepolia).AbortStreams();
+```

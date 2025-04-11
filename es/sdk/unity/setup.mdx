@@ -1,0 +1,30 @@
+---
+title: Setup
+description: Documentación para la configuración del SDK de Unity para la pila
+  de infraestructura Sequence para juegos web3.
+---
+
+# Configuración
+
+1. Navega a la carpeta Resources importada a través del `Setup` ejemplo y localiza el `SequenceConfig` ScriptableObject
+
+   a) Si importaste el SDK manualmente, necesitarás crear una carpeta Resources y SequenceConfig
+
+   b) Crea una `Resources` carpeta ubicada en `Assets/Resources`. El SDK usa [Resources.Load](https://docs.unity3d.com/ScriptReference/Resources.Load.html) para cargar la configuración `ScriptableObject` que crearemos en el siguiente paso.
+
+   c) En la barra superior, haz clic en `Assets > Create > Sequence > SequenceConfig` y coloca el recién creado `ScriptableObject` en la raíz de tu `Resources` carpeta.
+2. Completa `SequenceConfig` con los valores apropiados para tu proyecto.
+
+   a) `Url Scheme` - Debes reemplazar esto con una cadena que sea única para tu aplicación. Esto es muy importante. No hacerlo causará un comportamiento inesperado al iniciar sesión con inicio de sesión social y no funcionará.
+
+   b) `Builder API Keys` - Estos se encuentran en el [Sequence Builder](https://sequence.build/) bajo `Settings > API Keys`
+
+   c) `WaaS Config Key` - Puedes obtener esta clave en [Sequence Builder](https://sequence.build/) bajo `Onboard > Embedded Wallet`
+
+   d) `StoreSessionPrivateKeyInSecureStorage` - Disponible en plataformas seleccionadas: hemos integrado con el sistema de almacenamiento seguro nativo de la plataforma. Si está habilitado, almacenaremos la información de la billetera de sesión (incluyendo la clave privada) en almacenamiento seguro y automáticamente intentaremos recuperar la sesión para el usuario después de cerrar la aplicación (así no necesitarán iniciar sesión nuevamente). Con esto deshabilitado (por defecto) o en una plataforma no soportada, las claves privadas de la billetera de sesión nunca abandonan la memoria de ejecución de la aplicación; sin embargo, tu usuario necesitará iniciar sesión nuevamente cada vez que cierre la aplicación. La interfaz de usuario predeterminada `LoginPanel` (ver [Recuperando Sesiones](/sdk/unity/onboard/recovering-sessions)) manejará este comportamiento automáticamente para ti, navegando a la página apropiada.
+
+   e) `EnableMultipleAccountsPerEmail` - Por defecto, el SDK solo permitirá a los usuarios crear una cuenta por correo electrónico. La cuenta está inicialmente asociada con el método de inicio de sesión utilizado (correo electrónico + OTP, PlayFab, Google, etc.); el usuario puede asociar métodos de inicio de sesión adicionales con su cuenta (más sobre esto en la [sección de Autenticación](/sdk/unity/onboard/authentication/federated-accounts)). Si `EnableMultipleAccountsPerEmail` está habilitado, los usuarios tienen la opción de crear múltiples cuentas por dirección de correo electrónico (asociadas con diferentes métodos de inicio de sesión). Si bien hemos habilitado esta funcionalidad, en general, sentimos que este comportamiento puede ser confuso para los usuarios finales y recomendamos a los integradores mantener esta opción en el estado deshabilitado por defecto.
+
+<Warning>Antes de continuar, asegúrate de haber configurado correctamente la Billetera Integrada en el Builder. Consulta esta [guía](/sdk/headless-wallet/quickstart).</Warning>
+
+<Warning>¡Por favor, verifica dos veces que hayas copiado y pegado correctamente las claves de configuración del Builder! Este es el problema más común reportado al integrar nuestro SDK. Si recibes una respuesta de "inquilino inválido", ¡has cometido un error en tu configuración! Consulta esta [guía](/sdk/headless-wallet/quickstart).</Warning>

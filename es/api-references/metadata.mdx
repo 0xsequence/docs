@@ -1,0 +1,69 @@
+---
+title: Sequence Metadata API - Documentación y Endpoints
+description: El servicio de Sequence Metadata API permite consultar, gestionar
+  y actualizar colecciones, tokens y metadatos de NFT para cadenas compatibles con Ethereum.
+  Para acceder, obtenga una Cuenta de Servicio y Token a través de Sequence Builder Console.
+---
+
+# API de Metadatos
+
+:::note
+[Documentación y endpoints de la API de Metadatos](https://0xsequence.redoc.ly/tag/metadata)
+:::
+
+El servicio de Sequence Metadata API ofrece una API simple y rápida para consultar, gestionar y actualizar colecciones, tokens y metadatos de NFT para cadenas compatibles con Ethereum.
+
+<Note>
+  Nuestro servicio de Metadatos se gestiona a través de [Sequence Builder Console](HTTPS://SEQUENCE.BUILD) y requiere una Cuenta de Servicio y Token para llamar a los endpoints correspondientes. Por favor, siga la [sección](/api-references/metadata#obtaining-a-service-account--token) a continuación antes de llamar a los endpoints
+</Note>
+
+## Obtención de una Cuenta de Servicio y Token
+
+Dado que la API de Metadatos requiere acceso de escritura para actualizar el estado en la cadena, primero necesitará obtener una Cuenta de Servicio y Token para llamarla desde su backend. Es importante destacar que esta es una clave secreta y no debe exponerse públicamente.
+
+1. Cree un Nuevo Proyecto usando nuestro [Builder](https://sequence.build). Navegue a Configuración > Claves API > Agregar Cuenta de Servicio.
+2. En el modal que aparece, haga clic en el menú desplegable de Permisos y cambie a Escritura. Después de completar, haga clic en Agregar.
+3. En la siguiente pantalla, se le proporcionará su Token API Secreto. Copie la clave y guárdela de forma segura ya que no será posible verla nuevamente. Una vez hecho esto, haga clic en Confirmar y estará listo para utilizar la API.
+
+Tenga en cuenta que, a diferencia de nuestra clave de Acceso API Pública, este Token API Secreto debe almacenarse de forma segura y no debe usarse públicamente. Deberá pasar este token como un JWT normal en los Encabezados de Solicitud como X-Access-Key
+
+## Creación de Colecciones, Tokens y Gestión de Metadatos
+
+Los siguientes pasos muestran un ejemplo de principio a fin utilizando nuestra API de Metadatos para implementar una colección NFT, crear tokens dentro de esa colección e implementar metadatos de activos como una imagen para ese token.
+
+1. [Llamar `CreateCollection` endpoint](https://docs.sequence.xyz/api-references/metadata/endpoints) - asegúrese de pasar el Token de Servicio Secreto creado en la sección anterior.
+
+2. `CreateToken` - use el collectionId devuelto de la solicitud anterior
+
+3. `CreateAsset` - use collectionId y su tokenId
+   * establecer `metadataField` (assetType) a uno de los siguientes
+     * image
+     * animation\_url
+     * audio
+     * video
+
+4. Subir archivo con método PUT a este endpoint `PUT {metadata-server}/projects/{projectId}/collections/{collectionId}/tokens/{tokenId}/upload/{assetIdOrAssetType}`- use el assetId que se devuelve en el paso 3 O puede pasar assetType, como "image"
+
+* Por ejemplo, puede subir a [https://metadata.sequence.app/projects/486/collections/1/tokens/1/upload/image](https://metadata.sequence.app/projects/486/collections/1/tokens/1/upload/image) que encontrará el activo del tipo "image" para el token y subirá allí.
+  * También puede pasar el assetId si lo prefiere, es decir, PUT [https://metadata.sequence.app/projects/486/collections/1/assets/1/upload](https://metadata.sequence.app/projects/486/collections/1/assets/1/upload)
+* Los tipos de activos incluyen: image, audio, video, animation\_url
+
+5. El activo ahora es accesible de forma privada con token JWT en `GET {metadata-server}/projects/{projectID}/collections/{collectionID}/tokens/{tokenID}/asset/{assetType}`
+   * por ejemplo: [https://metadata.sequence.app/projects/486/collections/1/tokens/1/asset/image](https://metadata.sequence.app/projects/486/collections/1/tokens/1/asset/image)
+
+6. `PublishCollection` -- esto establece que la colección sea accesible por el público
+
+7. `GetCollection` -- devolverá ambas baseURIs para metadatos a nivel de contrato y token.
+
+* Metadatos a nivel de colección (también conocidos como nivel de contrato): [https://metadata.sequence.app/projects/486/collections/1](https://metadata.sequence.app/projects/486/collections/1) o [https://metadata.sequence.app/projects/486/collections/1.json](https://metadata.sequence.app/projects/486/collections/1.json)
+* Metadatos a nivel de token: [https://metadata.sequence.app/projects/486/collections/1/tokens/\{tokenId}](https://metadata.sequence.app/projects/486/collections/1/tokens/\{tokenId})
+  * es decir, [https://metadata.sequence.app/projects/486/collections/1/tokens/1](https://metadata.sequence.app/projects/486/collections/1/tokens/1) o [https://metadata.sequence.app/projects/486/collections/1/tokens/1.json](https://metadata.sequence.app/projects/486/collections/1/tokens/1.json)
+
+8. Finalmente, para usar los metadatos en su contrato, simplemente actualice las URIs base de metadatos de su contrato a los valores anteriores, y todo funcionará automáticamente.
+
+A continuación se muestra una arquitectura que demuestra los pasos anteriores de cómo se crea y gestiona una colección NFT (ERC721 o ERC1155).
+![Sequence Support](/images/metadata/metadata_api_architecture.png)
+
+## Precios y Uso
+
+Los Metadatos de Sequence están disponibles de forma gratuita con límites moderados de solicitudes, pero si su proyecto requiere límites más altos, póngase en contacto con el equipo de [Sequence](https://sequence.xyz).

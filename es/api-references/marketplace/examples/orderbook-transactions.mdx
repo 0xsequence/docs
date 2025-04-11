@@ -1,0 +1,141 @@
+---
+title: Transacciones del Libro de Órdenes del Mercado de Sequence
+sidebarTitle: Creando Órdenes y Listados de Mercado
+---
+
+Todas las transacciones se ejecutan a través de un contrato en la dirección `0xfdb42A198a932C8D3B506Ffa5e855bC4b348a712` en todas las redes actualmente ofrecidas.
+
+## Crear una Solicitud
+
+Para crear una solicitud con el protocolo sequence marketplace, debe realizarse una transacción previa donde el token (ERC1155 o ERC721) que está enviando al marketplace sea aprobado para ser transferido por el contrato del marketplace.
+
+Se puede realizar una transacción por lotes para cumplir con este requisito de aprobación (transacción 1), mientras también se envía la transacción para la creación de la solicitud (transacción 2).
+
+Usando una billetera universal, esto se vería algo así:
+
+## transacción 1: `setApprovalForAll`
+
+* `operator`: (string) - dirección del marketplace que actúa sobre el token
+* `approved`: (bool) - el estado de aprobación del operador
+
+## transacción 2: `createRequest`
+
+* `creator`: (string) - la billetera que está creando la solicitud de orden
+* `isListing`: (bool) - si la orden es para listar (true) u ofertar órdenes (false)
+* `isERC1155`: (bool) - si la orden es para un contrato ERC1155 (false para ERC721s)
+* `tokenContract`: (string) - el token para el que deseas crear una orden
+* `tokenId`: (string) - el tokenId para el que deseas crear una orden
+* `quantity`: (number) - el número de tokens que deseas vender
+* `expiry`: (number) - un número formateado en tiempo ISO
+* `currency`: (string) - el token ERC20 de la moneda en la que estás transando
+* `pricePerToken`: (big number) - el precio ERC20 del token en big number
+
+### ejemplo
+
+```js
+const wallet = sequence.getWallet();
+const signer = wallet.getSigner(421614); // on arbitrum-sepolia
+
+const sequenceMarketInterface = new ethers.Interface(
+  "function createRequest(tuple(bool isListing, bool isERC1155, address tokenContract, uint256 tokenId, uint256 quantity, uint96 expiry, address currency, uint256 pricePerToken)) external nonReentrant returns (uint256 requestId)"
+);
+
+const erc1155Interface = new ethers.Interface([
+  "function setApprovalForAll(address operator, bool approved) external",
+]);
+
+const amountBigNumber = ethers.parseUnits(String(price), 18); // currency price based on correct decimals for token contract
+
+const request = {
+  creator: await wallet.getAddress(),
+  isListing: true,
+  isERC1155: true,
+  tokenContract: "0x1693ffc74edbb50d6138517fe5cd64fd1c917709", // collectible you're looking to list or create an offer for
+  tokenId: selectedId,
+  quantity: quantity,
+  expiry: expiry,
+  currency: "0xa9c88358862211870db6f18bc9b3f6e4f8b3eae7",
+  pricePerToken: amountBigNumber,
+};
+
+const dataCreateRequest = sequenceMarketInterface.encodeFunctionData(
+  "createRequest",
+  [request]
+);
+
+const dataApprove = erc1155Interface.encodeFunctionData("setApprovalForAll", [
+  "0xfdb42A198a932C8D3B506Ffa5e855bC4b348a712", // sequence market contract (same address on all offered networks)
+  true,
+]);
+
+const tx = {
+  to: "0xfdb42A198a932C8D3B506Ffa5e855bC4b348a712", // sequence market contract (same address on all offered networks)
+  data: dataCreateRequest,
+};
+
+const txApprove = {
+  to: "0x1693ffc74edbb50d6138517fe5cd64fd1c917709", // an ERC1155 token contract
+  data: dataApprove,
+};
+
+await signer.sendTransaction([txApprove, tx]);
+```
+
+## Aceptar una Solicitud
+
+Para aceptar una solicitud existente, se necesitaría usar uno de los `get` endpoints de solicitudes (como [getTopOrders](/api-references/marketplace/examples/get-top-orders)) para adquirir un `orderId` ingresado en el `requestId` parámetro para enviar una transacción, con una transacción previa de aprobación de la moneda para la solicitud.
+
+Se puede realizar una transacción por lotes para cumplir con este requisito de aprobación de moneda (transacción 1), mientras también se envía la transacción para el cumplimiento de la solicitud (transacción 2).
+
+Usando una billetera universal, esto se vería algo así:
+
+## transacción 1: `approve`
+
+* `spender`: (string) - dirección del marketplace que actúa sobre el token
+* `amount`: (bool) - la cantidad de aprobación para el gastador
+
+## transacción 2: `acceptRequest`
+
+* `requestId`: (string) - El ID de la solicitud
+* `quantity`: (bool) - La cantidad de tokens a aceptar
+* `additionalFees`: (number\[]) - Las tarifas adicionales a pagar
+* `additionalFeeRecipients`: (address\[]) - las direcciones a las que enviar las tarifas adicionales
+
+### ejemplo
+
+```js
+const wallet = sequence.getWallet();
+const signer = wallet.getSigner(421614); // on arbitrum-sepolia
+
+const erc20Interface = new ethers.Interface([
+  "function approve(address spender, uint256 amount) public returns (bool)",
+]);
+
+const sequenceMarketInterface = new ethers.Interface([
+  "function acceptRequest(uint256 requestId, uint256 quantity, address recipient, uint256[] calldata additionalFees, address[] calldata additionalFeeRecipients)",
+]);
+
+const amountBigNumber = ethers.parseUnits(String(price), 18); // currency price based on correct decimals for token contract
+
+const dataApprove = erc20Interface.encodeFunctionData("approve", [
+  "0xfdb42A198a932C8D3B506Ffa5e855bC4b348a712", // sequence market contract (same address on all offered networks)
+  amountBigNumber,
+]);
+
+const dataAcceptRequest = sequenceMarketInterface.encodeFunctionData(
+  "acceptRequest",
+  [requestId, quantity, recipientAddress, [], []]
+);
+
+const txApprove = {
+  to: "0xa9c88358862211870db6f18bc9b3f6e4f8b3eae7", // an ERC20 token contract
+  data: dataApprove,
+};
+
+const tx = {
+  to: "0xfdb42A198a932C8D3B506Ffa5e855bC4b348a712", // sequence market contract (same address on all offered networks)
+  data: dataAcceptRequest,
+};
+
+await signer.sendTransaction([txApprove, tx]);
+```

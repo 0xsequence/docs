@@ -1,0 +1,89 @@
+---
+title: GetUserActivities
+sidebarTitle: Obtener Actividades del Usuario
+---
+
+Te permite recuperar datos de actividad para un usuario específico, incluyendo órdenes y operaciones. Con el uso de la`GetUserActivities` api los desarrolladores pueden construir experiencias sociales o de seguimiento personalizadas y personalizadas para seguir a ciertos usuarios en varias interfaces.
+
+<Frame>
+  ![GetUserActivities](/images/marketplace/activities.png)
+</Frame>
+
+### Ejemplo
+
+`GetUserActivities` para un usuario con IDs de token específicos:
+
+<CodeGroup>
+  ```shell cURL
+  curl -X POST -H "Content-Type: application/json" https://marketplace-api.sequence.app/arbitrum-sepolia/rpc/Marketplace/GetUserActivities -d '{
+      "orderbookContractAddress": "0xfdb42A198a932C8D3B506Ffa5e855bC4b348a712",
+      "collectionAddress": "0x1693ffc74edbb50d6138517fe5cd64fd1c917709",
+      "currencyAddresses": [
+          "0xa9c88358862211870db6f18bc9b3f6e4f8b3eae7"
+      ],
+      "userAddress": "0xC2Be9CF6D9ee4fd211f88620760e829792659b16",
+      "tokenIDs": ["1"]
+  }'
+
+  ```
+
+  ```js TypeScript
+  // Works in both a Webapp (browser) or Node.js:
+  import fetch from "cross-fetch";
+
+  (async () => {
+    const res = await fetch(
+      "https://marketplace-api.sequence.app/arbitrum-sepolia/rpc/Marketplace/GetUserActivities",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          "orderbookContractAddress": "0xfdb42A198a932C8D3B506Ffa5e855bC4b348a712",
+          "collectionAddress": "0x1693ffc74edbb50d6138517fe5cd64fd1c917709",
+          "currencyAddresses": [
+              "0xa9c88358862211870db6f18bc9b3f6e4f8b3eae7"
+          ],
+          "userAddress": "0xC2Be9CF6D9ee4fd211f88620760e829792659b16",
+          "tokenIDs": ["1"]
+        }),
+      }
+    );
+
+    console.log("res", await res.json());
+  })();
+  ```
+</CodeGroup>
+
+### Esquema
+
+* Solicitud: POST /api/Marketplace/GetUserActivities
+* Content-Type: application/json
+* Cuerpo (en JSON):
+  * `orderbookContractAddress` (string) -- la dirección del contrato del protocolo.
+  * `collectionAddress` (string) -- la dirección de la colección NFT.
+  * `currencyAddresses` (string\[]) -- un array de direcciones de contratos de moneda.
+  * `userAddress` (string) -- la dirección del usuario cuyas actividades se están consultando.
+  * `tokenIDs` (string\[]) -- un array de IDs de token para filtrar las actividades.
+* Respuesta (en JSON):
+  * `page`
+    * `page` (i32) -- número de la página
+    * `pageSize` (i32) -- número de órdenes en la página
+    * `more` (bool) -- si hay más órdenes
+  * `orders` (OrderbookOrder\[])
+    \[
+    * `orderId` (string) -- id de la orden
+    * `tokenContract` (string) -- el contrato de la colección
+    * `tokenId` (string) -- el tokenId de la colección en la orden
+    * `isListing` (bool) -- es verdadero si es un listado para venta, o falso si es una oferta
+    * `quantity` (string) -- el número de tokens para los que es la orden
+    * `quantityRemaining` (string) -- el número de tokens después de la orden
+    * `currencyAddress` (string) -- la moneda en la que se comercia el token
+    * `pricePerToken` (string) -- el precio por token
+    * `expiry` (string) -- la fecha de vencimiento cuando la orden ya no es válida
+    * `orderStatus` (OrderStatus) -- el estado de la orden como un enum de`"OPEN"`,`"CLOSED"`, `"CANCELLED"`
+    * `createdBy` (string) -- la dirección desde la que se creó la orden
+    * `createdAt` (uint64) -- el momento en que se creó la orden
+    * `orderbookContractAddress` (string) -- la dirección del contrato del libro de órdenes
+      ]

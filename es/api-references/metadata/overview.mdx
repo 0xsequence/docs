@@ -1,0 +1,60 @@
+---
+title: Metadata
+sidebarTitle: Overview
+---
+
+El servicio de API de Metadata de Sequence ofrece una API simple y rápida para consultar metadatos de tokens y NFT para cadenas compatibles con Ethereum que está disponible como un submódulo a través del`@0xsequence/metadata` paquete o mediante peticiones HTTP.
+
+Para aprender cómo usar el servicio de Metadata de Sequence, por favor lee:
+
+* [API de metadatos de tokens y estándares](/api-references/metadata/examples/token-metadata)
+* [API de metadatos a nivel de contrato y estándares](/api-references/metadata/examples/contract-metadata)
+* [Uso alternativo de API REST](/api-references/metadata/examples/rest-api)
+
+### Instalación Web / node.js
+
+```bash Terminal
+npm install 0xsequence
+```
+
+o
+
+```bash Terminal
+npm install @0xsequence/metadata
+```
+
+<Note>
+  Esta instalación requiere una Clave de Acceso API de[Sequence Builder](https://sequence.build).
+</Note>
+
+luego en tu aplicación (usando tu`API Access Key`),
+
+```ts
+import { SequenceMetadata } from '@0xsequence/metadata'
+
+const metadata = new SequenceMetadata('https://metadata.sequence.app', 'AQAAAAAAAF_JvPALhBthL7VGn6jV0YDqaFY')
+```
+
+**NOTA:** si estás usando`@0xsequence/metadata` desde node.js, recomendamos usar node v18.x o más reciente.
+
+### Instalación de Go
+
+```bash
+go get -u github.com/0xsequence/go-sequence@latest
+```
+
+luego en tu aplicación,
+
+```go
+import (
+	"github.com/0xsequence/go-sequence/metadata"
+)
+
+seqMetadata := metadata.NewMetadata("AQAAAAAAAF_JvPALhBthL7VGn6jV0YDqaFY")
+
+contractInfo, err := seqMetadata.GetContractInfo(context.Background(), "polygon", "0x631998e91476DA5B870D741192fc5Cbc55F5a52E")
+```
+
+### Instalación de Unity o Unreal
+
+El Metadata de Sequence está integrado directamente dentro de los respectivos[Sequence Unity](/sdk/unity/overview) y[Sequence Unreal](/sdk/unreal/introduction) SDKs.

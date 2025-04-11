@@ -1,0 +1,107 @@
+---
+title: Construye un Mini-Juego de Telegram en Unity
+description: Esta guía cubre la creación de un Juego de Telegram usando el SDK de Unity de Sequence.
+sidebarTitle: Construye un Mini-Juego de Telegram en Unity
+---
+
+Esta guía te mostrará cómo configurar tu Mini-app o juego de Telegram usando el SDK de Unity de Sequence, habilitando funcionalidad web3 en cadenas EVM para tus usuarios, para métodos de autenticación por correo electrónico e invitados.
+
+Desarrollaremos la lógica del juego en Unity, pero para implementarlo como un Mini-Juego de Telegram, empaquetaremos la compilación WebGL dentro de un proyecto React.
+
+## Configura tu Bot de Telegram
+
+<Steps>
+  <Step title="Create a Telegram Bot with BotFather">
+    1. Abre Telegram y busca "@BotFather"
+    2. Inicia una conversación haciendo clic en "Start" o escribiendo`/start`
+    3. Crea un nuevo bot escribiendo`/newbot`
+    4. Sigue las indicaciones:
+
+    * Ingresa un nombre para tu bot
+    * Elige un nombre de usuario (debe terminar en 'bot')
+  </Step>
+
+  <Step title="Obtain Required Tokens">
+    Después de crear tu bot, BotFather proporcionará:
+
+    * Token del Bot (Token de API HTTP)
+    * Nombre de usuario del Bot
+
+    Guarda estas credenciales - las necesitarás para los siguientes pasos.
+  </Step>
+</Steps>
+
+## Prepara tu Proyecto WebGL de Unity
+
+<Steps>
+  <Step title="Install Sequence's Unity SDK">
+    Usa una de nuestras[opciones de instalación recomendadas](/sdk/unity/installation) para tu proyecto existente o usa nuestro
+    [Unity Boilerplate](https://github.com/0xsequence/unity-embedded-wallet-boilerplate) si quieres comenzar un proyecto desde cero.
+  </Step>
+
+  <Step title="UI for Mobile Layouts">
+    Asegúrate de que la interfaz de usuario de tu juego esté optimizada para relaciones de aspecto móviles. Recomendamos usar el
+    [Device Simulator for Unity](https://docs.unity3d.com/2022.3/Documentation/Manual/device-simulator.html).
+    Además, asegúrate de que el manejo de entrada esté configurado para controles táctiles.
+  </Step>
+
+  <Step title="Configure Sequence's React Template for WebGL">
+    El SDK de Unity de Sequence incluye una Plantilla WebGL para exportar como un proyecto React.
+    Copia la`WebGLTemplates` carpeta desde`Packages/Sequence Embedded Wallet SDK/` a tu proyecto`Assets/` directorio.
+    Ve a`Project Settings` ->`Player` ->`WebGL` ->`Resolution and Presentation` y selecciona la`SequenceReact` plantilla.
+  </Step>
+
+  <Step title="Cloudflare Configuration">
+    Dentro del directorio raíz del proyecto React, crea un`wrangler.toml` archivo e incluye el siguiente contenido.
+
+    ```shell
+    name = "telegrambot"
+    compatibility_date = "2024-03-25"
+    pages_build_output_dir = "./dist"
+    [vars]
+    BOT_TOKEN = "GET_YOUR_BOT_TOKEN_FROM_BOTFATHER"
+    BOT_SECRET = "can_be_any_long_random_string_abc123_do_not_share"
+
+    [dev]
+    port = 4444
+    ```
+  </Step>
+
+  <Step title="Build your WebGL game as a React project">
+    Abre el directorio raíz de tu proyecto React en una CLI o un IDE como Visual Studio Code, y ejecuta el siguiente comando para probar tu juego en el navegador.
+
+    ```
+    pnpm install
+    pnpm run dev
+    ```
+  </Step>
+</Steps>
+
+## Despliega tu Mini-Juego de Telegram
+
+<Steps>
+  <Step title="Authenticate with Cloudflare Account">
+    Desde el directorio raíz del proyecto React, despliega la aplicación y la lógica de funciones a Cloudflare.
+
+    1. Ejecuta`pnpm wrangler pages deploy`
+
+    Esto te pedirá que te autentiques con Cloudflare si aún no has iniciado sesión. Al desplegar exitosamente, copia la URL donde tu aplicación está ahora alojada.
+  </Step>
+
+  <Step title="Register Webhook with Telegram">
+    Ahora llamamos a nuestro`registerWebhook` endpoint en nuestra aplicación para registrar la función webhook con la URL de tu aplicación desplegada para habilitar el acceso para la API de Telegram.
+
+    ```shell
+    curl -X POST \
+         "<YOUR_CLOUDFLARE_DEPLOYED_URL>/api/registerWebhook"
+    ```
+  </Step>
+
+  <Step title="Update Allowed Origins">
+    Asegúrate en[Sequence Builder](https://sequence.build/project/default/embedded-wallet) que la configuración de tu billetera incluya la URL de tu aplicación desplegada como un origen permitido.
+  </Step>
+</Steps>
+
+### ¡Prueba tu Juego de Telegram!
+
+¡Envía un mensaje a tu bot en Telegram y verifica si responde! Debería responderte con la capacidad de compartir, jugar u obtener más información sobre el bot.

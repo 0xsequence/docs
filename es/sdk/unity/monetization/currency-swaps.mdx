@@ -1,0 +1,52 @@
+---
+title: Intercambios de Moneda
+---
+
+El intercambio entre diferentes tokens ERC20/nativos en una Cadena determinada es facilitado por la API Smart Swap de Sequence.
+
+## GetSwapPrice
+
+Este método puede ser utilizado para obtener el actual `SwapPrice` para una buyCurrency y buyAmount determinados usando una sellCurrency específica.
+
+```
+ISwap swapper = new CurrencySwap(_chain);
+SwapPrice swapPrice = await swapper.GetSwapPrice(buyCurrencyTokenAddress, usdcAddress, "1000"); // where USDC is an example sell currency
+```
+
+Opcionalmente puedes suscribirte a los eventos `OnSwapPriceReturn` y `OnSwapPriceError` para manejar la respuesta en otro lugar.
+
+Opcionalmente puedes proporcionar un slippagePercentage máximo permitido.
+
+## GetSwapPrices
+
+Este método es similar a `GetSwapPrice`, puede ser utilizado para obtener el actual `SwapPrice` para una buyCurrency y buyAmount determinados. Excepto que, en lugar de proporcionar una sellCurrency, proporcionas la dirección de la billetera del usuario.
+
+Este método detectará las monedas elegibles (ERC20s o tokens nativos) que pueden ser intercambiadas por buyAmount de la buyCurrency y devolverá un `SwapPrice[]`.
+
+```
+ISwap swapper = new CurrencySwap(_chain);
+SwapPrice[] swapPrices = await swapper.GetSwapPrices(userWalletAddress, buyCurrencyTokenAddress, "1000");
+```
+
+Opcionalmente puedes suscribirte a los eventos `OnSwapPricesReturn` y `OnSwapPricesError` para manejar la respuesta en otro lugar.
+
+Opcionalmente puedes proporcionar un slippagePercentage máximo permitido.
+
+## GetSwapQuote
+
+Este método se utiliza para obtener un `SwapQuote` ejecutable para una dirección userWallet determinada para comprar buyAmount de buyCurrency usando sellCurrency.
+
+```
+ISwap swapper = new CurrencySwap(_chain);
+SwapQuote quote = await swapper.GetSwapQuote(userWalletAddress, buyCurrencyTokenAddess, usdcAddress, "1000", true); // where USDC is an example sell currency
+```
+
+Una vez que hayas obtenido un `SwapQuote`, puedes transformarlo en un `Transaction[]` que puede ser enviado a través de tu EmbeddedWallet para ejecutar el intercambio.
+
+```
+Transaction[] swapTransactions = quote.AsTransactionArray();
+
+_wallet.SendTransaction(_chain, swapTransactions);
+```
+
+Si `includeApprove = true` la respuesta SwapQuote también incluirá la información necesaria para crear la(s) transacción(es) de aprobación de gasto requerida(s). Estas también se agregarán al `Transaction[]` creado arriba vía `SwapQuote.AsTransactionArray()`. Como es habitual, con nuestras billeteras de contratos inteligentes integradas, todas estas transacciones pueden enviarse a la vez en un paquete; mejorando significativamente la experiencia de usuario para tus jugadores que normalmente necesitarían hacer transacciones separadas para aprobar e intercambiar.

@@ -1,0 +1,39 @@
+---
+title: Transaction Encoding
+description: El contenido discute el formato de codificación de transacciones personalizado utilizado
+  por las Sequence Wallets para agrupar múltiples transacciones en una sola transacción.
+---
+
+Las Sequence Wallets utilizan un formato de codificación de transacciones personalizado para agrupar múltiples transacciones en una sola transacción. Esto se hace para reducir el número de transacciones necesarias para interactuar con la billetera.
+Este formato también permite el soporte de otras funciones como revertir todo el paquete de transacciones si alguna de las transacciones falla.
+
+```solidity
+  struct Transaction {
+    bool delegateCall;   // Performs delegatecall
+    bool revertOnError;  // Reverts transaction bundle if tx fails
+    uint256 gasLimit;    // Maximum gas to be forwarded
+    address target;      // Address of the contract to call
+    uint256 value;       // Amount of ETH to pass with the call
+    bytes data;          // calldata to pass
+  }
+```
+
+La `Transaction` estructura se utiliza para codificar los datos de la transacción para la billetera. Se utiliza en la `execute` función del contrato de la billetera.
+
+El `delegateCall` campo se utiliza para determinar si la transacción debe ejecutarse usando `delegatecall` en lugar de una `call`.
+Esto es útil cuando el contrato objetivo ofrece funcionalidad que debe ejecutarse en el contexto de la billetera.
+
+<Warning>
+  Como la llamada delegada ejecuta el contrato objetivo en el contexto de la billetera, es importante asegurarse de que el contrato objetivo sea confiable y no tenga ningún código malicioso.
+</Warning>
+
+El `revertOnError` campo se utiliza para determinar si todo el paquete de transacciones debe revertirse si alguna de las transacciones falla.
+Al agrupar múltiples transacciones independientes, puede ser ventajoso revertir todo el paquete si alguna transacción falla.
+
+El `gasLimit` campo se utiliza para especificar la cantidad máxima de gas que debe enviarse al contrato objetivo.
+
+El `target` campo es la dirección del contrato a llamar.
+
+El `value` campo es la cantidad de ETH a pasar con la llamada. Este ETH se envía desde el contrato de la billetera al contrato objetivo.
+
+El `data` campo es el calldata que se pasa al contrato objetivo.

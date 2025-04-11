@@ -1,0 +1,154 @@
+---
+title: Cómo hacer Ventas Primarias para Objetos En-Cadena en Unity
+description: Esta guía cubre la creación de una Venta Primaria con el SDK de Unity de Sequence.
+sidebarTitle: Cómo hacer Ventas Primarias para Objetos En-Cadena en Unity
+---
+
+Acelera el crecimiento de tu juego vendiendo objetos directamente a tus jugadores. En esta guía, repasaremos los pasos sobre
+cómo implementar un contrato de Venta Primaria usando cualquier moneda personalizada o existente para una Tienda En-Juego que utiliza objetos
+de un contrato ERC1155. Utilizaremos las siguientes tecnologías de la plataforma Sequence:
+
+* [Contrato de Ventas Primarias](/solutions/collectibles/contracts/deploy-primary-sales-contract/): Cómo configurar e implementar contratos para lanzar una venta primaria — adecuado para una Tienda Web, Lanzamiento de NFT y más.
+* [Sequence Indexer](/solutions/builder/indexer): Aprovechando el Sequence Indexer para consultar metadatos de NFT y activos de la cartera del usuario.
+
+## 1. Implementa tu propio Contrato de Token y Venta en Sequence Builder
+
+Primero necesitamos un Contrato de Ventas Primarias junto con un contrato ERC1155 que contendrá nuestros objetos de juego que queremos vender.
+Para hacer esto, por favor sigue la[guía](/solutions/collectibles/contracts/deploy-primary-sales-contract) aquí.
+
+## 2. Usa la Demo de Ventas Primarias dentro del SDK de Unity de Sequence
+
+Para comenzar, importa el[SDK de Unity de Sequence](https://github.com/0xsequence/sequence-unity/releases) en tu proyecto.
+Luego, navega a la`Demo.unity` escena ubicada`Sequence Embedded Wallet SDK/Sequence/Samples/DemoScene`.
+En esta escena, encontrarás el`PrimarySalePage` objeto, que sirve como una referencia útil.
+
+## 3. Configura tus Configuraciones de Venta en tu Proyecto
+
+Para configurar tu venta, usa el`PrimarySalePage` objeto para introducir tu información de venta.
+En la sección de Configuración, encontrarás las siguientes opciones:
+
+* Cadena: Selecciona la cadena donde está implementado tu contrato.
+* Dirección del Contrato de Token y Venta: Ingresa las direcciones de contrato proporcionadas por el Builder de Sequence.
+* Objetos en Venta: Lista todos los IDs de Token que deseas vender.
+
+## 4. Implementa Código Personalizado para Interactuar con el SDK
+
+Vamos a crear una clase personalizada para gestionar el estado de nuestra venta. Esta clase recopilará todos los datos necesarios,
+permitiendo mostrar esta información a los usuarios de manera efectiva.
+En la demo PrimarySalePage.cs, los datos provienen de la sección de Configuración.
+
+```csharp
+class ERC1155SaleState;
+
+public ERC1155SaleState(IWallet wallet, string tokenContractAddress, string saleContractAddress, Chain chain, int[] itemsForSale)
+{
+    _tokenContractAddress = tokenContractAddress;
+    _saleContract = new ERC1155Sale(saleContractAddress);
+    _client = new SequenceEthClient(chain);
+    _wallet = wallet;
+    _chain = chain;
+    _itemsForSale = itemsForSale;
+}
+```
+
+## 5. Recupera los Detalles de tu Venta Primaria
+
+A continuación, usa la`ERC1155Sale.cs` referencia para obtener detalles de la venta y el token de pago del contrato.
+Esta información puede usarse, por ejemplo, para verificar localmente si el usuario tiene saldo suficiente para el token de pago especificado.
+
+```csharp
+public async Task<bool> UpdateSaleDetailsAsync()
+{
+    string paymentToken = await _saleContract.GetPaymentTokenAsync(_client);
+
+    ERC1155Sale.SaleDetails globalSaleDetails = await _saleContract.GetGlobalSaleDetailsAsync(_client);
+    BigInteger cost = globalSaleDetails.Cost;
+    BigInteger supplyCap = globalSaleDetails.SupplyCap;
+    int startTime = globalSaleDetails.StartTime;
+    int endTime = globalSaleDetails.EndTime;
+}
+```
+
+## 6. Obtener Metadatos de Token para Mostrar Objetos a los Usuarios
+
+Usaremos la API del Indexer para recuperar los suministros de tokens para la dirección del contrato de token especificada.
+Asegúrate de usar la dirección del contrato ERC1155, no el contrato de ventas.
+
+```csharp
+public async Task UpdateTokenSuppliesAsync()
+{
+    Dictionary<BigInteger, TokenSupply> tokenSupplies = new Dictionary<BigInteger, TokenSupply>();
+    GetTokenSuppliesArgs supplyArgs = new GetTokenSuppliesArgs(_tokenContractAddress, true);
+    GetTokenSuppliesReturn suppliesReturn = await Indexer.GetTokenSupplies((int) _chain, supplyArgs);
+
+    foreach (int tokenId in _itemsForSale)
+    {
+        TokenSupply supply = Array.Find(suppliesReturn.tokenIDs, t => t.tokenID == tokenId);
+        if (supply == null)
+            continue;
+
+        tokenSupplies.Add(supply.tokenID, supply);
+    }
+}
+```
+
+Por ejemplo, puedes usar la`supply.tokenMetadata.image` variable de los suministros de tokens mencionados anteriormente
+para mostrar tus objetos al usuario.
+
+```csharp
+[SerializeField] private Image _image;
+
+public async void RenderTokenImage(TokenSupply supply)
+{
+    _image.sprite = await AssetHandler.GetSpriteAsync(supply.tokenMetadata.image);
+}
+```
+
+<Warning>
+  Asegúrate de implementar tu propia`AssetHandler` clase para manejar descargas de imágenes desde URLs remotas.
+</Warning>
+
+## 7. Comprar un Objeto de la Tienda
+
+Esto llamará a la función de acuñación del Contrato de Ventas. Al especificar la dirección de la cartera del usuario como el`to` parámetro,
+el contrato acuñará el elemento para ese usuario. Puedes usar la `ERC1155Sale.cs` clase para crear una `CallContractFunction`
+referencia, que te permite enviar una transacción a tu contrato de ventas usando la billetera del usuario.
+
+```csharp
+class ERC1155SaleState;
+
+public async Task<bool> PurchaseAsync(BigInteger tokenId, int amount)
+{
+    string to = _wallet.GetWalletAddress();
+    byte[] defaultProof = Array.Empty<byte>();
+
+    CallContractFunction contractCall = _saleContract.Mint(to, new[] {tokenId},
+    new[] {new BigInteger(amount)}, null, PaymentToken, new BigInteger(1), defaultProof);
+
+    Transaction[] transactions = new Transaction[] { new RawTransaction(contractCall) };
+    TransactionReturn result = await _wallet.SendTransaction(_chain, transactions);
+    return result is SuccessfulTransactionReturn;
+}
+```
+
+Cuando el usuario hace clic en el botón de compra en la interfaz del juego, llamamos y esperamos la función PurchaseAsync de la clase de estado de venta.
+Si la compra es exitosa, mostramos una notificación y actualizamos la interfaz.
+Si falla, mostramos un código QR para que el usuario agregue más fondos a su billetera.
+
+```csharp
+class GameWindowUI;
+
+private ERC1155SaleState _saleState;
+
+public async void OnPurchaseClicked(BigInteger tokenId, int amount)
+{
+    bool success = await _saleState.PurchaseAsync(tokenId, amount);
+    if (!success) {
+        OpenQrCodeView();
+        return;
+    }
+
+    ShowNotification("Purchase succeeded.");
+    RenderState();
+}
+```
