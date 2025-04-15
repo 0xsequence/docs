@@ -14,7 +14,7 @@ Listen for the Email Requires Code event.
 
 <Tabs>
     <Tab title="Blueprint">
-        <Frame caption="Email Otp">
+        <Frame>
             <img src="/images/unreal/email_otp.png" />
         </Frame>
     </Tab>
@@ -28,11 +28,14 @@ On mobile, our SDK handles this process for you using integrated plugins.
 On desktop platforms, listen for the `Sign in Web View Required` event and open the returned `Sign In URL`.
 On mobile platforms, listen for the `Id Token Received` event.
 
+When you call the `Sign In` functions, listen for the `Session Established` event on the `SequenceSessionsBP` subsystem
+to know when the sign in request was successful. Listen for `Session Creation Failure` when something went wrong.
+
 ### Get Google Id Token
 
 <Tabs>
     <Tab title="Blueprint">
-        <Frame caption="Google Idtoken">
+        <Frame>
             <img src="/images/unreal/google_idtoken.png" />
         </Frame>
   </Tab>
@@ -42,22 +45,58 @@ On mobile platforms, listen for the `Id Token Received` event.
 
 <Tabs>
     <Tab title="Blueprint">
-        <Frame caption="Apple Idtoken">
+        <Frame>
             <img src="/images/unreal/apple_idtoken.png" />
         </Frame>
   </Tab>
 </Tabs>
 
-### Start Session with Id Token
+### Sign In with Google
 
-Use this method to start a session using a valid Id token from Google or Apple.
+Sign In with a valid Google Id Token. You get this from the [Get Google Id Token](/sdk/unreal/authentication#get-google-id-token) node.
 
 <Tabs>
     <Tab title="Blueprint">
-        <Frame caption="Token Session">
+        <Frame>
+            <img src="/images/unreal/unreal_signin_google.png" />
+        </Frame>
+    </Tab>
+</Tabs>
+
+### Sign In with Apple
+
+Sign In with a valid Apple Id Token. You get this from the [Get Apple Id Token](/sdk/unreal/authentication#get-apple-id-token) node.
+
+<Tabs>
+    <Tab title="Blueprint">
+        <Frame>
+            <img src="/images/unreal/unreal_signin_apple.png" />
+        </Frame>
+    </Tab>
+</Tabs>
+
+### Sign In with Epic
+
+Sign In with a valid Epic Games Id Token. Checkout the [EOS Plugin for Unreal](https://dev.epicgames.com/documentation/en-us/unreal-engine/online-subsystem-eos-plugin-in-unreal-engine)
+
+<Tabs>
+    <Tab title="Blueprint">
+        <Frame>
+            <img src="/images/unreal/unreal_signin_epic.png" />
+        </Frame>
+    </Tab>
+</Tabs>
+
+### Start Session with OIDC Id Token
+
+Use this method to start a session using a valid Id token from Google, Apple or Epic Games.
+
+<Tabs>
+    <Tab title="Blueprint">
+        <Frame>
             <img src="/images/unreal/token_session.png" />
         </Frame>
-    </Tab>    
+    </Tab>
 </Tabs>
 
 ## PlayFab
@@ -69,7 +108,7 @@ during [Configuration](/sdk/unreal/configuration) and [configure PlayFab in the 
 
 <Tabs>
     <Tab title="Blueprint">
-        <Frame caption="Playfab Registration">
+        <Frame>
             <img src="/images/unreal/playfab_registration.png" />
         </Frame>
   </Tab>
@@ -79,13 +118,13 @@ during [Configuration](/sdk/unreal/configuration) and [configure PlayFab in the 
 
 <Tabs>
     <Tab title="Blueprint">
-        <Frame caption="Playfab Login">
+        <Frame>
             <img src="/images/unreal/playfab_login.png" />
         </Frame>
   </Tab>
 </Tabs>
 
-### Custom PlayFab integration 
+### Custom PlayFab integration
 
 If you have your own PlayFab integration, you are welcome to use it. Once you've received your SessionTicket from PlayFab, please pass it along for authentication with Sequence APIs using `PlayfabAuthenticateWithSessionTicket` method on your `USequenceAthenticator` object.
 
@@ -95,7 +134,7 @@ You can sign in users as guests. However, note that they will lose access to the
 
 <Tabs>
     <Tab title="Blueprint">
-        <Frame caption="Guest Session">
+        <Frame>
             <img src="/images/unreal/guest_session.png" />
         </Frame>
   </Tab>
@@ -110,7 +149,7 @@ While a user is authenticated with the Sequence API, you can add an additional l
 
 <Tabs>
     <Tab title="Blueprint">
-        <Frame caption="Email Federation">
+        <Frame>
             <img src="/images/unreal/email_federation.png" />
         </Frame>
   </Tab>
@@ -150,7 +189,7 @@ Clear the credentials cache and sign out the current user.
 
 <Tabs>
     <Tab title="Blueprint">
-        <Frame caption="Sign Out">
+        <Frame>
             <img src="/images/unreal/sign_out.png" />
         </Frame>
     </Tab>
@@ -173,7 +212,7 @@ List the active sessions.
 
 <Tabs>
     <Tab title="Blueprint">
-        <Frame caption="List Sessions">
+        <Frame>
             <img src="/images/unreal/list_sessions.png" />
         </Frame>
     </Tab>
