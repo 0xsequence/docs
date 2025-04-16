@@ -44,14 +44,16 @@ yarn add @0xsequence/connect wagmi ethers@6.13.0 viem 0xsequence @tanstack/react
 </Step>
 <Step title="Create a Config">
 
-Next, a configuration variable for `SequenceConnect` will need to be created as either a `waas` (meaning an [Embedded Wallet](/sdk/headless-wallet/quickstart)) or `universal` (meaning a [Universal Wallet](/sdk/typescript/guides/frontend/connect-wallet)) wallet type.
+Next, a configuration variable for `SequenceConnect` will need to be created as `waas` (meaning an [Embedded Wallet](/sdk/headless-wallet/quickstart)).
 
-For `waas`, first obtain a [WaaS Config Key from the Sequence Builder](/sdk/headless-wallet/), [Wallet Connect ID](https://cloud.reown.com/sign-in), and setup other [Login Provider configuration](/sdk/headless-wallet/#login-providers). For both wallet type options, [obtain and use a project access key](/support/builder/project-settings#copy-your-access-key).
+First obtain a [WaaS Config Key from the Sequence Builder](https://sequence.build/) and a [project access key](/support/builder/project-settings#copy-your-access-key). 
+If you want to allow WalletConnect you will also need a [Wallet Connect ID](https://cloud.reown.com/sign-in). 
+To setup Google Login follow the [Google Configuration for Embedded Wallet](../../solutions/builder/embedded-wallet/google-configuration).
 
 ```typescript [config.ts]
 import { createConfig } from "@0xsequence/connect";
 
-export const config: any = createConfig("waas" /*or, 'universal'*/, {
+export const config: any = createConfig("waas", {
   projectAccessKey: "<your-project-access-key>",
   chainIds: [1, 137],
   defaultChainId: 1,
@@ -71,7 +73,7 @@ In order to customize further, [you can view additional configuration parameters
 
 <Step title="Setup Provider Component">
 
-The configuration we created in [step 3](/sdk/web/getting-started#create-a-config) needs to be passed into the providers below in the `main.tsx`, as well as the inclusion of the Sequence Design System `styles.css` stylesheet:
+The configuration we created in [step 3](/sdk/web/getting-started#create-a-config) needs to be passed into the providers below in the `main.tsx`.
 
 ```typescript [main.tsx]
 import React from "react";
