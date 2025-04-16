@@ -16,43 +16,40 @@ Make sure you completed the [Getting Started](/sdk/web/getting-started) guide.
 Next, we'll create a simple page that allows users to send an unsponsored transaction using their smart wallet's native currency, nothing special here.
 
 ```typescript
-import React, { useState, useEffect } from 'react';
-import { Button, Card, Select, Text } from '@0xsequence/design-system';
-import { useWaasFeeOptions } from '@0xsequence/connect';
-import { formatUnits } from 'viem';
+import React from 'react';
 import { useAccount, useSendTransaction } from 'wagmi';
 
 export const ERC20GasPaymentExample = () => {
-  const { address } = useAccount();
+    const { address } = useAccount();
 
-  const {
-    sendTransaction,
-    isPending,
-    isSuccess,
-    data: txHash
-  } = useSendTransaction();
+    const {
+        sendTransaction,
+        isPending,
+        isSuccess,
+        data: txHash
+    } = useSendTransaction();
 
-  const sendUnsponsored = () => {
-    if (!address) return;
-    
-    // Send a simple 0 value transaction to yourself
-    sendTransaction({
-      to: address,
-      value: BigInt(0),
-      gas: null
-    });
-  };
+    const sendUnsponsored = () => {
+        if (!address) return;
 
-  return (
-    <>
-      <div>
-        <Text>Address: {address}</Text>
-        <Button onClick={sendUnsponsored}>Send Unsponsored</Button>
-        {isPending && <Text>Pending...</Text>}
-        {isSuccess && <Text>Success! Tx Hash: {txHash}</Text>}
-      </div>
-    </>
-  )
+        // Send a simple 0 value transaction to yourself
+        sendTransaction({
+            to: address,
+            value: BigInt(0),
+            gas: null
+        });
+    };
+
+    return (
+        <>
+            <div>
+                <p>Address: {address}</p>
+                <button onClick={sendUnsponsored}>Send Unsponsored</button>
+                {isPending && <p>Pending...</p>}
+                {isSuccess && <p>Success! Tx Hash: {txHash}</p>}
+            </div>
+        </>
+    )
 }
 ```
 </Step>
@@ -66,52 +63,50 @@ Now that we declared the `useWaasFeeOptions` hook, it has set up an effect that 
 
 ```typescript 
 import React, { useState, useEffect } from 'react';
-import { Button, Card, Select, Text } from '@0xsequence/design-system';
 import { useWaasFeeOptions } from '@0xsequence/connect';
-import { formatUnits } from 'viem';
 import { useAccount, useSendTransaction } from 'wagmi';
 
 export const ERC20GasPaymentExample = () => {
-  const { address } = useAccount();
+    const { address } = useAccount();
 
-  const [pendingFeeOptionConfirmation, confirmPendingFeeOption] = useWaasFeeOptions();
+    const [pendingFeeOptionConfirmation, confirmPendingFeeOption] = useWaasFeeOptions();
 
-  const {
-    sendTransaction,
-    isPending,
-    isSuccess,
-    data: txHash
-  } = useSendTransaction();
+    const {
+        sendTransaction,
+        isPending,
+        isSuccess,
+        data: txHash
+    } = useSendTransaction();
 
-  const [selectedFeeTokenName, setSelectedFeeTokenName] = useState<string>();
-  
-  useEffect(() => {
-    if (pendingFeeOptionConfirmation && pendingFeeOptionConfirmation.options.length > 0) {
-      setSelectedFeeTokenName(pendingFeeOptionConfirmation.options[0].token.name);
-    }
-  }, [pendingFeeOptionConfirmation]);
+    const [selectedFeeTokenName, setSelectedFeeTokenName] = useState<string>();
 
-  const sendUnsponsored = () => {
-    if (!address) return;
-    
-    // Send a simple 0 value transaction to yourself
-    sendTransaction({
-      to: address,
-      value: BigInt(0),
-      gas: null
-    });
-  };
+    useEffect(() => {
+        if (pendingFeeOptionConfirmation && pendingFeeOptionConfirmation.options.length > 0) {
+            setSelectedFeeTokenName(pendingFeeOptionConfirmation.options[0].token.name);
+        }
+    }, [pendingFeeOptionConfirmation]);
 
-  return (
-    <>
-      <div>
-        <Text>Address: {address}</Text>
-        <Button onClick={sendUnsponsored}>Send Unsponsored</Button>
-        {isPending && <Text>Pending...</Text>}
-        {isSuccess && <Text>Success! Tx Hash: {txHash}</Text>}
-      </div>
-    </>
-  )
+    const sendUnsponsored = () => {
+        if (!address) return;
+
+        // Send a simple 0 value transaction to yourself
+        sendTransaction({
+            to: address,
+            value: BigInt(0),
+            gas: null
+        });
+    };
+
+    return (
+        <>
+            <div>
+                <p>Address: {address}</p>
+                <button onClick={sendUnsponsored}>Send Unsponsored</button>
+                {isPending && <p>Pending...</p>}
+                {isSuccess && <p>Success! Tx Hash: {txHash}</p>}
+            </div>
+        </>
+    )
 }
 ```
 In this example we default to the first option, in the next step we'll add a UI to allow users to choose the fee token they want to pay with.
@@ -127,134 +122,117 @@ Each fee option also contains a boolean property called `hasEnoughBalanceForFee`
 
 ```typescript 
 import { useState, useEffect } from 'react';
-import { Button, Card, Select, Text } from '@0xsequence/design-system';
 import { useWaasFeeOptions } from '@0xsequence/connect';
 import { formatUnits } from 'viem';
 import { useAccount, useSendTransaction } from 'wagmi';
 
 export const ERC20GasPaymentExample = () => {
-  const { address } = useAccount();
+    const { address } = useAccount();
 
-  // 1. Set up the fee options hook
-  const [pendingFeeOptionConfirmation, confirmPendingFeeOption, rejectPendingFeeOption] = useWaasFeeOptions();
+    // 1. Set up the fee options hook
+    const [pendingFeeOptionConfirmation, confirmPendingFeeOption, rejectPendingFeeOption] = useWaasFeeOptions();
 
-  // 2. Set up transaction hook
-  const {
-    sendTransaction,
-    isPending,
-    isSuccess,
-    data: txHash
-  } = useSendTransaction();
+    // 2. Set up transaction hook
+    const {
+        sendTransaction,
+        isPending,
+        isSuccess,
+        data: txHash
+    } = useSendTransaction();
 
-  // 3. Track selected fee token
-  const [selectedFeeTokenName, setSelectedFeeTokenName] = useState<string>();
+    // 3. Track selected fee token
+    const [selectedFeeTokenName, setSelectedFeeTokenName] = useState<string>();
 
-  // 4. Initialize with first option when fee options become available
-  useEffect(() => {
-    if (pendingFeeOptionConfirmation && pendingFeeOptionConfirmation.options.length > 0) {
-      setSelectedFeeTokenName(pendingFeeOptionConfirmation.options[0].token.name);
-    }
-  }, [pendingFeeOptionConfirmation]);
+    // 4. Initialize with first option when fee options become available
+    useEffect(() => {
+        if (pendingFeeOptionConfirmation && pendingFeeOptionConfirmation.options.length > 0) {
+            setSelectedFeeTokenName(pendingFeeOptionConfirmation.options[0].token.name);
+        }
+    }, [pendingFeeOptionConfirmation]);
 
-  // 5. Function to send an unsponsored transaction
-  const sendUnsponsored = () => {
-    if (!address) return;
+    // 5. Function to send an unsponsored transaction
+    const sendUnsponsored = () => {
+        if (!address) return;
 
-    // Send a dummy tx
-    sendTransaction({
-      to: address,
-      value: BigInt(0),
-      gas: null
-    });
-  };
+        // Send a dummy tx
+        sendTransaction({
+            to: address,
+            value: BigInt(0),
+            gas: null
+        });
+    };
 
-  return (
-    <Card padding="4" flexDirection="column" gap="4" maxWidth="500px" margin="0 auto">
-      <Card padding="4">
-        <Text variant="large" fontWeight="bold" marginBottom="4">
-          ERC20 Gas Payment Example
-        </Text>
+    return (
+        <div className="card padding-4 flex-direction-column gap-4 max-width-500px margin-0 auto">
+            <div className="card padding-4">
+                <p className="text-large font-bold margin-bottom-4">
+                    ERC20 Gas Payment Example
+                </p>
 
-        <Button
-          onClick={sendUnsponsored}
-          label="Send Unsponsored Transaction"
-          variant="primary"
-          isLoading={isPending}
-          disabled={isPending}
-          marginBottom="4"
-        />
+                <button
+                    onClick={sendUnsponsored}
+                    className="button-primary"
+                    disabled={isPending}
+                >
+                    {isPending ? 'Sending Transaction...' : 'Send Transaction'}
+                </button>
 
-        {isSuccess && txHash && (
-          <Card marginY="4" padding="3" background="positive" borderRadius="md">
-            <Text>Transaction successful! Hash: {txHash}</Text>
-          </Card>
-        )}
+                {isSuccess && txHash && (
+                    <div className="card margin-y-4 padding-3 background-positive border-radius-md">
+                        <p>Transaction successful! Hash: {txHash}</p>
+                    </div>
+                )}
 
-        {/* Fee selection UI appears when needed */}
-        {pendingFeeOptionConfirmation && (
-          <Card marginTop="4" flexDirection="column" gap="3">
-            <Text fontWeight="semibold">
-              Select Token to Pay Gas Fees
-            </Text>
+                {/* Fee selection UI appears when needed */}
+                {pendingFeeOptionConfirmation && (
+                    <div className="card margin-top-4 flex-direction-column gap-3">
+                        <p className="font-semibold">
+                            Select Token to Pay Gas Fees
+                        </p>
 
-            <Select
-              name="feeOption"
-              labelLocation="top"
-              label="Available Fee Options"
-              value={selectedFeeTokenName}
-              onValueChange={(value) => setSelectedFeeTokenName(value)}
-              options={pendingFeeOptionConfirmation.options.map(option => ({
-                label: (
-                  <Card flexDirection="column" gap="1">
-                    <Text>{option.token.name}</Text>
-                    <Card flexDirection="row" gap="1">
-                      <Text variant="small" color="text50">Fee:</Text>
-                      <Text variant="small">
-                        {formatUnits(BigInt(option.value), option.token.decimals || 18)} {option.token.symbol}
-                      </Text>
-                    </Card>
-                    {option.hasEnoughBalanceForFee !== undefined && (
-                      <Text
-                        variant="small"
-                        color={option.hasEnoughBalanceForFee ? "positive" : "negative"}
-                      >
-                        {option.hasEnoughBalanceForFee ? "Sufficient balance" : "Insufficient balance"}
-                      </Text>
-                    )}
-                  </Card>
-                ),
-                value: option.token.name
-              }))}
-            />
+                        <select
+                            name="feeOption"
+                            value={selectedFeeTokenName}
+                            onChange={(e) => setSelectedFeeTokenName(e.target.value)}
+                            className="w-full p-2 rounded-lg bg-gray-700 text-white border border-gray-600"
+                        >
+                            {pendingFeeOptionConfirmation.options.map(option => (
+                                <option key={option.token.name} value={option.token.name}>
+                                    {option.token.name} - Fee: {formatUnits(BigInt(option.value), option.token.decimals || 18)} {option.token.symbol}
+                                </option>
+                            ))}
+                        </select>
 
-            <Card flexDirection="row" gap="2" justifyContent="flex-end">
-              <Button
-                variant="secondary"
-                label="Cancel"
-                onClick={() => rejectPendingFeeOption(pendingFeeOptionConfirmation.id)}
-              />
-              <Button
-                variant="primary"
-                label="Confirm"
-                onClick={() => {
-                  const selected = pendingFeeOptionConfirmation.options.find(
-                    option => option.token.name === selectedFeeTokenName
-                  );
+                        <div className="card flex-direction-row gap-2 justify-end">
+                            <button
+                                className="button-secondary"
+                                onClick={() => rejectPendingFeeOption(pendingFeeOptionConfirmation.id)}
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                className="button-primary"
+                                onClick={() => {
+                                    const selected = pendingFeeOptionConfirmation.options.find(
+                                        option => option.token.name === selectedFeeTokenName
+                                    );
 
-                  if (selected) {
-                    confirmPendingFeeOption(
-                      pendingFeeOptionConfirmation.id,
-                      selected.token.contractAddress
-                    );
-                  }
-                }}
-              />
-            </Card>
-          </Card>
-        )}
-      </Card>
-    </Card>
-  );
+                                    if (selected && selected.token.contractAddress) {
+                                        confirmPendingFeeOption(
+                                            pendingFeeOptionConfirmation.id,
+                                            selected.token.contractAddress
+                                        );
+                                    }
+                                }}
+                            >
+                                Confirm
+                            </button>
+                        </div>
+                    </div>
+                )}
+            </div>
+        </div>
+    );
 };
 ```
 </Step>
