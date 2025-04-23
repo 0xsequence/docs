@@ -1,7 +1,7 @@
 ---
 
 title: "Quickstart"
-description: Quickstart guide for Embedded Wallet for the Sequence infrastructure stack for web3 gaming.
+description: Connect your users to your App with the Sequence Embedded Wallet.
 sidebarTitle: Quickstart
 ---
 
@@ -84,47 +84,49 @@ npx sequence-cli boilerplates create-embedded-wallet-react-starter
 npx sequence-cli boilerplates create-kit-embedded-wallet-nextjs-starter
 ```
 </CodeGroup>
-</Step>
-<Step title="Copy example .env file">
-
-```bash
-cd embedded-wallet-react-boilerplate && cp .env.example .env
-```
-</Step>
-<Step title="Install Packages and start app">
-
-<CodeGroup>
-```bash pnpm
-pnpm install && pnpm dev
-```
-
-```bash npm
-npm install && npm run dev
-```
-
-```bash yarn
-yarn install && yarn dev
-```
-</CodeGroup>
 
 </Step>
+
 <Step title="Connect and Authenticate">
-Navigate to `localhost:4444` and click connect to try out the authentication.
-</Step>
-<Step title="Use Sequence Embedded Wallets!">
+Open your browser and navigate to `http://localhost:4444`. Click on <b>Connect</b> to initiate the authentication process.
 
-Now that you have a working authentication, you can take look at our examples for the most common functions:
-- [Sign messages](/sdk/headless-wallet/use-wallets#sign-messages)
-- [Send transactions](/sdk/headless-wallet/use-wallets#send-transactions)
-- [Call contracts](/sdk/headless-wallet/use-wallets#call-any-contract)
-- [Verify a user on your backend](/sdk/headless-wallet/verification#prerequisite-deployment-of-a-parent-wallet)
+You can now test the Embedded wallet with the boilerplate! Now, let's configure your own project.
+</Step>
+
+<Step title="Configure your Project">
+<a href="https://sequence.build/project/default/embedded-wallet?tab=config">Navigate to embedded wallet configuration</a> for your project on Builder. Enter your recovery wallet address and set a password, then <b>Create Configuration</b>. Be aware that this configuration cannot be changed at a later date.
+</Step>
+
+<Step title="Update Environment Variables">
+Navigate to the cloned directory and copy & paste this configuration in the file `.env` replacing the existing configuration.
+
+Ensure you update the `PROJECT_ACCESS_KEY` and `WAAS_CONFIG_KEY` with the new keys located on the <a href="https://sequence.build/project/default/embedded-wallet?tab=integration">integration page</a>.
+```tsx
+# Update with your project access key
+VITE_PROJECT_ACCESS_KEY="AQAAAAAAAKJcPk5v95BJE-Q7GwdlY9hPuAM"
+# Update with your WAAS_CONFIG_KEY
+VITE_WAAS_CONFIG_KEY="eyJwcm9qZWN0SWQiOjQxNTY0LCJycGNTZXJ2ZXIiOiJodHRwczovL3dhYXMuc2VxdWVuY2UuYXBwIn0="
+VITE_GOOGLE= NULL
+VITE_APPLE= NULL
+VITE_WALLET_CONNECT_ID= NULL
+VITE_CHAINS= 80002
+VITE_DEFAULT_CHAIN= 80002
+```
+</Step>
+
+<Step title="Test your new configuration">
+Save your `.env` file, run `pnpm dev` from the root directory, and navigate back to `http://localhost:4444`. Sign into your wallet using email to test the wallet actions again.
+
+You are done! You can now see your wallet connection on the Overview page and the keys are scoped to your project.
+
 </Step>
 </Steps>
 
+As next steps:
+- You can now setup various [social authentication providers](/solutions/builder/embedded-wallet#login-providers).
+- [Use more features of our web-sdk](/sdk/web/guides/send-sponsored-tx).
+- [Request a ID token from Sequence to validate users on your backend](/sdk/headless-wallet/verification). 
 
-<Tip>
-We are using example variables in the .env file, so we recommend creating a project on [Sequence Builder](https://sequence.build/project/default/wallet/embedded-wallet) and [setting up your own wallet configuration](/solutions/builder/embedded-wallet) and update the environment variables to use more social providers for authentication, customize email templates, and more.
-</Tip>
 
 
 

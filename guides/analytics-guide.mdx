@@ -1,11 +1,8 @@
 ---
-
 title: "Sequence Analytics API in Dune"
 description: Learn how to use the Sequence Builder analytics feature to query user data for your project with a serverless Cloudflare Worker.
 sidebarTitle: Leverage Sequence Analytics API in Dune
 ---
-
-
 
 Time to complete: 20-30 minutes
 
@@ -20,7 +17,8 @@ You can view an example of the output for this guide [here](https://dune.com/mmh
 3. Dune Dashboard: Create a view into the data as a shareable dashboard
 
 <Note>
-A reference to the template code can be found [here](https://github.com/0xsequence-demos/template-cloudflare-worker-wallets-analytics)
+  A reference to the template code can be found
+  [here](https://github.com/0xsequence-demos/template-cloudflare-worker-wallets-analytics)
 </Note>
 
 ## 1. Access Key Management
@@ -39,6 +37,7 @@ First start by accessing settings, and selecting the API Keys card:
 <Step title="Add Service Account">
 
 Scroll down and select `+ Add Service Account`:
+
 <Frame>
 ![builder settings add service account](/images/builder/builder_settings_add_service_account.png)
 </Frame>
@@ -87,8 +86,9 @@ To complete this step, you should press enter 4 times after `wrangler init` with
 This will clone down a starter repository that can be used to deploy code to the cloud.
 
 <Note>
-Local API Testing <br/>
-At any point in the guide, you can use the `wrangler dev` command in the project folder for local testing
+  Local API Testing <br />
+  At any point in the guide, you can use the `wrangler dev` command in the project folder for
+  local testing
 </Note>
 
 #### Deploy Test
@@ -112,9 +112,9 @@ Then include the `Env` type with the variables in `index.ts`:
 
 ```ts
 export interface Env {
-	PROJECT_ID: number;
-	SECRET_API_ACCESS_KEY: string;
-	DAYS: number;
+  PROJECT_ID: number;
+  SECRET_API_ACCESS_KEY: string;
+  DAYS: number;
 }
 ```
 
@@ -122,18 +122,18 @@ Replace the existing `fetch` function with the following mocked function calls:
 
 ```ts
 export default {
-	async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
-		const url = new URL(request.url);
-		
-		// Handle different endpoints
-		if (url.pathname === "/dailyActiveUsers") {
-			return handleDailyWallets(env, request);
-		} else if (url.pathname === "/totalTransactionsSent") {
-			return handleTotalTxns(env, request);
-		} else {
-			return new Response("No function for this URL", { status: 405 });
-		}
-	},
+  async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
+    const url = new URL(request.url);
+
+    // Handle different endpoints
+    if (url.pathname === "/dailyActiveUsers") {
+      return handleDailyWallets(env, request);
+    } else if (url.pathname === "/totalTransactionsSent") {
+      return handleTotalTxns(env, request);
+    } else {
+      return new Response("No function for this URL", {status: 405});
+    }
+  }
 };
 ```
 
@@ -141,12 +141,12 @@ Using the following functions:
 
 ```ts
 const handleDailyWallets = async (env: Env, request: Request) => {
-	return new Response(JSON.stringify({endpoint: 'daily'}), { status: 200 });
-}
+  return new Response(JSON.stringify({endpoint: "daily"}), {status: 200});
+};
 
 const handleTotalTxns = async (env: Env, request: Request) => {
-	return new Response(JSON.stringify({endpoint: 'total'}), { status: 200 });
-}
+  return new Response(JSON.stringify({endpoint: "total"}), {status: 200});
+};
 ```
 
 </Step>
@@ -155,21 +155,21 @@ Next, include the following utility functions to parse the correct date from the
 
 ```ts
 const endDate = () => {
-	const today = new Date();
-	return today.toISOString().substring(0, 10); // only including the YYYY-MM-DD date
-}
+  const today = new Date();
+  return today.toISOString().substring(0, 10); // only including the YYYY-MM-DD date
+};
 
 const startDate = (env: Env) => {
-	const today = new Date();
+  const today = new Date();
 
-	// Format today's date as a string
-	const daysBefore = new Date(today);
-	daysBefore.setDate(daysBefore.getDate() - env.DAYS);
-	
-	// Format the date 7 days before as a string by only including the YYYY-MM-DD date
-	const daysBeforeString = daysBefore.toISOString().substring(0, 10);
-	return daysBeforeString
-}
+  // Format today's date as a string
+  const daysBefore = new Date(today);
+  daysBefore.setDate(daysBefore.getDate() - env.DAYS);
+
+  // Format the date 7 days before as a string by only including the YYYY-MM-DD date
+  const daysBeforeString = daysBefore.toISOString().substring(0, 10);
+  return daysBeforeString;
+};
 ```
 
 </Step>
@@ -179,29 +179,27 @@ Now, handle the `Daily Active Users` request by using the following function, th
 
 ```ts
 const handleDailyWallets = async (env: Env, request: Request) => {
-	const resp = await fetch(
-	`https://api.sequence.build/rpc/Builder/WalletsDaily`,
-		{
-			method: 'POST',
-			headers: {
-			'Content-Type': 'application/json',
-			'Authorization': `Bearer ${env.SECRET_API_ACCESS_KEY}`
-			},
-			body: JSON.stringify({
-			filter: {
-				dateInterval: 'DAY',
-				endDate: endDate(),
-				projectId: env.PROJECT_ID,
-				startDate: startDate(env)
-			}
-			})
-		}
-	)
-	
-	const data: any = await resp.json();
-	return new Response(JSON.stringify(data.walletStats), { status: 200 });
-}
+  const resp = await fetch(`https://api.sequence.build/rpc/Analytics/WalletsDaily`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${env.SECRET_API_ACCESS_KEY}`
+    },
+    body: JSON.stringify({
+      filter: {
+        dateInterval: "DAY",
+        endDate: endDate(),
+        projectId: env.PROJECT_ID,
+        startDate: startDate(env)
+      }
+    })
+  });
+
+  const data: any = await resp.json();
+  return new Response(JSON.stringify(data.walletStats), {status: 200});
+};
 ```
+
 </Step>
 <Step title="Total Transactions Sent">
 
@@ -209,28 +207,28 @@ Finally, add the following function for the `Total Transactions Sent`:
 
 ```ts
 const handleTotalTxns = async (env: Env, request: Request) => {
-	const resp = await fetch(
-	`https://api.sequence.build/rpc/Builder/WalletsTxnSentTotal`,
-		{
-		  method: 'POST',
-		  headers: {
-			'Content-Type': 'application/json',
-			'Authorization': `Bearer ${env.SECRET_API_ACCESS_KEY}`
-		  },
-		  body: JSON.stringify({
-			filter: {
-			  dateInterval: 'DAY',
-			  endDate: endDate(),
-			  projectId: env.PROJECT_ID,
-			  startDate: startDate(env)
-			}
-		  })
-		}
-	)
-	
-	const data: any = await resp.json();
-	return new Response(JSON.stringify(data.walletStats), { status: 200 });
-}
+  const resp = await fetch(
+    `https://api.sequence.build/rpc/Analytics/WalletsTxnSentTotal`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${env.SECRET_API_ACCESS_KEY}`
+      },
+      body: JSON.stringify({
+        filter: {
+          dateInterval: "DAY",
+          endDate: endDate(),
+          projectId: env.PROJECT_ID,
+          startDate: startDate(env)
+        }
+      })
+    }
+  );
+
+  const data: any = await resp.json();
+  return new Response(JSON.stringify(data.walletStats), {status: 200});
+};
 ```
 
 </Step>
@@ -239,22 +237,22 @@ Included in the Sequence Analytics API is the days with zero activity removed fr
 
 ```typescript
 const fillMissingDates = (data: any[], startDate: string, endDate: string) => {
-	const filledData: { value: number, label: string }[] = [];
-	const start = new Date(startDate);
-	const end = new Date(endDate);
-	
-	for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
-		const dateString = d.toISOString().substring(0, 10);
-		const existingData = data.find(entry => entry.label === dateString);
-		if (existingData) {
-			filledData.push(existingData);
-		} else {
-			filledData.push({ value: 0, label: dateString });
-		}
-	}
-	
-	return filledData;
-}
+  const filledData: {value: number; label: string}[] = [];
+  const start = new Date(startDate);
+  const end = new Date(endDate);
+
+  for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+    const dateString = d.toISOString().substring(0, 10);
+    const existingData = data.find((entry) => entry.label === dateString);
+    if (existingData) {
+      filledData.push(existingData);
+    } else {
+      filledData.push({value: 0, label: dateString});
+    }
+  }
+
+  return filledData;
+};
 ```
 
 Then for **both** call responses include the following method call with the `walletStats` data passed in:
@@ -273,7 +271,8 @@ Then for **both** call responses include the following method call with the `wal
 Now you can test your API by calling the respective paths with host name (`/dailyActiveUsers` & `/totalTransactionsSent`) once you have redeployed with `wrangler deploy`.
 
 <Note>
-For more examples of endpoints available through the Analytics API, please check out the [overview](/api/analytics/overview) page.
+  For more examples of endpoints available through the Analytics API, please check out the
+  [overview](/api-references/analytics/overview) page.
 </Note>
 
 ## 3. Dune Dashboard
@@ -304,9 +303,11 @@ FROM UNNEST(
 ) AS t(label, value)
 
 ```
+
 Once the results have been returned, create a `New visualization`.
 
 Then, select `Add visualization` after the default `Bar chart` is selected from the dropdown (but feel free to customize this).
+
 <Frame>
 ![add visualization](/images/guides/analytics/dune_add_visualization.png)
 </Frame>
@@ -339,6 +340,7 @@ Then, select `Add visualization` and scroll down to `Counter` to create a counte
 <Step title="Create New Dashboard">
 
 Access the buttons that read `Create` > `New dashboard` and input a name for the new dashboard.
+
 <Frame>
 ![dune create dashboard](/images/guides/analytics/dune_create_dashboard.png)
 </Frame>
@@ -353,7 +355,6 @@ Once for each query, search for the name in the modal and select `Add` for each 
 </Step>
 </Steps>
 
-Congratulations, you're now ready to share your project's data usage with your teammates or community. Finish by clicking the `Share` button. 
-<Frame>
-![dune share dashboard](/images/guides/analytics/dune_share_dashboard.png)
-</Frame>
+Congratulations, you're now ready to share your project's data usage with your teammates or community. Finish by clicking the `Share` button.
+
+<Frame>![dune share dashboard](/images/guides/analytics/dune_share_dashboard.png)</Frame>

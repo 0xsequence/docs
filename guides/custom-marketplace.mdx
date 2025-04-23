@@ -10,7 +10,7 @@ In this guide we will go through the process of creating a custom marketplace fr
 The tools will enable you to perform:
 
 1. [Minting](/guides/custom-marketplace#1-minting): Minting of tokens to your wallet from the Sequence Builder
-2. [Wallet Authentication](/guides/custom-marketplace#2-wallet-authentication): Use of Sequence Kit to authenticate a user
+2. [Wallet Authentication](/guides/custom-marketplace#2-wallet-authentication): Use of Web SDK to authenticate a user
 3. [Blockchain Queries](/guides/custom-marketplace#3-blockchain-queries): Querying of token balances using the Indexer
 4. [Multi-wallet Types](/guides/custom-marketplace#4-multi-wallet-types): Allow users to either use a Sequence Wallet or an EOA
 5. [Request Creation](/guides/custom-marketplace#5-request-creation): Creation of sell listing requests on the Sequence Market Protocol
@@ -26,15 +26,15 @@ The code can be found [here](https://github.com/0xsequence-demos/simple-marketpl
 
 ## 1. Minting
 
-The first step is to create a collectible from the Sequence Builder and mint a few tokens, which can be accomplished with this [guide](/sdk/collectibles/deploy-an-item-collection) and to use the `tokenId` you minted in the following steps to query and fulfill orders.
+The first step is to create a collectible from the Sequence Builder and mint a few tokens, which can be accomplished with this [guide](/solutions/collectibles/contracts/deploy-an-item-collection) and to use the `tokenId` you minted in the following steps to query and fulfill orders.
 
 ## 2. Wallet Authentication
 
 For your project, you'll need a way to authenticate your user with a wallet.
 
-Your choice from the Sequence stack is to use either an [Embedded Wallet](/sdk/headless-wallet/quickstart) for headless and web2-like UX, or a [Ecosystem Wallet](/sdk/web/ecosystem) with [Sequence Kit](/sdk/web/overview) to reach more types of wallets.
+Your choice from the Sequence stack is to use either an [Embedded Wallet](/sdk/headless-wallet/quickstart) for headless and web2-like UX, or a [Ecosystem Wallet](/solutions/wallets/ecosystem/overview) with [Web SDK](/solutions/wallets/overview) to reach more types of wallets.
 
-For this guide we'll use an `Universal Sequence Wallet` with `Sequence Kit` connector (with an option for an `Embedded Wallet`) which can authenticate users using Google or Apple auth, in addition to user brought wallets like Coinbase or Metamask.
+For this guide we'll use an `Universal Sequence Wallet` with `Web SDK` connector (with an option for an `Embedded Wallet`) which can authenticate users using Google or Apple auth, in addition to user brought wallets like Coinbase or Metamask.
 
 ### Install Packages
 
@@ -128,7 +128,7 @@ root.render(
 );
 ```
 
-And finally, add a button in the `App.tsx` to make the Sequence Kit modal appear
+And finally, add a button in the `App.tsx` to make the Web SDK modal appear
 
 ```js
 import { useOpenConnectModal, useKitWallets } from "@0xsequence/kit";
@@ -248,7 +248,7 @@ Where the response of the indexer call, yields the follow data:
 
 ## 4. Multi-wallet Types
 
-Due to the fact that we're using `Sequence Kit` for this example that allows you to use a Sequence wallet, in addition to your own brought `EOA wallet`, sending transactions to the blockchain will differ due to the fact that with a `Sequence wallet`, you can send batch transactions to optimize gas costs, whereas with `wagmi` using an EOA you can only send 1 transaction at a time.
+Due to the fact that we're using `Web SDK` for this example that allows you to use a Sequence wallet, in addition to your own brought `EOA wallet`, sending transactions to the blockchain will differ due to the fact that with a `Sequence wallet`, you can send batch transactions to optimize gas costs, whereas with `wagmi` using an EOA you can only send 1 transaction at a time.
 
 To accomplish this, we take a few steps to create a local state variable that checks for the authorized wallet
 
@@ -292,7 +292,7 @@ First, we check that the marketplace is approved for the contract, with some log
 
 ```js
 const ERC1155Contract = '0x1693ffc74edbb50d6138517fe5cd64fd1c917709'
-const MarketPlaceContract = '0xB537a160472183f2150d42EB1c3DD6684A55f74c'
+const MarketPlaceContract = '0xfdb42A198a932C8D3B506Ffa5e855bC4b348a712'
 
 function App() {
 
@@ -370,7 +370,7 @@ const createRequest = async () => {
     // is not approved
     const dataApprove = erc1155Interface.encodeFunctionData(
       "setApprovalForAll",
-      ["0xB537a160472183f2150d42EB1c3DD6684A55f74c", true]
+      ["0xfdb42A198a932C8D3B506Ffa5e855bC4b348a712", true]
     );
 
     const txApprove = {
@@ -619,10 +619,10 @@ We begin with the same flow as before, accounting for sending multi-batch transa
       [topOrder.orderId, quantity, address, [], []],
     );
 
-    setAcceptData(data) // we'll need this later, only for sequence kit enabled transactions
+    setAcceptData(data) // we'll need this later, only for Web SDK enabled transactions
 
     const tx = {
-      to: MarketPlaceContract, // 0xB537a160472183f2150d42EB1c3DD6684A55f74c
+      to: MarketPlaceContract, // 0xfdb42A198a932C8D3B506Ffa5e855bC4b348a712
       data: data
     }
 
@@ -639,7 +639,7 @@ We begin with the same flow as before, accounting for sending multi-batch transa
           "function approve(address spender, uint256 amount) external returns (bool)"
         ]);
 
-        const spenderAddress = "0xB537a160472183f2150d42EB1c3DD6684A55f74c";
+        const spenderAddress = "0xfdb42A198a932C8D3B506Ffa5e855bC4b348a712";
         const maxUint256 = ethers.constants.MaxUint256;
         const dataApprove = erc20Interface.encodeFunctionData("approve", [spenderAddress, maxUint256]);
 
@@ -692,9 +692,9 @@ Then in the flow for not being a sequence wallet and requiring approval, we'll i
 
 Great, everything is complete if you add the function click handler attached to a button
 
-## 7. (Optional) Integrate Embedded Wallet into Sequence Kit
+## 7. (Optional) Integrate Embedded Wallet into Web SDK
 
-In order to make your sequence kit connector as [Embedded Wallet](/sdk/headless-wallet/quickstart) enabled, we'll need to install a few package version and update our `config.ts` we used at the beginning of the guide
+In order to make your Web SDK connector as [Embedded Wallet](/sdk/headless-wallet/quickstart) enabled, we'll need to install a few package version and update our `config.ts` we used at the beginning of the guide
 
 The Embedded Wallet feature allows no-confirmation transactions, which can create a smoother UX
 

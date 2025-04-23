@@ -1,0 +1,232 @@
+---
+title: "useMetadataClient"
+description: Hook for accessing the Sequence Metadata client for token and contract metadata
+sidebarTitle: useMetadataClient
+---
+
+## Import
+
+```tsx
+import { useMetadataClient } from '@0xsequence/hooks'
+```
+
+## Usage
+
+```tsx
+import { useMetadataClient } from '@0xsequence/hooks'
+
+function CustomMetadataFetcher() {
+  const metadataClient = useMetadataClient()
+  const [metadata, setMetadata] = useState(null)
+  const [isLoading, setIsLoading] = useState(false)
+  
+  const fetchContractMetadata = async () => {
+    setIsLoading(true)
+    try {
+      // Fetch metadata for a specific contract
+      const response = await metadataClient.getContractInfo({
+        chainID: "1",
+        contractAddress: "0x..." 
+      })
+      
+      setMetadata(response.contractInfo)
+    } catch (error) {
+      console.error('Failed to fetch metadata:', error)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  // Example of batch token metadata fetch
+  const fetchBatchTokenMetadata = async () => {
+    setIsLoading(true)
+    try {
+      const response = await metadataClient.getTokenMetadata({
+        chainID: "1",
+        contractAddress: "0x...",
+        tokenIDs: ["1", "2", "3"]
+      })
+      
+      setMetadata(response.tokenMetadata)
+    } catch (error) {
+      console.error('Failed to fetch token metadata:', error)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  return (
+    <div>
+      <button 
+        onClick={fetchContractMetadata}
+        disabled={isLoading}
+      >
+        Fetch Contract Info
+      </button>
+      
+      <button 
+        onClick={fetchBatchTokenMetadata}
+        disabled={isLoading}
+      >
+        Fetch Token Metadata
+      </button>
+
+      {isLoading && <div>Loading...</div>}
+      
+      {metadata && (
+        <pre>
+          {JSON.stringify(metadata, null, 2)}
+        </pre>
+      )}
+    </div>
+  )
+}
+```
+
+## Return Type: `SequenceMetadata`
+
+The hook returns a configured instance of the `SequenceMetadata` client. Here's the detailed structure:
+
+```tsx
+interface SequenceMetadata {
+  // Service Methods
+  ping(headers?: object, signal?: AbortSignal): Promise<PingResponse>
+  version(headers?: object, signal?: AbortSignal): Promise<VersionResponse>
+  runtimeStatus(headers?: object, signal?: AbortSignal): Promise<RuntimeStatusReturn>
+  
+  // Task Management Methods
+  getTask(args: GetTaskArgs, headers?: object, signal?: AbortSignal): Promise<GetTaskReturn>
+  getTaskStatus(args: GetTaskStatusArgs, headers?: object, signal?: AbortSignal): Promise<GetTaskStatusReturn>
+  
+  // Token Metadata Methods
+  getTokenMetadata(args: GetTokenMetadataArgs, headers?: object, signal?: AbortSignal): Promise<GetTokenMetadataReturn>
+  getTokenMetadataBatch(args: GetTokenMetadataBatchArgs, headers?: object, signal?: AbortSignal): Promise<GetTokenMetadataBatchReturn>
+  searchTokenMetadata(args: SearchTokenMetadataArgs, headers?: object, signal?: AbortSignal): Promise<SearchTokenMetadataReturn>
+  searchTokenIDs(args: SearchTokenIDsArgs, headers?: object, signal?: AbortSignal): Promise<SearchTokenIDsReturn>
+  tokenCollectionFilters(args: TokenCollectionFiltersArgs, headers?: object, signal?: AbortSignal): Promise<TokenCollectionFiltersReturn>
+  
+  // Token Refresh Methods
+  refreshTokenMetadata(args: RefreshTokenMetadataArgs, headers?: object, signal?: AbortSignal): Promise<RefreshTokenMetadataReturn>
+  enqueueTokensForRefresh(args: EnqueueTokensForRefreshArgs, headers?: object, signal?: AbortSignal): Promise<EnqueueTokensForRefreshReturn>
+  getTokenRefreshStatus(args: GetTokenRefreshStatusArgs, headers?: object, signal?: AbortSignal): Promise<GetTokenRefreshStatusReturn>
+  getTokenRefreshResult(args: GetTokenRefreshResultArgs, headers?: object, signal?: AbortSignal): Promise<GetTokenRefreshResultReturn>
+  cancelRefreshJob(args: CancelRefreshJobArgs, headers?: object, signal?: AbortSignal): Promise<CancelRefreshJobReturn>
+  
+  // Contract Methods
+  getContractInfo(args: GetContractInfoArgs, headers?: object, signal?: AbortSignal): Promise<GetContractInfoReturn>
+  getContractInfoBatch(args: GetContractInfoBatchArgs, headers?: object, signal?: AbortSignal): Promise<GetContractInfoBatchReturn>
+  searchContractInfo(args: SearchContractInfoArgs, headers?: object, signal?: AbortSignal): Promise<SearchContractInfoReturn>
+  searchContractInfoBatch(args: SearchContractInfoBatchArgs, headers?: object, signal?: AbortSignal): Promise<SearchContractInfoBatchReturn>
+  refreshContractInfo(args: RefreshContractInfoArgs, headers?: object, signal?: AbortSignal): Promise<RefreshContractInfoReturn>
+  refreshContractTokens(args: RefreshContractTokensArgs, headers?: object, signal?: AbortSignal): Promise<RefreshContractTokensReturn>
+  refreshAllContractTokens(args: RefreshAllContractTokensArgs, headers?: object, signal?: AbortSignal): Promise<RefreshAllContractTokensReturn>
+  
+  // Search Methods
+  searchMetadata(args: SearchMetadataArgs, headers?: object, signal?: AbortSignal): Promise<SearchMetadataReturn>
+  searchTokens(args: SearchTokensArgs, headers?: object, signal?: AbortSignal): Promise<SearchTokensReturn>
+  searchContracts(args: SearchContractsArgs, headers?: object, signal?: AbortSignal): Promise<SearchContractsReturn>
+  
+  // Niftyswap Methods
+  getNiftyswapTokenQuantity(args: GetNiftyswapTokenQuantityArgs, headers?: object, signal?: AbortSignal): Promise<GetNiftyswapTokenQuantityReturn>
+  getNiftyswapUnitPrices(args: GetNiftyswapUnitPricesArgs, headers?: object, signal?: AbortSignal): Promise<GetNiftyswapUnitPricesReturn>
+  getNiftyswapUnitPricesWithQuantities(args: GetNiftyswapUnitPricesWithQuantitiesArgs, headers?: object, signal?: AbortSignal): Promise<GetNiftyswapUnitPricesWithQuantitiesReturn>
+  
+  // Mint Monitor Methods
+  addContractToMintMonitor(args: AddContractToMintMonitorArgs, headers?: object, signal?: AbortSignal): Promise<AddContractToMintMonitorReturn>
+  removeContractFromMintMonitor(args: RemoveContractFromMintMonitorArgs, headers?: object, signal?: AbortSignal): Promise<RemoveContractFromMintMonitorReturn>
+  mintMonitorJobStatus(args: MintMonitorJobStatusArgs, headers?: object, signal?: AbortSignal): Promise<MintMonitorJobStatusReturn>
+  mintMonitorTriggerJob(args: MintMonitorTriggerJobArgs, headers?: object, signal?: AbortSignal): Promise<MintMonitorTriggerJobReturn>
+  
+  // Contract Sync Methods
+  syncContractTokens(args: SyncContractTokensArgs, headers?: object, signal?: AbortSignal): Promise<SyncContractTokensReturn>
+  abortContractSync(args: AbortContractSyncArgs, headers?: object, signal?: AbortSignal): Promise<AbortContractSyncReturn>
+  contractSyncJobStatus(args: ContractSyncJobStatusArgs, headers?: object, signal?: AbortSignal): Promise<ContractSyncJobStatusReturn>
+  
+  // Directory Methods
+  directoryGetNetworks(args: DirectoryGetNetworksArgs, headers?: object, signal?: AbortSignal): Promise<DirectoryGetNetworksReturn>
+  directoryGetCollections(args: DirectoryGetCollectionsArgs, headers?: object, signal?: AbortSignal): Promise<DirectoryGetCollectionsReturn>
+  directorySearchCollections(args: DirectorySearchCollectionsArgs, headers?: object, signal?: AbortSignal): Promise<DirectorySearchCollectionsReturn>
+}
+```
+
+### Available Methods
+
+#### Service Methods
+- `ping`: Check service availability
+- `version`: Get metadata service version information 
+- `runtimeStatus`: Get current runtime status of the service
+
+#### Task Management Methods
+- `getTask`: Get details of a specific task
+- `getTaskStatus`: Get status of a task
+
+#### Token Metadata Methods
+- `getTokenMetadata`: Fetch metadata for specific tokens
+- `getTokenMetadataBatch`: Batch fetch token metadata
+- `searchTokenMetadata`: Search through token metadata
+- `searchTokenIDs`: Search for specific token IDs
+- `tokenCollectionFilters`: Get available filters for token collections
+
+#### Token Refresh Methods
+- `refreshTokenMetadata`: Refresh metadata for specific tokens
+- `enqueueTokensForRefresh`: Queue tokens for metadata refresh
+- `getTokenRefreshStatus`: Check status of token refresh
+- `getTokenRefreshResult`: Get results of token refresh
+- `cancelRefreshJob`: Cancel an ongoing refresh job
+
+#### Contract Methods
+- `getContractInfo`: Fetch metadata for a single contract
+- `getContractInfoBatch`: Batch fetch contract metadata
+- `searchContractInfo`: Search through contract metadata
+- `searchContractInfoBatch`: Batch search contract metadata
+- `refreshContractInfo`: Refresh contract metadata
+- `refreshContractTokens`: Refresh tokens for a contract
+- `refreshAllContractTokens`: Refresh all tokens for a contract
+
+#### Search Methods
+- `searchMetadata`: Search through all metadata
+- `searchTokens`: Search for specific tokens
+- `searchContracts`: Search for specific contracts
+
+#### Niftyswap Methods
+- `getNiftyswapTokenQuantity`: Get token quantity information from Niftyswap
+- `getNiftyswapUnitPrices`: Get unit prices from Niftyswap
+- `getNiftyswapUnitPricesWithQuantities`: Get unit prices with quantities from Niftyswap
+
+#### Mint Monitor Methods
+- `addContractToMintMonitor`: Add contract to mint monitoring
+- `removeContractFromMintMonitor`: Remove contract from mint monitoring
+- `mintMonitorJobStatus`: Check status of mint monitoring job
+- `mintMonitorTriggerJob`: Trigger a mint monitoring job
+
+#### Contract Sync Methods
+- `syncContractTokens`: Sync tokens for a contract
+- `abortContractSync`: Abort an ongoing contract sync
+- `contractSyncJobStatus`: Check status of contract sync
+
+#### Directory Methods
+- `directoryGetNetworks`: Get available networks
+- `directoryGetCollections`: Get collections directory
+- `directorySearchCollections`: Search through collections directory
+
+## Parameters
+
+The hook doesn't accept any parameters but uses configuration from the `useConfig` hook:
+
+```tsx
+interface Config {
+  env: {
+    metadataUrl: string
+    // ... other environment settings
+  }
+  projectAccessKey: string
+  jwt?: string
+}
+```
+
+The configuration determines:
+- The metadata service URL
+- Your project's access key for authentication
+- Optional JWT for authenticated requests
+
+The client is memoized based on the `projectAccessKey` and `jwt` to prevent unnecessary re-instantiation.

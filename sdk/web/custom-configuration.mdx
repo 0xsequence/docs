@@ -1,26 +1,24 @@
 ---
 
 title: "Custom Configuration Options"
-description: The Configuration section allows developers to customize the Sequence Kit by passing options to the KitProvider wrapper.
+description: The Configuration section allows developers to customize the Web SDK by passing options to the `SequenceConnect` wrapper.
 sidebarTitle: Custom Configuration
 ---
 
-
-
-Developers can customize the Sequence Kit experience by passing configuration options to the `SequenceKit` wrapper.
+Developers can customize the Web SDK experience by passing configuration options to the `SequenceConnect` wrapper.
 
 Here's how you can configure the kit using these options:
 
 ```jsx
-  const kitConfig =  {
+  const connectConfig =  {
 		defaultTheme: 'light',
 		position: 'top-left',
 		...
 	}
 
-  <SequenceKit config={kitConfig}>
+  <SequenceConnect config={connectConfig}>
     <App />
-  <SequenceKit>
+  </SequenceConnect>
 
 ```
 
@@ -30,64 +28,56 @@ The following is the available configuration customization options, or, [see bel
 
 ```typescript
 interface CreateConfigOptions {
-  appName: string;
-  projectAccessKey: string;
-  chainIds?: number[];
-  defaultChainId?: number;
-  disableAnalytics?: boolean;
-  defaultTheme?: Theme;
-  position?: ModalPosition;
+  appName: string
+  projectAccessKey: string
+  chainIds?: number[]
+  defaultChainId?: number
+  disableAnalytics?: boolean
+  defaultTheme?: Theme
+  position?: ModalPosition
   signIn?: {
-    logoUrl?: string;
-    projectName?: string;
-    useMock?: boolean;
-  };
+    logoUrl?: string
+    projectName?: string
+    useMock?: boolean
+  }
   displayedAssets?: Array<{
-    contractAddress: string;
-    chainId: number;
-  }>;
-  readOnlyNetworks: [10]; // Display assets in wallet (kit/wallet) from Optimism (chain ID 10) in addition to the networks specified in chainIds
-  ethAuth?: EthAuthSettings;
-  isDev?: boolean;
-
-  wagmiConfig?: WagmiConfig; // optional wagmiConfig overrides
-
-  waasConfigKey?: string;
-  enableConfirmationModal?: boolean;
-
+    contractAddress: string
+    chainId: number
+  }>
+  ethAuth?: EthAuthSettings
+  wagmiConfig?: WagmiConfig // optional wagmiConfig overrides
+  waasConfigKey: string
+  enableConfirmationModal?: boolean
   walletConnect?:
-    | false
+    | boolean
     | {
-        projectId: string;
-      };
-
+        projectId: string
+      }
   google?:
-    | false
+    | boolean
     | {
-        clientId: string;
-      };
-
+        clientId: string
+      }
   apple?:
-    | false
+    | boolean
     | {
-        clientId: string;
-        redirectURI: string;
-      };
-
+        clientId: string
+        rediretURI: string
+      }
   email?:
     | boolean
     | {
-        legacyEmailAuth?: boolean;
-      };
+        legacyEmailAuth?: boolean
+      }
 }
 ```
 
 ## Custom Styling and Design
 
-You can customize the visual appearance of Sequence Kit by providing a custom theme object to the `defaultTheme` configuration option. Here's an example of how to implement custom styling:
+You can customize the visual appearance of Web SDK connect modal by providing a custom theme object to the `defaultTheme` configuration option. Here's an example of how to implement custom styling:
 
 ```typescript
-import { createConfig } from "@0xsequence/kit";
+import { createConfig } from "@0xsequence/connect";
 
 const CUSTOM_THEME = {
   backgroundPrimary: "rgba(35, 100, 32, 1)",
@@ -207,7 +197,7 @@ The `signIn` object is used to configure the sign in modal.
 
 #### `signIn.logoUrl`
 <Frame>
-![Enable a dark theme to Sequence Kit](/images/kit/sign-in-modal-with-logo.png)
+![Enable a dark theme to Web SDK](/images/kit/sign-in-modal-with-logo.png)
 </Frame>
 
 | Type   | Default   |
@@ -218,7 +208,7 @@ URL of the logo to be shown in the sign in modal.
 
 #### `signIn.projectName`
 <Frame>
-![Add a project name to Sequence Kit](/images/kit/sign-in-modal-project-name.png)
+![Add a project name to Web SDK](/images/kit/sign-in-modal-project-name.png)
 </Frame>
 
 
@@ -266,7 +256,7 @@ The defaultTheme determines the color palette used for styling the modal. Possib
 - 'dark'
 - object
 
-Specific colors can be overwritten by passing a theme override object. The [Sequence Builder](https://sequence.build/) provides a useful playground for toying with the colors in Sequence Kit.
+Specific colors can be overwritten by passing a theme override object. The [Sequence Builder](https://sequence.build/) provides a useful playground for toying with the colors in Web SDK.
 
 ## Wallet
 

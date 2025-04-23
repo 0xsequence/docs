@@ -1,0 +1,280 @@
+---
+title: "Getting Started with Marketplace SDK"
+description: Learn how to get started with Marketplace SDK by installing the necessary packages and setting up configs
+sidebarTitle: Getting Started
+---
+
+Prior to beginning this integration, ensure you have installed and configured our Web SDK. For setup instructions, please refer to the [Web SDK - Getting started](/sdk/web/getting-started) documentation. Once complete, return here to proceed.
+
+Otherwise, we will walk you through the process of installing Marketplace SDK, instantiating the SDK and providing you some hooks to work with our marketplace
+
+## Installing Marketplace SDK Packages
+
+Marketplace SDK is modular, allowing you to install only the necessary packages. To get started, install the `@0xsequence/marketplace-sdk` core package, as well as install other dependencies necessary dependencies.
+
+```bash
+npm install @0xsequence/connect @0xsequence/checkout @0xsequence/wallet-widget @0xsequence/marketplace-sdk @0xsequence/design-system @0xsequence/network @0xsequence/indexer @0xsequence/metadata wagmi ethers@^6 viem 0xsequence @tanstack/react-query @tanstack/react-query-devtools @legendapp/state framer-motion pino-pretty
+# or
+pnpm add @0xsequence/connect @0xsequence/checkout @0xsequence/wallet-widget @0xsequence/marketplace-sdk @0xsequence/design-system @0xsequence/network @0xsequence/indexer @0xsequence/metadata wagmi ethers@^6 viem 0xsequence @tanstack/react-query @tanstack/react-query-devtools @legendapp/state framer-motion pino-pretty
+# or
+yarn add @0xsequence/connect @0xsequence/checkout @0xsequence/wallet-widget @0xsequence/marketplace-sdk @0xsequence/design-system @0xsequence/network @0xsequence/indexer @0xsequence/metadata wagmi ethers@^6 viem 0xsequence @tanstack/react-query @tanstack/react-query-devtools @legendapp/state framer-motion pino-pretty
+```
+
+# Setting Up your Dapp
+
+To utilize the core marketplace-sdk wrapper to interact with your marketplace from your application, follow these steps:
+<Steps>
+
+<Step title="Verify If Your Web SDK Is Correctly Integrated">
+
+Ensuring that your Web SDK is properly integrated is crucial before getting started with Marketplace SDK. To verify this, simply check if you can log in and log out successfully.
+
+</Step>
+
+<Step title="Create a Config">
+
+Next, a configuration variable for Marketplace SDK will need to be created. In this file, we will define and manage essential configuration settings for our Marketplace SDK, including environment variables. This centralized approach ensures that configuration values are easily accessible and maintainable.
+
+#### config.ts
+
+<CodeGroup>
+```ts vite
+import type { SdkConfig } from '@0xsequence/marketplace-sdk';
+
+const projectAccessKey = import.meta.env.VITE_PROJECT_ACCESS_KEY;
+const projectId = import.meta.env.VITE_PROJECT_ID!;
+const waasConfigKey = import.meta.env.VITE_WAAS_CONFIG_KEY;
+const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+const appleClientId = import.meta.env.VITE_APPLE_CLIENT_ID;
+const appleRedirectURI = window.location.origin + window.location.pathname;
+const walletConnectId = import.meta.env.VITE_WALLET_CONNECT_ID;
+
+export function getConfig() {
+  const embedded = waasConfigKey
+    ? ({
+        waasConfigKey,
+        googleClientId,
+        appleClientId,
+        appleRedirectURI,
+      } satisfies NonNullable<SdkConfig["wallet"]>["embedded"])
+    : undefined;
+
+  const config = {
+    projectId,
+    projectAccessKey,
+    wallet: {
+      walletConnectProjectId: walletConnectId,
+      embedded,
+    },
+  } satisfies SdkConfig;
+
+  return config;
+}
+```
+
+```ts nextjs server side rendering
+import type { SdkConfig } from '@0xsequence/marketplace-sdk';
+
+const projectAccessKey = process.env.NEXT_PUBLIC_PROJECT_ACCESS_KEY!;
+const projectId = process.env.NEXT_PUBLIC_PROJECT_ID!;
+const waasConfigKey = process.env.NEXT_PUBLIC_WAAS_CONFIG_KEY!;
+const googleClientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
+const appleClientId = process.env.NEXT_PUBLIC_APPLE_CLIENT_ID;
+const walletConnectId = process.env.NEXT_PUBLIC_WALLET_CONNECT_ID;
+
+export function getConfig(host: string) {
+  const embedded = waasConfigKey
+    ? ({
+        waasConfigKey,
+        googleClientId,
+        appleClientId,
+        appleRedirectURI: appleClientId ? host : '',
+      } satisfies NonNullable<SdkConfig['wallet']>['embedded'])
+    : undefined;
+
+  const config = {
+    projectId,
+    projectAccessKey,
+    wallet: {
+      walletConnectProjectId: walletConnectId,
+      embedded,
+    },
+  } satisfies SdkConfig;
+
+  return config;
+}
+```
+
+```ts nextjs client side rendering
+import type { SdkConfig } from '@0xsequence/marketplace-sdk';
+
+const projectAccessKey = process.env.NEXT_PUBLIC_PROJECT_ACCESS_KEY!;
+const projectId = process.env.NEXT_PUBLIC_PROJECT_ID!;
+const waasConfigKey = process.env.NEXT_PUBLIC_WAAS_CONFIG_KEY!;
+const googleClientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
+const appleClientId = process.env.NEXT_PUBLIC_APPLE_CLIENT_ID;
+const appleRedirectURI =
+  typeof window !== "undefined" ? `https://${window.location.host}` : "";
+const walletConnectId = process.env.NEXT_PUBLIC_WALLET_CONNECT_ID;
+
+export function getConfig() {
+  const embedded = waasConfigKey
+    ? ({
+        waasConfigKey,
+        googleClientId,
+        appleClientId,
+        appleRedirectURI,
+      } satisfies NonNullable<SdkConfig['wallet']>['embedded'])
+    : undefined;
+
+  const config = {
+    projectId,
+    projectAccessKey,
+    wallet: {
+      walletConnectProjectId: walletConnectId,
+      embedded,
+    },
+  } satisfies SdkConfig;
+
+  return config;
+}
+```
+</CodeGroup>
+</Step>
+
+<Step title="Create an SSR Client">
+
+Next, a Ssr Client for Marketplace SDK will need to be created. This SSR Client serves as an entry point for initializing the marketplace SDK on the Next.js server, enabling efficient data fetching and configuration setup before rendering the UI.
+
+#### Understanding the SSR Client
+
+The SSR Client allows you to access key marketplace data and configurations, which are essential for properly initializing the SDK on the server side. The following data can be retrieved:
+
+This setup ensures a seamless integration of the marketplace SDK with server-side rendering, improving performance and user experience.
+
+#### ssrClient.ts
+
+<CodeGroup>
+```ts vite
+// You can omit this step with VITE
+```
+
+```ts nextjs server side rendering
+import { getConfig } from './config';
+import { createSSRClient } from '@0xsequence/marketplace-sdk/react/ssr';
+import { QueryClient } from '@tanstack/react-query';
+import { headers } from 'next/headers';
+
+export const ssrClient = async () => {
+  const headersList = headers();
+  
+  return createSSRClient({
+    cookie: headersList.get('cookie') || '',
+    config: getConfig(`https://${headersList.get('x-forwarded-host') || headersList.get('host')}/`),
+    queryClient: new QueryClient(),
+  });
+};
+```
+
+```ts nextjs client side rendering
+// You can omit this step in NEXT.js if your layout uses 'use client' instead of server-side rendering
+```
+
+</CodeGroup>
+
+</Step>
+
+<Step title="Add the Marketplace SDK Providers Alongside Your Web SDK Providers">
+
+Open your `Providers.tsx` file, where the Web SDK is configured, and integrate the Marketplace SDK providers.
+
+<CodeGroup>
+```ts vite
+import {
+  MarketplaceProvider,
+  ModalProvider,
+} from "@0xsequence/marketplace-sdk/react";
+import { getConfig } from "./config";
+
+const sdkConfig = getConfig();
+
+// Into your React component:
+
+return (
+  /* Your other providers should be placed here (they should wrap MarketplaceProvider) */
+  
+  <MarketplaceProvider config={sdkConfig}>
+    {children}
+    <ModalProvider />
+  </MarketplaceProvider>
+
+  /* Your other providers should close here */
+);
+```
+
+```ts nextjs server side rendering
+import {
+  MarketplaceProvider,
+  ModalProvider,
+  marketplaceConfigOptions,
+} from "@0xsequence/marketplace-sdk/react";
+
+import {
+  QueryClient,
+  QueryClientProvider,
+  useQuery,
+} from '@tanstack/react-query';
+
+import { ssrClient } from '../ssrClient.ts';
+
+// Into your React component:
+
+const { getInitialState, config: sdkConfig } = ssrClient();
+const sdkInitialState = await getInitialState();
+
+return (
+  /* Your other providers should be placed here (they should wrap MarketplaceProvider) */
+  
+  <MarketplaceProvider config={sdkConfig} sdkInitialState={sdkInitialState}>
+    {children}
+    <ModalProvider />
+  </MarketplaceProvider>
+
+  /* Your other providers should close here */
+);
+```
+
+```ts nextjs client side rendering
+import {
+  MarketplaceProvider,
+  ModalProvider,
+} from "@0xsequence/marketplace-sdk/react";
+import { getConfig } from "./config";
+
+const sdkConfig = getConfig();
+
+// Into your React component:
+
+return (
+  /* Your other providers should be placed here (they should wrap MarketplaceProvider) */
+  
+  <MarketplaceProvider config={sdkConfig}>
+    {children}
+    <ModalProvider />
+  </MarketplaceProvider>
+
+  /* Your other providers should close here */
+);
+```
+</CodeGroup>
+
+</Step>
+
+<Step title="Done">
+
+Congratulations! Now you’re ready to explore the available hooks in our Marketplace SDK. Interested? Check out the [Marketplace SDK hooks](/sdk/marketplace-sdk/overview#marketplace-sdk-hooks) documentation to learn more.
+
+</Step>
+
+
+</Steps>

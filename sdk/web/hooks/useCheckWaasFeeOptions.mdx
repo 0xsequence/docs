@@ -1,0 +1,128 @@
+---
+title: "useCheckWaasFeeOptions"
+description: Hook for checking transaction fee options in Sequence WaaS
+sidebarTitle: useCheckWaasFeeOptions
+---
+
+## Import
+
+```tsx
+import { useCheckWaasFeeOptions } from '@0xsequence/connect'
+```
+
+## Usage
+
+```tsx
+import { useCheckWaasFeeOptions } from '@0xsequence/connect'
+
+function App() {
+  const checkFeeOptions = useCheckWaasFeeOptions()
+  
+  const handleTransaction = async () => {
+    // Example transaction
+    const transaction = {
+      to: '0x...',
+      value: '1000000000000000000', // 1 ETH
+      data: '0x...'
+    }
+    
+    const { isSponsored, feeOptions, feeQuote } = await checkFeeOptions({
+      transactions: [transaction],
+      chainId: 1 // Ethereum Mainnet
+    })
+    
+    if (isSponsored) {
+      console.log('Transaction is sponsored!')
+    } else if (feeOptions) {
+      console.log('Available fee options:', feeOptions)
+      console.log('Fee quote:', feeQuote)
+      // Handle fee payment selection
+    }
+  }
+  
+  return (
+    <div>
+      <button onClick={handleTransaction}>
+        Check Transaction Fees
+      </button>
+    </div>
+  )
+}
+```
+
+## Return Type
+
+The hook returns a function with the following signature:
+
+```tsx
+(params: {
+  transactions: Transaction[]
+  chainId: number
+}) => Promise<{
+  feeQuote: string | undefined
+  feeOptions: FeeOption[] | undefined
+  isSponsored: boolean
+}>
+```
+
+### Parameters
+
+#### transactions
+
+`Transaction[]`
+
+Array of transactions to check fee options for.
+
+```tsx
+interface Transaction {
+  to: string
+  value?: string
+  data?: string
+  // ... other transaction properties
+}
+```
+
+#### chainId
+
+`number`
+
+The ID of the blockchain network where the transaction will be executed.
+
+### Return Object Properties
+
+#### isSponsored
+
+`boolean`
+
+Indicates whether the transaction will be sponsored (true) or requires fee payment (false).
+
+#### feeOptions
+
+`FeeOption[] | undefined`
+
+Available fee payment options if the transaction is not sponsored.
+
+```tsx
+interface FeeOption {
+  token: {
+    symbol: string
+    decimals: number
+    address: string
+  }
+  // ... other fee option properties
+}
+```
+
+#### feeQuote
+
+`string | undefined`
+
+The fee quote for the transaction if available.
+
+## Notes
+
+This hook is specifically designed for use with Sequence WaaS (Wallet as a Service) and provides functionality to:
+
+- Check if a transaction will be sponsored
+- Get available fee options for unsponsored transactions
+- Retrieve fee quotes for transactions

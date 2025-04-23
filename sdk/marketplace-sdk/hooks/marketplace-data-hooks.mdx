@@ -1,0 +1,349 @@
+---
+title: "Marketplace Data Hooks"
+description: Collection of GET hooks for retrieving key Marketplace data. Useful for fetching and managing Marketplace information in your UI.
+sidebarTitle: Marketplace Data Hooks
+---
+
+## useMarketplaceConfig
+
+The useMarketplaceConfig hook retrieves your Marketplace's configuration, including collections, social links, title, and other settings from Builder.
+
+```ts
+import { useMarketplaceConfig } from "@0xsequence/marketplace-sdk/react";
+
+## Into your React component:
+
+const data = useMarketplaceConfig();
+```
+
+<ResponseField name="useMarketplaceConfig">
+  <ResponseField name="* return properties"/>
+  <Expandable>
+    <ParamField path="publisherId" type="string">
+      Unique identifier of the marketplace publisher.
+    </ParamField>
+
+    <ParamField path="title" type="string">
+      The title of the marketplace.
+    </ParamField>
+
+    <ParamField path="shortDescription" type="string">
+      A brief description of the marketplace.
+    </ParamField>
+
+    <ParamField path="socials" type="MarketplaceSocials">
+      Social media links associated with the marketplace.
+    </ParamField>
+
+    <ParamField path="faviconUrl" type="string">
+      URL of the marketplace's favicon.
+    </ParamField>
+
+    <ParamField path="landingBannerUrl" type="string">
+      URL of the Marketplace banner for landing page
+    </ParamField>
+
+    <ParamField path="collections" type="MarketplaceCollection[]">
+      Array of collections from the marketplace.
+    </ParamField>
+
+    <ParamField path="walletOptions" type="MarketplaceWalletOptions">
+      Configuration options for wallet integrations.
+    </ParamField>
+
+    <ParamField path="landingPageLayout" type="string">
+      Layout configuration for the marketplace's landing page.
+    </ParamField>
+
+    <ParamField path="logoUrl" type="string">
+      URL of the marketplace's logo.
+    </ParamField>
+
+    <ParamField path="bannerUrl" type="string">
+      URL of the marketplace's banner.
+    </ParamField>
+
+    <ParamField path="fontUrl" type="string | undefined">
+      URL of the custom font used in the marketplace.
+    </ParamField>
+
+    <ParamField path="ogImage" type="string | undefined">
+      URL of the ogImage
+    </ParamField>
+
+    <ParamField path="cssString" type="string">
+      Custom CSS styles for the marketplace.
+    </ParamField>
+
+    <ParamField path="manifestUrl" type="string">
+      URL of the marketplace manifest file.
+    </ParamField>
+  </Expandable>
+</ResponseField>
+
+## useListCollectibles
+
+The useListCollectibles hook retrieves the current listings and offers in a collection from your Marketplace. Useful for accessing and managing listings and offers efficiently.
+
+```ts
+import { OrderSide } from '@0xsequence/marketplace-sdk';
+import { useListCollectibles } from '@0xsequence/marketplace-sdk/react';
+
+## Into your React component:
+
+const {
+  data: collectibles,
+  isLoading: collectiblesLoading,
+  fetchNextPage: fetchNextCollectibles,
+} = useListCollectibles({
+  chainId,
+  collectionAddress,
+  filter: {
+    // # Optional filters
+    includeEmpty,
+    searchText,
+    properties,
+  },
+  side: OrderSide.listing,
+});
+
+const collectiblesFlat =
+  collectibles?.pages.flatMap((p) => p.collectibles) ?? [];
+
+return (
+  <div>
+    {collectiblesFlat?.map((collectible) => (
+      // Your Collectibles component
+    ))}
+  </div>
+);
+```
+
+<ResponseField name="useListCollectibles">
+  <ResponseField name="* params"/>
+  <Expandable>
+    ```ts
+    interface UseListCollectiblesArgs {
+      chainId: string;
+      side: OrderSide;
+      collectionAddress: `0x${string}`;
+      page?: {
+        page: number;
+        pageSize: number;
+        sort?: {
+          order: SortOrder$1;
+          column: string;
+        }[];
+        more?: boolean;
+      };
+      filter?: {
+        includeEmpty: boolean;
+        searchText?: string;
+        properties?: {
+          type: PropertyType;
+          name: string;
+          values?: any[];
+          max?: number;
+          min?: number;
+        }[];
+        marketplaces?: MarketplaceKind[];
+        inAccounts?: string[];
+        notInAccounts?: string[];
+        ordersCreatedBy?: string[];
+        ordersNotCreatedBy?: string[];
+      };
+      query?: {
+        enabled?: boolean;
+      };
+    }
+    ```
+  </Expandable>
+
+  <ResponseField name="* return properties"/>
+  <Expandable>
+    <ParamField path="data" type="ListCollectiblesReturn">
+      Contains the paginated collectible orders data.
+    </ParamField>
+
+    <ParamField path="data.pages" type="CollectibleOrder[]">
+      List of collectible orders returned in pages.
+    </ParamField>
+
+    <ParamField path="isLoading" type="boolean">
+      Indicates whether the data is currently loading.
+    </ParamField>
+
+    <ParamField path="fetchNextPage" type="(options?: FetchNextPageOptions) => Promise<UseInfiniteQueryResult>">
+      This function allows you to fetch the next "page" of results.
+    </ParamField>
+  </Expandable>
+</ResponseField>
+
+## useListCollectiblesPaginated
+
+The useListCollectiblesPaginated hook efficiently retrieves and manages current listings and offers from your Marketplace, making it ideal for displaying paginated NFTs within a collection.
+
+```ts
+import { OrderSide } from '@0xsequence/marketplace-sdk';
+import { useListCollectiblesPaginated } from '@0xsequence/marketplace-sdk/react';
+
+const chainId = 137;
+const searchText = "";
+const enabled = true;
+const includeEmpty = true;
+const properties = [];
+const pageSize = 30;
+const currentPage = 1;
+const collectionAddress = "0x0e5566a108e617baedbebb44e3fcc7bf03e3a839";
+
+## Into your React component:
+
+const {
+    data: collectiblesResponse,
+    isLoading: collectiblesLoading,
+} = useListCollectiblesPaginated({
+  chainId: String(chainId),
+  collectionAddress,
+  side: OrderSide.listing,
+  filter: {
+    // # Optional filters
+    includeEmpty,
+    searchText,
+    properties,
+  },
+  page: {
+    page: currentPage,
+    pageSize,
+  },
+  query: {
+    page: currentPage,
+    pageSize,
+    enabled,
+  },
+});
+
+const collectiblesList = collectiblesResponse?.collectibles ?? [];
+
+return (
+  <div>
+    {collectiblesList?.map((collectible) => (
+      // Your Collectibles component
+    ))}
+  </div>
+);
+```
+<ResponseField name="useListCollectiblesPaginated details">
+  <ResponseField name="* params"/>
+  <Expandable>
+    ```ts
+    interface UseListCollectiblesPaginatedArgs {
+      chainId: string;
+      side: OrderSide;
+      collectionAddress: `0x${string}`;
+      page?: {
+        page: number;
+        pageSize: number;
+        sort?: {
+          order: SortOrder$1;
+          column: string;
+        }[];
+        more?: boolean;
+      };
+      filter?: {
+        includeEmpty: boolean;
+        searchText?: string;
+        properties?: {
+          type: PropertyType;
+          name: string;
+          values?: any[];
+          max?: number;
+          min?: number;
+        }[];
+        marketplaces?: MarketplaceKind[];
+        inAccounts?: string[];
+        notInAccounts?: string[];
+        ordersCreatedBy?: string[];
+        ordersNotCreatedBy?: string[];
+      };
+      query: {
+        page: number;
+        pageSize: number;
+        enabled?: boolean;
+      };
+    }
+    ```
+  </Expandable>
+  <ResponseField name="* return properties"/>
+  <Expandable>
+    <ParamField path="data" type="ListCollectiblesReturn">
+      Contains the collectible orders data.
+    </ParamField>
+
+    <ParamField path="data.collectibles" type="CollectibleOrder[]">
+      List of collectible orders.
+    </ParamField>
+
+    <ParamField path="isLoading" type="boolean">
+      Indicates whether the data is currently loading.
+    </ParamField>
+  </Expandable>
+</ResponseField>
+
+## useCountOfCollectables
+
+The useCountOfCollectables hook returns the number of NFTs in a collection.
+
+```ts
+import { OrderSide } from '@0xsequence/marketplace-sdk';
+import { useCountOfCollectables } from '@0xsequence/marketplace-sdk/react';
+
+const countOfCollectables = useCountOfCollectables({
+  chainId,
+  collectionAddress,
+  side: OrderSide.listing,
+  filter: {
+    searchText: text,
+    includeEmpty,
+    properties,
+  },
+});
+```
+<ResponseField name="useCountOfCollectables details">
+  <ResponseField name="* params"/>
+  <Expandable>
+    ```ts
+    interface UseCountOfCollectables {
+      chainId: ChainId;
+      collectionAddress: CollectionAddress;
+      query?: { enabled?: boolean };
+      filter?: {
+        includeEmpty: boolean;
+        searchText?: string;
+        properties?: {
+          name: string;
+          type: PropertyType;
+          min?: number;
+          max?: number;
+          values?: any[];
+        }[];
+        marketplaces?: MarketplaceKind[];
+        inAccounts?: string[];
+        notInAccounts?: string[];
+        ordersCreatedBy?: string[];
+        ordersNotCreatedBy?: string[];
+      };
+      side?: OrderSide;
+    }
+    ```
+  </Expandable>
+  <ResponseField name="* return properties"/>
+  <Expandable>
+    <ParamField path="data" type="number">
+      Numeric response data.
+    </ParamField>
+
+    <ParamField path="isLoading" type="boolean">
+      Indicates whether the data is currently loading.
+    </ParamField>
+  </Expandable>
+</ResponseField>
