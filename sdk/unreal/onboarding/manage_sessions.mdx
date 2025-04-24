@@ -1,0 +1,87 @@
+---
+
+title: "Managing User Sessions"
+description: Documentation for Unreal SDK API to manage sessions for the Sequence infrastructure stack for web3 gaming.
+---
+
+## Get Id Token
+
+A common use case is to verify the user identity on your backend after the user has finished the login process in your app client.
+Get a Sequence Id Token from your users to send it to your backend for verification using any JWKS library.
+Read our [Backend Verification Guide](/sdk/headless-wallet/verification) for more information.
+
+<Tabs>
+    <Tab title="Blueprint">
+        <Frame>
+            <img src="/images/unreal/get_id_token.png" />
+        </Frame>
+    </Tab>
+
+    <Tab title="C++">
+        ```cpp
+        const TFunction<void (FSeqIdTokenResponse_Data)> OnSuccess = [this](const FSeqIdTokenResponse_Data& Data) { };
+        const TFunction<void (FSequenceError)> OnFailure = [this](const FSequenceError& Err){ };
+
+        const TOptional<USequenceWallet*> WalletOptional = USequenceWallet::Get();
+        if (WalletOptional.IsSet() && WalletOptional.GetValue())
+        {
+            const USequenceWallet* Wallet = WalletOptional.GetValue();
+            Wallet->GetIdToken(Nonce, OnSuccess, OnFailure);
+        }
+        ```
+    </Tab>
+</Tabs>
+
+## Sign Out
+
+Clear the credentials cache and sign out the current user.
+
+<Tabs>
+    <Tab title="Blueprint">
+        <Frame>
+            <img src="/images/unreal/sign_out.png" />
+        </Frame>
+    </Tab>
+
+    <Tab title="C++">
+        ```cpp
+        const TOptional<USequenceWallet*> WalletOptional = USequenceWallet::Get();
+        if (WalletOptional.IsSet() && WalletOptional.GetValue())
+        {
+            USequenceWallet * Api = WalletOptional.GetValue();
+            Api->SignOut();
+        }
+        ```
+     </Tab>
+</Tabs>
+
+## List Sessions
+
+List the active sessions.
+
+<Tabs>
+    <Tab title="Blueprint">
+        <Frame>
+            <img src="/images/unreal/list_sessions.png" />
+        </Frame>
+    </Tab>
+
+    <Tab title="C++">
+        ```cpp
+        const TSuccessCallback<TArray<FSession>> OnSuccess = [=](TArray<FSession> Response)
+        {
+            //Response is a list of Sessions
+        };
+        const FFailureCallback OnFailure = [=](const FSequenceError& Error)
+        {
+            UE_LOG(LogTemp,Display,TEXT("Error Message: %s"),*Error.Message);
+        };
+        const TOptional<USequenceWallet*> WalletOptional = USequenceWallet::Get();
+        if (WalletOptional.IsSet() && WalletOptional.GetValue())
+        {
+            USequenceWallet * Api = WalletOptional.GetValue();
+            Api->ListSessions(OnSuccess,OnFailure);
+        }
+        ```
+  </Tab>
+</Tabs>
