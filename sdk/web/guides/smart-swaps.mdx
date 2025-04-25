@@ -1,7 +1,7 @@
 ---
 
 title: "Smart Swaps"
-description: Sequence Smart Swaps leveraging currencies in player wallets to another currency on the same chain. Developers can define the target currency and Sequence will handle everything, including the UI and flow through Web SDK.
+description: Sequence Smart Swaps auto detects eligible currencies in the user's wallet and swaps them to the target currency. Developers can define the target currency and Sequence will handle everything, including the UI and flow through Web SDK.
 sidebarTitle: Smart Swaps
 ---
 
@@ -66,11 +66,13 @@ const App = () => {
 </Step>
 <Step title="Import Swap Dependencies and Logic">
 
-- `currencyAddress`: The address of the token to swap from (e.g., USDC).
-- `currencyAmount`: The amount to swap.
+- `currencyAddress`: The target currency address, this is the token the user will receive after the swap.
+- `currencyAmount`: The target currency amount, this is the amount the user will receive after the swap.
 - `postSwapTransactions`: An optional array of transactions to be executed after the swap, using the swapped tokens.
 - `title`: The modal's title.
 - `description`: A description of the swap and payment process.
+- `chainId`: The chain id of the target currency.
+- `onSuccess`: A callback function that is called when the swap is successful.
 
 ```jsx
 import { useSwapModal, type SwapModalSettings } from '@0xsequence/checkout'
