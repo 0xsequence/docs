@@ -1,0 +1,299 @@
+---
+title: バックエンド連携
+description: Sequenceをバックエンドサービスと連携する方法をご紹介します
+---
+
+# バックエンド連携
+このガイドでは、Sequenceをバックエンドサービスに統合し、認証済みセッションの作成やブロックチェーントランザクションの送信方法を解説します。
+
+## 事前準備
+始める前に、以下をご用意ください：
+- [Sequence Builder](https://sequence.build)から取得したアクセスキー付きのSequenceプロジェクト
+- Node.js環境
+- 必要なパッケージのインストール：
+
+```bash
+npm install @0xsequence/auth @0xsequence/network ethers
+```
+
+ハードウェアセキュリティモジュール（HSM）対応の場合は、該当パッケージをインストールしてください：
+
+```bash
+# For Google Cloud KMS
+npm install @0xsequence/google-kms-signer
+
+# For AWS KMS
+npm install @0xsequence/aws-kms-signer
+```
+
+## Sequenceセッションの作成
+Sequenceセッションを使うことで、スマートアカウントの作成と認証が可能です。バックエンド環境では、通常は単一署名者方式を利用します。
+
+### プロバイダーのセットアップ
+まず、ブロックチェーンに接続するためのプロバイダーを作成します：
+
+```typescript
+import { findSupportedNetwork } from "@0xsequence/network";
+import type { NetworkConfig } from "@0xsequence/network";
+import { ethers } from "ethers";
+
+export const getProvider = async (chainConfig: NetworkConfig) => {
+    const provider = new ethers.JsonRpcProvider(process.env.SEQUENCE_RPC_URL, chainConfig.chainId);
+    return provider;
+};
+```
+
+### 署名者オプション
+Sequenceはバックエンド連携のために複数の署名者タイプをサポートしています：
+
+#### 1. ローカル秘密鍵署名者
+開発用途やシンプルな構成が必要な場合にこの方法を利用します：
+
+```typescript
+import { Session } from "@0xsequence/auth";
+import { ethers } from "ethers";
+
+export const getLocalSigner = async (chainHandle: string) => {
+    const chainConfig = findSupportedNetwork(chainHandle);
+    if (!chainConfig) {
+        throw new Error(`Chain config not found for chain handle: ${chainHandle}`);
+    }
+
+    const provider = await getProvider(chainConfig);
+    const walletEOA = new ethers.Wallet(process.env.EVM_PRIVATE_KEY ?? '', provider);
+    
+    const smartAccount = await Session.singleSigner({
+        signer: walletEOA,
+        projectAccessKey: process.env.PROJECT_ACCESS_KEY ?? ''
+    });
+
+    return smartAccount.account.getSigner(chainConfig.chainId);
+};
+```
+
+#### 2. Google Cloud KMS署名者
+本番環境では、Google Cloud KMSを利用することでより高いセキュリティを確保できます：
+
+```typescript
+import { GoogleKmsSigner } from "@0xsequence/google-kms-signer";
+
+export const getGoogleKmsSigner = async (chainHandle: string) => {
+    const chainConfig = findSupportedNetwork(chainHandle);
+    if (!chainConfig) {
+        throw new Error(`Chain config not found for chain handle: ${chainHandle}`);
+    }
+
+    const googleKmsSigner = new GoogleKmsSigner({
+        project: process.env.PROJECT ?? '',
+        location: process.env.LOCATION ?? '',
+        keyRing: process.env.KEY_RING ?? '',
+        cryptoKey: process.env.CRYPTO_KEY ?? '',
+        cryptoKeyVersion: process.env.CRYPTO_KEY_VERSION ?? ''
+    });
+
+    const smartAccount = await Session.singleSigner({
+        signer: googleKmsSigner,
+        projectAccessKey: process.env.PROJECT_ACCESS_KEY ?? ''
+    });
+
+    return smartAccount.account.getSigner(chainConfig.chainId);
+};
+```
+
+#### 3. AWS KMS署名者
+インフラにAWSを利用している場合は、AWS KMS連携による安全な鍵管理が可能です：
+
+```typescript
+import { AwsKmsSigner } from "@0xsequence/aws-kms-signer";
+
+export const getAwsKmsSigner = async (chainHandle: string) => {
+    const chainConfig = findSupportedNetwork(chainHandle);
+    if (!chainConfig) {
+        throw new Error(`Chain config not found for chain handle: ${chainHandle}`);
+    }
+
+    const awsKmsSigner = new AwsKmsSigner(
+        process.env.AWS_REGION ?? '',
+        process.env.AWS_KMS_KEY_ID ?? ''
+    );
+
+    const smartAccount = await Session.singleSigner({
+        signer: awsKmsSigner,
+        projectAccessKey: process.env.PROJECT_ACCESS_KEY ?? ''
+    });
+
+    return smartAccount.account.getSigner(chainConfig.chainId);
+};
+```
+
+### 署名者選択のファクトリーパターン
+環境設定に応じて適切な署名者を選択するファクトリ関数を作成できます：
+
+```typescript
+export const getSigner = async (chainHandle: string) => {
+    if (process.env.SIGNER_TYPE === 'google_kms') { 
+        return getGoogleKmsSigner(chainHandle);
+    } 
+    if (process.env.SIGNER_TYPE === 'aws_kms') {
+        return getAwsKmsSigner(chainHandle);
+    }
+    // Default to local signer
+    return getLocalSigner(chainHandle);
+};
+```
+
+## トランザクションの送信
+署名者が用意できたら、トランザクションを送信できます。以下はERC20トークン送信の例です：
+
+```typescript
+import { ethers } from "ethers";
+
+// Standard ERC20 ABI for the transfer function
+const erc20Abi = [
+  "function transfer(address to, uint256 amount) returns (bool)",
+  "function balanceOf(address owner) view returns (uint256)",
+  "function decimals() view returns (uint8)"
+];
+
+async function sendERC20Tokens(
+    chainId: string, 
+    tokenAddress: string, 
+    recipientAddress: string, 
+    amount: string
+) {
+    // Get the signer for the specified chain
+    const signer = await getSigner(chainId);
+    
+    // Create a contract instance
+    const tokenContract = new ethers.Contract(tokenAddress, erc20Abi, signer);
+    
+    // Get token decimals
+    const decimals = await tokenContract.decimals();
+    
+    // Convert the amount to the correct units based on decimals
+    const amountInSmallestUnit = ethers.parseUnits(amount, decimals);
+    
+    // Send the transaction
+    const tx = await tokenContract.transfer(recipientAddress, amountInSmallestUnit);
+    
+    // Wait for the transaction to be mined
+    const receipt = await tx.wait();
+    
+    if (receipt?.status === 0) {
+        throw new Error('Transaction reverted');
+    }
+    
+    return {
+        txHash: receipt?.hash,
+        txUrl: `https://${chainId}.etherscan.io/tx/${receipt?.hash}`
+    };
+}
+```
+
+## API連携例
+Fastify APIエンドポイントでERC20トークン送信機能を統合する例です：
+
+```typescript
+import { FastifyInstance } from "fastify";
+import { getSigner } from "../utils/wallet";
+import { ethers } from "ethers";
+
+// ERC20 token transfer API route
+export async function erc20TransferRoute(fastify: FastifyInstance) {
+    fastify.post('/transfer/erc20/:chainId', async (request, reply) => {
+        try {
+            const { chainId } = request.params;
+            const { tokenAddress, recipient, amount } = request.body;
+
+            // Validate inputs
+            if (!tokenAddress || !ethers.isAddress(tokenAddress)) {
+                return reply.code(400).send({ error: 'Invalid token address' });
+            }
+            
+            if (!recipient || !ethers.isAddress(recipient)) {
+                return reply.code(400).send({ error: 'Invalid recipient address' });
+            }
+            
+            if (!amount || isNaN(parseFloat(amount)) || parseFloat(amount) <= 0) {
+                return reply.code(400).send({ error: 'Invalid amount' });
+            }
+
+            // Get the signer for the specified chain
+            const signer = await getSigner(chainId);
+            
+            // Create a contract instance
+            const erc20Abi = [
+                "function transfer(address to, uint256 amount) returns (bool)",
+                "function balanceOf(address owner) view returns (uint256)",
+                "function decimals() view returns (uint8)"
+            ];
+            
+            const tokenContract = new ethers.Contract(tokenAddress, erc20Abi, signer);
+            
+            // Get token decimals
+            const decimals = await tokenContract.decimals();
+            
+            // Convert the amount to the correct units based on decimals
+            const amountInSmallestUnit = ethers.parseUnits(amount, decimals);
+            
+            // Send the transaction
+            const tx = await tokenContract.transfer(recipient, amountInSmallestUnit);
+            
+            // Wait for the transaction to be mined
+            const receipt = await tx.wait();
+            
+            return {
+                success: receipt?.status === 1,
+                txHash: receipt?.hash,
+                txUrl: `https://${chainId}.etherscan.io/tx/${receipt?.hash}`
+            };
+        } catch (error) {
+            request.log.error(error);
+            return reply.code(500).send({
+                success: false,
+                error: error instanceof Error ? error.message : 'Failed to transfer tokens'
+            });
+        }
+    });
+}
+```
+
+## ベストプラクティス
+
+1.  **環境変数**：秘密鍵やAPIキーなどの機密情報はすべて環境変数で管理しましょう。
+
+2.  **エラーハンドリング**：ブロックチェーントランザクションには堅牢なエラーハンドリングを実装しましょう。
+
+3.  **セキュリティ**：本番環境では生の秘密鍵ではなく、Google KMSやAWS KMSなどのHSMソリューションを利用してください。
+
+4.  **トランザクション監視**：特に承認まで時間がかかるトランザクションについては、ステータス監視システムを導入しましょう。
+
+5.  **リトライ機構**：ネットワーク混雑などで失敗した場合に備え、トランザクションのリトライ処理を実装しましょう。
+
+6.  **チェーン選択**：`findSupportedNetwork`ユーティリティを使い、対応ネットワークへの接続を確認しましょう。
+
+## 設定例
+バックエンド用の一般的な`.env`ファイル例：
+
+```
+# Common configuration
+PROJECT_ACCESS_KEY=your-sequence-project-access-key
+SEQUENCE_RPC_URL=https://mainnet-sequencer.sequence.app
+SIGNER_TYPE=local|google_kms|aws_kms
+
+# Local signer configuration
+EVM_PRIVATE_KEY=your-private-key
+
+# Google KMS configuration
+PROJECT=your-gcp-project
+LOCATION=us-central1
+KEY_RING=your-keyring
+CRYPTO_KEY=your-key
+CRYPTO_KEY_VERSION=1
+
+# AWS KMS configuration
+AWS_REGION=us-east-1
+AWS_KMS_KEY_ID=your-key-id
+```
+
+この構成により、複数のブロックチェーンネットワークに安全に接続し、Sequenceを使ってバックエンドサービスからトランザクションを実行できます。

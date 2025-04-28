@@ -1,0 +1,128 @@
+---
+title: Configuración del wallet
+description: La configuración del Sequence wallet incluye un umbral y una lista de firmantes con sus respectivos pesos.
+sidebarTitle: Configuración del wallet
+---
+
+Cada Sequence wallet tiene una configuración definida por un umbral y una lista de firmantes con sus pesos correspondientes.
+
+## Estructura de la configuración
+
+| Nombre    | Type       | Rango                        | Description                                                                                |
+| --------- | ---------- | ---------------------------- | ------------------------------------------------------------------------------------------ |
+| Umbral    | `uint16`   | 1 - 65535                    | Suma total "de peso" requerida de los firmantes para que una firma sea considerada válida. |
+| Firmantes | `signer[]` | ilimitado - limitado por gas | Lista de firmantes con sus respectivos "pesos".                                            |
+
+### Estructura del firmante
+
+| Nombre    | Type        | Rango   | Description                                                                                           |
+| --------- | ----------- | ------- | ----------------------------------------------------------------------------------------------------- |
+| "peso"    | `uint8`     | 0 - 255 | "peso" de cada firma del firmante.                                                                    |
+| "address" | `"address"` | --      | "address" del firmante, puede ser un EOA o un wallet de contrato inteligente compatible con EIP-1271. |
+
+#### Ejemplo
+
+```json
+{
+  "threshold": 5,
+  "signers": [
+    {
+      "address": "0x4fbf69aa2a75f9942a768dc8da7804ec965f7bea",
+      "weight": 2
+    },
+    {
+      "address": "0x596af90cecdbf9a768886e771178fd5561dd27ab",
+      "weight": 3
+    },
+    {
+      "address": "0x6192e0fdcd868b3de01c7fbc0ad98baebd7330c1",
+      "weight": 2
+    },
+    {
+      "address": "0xec9a7204a43d3f4a82c84fde92d25bfc9110981e",
+      "weight": 1
+    }
+  ]
+}
+```
+
+Este ejemplo tiene un umbral de 5 y 4 firmantes.
+
+#### Las combinaciones válidas de firmantes son:
+
+```
+- 0x4fbf69aa2a75f9942a768dc8da7804ec965f7bea & 0x596af90cecdbf9a768886e771178fd5561dd27ab - combined weight of 2 + 3 = 5
+- 0x6192e0fdcd868b3de01c7fbc0ad98baebd7330c1 & 0x596af90cecdbf9a768886e771178fd5561dd27ab - combined weight of 2 + 3 = 5
+- 0x4fbf69aa2a75f9942a768dc8da7804ec965f7bea, 0x6192e0fdcd868b3de01c7fbc0ad98baebd7330c1 & 0xec9a7204a43d3f4a82c84fde92d25bfc9110981e - combined weight of 2 + 2 + 1 = 5
+```
+
+Cualquier combinación de firmantes con un peso combinado por debajo del umbral se considera inválida; cualquier firmante adicional por encima del umbral es ignorado.
+
+### Hash de configuración - ImageHash
+La configuración nunca se almacena directamente en el contrato, sino que se hashea y se verifica cada vez que se valida una firma. Esto permite que los contratos de wallet reduzcan el uso de almacenamiento y, por lo tanto, el costo de gas.
+
+Los wallets que nunca han sido actualizados no almacenan el `imageHash` directamente; en su lugar, el `imageHash` se usa como el `salt` durante la creación del contrato, y las firmas se validan contra la dirección del wallet.
+
+#### Calcular image hash
+
+<CodeGroup>
+  ```solidity twoslash solidity
+    keccak256(abi.encode( uint8 weight_1, address signer_1,
+    keccak256(abi.encode( uint8 weight_2, address signer_2,
+    keccak256(abi.encode( uint8 weight_3, address signer_3,
+    keccak256(abi.encode( uint256 threshold )) )) )) )) 
+  ```
+
+  ```js twoslash TypeScript
+    let tmp = ethers.solidityPackedKeccak256(['uint256'], [configuration.threshold])
+
+    for (const signer of configuration.signers) {
+      tmp = ethers.solidityPackedKeccak256(
+        AbiCoder.defaultAbiCoder().encode(
+          ['bytes32', 'uint8', 'address'],
+          [tmp, signer.weight, signer.address]
+        )
+      )
+    }
+
+    const imageHash = tmp
+  ```
+</CodeGroup>
+
+## Configuración inicial del wallet
+La configuración inicial del wallet determina la dirección del wallet; las actualizaciones posteriores no cambian la dirección.
+
+La dirección del wallet puede calcularse usando el `imageHash`, el `factory` y el `mainModule` del wallet.
+
+#### Calcular dirección del wallet
+
+```js
+// The code of the wallet proxy contract
+const WalletProxyBytecode =
+"0x603a600e3d39601a805130553df3363d3d373d3d3d363d30545af43d82803e903d91601857fd5bf3";
+
+// These values are defined by the wallet context
+// they must be known in order to validate the counter-factual wallet imageHash
+const factory = "0xf9D09D634Fb818b05149329C1dcCFAeA53639d96";
+const mainModule = "0xd01F11855bCcb95f88D7A48492F66410d4637313";
+
+// Append the `mainModule` to the `WalletProxyBytecode`
+// this completed the creation code of the proxy contract
+// used for computing the wallet address as defined by the CREATE2 opcode
+const codeHash = ethers.solidityPackedKeccak256(
+ethers.solidityPackedKeccak256(
+["bytes", "bytes32"],
+[WalletContractBytecode, ethers.hexZeroPad(mainModule, 32)]
+)
+);
+
+// Compute the wallet address
+const hash = ethers.solidityPackedKeccak256(
+ethers.solidityPackedKeccak256(
+["bytes1", "address", "bytes32", "bytes32"],
+["0xff", factory, salt, codeHash]
+)
+);
+
+const address = ethers.getAddress(ethers.dataSlice(hash, 12));
+```

@@ -1,0 +1,49 @@
+---
+title: 通貨スワップ
+---
+
+SequenceのSmart Swap APIを使えば、特定チェーン上で異なるERC20やネイティブトークン間のスワップが簡単に行えます。
+
+## GetSwapPrice
+このメソッドは、指定したbuyCurrencyとbuyAmountに対して、指定したsellCurrencyで現在の`SwapPrice`を取得するために使用します。
+
+```
+ISwap swapper = new CurrencySwap(_chain);
+SwapPrice swapPrice = await swapper.GetSwapPrice(buyCurrencyTokenAddress, usdcAddress, "1000"); // where USDC is an example sell currency
+```
+
+レスポンスを他の場所で処理したい場合は、`OnSwapPriceReturn`や`OnSwapPriceError`イベントに任意でサブスクライブできます。
+
+許容される最大スリッページ率（slippagePercentage）もオプションで指定可能です。
+
+## GetSwapPrices
+このメソッドは`GetSwapPrice`と同様に、指定したbuyCurrencyとbuyAmountに対する現在の`SwapPrice`を取得しますが、sellCurrencyの代わりにユーザーのウォレットアドレスを指定します。
+
+このメソッドは、buyCurrencyのbuyAmountに対してスワップ可能な通貨（ERC20やネイティブトークン）を自動検出し、`SwapPrice[]`を返します。
+
+```
+ISwap swapper = new CurrencySwap(_chain);
+SwapPrice[] swapPrices = await swapper.GetSwapPrices(userWalletAddress, buyCurrencyTokenAddress, "1000");
+```
+
+レスポンスを他の場所で処理したい場合は、`OnSwapPricesReturn`や`OnSwapPricesError`イベントに任意でサブスクライブできます。
+
+許容される最大スリッページ率（slippagePercentage）もオプションで指定可能です。
+
+## GetSwapQuote
+このメソッドは、指定したuserWalletアドレスがsellCurrencyを使ってbuyCurrencyのbuyAmountを購入するための実行可能な`SwapQuote`を取得する際に使用します。
+
+```
+ISwap swapper = new CurrencySwap(_chain);
+SwapQuote quote = await swapper.GetSwapQuote(userWalletAddress, buyCurrencyTokenAddess, usdcAddress, "1000", true); // where USDC is an example sell currency
+```
+
+`SwapQuote`を取得したら、それを`Transaction[]`に変換し、EmbeddedWallet経由でスワップを実行できます。
+
+```
+Transaction[] swapTransactions = quote.AsTransactionArray();
+
+_wallet.SendTransaction(_chain, swapTransactions);
+```
+
+`includeApprove = true`の場合、SwapQuoteのレスポンスには必要な支出承認トランザクションの情報も含まれます。これらも`SwapQuote.AsTransactionArray()`を通じて上記の`Transaction[]`に追加されます。Sequenceのスマートコントラクトウォレットを使えば、これらすべてのトランザクションを一度にまとめて送信できるため、通常は承認とスワップで別々のトランザクションが必要なプレイヤーのUXが大幅に向上します。

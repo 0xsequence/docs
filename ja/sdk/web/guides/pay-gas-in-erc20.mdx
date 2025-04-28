@@ -1,0 +1,238 @@
+---
+title: ERC20でガスを支払う
+description: Web SDKを使ってERC20でガスを支払う方法を学びましょう。
+sidebar_label: Pay Gas in ERC20
+sidebar_position: 3
+---
+
+<Steps>
+  <Step title="Web SDKのセットアップ">
+    [はじめに](/sdk/web/getting-started)ガイドを完了してください。
+  </Step>
+
+  <Step title="ETHで支払う基本的な非スポンサー取引">
+    次に、ユーザーがスマートウォレットのネイティブ通貨で非スポンサー取引を送信できるシンプルなページを作成します。ここでは特別なことはありません。
+
+    ```typescript
+    import React from 'react';
+    import { useAccount, useSendTransaction } from 'wagmi';
+
+    export const ERC20GasPaymentExample = () => {
+        const { address } = useAccount();
+
+        const {
+            sendTransaction,
+            isPending,
+            isSuccess,
+            data: txHash
+        } = useSendTransaction();
+
+        const sendUnsponsored = () => {
+            if (!address) return;
+
+            // Send a simple 0 value transaction to yourself
+            sendTransaction({
+                to: address,
+                value: BigInt(0),
+                gas: null
+            });
+        };
+
+        return (
+            <>
+                <div>
+                    <p>Address: {address}</p>
+                    <button onClick={sendUnsponsored}>Send Unsponsored</button>
+                    {isPending && <p>Pending...</p>}
+                    {isSuccess && <p>Success! Tx Hash: {txHash}</p>}
+                </div>
+            </>
+        )
+    }
+    ```
+  </Step>
+
+  <Step title="ガスをERC20トークンで支払ってみましょう">
+    `useWaasFeeOptions`フックを使って、ユーザーがERC20でガスを支払えるようにします。
+    内部的には、WaaSコネクタがこの取引リクエストをインターセプトし、手数料確認フローを開始します。
+
+    `useWaasFeeOptions`フックを宣言したことで、WaaSプロバイダーのデフォルトの`feeConfirmationHandler`が上書きされ、ERC20トークンでの支払いが可能になりました。
+
+    ```typescript
+    import React, { useState, useEffect } from 'react';
+    import { useWaasFeeOptions } from '@0xsequence/connect';
+    import { useAccount, useSendTransaction } from 'wagmi';
+
+    export const ERC20GasPaymentExample = () => {
+        const { address } = useAccount();
+
+        const [pendingFeeOptionConfirmation, confirmPendingFeeOption] = useWaasFeeOptions();
+
+        const {
+            sendTransaction,
+            isPending,
+            isSuccess,
+            data: txHash
+        } = useSendTransaction();
+
+        const [selectedFeeTokenName, setSelectedFeeTokenName] = useState<string>();
+
+        useEffect(() => {
+            if (pendingFeeOptionConfirmation && pendingFeeOptionConfirmation.options.length > 0) {
+                setSelectedFeeTokenName(pendingFeeOptionConfirmation.options[0].token.name);
+            }
+        }, [pendingFeeOptionConfirmation]);
+
+        const sendUnsponsored = () => {
+            if (!address) return;
+
+            // Send a simple 0 value transaction to yourself
+            sendTransaction({
+                to: address,
+                value: BigInt(0),
+                gas: null
+            });
+        };
+
+        return (
+            <>
+                <div>
+                    <p>Address: {address}</p>
+                    <button onClick={sendUnsponsored}>Send Unsponsored</button>
+                    {isPending && <p>Pending...</p>}
+                    {isSuccess && <p>Success! Tx Hash: {txHash}</p>}
+                </div>
+            </>
+        )
+    }
+    ```
+
+    この例では最初のオプションをデフォルトにしていますが、次のステップでユーザーが支払いたい手数料トークンを選択できるUIを追加します。
+  </Step>
+
+  <Step title="手数料トークンセレクター（UI）の追加">
+    次に、ユーザーが支払いたい手数料トークンを選択できる手数料トークンセレクターを追加します。
+
+    <Note>
+      各手数料オプションには`hasEnoughBalanceForFee`というブール値プロパティがあり、ユーザーが手数料を支払うのに十分な残高があるかどうかを知らせることができます。また、`balance`プロパティにはそのトークンの残高が含まれています。
+    </Note>
+
+    ```typescript
+    import { useState, useEffect } from 'react';
+    import { useWaasFeeOptions } from '@0xsequence/connect';
+    import { formatUnits } from 'viem';
+    import { useAccount, useSendTransaction } from 'wagmi';
+
+    export const ERC20GasPaymentExample = () => {
+        const { address } = useAccount();
+
+        // 1. Set up the fee options hook
+        const [pendingFeeOptionConfirmation, confirmPendingFeeOption, rejectPendingFeeOption] = useWaasFeeOptions();
+
+        // 2. Set up transaction hook
+        const {
+            sendTransaction,
+            isPending,
+            isSuccess,
+            data: txHash
+        } = useSendTransaction();
+
+        // 3. Track selected fee token
+        const [selectedFeeTokenName, setSelectedFeeTokenName] = useState<string>();
+
+        // 4. Initialize with first option when fee options become available
+        useEffect(() => {
+            if (pendingFeeOptionConfirmation && pendingFeeOptionConfirmation.options.length > 0) {
+                setSelectedFeeTokenName(pendingFeeOptionConfirmation.options[0].token.name);
+            }
+        }, [pendingFeeOptionConfirmation]);
+
+        // 5. Function to send an unsponsored transaction
+        const sendUnsponsored = () => {
+            if (!address) return;
+
+            // Send a dummy tx
+            sendTransaction({
+                to: address,
+                value: BigInt(0),
+                gas: null
+            });
+        };
+
+        return (
+            <div className="card padding-4 flex-direction-column gap-4 max-width-500px margin-0 auto">
+                <div className="card padding-4">
+                    <p className="text-large font-bold margin-bottom-4">
+                        ERC20 Gas Payment Example
+                    </p>
+
+                    <button
+                        onClick={sendUnsponsored}
+                        className="button-primary"
+                        disabled={isPending}
+                    >
+                        {isPending ? 'Sending Transaction...' : 'Send Transaction'}
+                    </button>
+
+                    {isSuccess && txHash && (
+                        <div className="card margin-y-4 padding-3 background-positive border-radius-md">
+                            <p>Transaction successful! Hash: {txHash}</p>
+                        </div>
+                    )}
+
+                    {/* Fee selection UI appears when needed */}
+                    {pendingFeeOptionConfirmation && (
+                        <div className="card margin-top-4 flex-direction-column gap-3">
+                            <p className="font-semibold">
+                                Select Token to Pay Gas Fees
+                            </p>
+
+                            <select
+                                name="feeOption"
+                                value={selectedFeeTokenName}
+                                onChange={(e) => setSelectedFeeTokenName(e.target.value)}
+                                className="w-full p-2 rounded-lg bg-gray-700 text-white border border-gray-600"
+                            >
+                                {pendingFeeOptionConfirmation.options.map(option => (
+                                    <option key={option.token.name} value={option.token.name}>
+                                        {option.token.name} - Fee: {formatUnits(BigInt(option.value), option.token.decimals || 18)} {option.token.symbol}
+                                    </option>
+                                ))}
+                            </select>
+
+                            <div className="card flex-direction-row gap-2 justify-end">
+                                <button
+                                    className="button-secondary"
+                                    onClick={() => rejectPendingFeeOption(pendingFeeOptionConfirmation.id)}
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    className="button-primary"
+                                    onClick={() => {
+                                        const selected = pendingFeeOptionConfirmation.options.find(
+                                            option => option.token.name === selectedFeeTokenName
+                                        );
+
+                                        if (selected && selected.token.contractAddress) {
+                                            confirmPendingFeeOption(
+                                                pendingFeeOptionConfirmation.id,
+                                                selected.token.contractAddress
+                                            );
+                                        }
+                                    }}
+                                >
+                                    Confirm
+                                </button>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            </div>
+        );
+    };
+    ```
+  </Step>
+</Steps>
+
+おめでとうございます！Web SDKを使ってERC20でガスを支払う方法を学びました。

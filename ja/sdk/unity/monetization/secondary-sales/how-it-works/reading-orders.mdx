@@ -1,0 +1,136 @@
+---
+title: 注文情報の取得
+---
+
+マーケットプレイスAPIから注文情報を取得するには、`IMarketplaceReader` インターフェース（`MarketplaceReader` によって実装）を使用します。
+
+IMarketplaceReader インターフェースには、各メソッドの用途を理解しやすいようにIntelliSenseのサマリーが付いていますが、ここでもいくつかご紹介します。
+
+## 使い方
+IMarketplaceReader のすべてのメソッドは非同期タスクであり、直接awaitできるほか、関連するイベントを購読することも可能です。
+
+## メソッド一覧
+
+### ListCurrencies
+ゲーム内マーケットプレイスで利用可能なホワイトリスト済みの [通貨](/sdk/unity/monetization/secondary-sales/intro#currencies) の配列を取得します。
+
+```
+IMarketplaceReader reader = new MarketplaceReader(_chain);
+
+// optionally subscribe to callback events
+reader.OnListCurrenciesReturn += OnCurrenciesFetched; 
+reader.OnListCurrenciesError += OnCurrencyFetchError;
+
+Currency[] currencies = await reader.ListCurrencies();
+// or if only listening to event handlers
+reader.ListCurrencies();
+...
+
+
+private void OnCurrenciesFetched(Currency[] fetchedCurrencies) {
+    // Do something
+}
+
+private void OnCurrencyFetchError(string error) {
+    // Do something
+}
+```
+
+### リスティングの取得
+リスティングを取得する方法はいくつかあります。
+1. `ListCollectibleListingsWithLowestPricedListingsFirst` は、指定したコントラクトアドレスに紐づくリスティングを取得します。リスティングは価格が安い順に並び、各コレクティブル（トークンIDごと）につき最安値のリスティングのみが返されます。
+
+```
+IMarketplaceReader reader = new MarketplaceReader(_chain);
+ListCollectiblesReturn collectiblesReturn = await reader.ListCollectibleListingsWithLowestPricedListingsFirst(myCollectionContractAddress);
+CollectibleOrder[] orders = collectiblesReturn.collectibles;
+```
+
+必要に応じて、`CollectiblesFilter`を指定してクエリにフィルターをかけることもできます。
+
+このリクエストはページネーションを利用します。小規模なコレクションでページネーションを扱いたくない場合は、`ListAllCollectibleListingsWithLowestPricedListingsFirst`ヘルパー関数を使うと、ページネーションを自動で処理し、すべての該当する`CollectibleOrder`を取得できます。
+
+また、`OnListCollectibleOrdersReturn`や`OnListCollectibleOrdersError`イベントを購読して、レスポンスを他の場所で処理することも可能です。
+2\. `GetLowestPriceListingForCollectible` および `GetHighestPriceListingForCollectible` を使うと、コレクティブルごとに最安値・最高値のリスティングを取得できます。
+
+```
+IMarketplaceReader reader = new MarketplaceReader(_chain);
+Order lowestPricedListing = await reader.GetLowestPriceListingForCollectible(collectionContractAddress, tokenId);
+Order highestPricedListing = await reader.GetHighestPriceListingForCollectible(collectionContractAddress, tokenId);
+```
+
+オプションで、クエリに `OrderFilter` を指定してフィルタリングを行うことも可能です。
+
+また、`OnGetCollectibleOrderReturn` や `OnGetCollectibleOrderError` イベントを購読して、他の場所でレスポンスを処理することもできます。
+3\. `ListListingsForCollectible` は、指定したコレクティブルのすべてのリスティングを取得します。
+
+```
+IMarketplaceReader reader = new MarketplaceReader(_chain);
+ListCollectibleListingsReturn listingsReturn = await reader.ListListingsForCollectible(collectionContractAddress, tokenId);
+Order[] listings = listingsReturn.listings;
+```
+
+オプションで、クエリに `OrderFilter` を指定してフィルタリングを行うことも可能です。
+
+このリクエストはページネーションを使用します。リスティング数が少なくページネーションを扱いたくない場合は、`ListAllListingsForCollectible` ヘルパー関数を使うと、すべての関連する `Order` を取得するまで自動でリクエストを繰り返します。
+
+また、`OnListCollectibleListingsReturn` や `OnListCollectibleListingsError` イベントを購読して、他の場所でレスポンスを処理することもできます。
+4\. `ListAllPurchasableListings` は、`ListAllCollectibleListingsWithLowestPricedListingsFirst` を利用し、`purchasableBy` が作成していないリスティングをフィルタリングする便利なヘルパーメソッドです。その後、設定されたチェーンの `ChainIndexer` を使って `purchasableBy` のトークン残高を取得し、スワップなしで購入できないリスティングを除外します。
+
+```
+IMarketplaceReader reader = new MarketplaceReader(_chain);
+CollectibleOrder[] purchasableListings = await reader.ListAllPurchasableListings(userWalletAddress, collectionContractAddress);
+```
+
+このメソッドはページネーションも自動で処理し、すべての `CollectibleOrder` を取得するまでリクエストを続けます。大量のリスティングがあるコレクションではメモリ使用量にご注意ください（他のページネーション対応ヘルパーメソッドも同様です）。このメソッドの実装は、[Indexer](/sdk/unity/power/read-from-blockchain) とピアツーピアマーケットプレイスを組み合わせて利用する際の参考例にもなります。
+
+### オファーの取得
+オファーを取得する方法もいくつかあり、リスティング取得用メソッドと同様の動作をします。
+1. `ListCollectibleOffersWithHighestPricedOfferFirst` は、指定したコントラクトアドレスに紐づくオファーを取得します。オファーは価格が高い順に並び、各コレクティブル（トークンIDごと）につき最高値のオファーのみが返されます。
+
+```
+IMarketplaceReader reader = new MarketplaceReader(_chain);
+ListCollectiblesReturn collectiblesReturn = await reader.ListCollectibleOffersWithHighestPricedOfferFirst(myCollectionContractAddress);
+CollectibleOrder[] orders = collectiblesReturn.collectibles;
+```
+
+必要に応じて、`CollectiblesFilter`を指定してクエリにフィルターをかけることもできます。
+
+このリクエストはページネーションを使用します。コレクションが小規模でページネーションを扱いたくない場合は、`ListAllCollectibleOffersWithHighestPricedOfferFirst` ヘルパー関数を使うと、すべての関連する `CollectibleOrder` を取得するまで自動でリクエストを繰り返します。
+
+また、`OnListCollectibleOrdersReturn`や`OnListCollectibleOrdersError`イベントを購読して、レスポンスを他の場所で処理することも可能です。
+2\. `GetLowestPriceOfferForCollectible` および `GetHighestPriceOfferForCollectible` を使うと、コレクティブルごとに最安値・最高値のオファーを取得できます。
+
+```
+IMarketplaceReader reader = new MarketplaceReader(_chain);
+Order lowestPricedOffer = await reader.GetLowestPriceOfferForCollectible(collectionContractAddress, tokenId);
+Order highestPricedOffer = await reader.GetHighestPriceOfferForCollectible(collectionContractAddress, tokenId);
+```
+
+オプションで、クエリに `OrderFilter` を指定してフィルタリングを行うことも可能です。
+
+また、`OnGetCollectibleOrderReturn` や `OnGetCollectibleOrderError` イベントを購読して、他の場所でレスポンスを処理することもできます。
+3\. `ListOffersForCollectible` は、指定したコレクティブルのすべてのオファーを取得します。
+
+```
+IMarketplaceReader reader = new MarketplaceReader(_chain);
+ListCollectibleOffersReturn offersReturn = await reader.ListOffersForCollectible(collectionContractAddress, tokenId);
+Order[] offers = offersReturn.offers;
+```
+
+オプションで、クエリに `OrderFilter` を指定してフィルタリングを行うことも可能です。
+
+このリクエストはページネーションを使用します。オファー数が少なくページネーションを扱いたくない場合は、`ListAllOffersForCollectible` ヘルパー関数を使うと、すべての関連する `Order` を取得するまで自動でリクエストを繰り返します。
+
+さらに、`OnListCollectibleOffersReturn` および `OnListCollectibleOffersError` イベントを購読することで、他の場所でレスポンスを処理することも可能です。
+4\. `ListAllSellableOffers` は便利なヘルパーメソッドで、`ListAllCollectibleOffersWithHighestPricedOfferFirst` を利用し、`sellableBy` が作成していないオファーかつ `sellableBy` がリクエストされたコレクティブルのいずれかを所有している場合に絞り込むことができます。
+
+```
+IMarketplaceReader reader = new MarketplaceReader(_chain);
+CollectibleOrder[] sellableOffers = await reader.ListAllSellableOffers(userWalletAddress, collectionContractAddress);
+```
+
+このメソッドはページネーションも自動で処理し、すべての `CollectibleOrder` が取得できるまでリクエストを継続します。メモリの使用量が多くなりすぎないよう、少数のオファーがあるコレクションでのみ利用することをおすすめします（他のページネーション対応ヘルパーメソッドと同様です）。このメソッドの実装は、`CollectiblesFilter` を活用した処理例としても参考になります。
+
+## まとめ
+IMarketplaceReader を使うことで、マーケットプレイスAPIをクエリし、ユーザーが閲覧できるマーケットプレイスUIを構築するための十分な手段が得られます。一般的に、多くのマーケットプレイスでは `ListCollectibleListingsWithLowestPricedListingsFirst` や `ListCollectibleOffersWithHighestPricedOfferFirst`、そして `CollectiblesFilter` を主に利用してリスティングや注文の検索・絞り込みを行い、その他のメソッドは主にチェックアウト時に役立ちます。

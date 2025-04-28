@@ -1,0 +1,22 @@
+---
+title: セッション管理
+---
+
+Sequence API でユーザー認証しセッションを確立した後は、セッション管理のためのさまざまなメソッドが利用できます。
+
+## セッション一覧取得
+`ListSessions` メソッドを使うと、このユーザー／ウォレットに紐づくすべてのアクティブなセッションを取得できます。
+
+## セッションの削除
+特定のセッションを終了したい場合は、`DropSession` メソッドに削除したいセッションIDを指定して実行できます。
+
+## 現在のセッションの削除
+現在のセッションを終了したい場合は、`DropThisSession` メソッドを使用できます。つまり、ユーザーをログアウトさせたい場合に利用します。
+
+<Note>デフォルトの `LoginPanel` を使用していて、`StoreSessionPrivateKeyInSecureStorage` を有効にしていない場合や、サポートされていないプラットフォーム（[セッションの復元](/sdk/unity/onboard/recovering-sessions)を参照）で実行している場合、`LoginPanel` にアタッチされている `WaaSSessionManager` プレハブが自動的にこのメソッドを `OnApplicationQuit` で呼び出します。</Note>
+
+## アカウントリストの取得
+ユーザーのウォレットに紐づく `Account` を取得したい場合は、`GetAccountList` メソッドを利用できます。
+
+## IDトークンの取得
+バックエンドで認証を検証するためにSequence APIからIDトークンJWTを取得したい場合は、`GetIdToken` メソッドを利用でき、必要に応じてnonceも指定できます。

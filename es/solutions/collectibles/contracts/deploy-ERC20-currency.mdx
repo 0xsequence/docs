@@ -1,0 +1,128 @@
+---
+title: Cómo desplegar moneda dentro del juego en Sequence Builder
+description: Aprenda cómo crear su propia moneda dentro del juego desplegando y minteando desde un contrato ERC20. Comprenda la diferencia entre tokens fungibles y no fungibles.
+sidebarTitle: Desplegar una moneda dentro del juego (ERC20)
+---
+
+## Introducción
+En esta guía, le mostraremos el proceso para crear su propia moneda dentro del juego mediante el despliegue y minteo desde un contrato ERC20.
+
+Los tokens de moneda agregan nuevas e interesantes dimensiones a las economías dentro del juego, las transacciones y la interacción entre jugadores para desbloquear y distribuir valor.
+
+#### ¿Qué es un token ERC20?
+Un token ERC20 es una moneda digital: lo que lo hace especial es que sigue un [conjunto de reglas llamado ERC20](https://ethereum.org/en/developers/docs/standards/tokens/erc-20/), lo que facilita su uso en diferentes lugares de internet. Estos tokens suelen representar valor o utilizarse para fines específicos. A diferencia de los otros tokens comunes, los NFT, estos tokens son fungibles.
+
+#### Fungibilidad vs No Fungibilidad
+Esta es la diferencia clave que debe comprender.
+
+Los tokens fungibles (como los tokens ERC20) son intercambiables y cada unidad es igual a cualquier otra, como los dólares o euros. Se pueden dividir o combinar fácilmente en diferentes cantidades.
+
+Los tokens no fungibles (como los tokens ERC721) representan artículos únicos con propiedades individuales, como arte digital o coleccionables. Cada token es distinto y no se puede intercambiar directamente por otro de manera equivalente.
+
+<Warning>
+  Requisito previo: Crear un Proyecto
+
+  Esta guía asume que usted ya [se registró en Builder y creó un Proyecto](/solutions/builder/getting-started).
+</Warning>
+
+## Paso 1: Navegue a contratos
+Comience seleccionando su `project` en la esquina superior izquierda del proyecto para el que desea crear la moneda, luego diríjase a la sección de `contracts` y seleccione `+ Deploy new contract`
+
+<Frame>
+  ![seleccionar proyecto y nuevo contrato](/images/collectibles/select_project_new_contract.png)
+</Frame>
+
+## Paso 2: Seleccione el token de moneda
+Haga clic en `View more contracts`
+
+<Frame>
+  ![ver más tokens de moneda](/images/collectibles/view_more_contracts.png)
+</Frame>
+
+Seleccione el contrato de token de moneda y haga clic en `deploy` para desplegar su contrato auditado por Sequence
+
+<Frame>
+  ![seleccionar token de moneda y botón de deploy](/images/collectibles/select_currency_deploy.png)
+</Frame>
+
+## Paso 3: Especifique los detalles del contrato
+Complete los detalles del contrato especificando un `name` y un `symbol` para su contrato.
+
+<Frame>
+  ![seleccionar currency y botón de deploy](/images/collectibles/currency_contract_details.png)
+</Frame>
+
+<Warning>
+  Nota:
+
+  Aunque puede cambiar el `name` y el `symbol` más adelante en la interfaz de builder, donde se actualizará en todo el stack de Sequence, los exploradores populares no vuelven a indexar la información, así que lo que ingrese primero permanecerá.
+</Warning>
+
+## Paso 4: Despliegue su contrato
+Despliegue su contrato desde la ventana emergente en [http://sequence.app/sign-transaction](http://sequence.app/sign-transaction) y firme el mensaje seleccionando `confirm`
+
+<Frame>
+  <img src="/images/collectibles/sign_deploy_transaction.png" width="200" />
+</Frame>
+
+<Note>
+  Todas las testnets serán gratuitas para transaccionar.
+</Note>
+
+## Paso 5: Agregue un rol de minteo al contrato
+Primero seleccione el contrato que acaba de desplegar en la sección de `contracts`
+
+<Frame>
+  ![seleccionar contrato](/images/collectibles/select_contract.png)
+</Frame>
+
+Luego, diríjase a la sección `Write Contract`
+
+<Frame>
+  ![escribir contrato](/images/collectibles/select_write_contract.png)
+</Frame>
+
+En la sección `grantRole` de la navegación de la pestaña write contract, complete con los siguientes datos:
+
+`bytes32 role`: `0x9f2df0fed2c77648de5860a4cc508cd0818c85b8b8a1ab4ceeef8d981c8956a6`
+`address account`: `<Wallet Address>`
+
+Donde la dirección de la wallet se copia simplemente desde la esquina superior derecha para poder enviar tokens a su wallet
+
+<Frame>
+  ![copiar dirección](/images/collectibles/copy_address.png)
+</Frame>
+
+<Frame>
+  ![otorgar rol de minteo](/images/collectibles/grant_role.png)
+</Frame>
+
+Finalice seleccionando `write` y firmando la transacción en la ventana emergente, como antes
+
+Con un mensaje de confirmación que muestra `Response Success`
+
+<Note>
+  La cadena de rol ingresada es el resultado de `solidityPackedKeccak256("MINTER_ROLE")` en
+  solidity o `ethers.solidityPackedKeccak256(ethers.toUtf8Bytes("MINTER_ROLE"))`
+  en javascript
+</Note>
+
+<Tip>
+  Es común utilizar cómputo offchain como un worker de cloudflare con una wallet relayer que envía transacciones, la cual se ingresaría en el campo account. Más información sobre cómo lograr esto [aquí](/guides/mint-collectibles-serverless#mint-collectibles-using-a-gasless-serverless-transactions-api)
+</Tip>
+
+## Paso 6: Mintee tokens en la dirección de su wallet
+Navegue a la tarjeta `mint` en la sección `Write Contract` e ingrese la dirección de su wallet a la que desea recibir tokens y la cantidad de tokens en 18 decimales. Así que para 100 tokens debe ingresar: `100000000000000000000`
+
+<Frame>
+  ![mintear tokens](/images/collectibles/mint_currency.png)
+</Frame>
+
+## Paso 7: Confirme su token de moneda minteado
+¡Y listo!
+
+Puede ver las transacciones enviadas a la blockchain para la dirección de su wallet en la navegación de la pestaña `Transactions`
+
+<Frame>
+  ![ver transacciones de token de moneda](/images/collectibles/view_currency_transactions.png)
+</Frame>

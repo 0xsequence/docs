@@ -1,0 +1,60 @@
+---
+title: Sequence Indexer Gateway API Installation
+description: Learn how to install the Sequence Indexer Gateway API for querying blockchain token and NFT data across all networks. Get your API access key from Sequence Builder. Integration is simple with HTTP RPC endpoints for Webapps, Games, and backends.
+---
+
+## Installation
+To install Indexer Gateway, follow the instructions for [installing Indexer](/api-references/indexer/installation).
+
+### Using Indexer Gateway in your projects
+See the snippets below to learn how to import Indexer Gateway into your
+project.
+
+#### Typescript
+Setup Sequence Indexer Gateway API in Typescript using the
+`@0xsequence/indexer` library.
+
+```ts [Typescript]
+import { SequenceIndexerGateway } from '@0xsequence/indexer'
+
+const INDEXER_TOKEN = 'AQAAAAAAAF_JvPALhBthL7VGn6jV0YDqaFY';
+
+const indexerGateway = new SequenceIndexerGateway(
+  'https://indexer.sequence.app',
+  INDEXER_TOKEN
+)
+```
+
+#### Go
+Setup Sequence Indexer Gateway API in Go, and send a ping request to check if
+the service is available.
+
+```go [Go]
+package main
+
+import (
+	"context"
+	"net/http"
+
+	"github.com/0xsequence/go-sequence/indexer"
+)
+
+const indexerToken = "AQAAAAAAAF_JvPALhBthL7VGn6jV0YDqaFY"
+
+func main() {
+	seqIndexerGW := indexer.NewIndexerGatewayClient(
+		"https://indexer.sequence.app",
+		http.DefaultClient,
+	)
+	
+  authCtx, err := indexer.WithHTTPRequestHeaders(ctx, http.Header{
+		"X-Access-Key": []string{indexerToken},
+	})
+	if err != nil {
+		log.Fatal(err)
+	}
+
+  ok, err := seqIndexerGW.Ping()
+  // ...
+}
+```

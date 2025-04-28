@@ -1,15 +1,15 @@
 ---
-title: Guía de integración de Databeat
-description: Aprenda a usar el seguimiento de Databeat con aplicaciones Sequence
+title: Guía de Integración de Databeat
+description: Aprenda cómo usar el seguimiento de Databeat con aplicaciones de Sequence
 ---
 
 # Integración de Databeat
 Esta guía explica cómo usar el seguimiento de Databeat, que ya está integrado en el sitio de documentación de Sequence.
 
-## Seguimiento automático
-La documentación de Sequence realiza un seguimiento automático de las vistas de página con Databeat. Este seguimiento se implementa usando JavaScript puro y es completamente del lado del cliente.
+## Seguimiento Automático
+La documentación de Sequence rastrea automáticamente las vistas de página usando Databeat. Este seguimiento se implementa con JavaScript puro y es completamente del lado del cliente.
 
-## Seguimiento manual de eventos
+## Seguimiento Manual de Eventos
 También puede rastrear manualmente eventos personalizados usando Databeat en sus propias aplicaciones. Así es como se hace:
 
 ```javascript
@@ -33,16 +33,16 @@ databeat.trackView({
 databeat.session('user-123', { hash: true, agentSalt: true });
 ```
 
-## Detalles de implementación
-Nuestra integración con Databeat se implementa usando JavaScript puro. Así es como funciona:
+## Detalles de Implementación
+Nuestra integración de Databeat está implementada usando JavaScript puro. Así funciona:
 1. Cargamos el script de Databeat de forma asíncrona
-2. Lo inicializamos con nuestro endpoint de host y token de autenticación
+2. Lo inicializamos con nuestro endpoint host y token de autenticación
 3. Rastreamos automáticamente las vistas de página
 4. Configuramos listeners para eventos de navegación en SPA
 
 Puede ver la implementación completa en el archivo [databeat-tracker.js](/snippets/databeat-tracker.js).
 
-## Uso de Databeat en la aplicación
+## Uso de Databeat en su Aplicación
 Para integrar Databeat en su propia aplicación:
 1. Instale el paquete:
 
@@ -50,7 +50,7 @@ Para integrar Databeat en su propia aplicación:
 npm install @databeat/tracker@0.9.3
 ```
 
-2. Inicialice en su JavaScript:
+2. Inicialícelo en su JavaScript:
 
 ```javascript
 // Using ES modules
@@ -111,8 +111,8 @@ databeat.track({
 </script>
 ```
 
-## Seguimiento de eventos personalizados
-Puede rastrear cualquier evento personalizado que sea relevante para su aplicación:
+## Seguimiento de Eventos Personalizados
+Puede rastrear cualquier evento personalizado relevante para su aplicación:
 
 ```javascript
 // Track game events
@@ -158,7 +158,7 @@ databeat.track({
 });
 ```
 
-## Gestión de sesiones
+## Gestión de Sesiones
 Databeat le permite gestionar sesiones de usuario:
 
 ```javascript
@@ -181,12 +181,12 @@ const sessionId = databeat.getSessionId();
 const isAnon = databeat.isAnon();
 ```
 
-## Vaciado manual de eventos
-Databeat agrupa los eventos y los envía periódicamente, pero se puede vaciar manualmente la cola de eventos:
+## Vaciado Manual de Eventos
+Databeat agrupa los eventos y los envía periódicamente, pero puede vaciar manualmente la cola de eventos:
 
 ```javascript
 // Manually flush the event queue
 await databeat.flush();
 ```
 
-Esto ayuda a verificar que los eventos se estén rastreando correctamente durante el desarrollo.
+Esto ayuda a verificar que los eventos se están rastreando correctamente durante el desarrollo.

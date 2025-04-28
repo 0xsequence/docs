@@ -1,0 +1,24 @@
+---
+title: Creando Listados
+---
+
+Para permitir que sus usuarios creen listados y llenen su marketplace, primero querrá [leer desde la blockchain](/sdk/unity/power/read-from-blockchain) para determinar los balances de tokens de sus usuarios. Una vez que haya obtenido los balances de tokens de sus usuarios, probablemente querrá mostrarlos en la interfaz de usuario.
+
+Una vez que su usuario haya seleccionado el coleccionable, la cantidad y el precio que desea listar para la venta, deberá crear el listado.
+
+```
+ICheckout checkout = new Checkout(_wallet, _chain);
+Step[] steps = await checkout.GenerateListingTransaction(collectionContractAddress, tokenId, amount, ContractType.ERC1155, currencyTokenAddress, pricePerTokenInstance, expiryDateTime);
+TransactionReturn result = await steps.SubmitAsTransactions(_wallet, _chain);
+if (result is SuccessfulTransactionReturn successTransaction) {
+    // Handle success case
+}else {
+    // Handle fail case
+}
+```
+
+Puede acelerar el proceso usando nuestra Boilerplate Factory
+
+```csharp
+            BoilerplateFactory.OpenListItemPanel(Transform parent, ICheckout checkout, TokenBalance item, Action onClose = null)
+```

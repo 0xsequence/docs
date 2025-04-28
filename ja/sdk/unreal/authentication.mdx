@@ -1,0 +1,220 @@
+---
+title: ユーザー認証
+description: Sequence インフラスタックを用いた web3 ゲーム向け Unreal SDK API のセッション管理に関するドキュメントです。
+---
+
+[プラットフォーム要件](/sdk/unreal/platforms) ページで、認証方法のセットアップや Builder プロジェクトでの正しい設定方法について詳しくご覧いただけます。
+
+## メール OTP でサインイン
+任意のメールアドレスでユーザーをサインインさせると、ワンタイムパスワードが受信箱に届きます。
+Email Requires Code イベントをリッスンしてください。
+
+<Tabs>
+  <Tab title="ブループリント">
+    <Frame>
+      <img src="/images/unreal/email_otp.png" />
+    </Frame>
+  </Tab>
+</Tabs>
+
+## ソーシャルサインイン
+デスクトップで SSO 認証を開始するには、必要な id\_token を取得するためにブラウザへ遷移する必要があります。
+モバイルでは、統合プラグインを使って SDK がこの処理を自動で行います。
+
+デスクトッププラットフォームでは、`Sign in Web View Required` イベントをリッスンし、返された `Sign In URL` を開いてください。
+モバイルプラットフォームでは、`Id Token Received` イベントをリッスンしてください。
+
+`Sign In` 関数を呼び出したら、`SequenceSessionsBP` サブシステムで `Session Established` イベントをリッスンし、サインインが成功したか確認します。問題が発生した場合は `Session Creation Failure` をリッスンしてください。
+
+### Google Id トークンを取得
+
+<Tabs>
+  <Tab title="ブループリント">
+    <Frame>
+      <img src="/images/unreal/google_idtoken.png" />
+    </Frame>
+  </Tab>
+</Tabs>
+
+### Apple Id トークンを取得
+
+<Tabs>
+  <Tab title="ブループリント">
+    <Frame>
+      <img src="/images/unreal/apple_idtoken.png" />
+    </Frame>
+  </Tab>
+</Tabs>
+
+### Google でサインイン
+有効な Google Id トークンでサインインします。[Google Id トークンの取得](/sdk/unreal/authentication#get-google-id-token)ノードから取得してください。
+
+<Tabs>
+  <Tab title="ブループリント">
+    <Frame>
+      <img src="/images/unreal/unreal_signin_google.png" />
+    </Frame>
+  </Tab>
+</Tabs>
+
+### Apple でサインイン
+有効な Apple Id トークンでサインインします。[Apple Id トークンの取得](/sdk/unreal/authentication#get-apple-id-token)ノードから取得してください。
+
+<Tabs>
+  <Tab title="ブループリント">
+    <Frame>
+      <img src="/images/unreal/unreal_signin_apple.png" />
+    </Frame>
+  </Tab>
+</Tabs>
+
+### Epic でサインイン
+有効な Epic Games Id トークンでサインインします。[Unreal 用 EOS プラグイン](https://dev.epicgames.com/documentation/en-us/unreal-engine/online-subsystem-eos-plugin-in-unreal-engine) を参照してください。
+
+<Tabs>
+  <Tab title="ブループリント">
+    <Frame>
+      <img src="/images/unreal/unreal_signin_epic.png" />
+    </Frame>
+  </Tab>
+</Tabs>
+
+### OIDC Id トークンでセッション開始
+Google、Apple、Epic Games から取得した有効な Id トークンを使ってセッションを開始する場合にこの方法を利用します。
+
+<Tabs>
+  <Tab title="ブループリント">
+    <Frame>
+      <img src="/images/unreal/token_session.png" />
+    </Frame>
+  </Tab>
+</Tabs>
+
+## PlayFab
+[設定](/sdk/unreal/configuration)時に `SequenceConfig.ini` ファイルに PlayFab タイトル ID を記載し、[Builder で PlayFab を設定](/solutions/builder/embedded-wallet/playfab-configuration)してください。
+
+### 新しい PlayFab ユーザーを登録
+
+<Tabs>
+  <Tab title="ブループリント">
+    <Frame>
+      <img src="/images/unreal/playfab_registration.png" />
+    </Frame>
+  </Tab>
+</Tabs>
+
+### 既存の PlayFab ユーザーでログイン
+
+<Tabs>
+  <Tab title="ブループリント">
+    <Frame>
+      <img src="/images/unreal/playfab_login.png" />
+    </Frame>
+  </Tab>
+</Tabs>
+
+### カスタム PlayFab 連携
+独自の PlayFab 連携がある場合はご利用いただけます。PlayFab から SessionTicket を受け取ったら、`USequenceAthenticator` オブジェクトの `PlayfabAuthenticateWithSessionTicket` メソッドで Sequence API の認証に渡してください。
+
+## ゲストとしてサインイン
+ユーザーをゲストとしてサインインさせることができます。ただし、アプリをアンインストールしたりサインアウトした場合、ウォレットへのアクセスは失われますのでご注意ください。
+
+<Tabs>
+  <Tab title="ブループリント">
+    <Frame>
+      <img src="/images/unreal/guest_session.png" />
+    </Frame>
+  </Tab>
+</Tabs>
+
+## フェデレーテッドアカウント
+フェデレーテッドアカウントを利用すると、複数のログイン方法を1つのアカウントとウォレットに紐付けることができます。
+ユーザーがゲストでサインインしている場合は、今後も Sequence Embedded Wallet にアクセスできるよう、アカウントのフェデレーションを推奨します。
+ユーザーが Sequence API で認証されている間に、適切なフェデレートアカウント呼び出しで追加のログイン方法を追加できます。
+
+<Tabs>
+  <Tab title="ブループリント">
+    <Frame>
+      <img src="/images/unreal/email_federation.png" />
+    </Frame>
+  </Tab>
+</Tabs>
+
+## IDトークンの取得
+よくあるユースケースとして、アプリクライアントでログイン処理が完了した後、バックエンドでユーザーの本人確認を行う場合があります。
+ユーザーから Sequence Id トークンを取得し、任意の JWKS ライブラリでバックエンド検証用に送信してください。
+詳細は [バックエンド検証ガイド](/sdk/headless-wallet/verification) をご覧ください。
+
+<Tabs>
+  <Tab title="ブループリント">
+    <Frame>
+      <img src="/images/unreal/get_id_token.png" />
+    </Frame>
+  </Tab>
+
+  <Tab title="C++">
+    ```cpp
+    const TFunction<void (FSeqIdTokenResponse_Data)> OnSuccess = [this](const FSeqIdTokenResponse_Data& Data) { };
+    const TFunction<void (FSequenceError)> OnFailure = [this](const FSequenceError& Err){ };
+
+    const TOptional<USequenceWallet*> WalletOptional = USequenceWallet::Get();
+    if (WalletOptional.IsSet() && WalletOptional.GetValue())
+    {
+        const USequenceWallet* Wallet = WalletOptional.GetValue();
+        Wallet->GetIdToken(Nonce, OnSuccess, OnFailure);
+    }
+    ```
+  </Tab>
+</Tabs>
+
+## サインアウト
+認証情報キャッシュをクリアし、現在のユーザーをサインアウトします。
+
+<Tabs>
+  <Tab title="ブループリント">
+    <Frame>
+      <img src="/images/unreal/sign_out.png" />
+    </Frame>
+  </Tab>
+
+  <Tab title="C++">
+    ```cpp
+    const TOptional<USequenceWallet*> WalletOptional = USequenceWallet::Get();
+    if (WalletOptional.IsSet() && WalletOptional.GetValue())
+    {
+        USequenceWallet * Api = WalletOptional.GetValue();
+        Api->SignOut();
+    }
+    ```
+  </Tab>
+</Tabs>
+
+## セッション一覧取得
+アクティブなセッションを一覧表示します。
+
+<Tabs>
+  <Tab title="ブループリント">
+    <Frame>
+      <img src="/images/unreal/list_sessions.png" />
+    </Frame>
+  </Tab>
+
+  <Tab title="C++">
+    ```cpp
+    const TSuccessCallback<TArray<FSession>> OnSuccess = [=](TArray<FSession> Response)
+    {
+        //Response is a list of Sessions
+    };
+    const FFailureCallback OnFailure = [=](const FSequenceError& Error)
+    {
+        UE_LOG(LogTemp,Display,TEXT("Error Message: %s"),*Error.Message);
+    };
+    const TOptional<USequenceWallet*> WalletOptional = USequenceWallet::Get();
+    if (WalletOptional.IsSet() && WalletOptional.GetValue())
+    {
+        USequenceWallet * Api = WalletOptional.GetValue();
+        Api->ListSessions(OnSuccess,OnFailure);
+    }
+    ```
+  </Tab>
+</Tabs>

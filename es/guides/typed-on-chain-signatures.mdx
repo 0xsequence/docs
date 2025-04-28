@@ -1,20 +1,20 @@
 ---
 title: Datos tipados verificados y mensajes de firma validados en cadena
-description: Cómo realizar la verificación de firmas de mensajes en cadena y para contratos de billetera no desplegados, para asegurar la integridad de los datos en blockchain por parte de los firmantes
+description: Cómo realizar la verificación de firmas de mensajes en cadena y para contratos de wallet no desplegados, para asegurar la integridad de los datos en una blockchain por parte de los firmantes
 sidebarTitle: Construir validación de datos tipados y firmas en cadena
 ---
 
-Tiempo para completar: 10-20 minutos
+Tiempo estimado: 10-20 minutos
 
-En esta guía te mostraremos cómo usar el código fuente proporcionado para un contrato basado en EVM y explicaremos el funcionamiento interno de un contrato verificador de mensajes personalizado en cadena que compone el Universal Signature Validator ([ERC-6492](https://ercs.ethereum.org/ERCS/erc-6492)), y cómo realizar la verificación de firmas en la aplicación con datos tipados.
+En esta guía le mostraremos cómo usar el código fuente proporcionado para un contrato basado en EVM y explicaremos el funcionamiento interno de un contrato verificador de mensajes personalizado en cadena que compone el Universal Signature Validator ([ERC-6492](https://ercs.ethereum.org/ERCS/erc-6492)), y cómo realizar la verificación de firmas en la aplicación usando datos tipados.
 
 Esto se puede lograr en 6 pasos:
 1. [Cree un proyecto en Builder y obtenga una clave de acceso](/guides/typed-on-chain-signatures#1-create-a-builder-project-and-obtain-an-access-key)
 2. [Inicialice una aplicación React Vite](/guides/typed-on-chain-signatures#2-initialize-react-vite-application)
 3. [Use Sequence Wallet para el inicio de sesión del usuario](/guides/typed-on-chain-signatures#3-use-sequence-wallet-for-user-sign-in)
 4. [Utilice datos tipados EIP712 para generar firmas EIP6492](/guides/typed-on-chain-signatures#4-use-eip712-typed-data-to-generate-eip6492-signatures)
-5. [Despliegue el contrato para verificación EIP712 y validación EIP1271](/guides/typed-on-chain-signatures#5-deploy-contract-for-eip712-verification-and-eip1271-validation)
-6. [Muestre la respuesta del contrato de verificación y validación](/guides/typed-on-chain-signatures#6-render-response-from-verifying-and-validating-contract)
+5. [Implemente el contrato para verificación EIP712 y validación EIP1271](/guides/typed-on-chain-signatures#5-deploy-contract-for-eip712-verification-and-eip1271-validation)
+6. [Renderice la respuesta del contrato de verificación y validación](/guides/typed-on-chain-signatures#6-render-response-from-verifying-and-validating-contract)
 
 El flujo general de esta aplicación se puede ver en el siguiente diagrama de secuencia:
 
@@ -30,13 +30,13 @@ El flujo general de esta aplicación se puede ver en el siguiente diagrama de se
 Primero, siga [esta guía](/solutions/builder/getting-started) para crear un proyecto en Sequence Builder y obtener una clave de acceso para el proyecto.
 
 ## 2. Inicialice una aplicación React Vite
-A continuación, comience por inicializar un nuevo proyecto que contendrá todo el código necesario para generar firmas y respuestas de validación desde la blockchain:
+A continuación, comience inicializando un nuevo proyecto que contendrá todo el código necesario para generar firmas y respuestas de validación desde la blockchain:
 
 ```shell
 pnpm create vite
 ```
 
-Esto debería crear un proyecto en blanco al que puede empezar a agregar elementos y la lógica.
+Esto debería crear un proyecto en blanco al que puede empezar a agregar elementos y lógica.
 
 ## 3. Use Sequence Wallet para el inicio de sesión del usuario
 Instale los paquetes necesarios para que el proyecto funcione:
@@ -45,7 +45,7 @@ Instale los paquetes necesarios para que el proyecto funcione:
 pnpm install 0xsequence ethers
 ```
 
-Luego, habilite que un usuario inicie sesión en la red elegida y con la clave de acceso del proyecto obtenida en el [paso 1](/guides/typed-on-chain-signatures#1-create-a-builder-project--obtain-an-access-key).
+Luego, permita que un usuario inicie sesión en la red seleccionada y con la clave de acceso del proyecto obtenida en el [paso 1](/guides/typed-on-chain-signatures#1-create-a-builder-project--obtain-an-access-key).
 
 ```typescript
 
@@ -75,9 +75,9 @@ function App() {
 ```
 
 ## 4. Utilice datos tipados EIP712 para generar firmas EIP6492
-Ahora, definiremos datos tipados personalizados en TypeScript y, usando la biblioteca de utilidades de Sequence, construiremos un tipo `TypedData`, donde verificaremos una estructura de mensaje con los parámetros `name`, `wallet` y `message`:
+A continuación, definiremos un dato tipado personalizado en TypeScript y, usando la biblioteca de utilidades de Sequence, construiremos un tipo `TypedData`, donde verificaremos una estructura de mensaje con los parámetros `name`, `wallet` y `message`:
 
-En este ejemplo, `VERIFYING_CONTRACT_ADDRESS` es el contrato inteligente que desplegamos en `sepolia`, pero en el siguiente paso te mostraremos qué hace este contrato para que puedas desplegarlo tú mismo en cualquier red:
+En este ejemplo, `VERIFYING_CONTRACT_ADDRESS` es el smart contract que desplegamos en `sepolia`, pero en el siguiente paso le mostraremos qué hace este contrato para que pueda desplegarlo usted mismo en cualquier red:
 
 ```typescript
 import { sequence } from '0xsequence'
@@ -125,7 +125,7 @@ const submitSignature = () => {
 
 ```
 
-Luego firmaremos el objeto de tipo mensaje con las distintas propiedades referenciadas:
+Luego, firmaremos el objeto de mensaje tipado con las distintas propiedades referenciadas:
 
 ```typescript
 const wallet = await sequence.getWallet()
@@ -144,24 +144,24 @@ const signature = await signer.signTypedData(
 console.log("signature", signature);
 ```
 
-¡Perfecto! Asocie la función a un botón y vea cómo se genera la firma después de que el usuario haga clic en el botón:
+Perfecto, asocie la función a un botón y observe cómo se genera la firma después de que el usuario haga clic en el botón:
 
 ```typescript
 <button onClick={() => submitSignature()}>verify signature</button>
 ```
 
 ## 5. Despliegue el contrato para verificación EIP712 y validación EIP1271
-Ahora te proporcionaremos el código fuente que puedes usar en herramientas como [Remix](https://remix.ethereum.org/) para desplegar un contrato, o incluso en [Foundry](https://book.getfoundry.sh/reference/forge/forge) para construir y desplegar con el [Sequence Builder](https://sequence.build)
+Ahora le proporcionaremos el código fuente que puede utilizar en herramientas como [Remix](https://remix.ethereum.org/) para desplegar un contrato, o incluso algo como [Foundry](https://book.getfoundry.sh/reference/forge/forge) para construir y desplegar con el [Sequence Builder](https://sequence.build)
 
 <Steps>
-  <Step title="Validador Universal de Firmas">
-    El Validador Universal de Firmas puede, en teoría, desplegarse una sola vez para una red específica y ser compartido entre muchas aplicaciones, lo que lo hace modular y reutilizable. Su uso es tanto para billeteras inteligentes fuera de la cadena como en la cadena, habilitadas para [EIP6492](https://eips.ethereum.org/EIPS/eip-6492).
+  <Step title="Universal Signature Validator">
+    El Universal Signature Validator puede, en teoría, desplegarse una sola vez para una red específica y compartirse entre muchas aplicaciones, lo que lo hace componible y reutilizable. Se utiliza tanto para wallets inteligentes off-chain como on-chain compatibles con [EIP6492](https://eips.ethereum.org/EIPS/eip-6492).
 
     Puede encontrar [el código fuente aquí](https://github.com/0xsequence-demos/EIP712-EIP1271-signatures-demo/blob/master/contracts/src/UniversalSignatureValidator.sol) para desplegarlo.
   </Step>
 
-  <Step title="Verificador de Contrato Personalizado">
-    El siguiente contrato lo explicaremos en mayor profundidad junto con sus distintas funciones, ya que este contrato puede personalizarse según la aplicación específica. Comienza con lo básico, pasando el Validador Universal de Firmas al constructor en el primer paso:
+  <Step title="Verificador de contrato personalizado">
+    El siguiente contrato lo explicaremos más en detalle junto con sus distintas funciones, ya que puede personalizarse para la aplicación específica. Comience con lo básico, pasando el Universal Signature Validator en el constructor en el primer paso:
 
     ```javascript
     import {IERC1271} from "./interfaces/IERC1271.sol";
@@ -195,8 +195,8 @@ Ahora te proporcionaremos el código fuente que puedes usar en herramientas como
     ```
   </Step>
 
-  <Step title="Verificar Firma">
-    A continuación, tenemos la función para verificar la firma, que realiza ambas acciones: crea el hash del mensaje y valida al firmante:
+  <Step title="Verificar firma">
+    A continuación, tenemos la función de verificación de firma que tanto crea el hash del mensaje como valida al firmante:
 
     ```javascript
     /// @dev Verifies the signature of a person.
@@ -209,9 +209,9 @@ Ahora te proporcionaremos el código fuente que puedes usar en herramientas como
     }
     ```
 
-    #### Digest Personalizado de Persona
+    #### Digest personalizado de persona
 
-    En la siguiente función, recreamos el hash de la estructura con los parámetros proporcionados; esto se puede ampliar para incluir más o menos parámetros de diferentes tipos.
+    En la siguiente función, recreamos el hash de la estructura con los parámetros recibidos, los cuales pueden ampliarse para incluir más o menos parámetros de distintos tipos:
 
     Para más información sobre cómo construir el digest, consulte la [especificación EIP712](https://github.com/ethereum/EIPs/blob/master/EIPS/eip-712.md).
 
@@ -225,9 +225,9 @@ Ahora te proporcionaremos el código fuente que puedes usar en herramientas como
     }
     ```
 
-    #### Validar Firmante
+    #### Validar firmante
 
-    Luego, validamos la dirección del `signer`, el `digest` y la `signature`. Si se ha proporcionado una firma EIP6492, usamos el [validador universal de firmas](https://eips.ethereum.org/EIPS/eip-6492); de lo contrario, verificamos directamente la validación de la firma [EIP1271](https://eips.ethereum.org/EIPS/eip-1271):
+    A continuación, validamos la dirección del `signer`, el `digest` y la `signature`. Si se ha proporcionado una firma EIP6492, usamos el [Universal Signature Validator](https://eips.ethereum.org/EIPS/eip-6492); de lo contrario, verificamos la firma [EIP1271](https://eips.ethereum.org/EIPS/eip-1271) directamente:
 
     ```javascript
     /// @dev Validates the ERC1271 signature of a signer.
@@ -249,14 +249,14 @@ Ahora te proporcionaremos el código fuente que puedes usar en herramientas como
   </Step>
 </Steps>
 
-Ya puedes desplegar ambos contratos; asegúrate de elegir tu red.
+Ya está listo para desplegar ambos contratos, asegúrese de elegir su red.
 
-## 6. Renderizar Respuesta de Verificación y Validación del Contrato
-Pasamos las firmas y llamamos al contrato desplegado usando `ethers` con el `PROJECT_ACCESS_KEY` proporcionado en los siguientes pasos:
+## 6. Renderice la respuesta del contrato de verificación y validación
+Pasamos las firmas y llamamos al contrato desplegado usando `ethers` con el `PROJECT_ACCESS_KEY` en los siguientes pasos:
 
 <Steps>
-  <Step title="Crear un Proveedor">
-    Crea un proveedor usando la clave de acceso del proyecto:
+  <Step title="Cree un provider">
+    Cree un provider usando la clave de acceso del proyecto:
 
     ```typescript
     import { ethers } from 'ethers'
@@ -269,8 +269,8 @@ Pasamos las firmas y llamamos al contrato desplegado usando `ethers` con el `PRO
     ```
   </Step>
 
-  <Step title="Inicializa un Contrato de Ethers">
-    Importa el ABI generado en el [paso 5](/guides/typed-on-chain-signatures#5-deploy-contract-for-eip712-verification-and-eip1271-validation) (o cópialo [del código fuente en git](https://github.com/0xsequence-demos/EIP712-EIP1271-signatures-demo/blob/master/src/abi.ts)), incluye el proveedor e ingresa la dirección del contrato verificador:
+  <Step title="Inicialice un contrato de Ethers">
+    Importe el ABI generado en el [paso 5](/guides/typed-on-chain-signatures#5-deploy-contract-for-eip712-verification-and-eip1271-validation) (o cópielo [del código fuente en git](https://github.com/0xsequence-demos/EIP712-EIP1271-signatures-demo/blob/master/src/abi.ts)), incluya el provider e ingrese la dirección del contrato verificador:
 
     ```typescript
     import { ABI } from "./abi";
@@ -283,8 +283,8 @@ Pasamos las firmas y llamamos al contrato desplegado usando `ethers` con el `PRO
     ```
   </Step>
 
-  <Step title="Llamada estática a la función de verificar firma">
-    Al realizar una llamada estática a la función, simulamos la transacción sin enviarla a la cadena. Esto devuelve un resultado que indica si la validación fue verdadera o falsa:
+  <Step title="Llamada estática a la función de verificación de firma">
+    Al realizar una llamada estática a la función, simulamos la transacción sin enviarla en cadena. Esto devuelve un resultado que especifica si la validación fue verdadera o falsa:
 
     ```typescript
     const address = await wallet.getAddress()
@@ -318,4 +318,4 @@ Pasamos las firmas y llamamos al contrato desplegado usando `ethers` con el `PRO
 </Steps>
 
 ## Conclusión
-Ahora que tenemos estructuras de mensajes que se envían a la blockchain y se verifican con sus entradas, podemos ampliar la aplicación a muchos casos de uso para asegurar que los usuarios firmen la información correcta (por ejemplo, permitir el gasto de tokens ERC20, realizar ofertas fuera de la cadena, códigos QR que contienen minteo aprobado mediante firma, etc.).
+Ahora que tenemos estructuras de mensajes enviadas a la blockchain y mensajes verificados con sus entradas, podemos ampliar la aplicación a muchos casos de uso que aseguren que los usuarios firman la información correcta (por ejemplo, permitir gastar ERC20, realizar ofertas fuera de cadena, códigos QR que contienen firmas aprobadas para minteo, etc.).

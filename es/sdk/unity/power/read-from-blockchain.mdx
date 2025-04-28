@@ -1,0 +1,121 @@
+---
+title: Leer desde la Blockchain
+description: Para leer datos desde la blockchain, utilice la implementación nativa de Unity del Sequence Indexer.
+---
+
+# Leer desde la Blockchain
+La lectura desde la blockchain se realiza usando la implementación nativa de Unity de nuestro [Sequence Indexer](/api-references/indexer/overview).
+
+Recomendamos crear una instancia de la [clase `ChainIndexer`](https://github.com/0xsequence/sequence-unity/blob/master/Assets/SequenceSDK/Indexer/ChainIndexer.cs). Esto le dará acceso a toda la funcionalidad que ofrece la [interfaz `IIndexer`](https://github.com/0xsequence/sequence-unity/blob/master/Assets/SequenceSDK/Indexer/IIndexer.cs).
+
+```csharp
+IIndexer polygonIndexer = new ChainIndexer(Chain.Polygon);
+```
+
+Puede verificar si la API del indexador para su red está activa usando la tarea asíncrona `Ping`. Esto puede ser útil si una solicitud está fallando. Durante el desarrollo, también puede revisar el estado de nuestros indexadores en [nuestra página de estado](https://status.sequence.info/).
+
+```csharp
+IIndexer chainIndexer = new ChainIndexer(chain);
+bool indexerIsWorking = await chainIndexer.Ping();
+```
+
+## Obtener Balance
+Para consultar el balance de Ether (o la moneda de gas predeterminada de su red) de un usuario, utilice la tarea asíncrona `GetEtherBalance`.
+
+```csharp
+IIndexer chainIndexer = new ChainIndexer(chain);
+EtherBalance balance = await chainIndexer.GetEtherBalance(address);
+BigInteger balanceInWei = balance.balanceWei;
+```
+
+## Obtener Balances de Tokens
+Para obtener los balances de tokens de un usuario, debe usar la tarea asíncrona `GetTokenBalances`.
+
+```csharp
+IIndexer chainIndexer = new ChainIndexer(chain);
+GetTokenBalancesReturn balances = await chainIndexer.GetTokenBalances(new GetTokenBalancesArgs(address));
+TokenBalance[] tokenBalances = balances.balances;
+```
+
+Cuando se obtienen de esta manera, solo recibirá una instancia de token por cada smart contract. Obtener sin especificar la dirección es útil para determinar de qué contratos posee tokens su jugador y qué ERC20 tiene en su wallet.
+
+Para obtener balances individuales de tokens ERC721 o ERC1155, debe especificar el contrato en su `GetTokenBalancesArgs`.
+
+```csharp
+IIndexer chainIndexer = new ChainIndexer(chain);
+GetTokenBalancesReturn balances = await chainIndexer.GetTokenBalances(new GetTokenBalancesArgs(userAddress, contractAddress));
+TokenBalance[] tokenBalances = balances.balances;
+```
+
+Si el jugador tiene muchos tokenIds para un contrato dado (o posee tokens de muchos contratos), tendrá que manejar la paginación. En este caso, debe revisar el `Page` que recibe en su `GetTokenBalancesReturn` para ver si hay más y, si es así, hacer otra solicitud incluyendo el Page.
+
+```csharp
+IIndexer chainIndexer = new ChainIndexer(chain);
+GetTokenBalancesReturn balances = await chainIndexer.GetTokenBalances(new GetTokenBalancesArgs(userAddress, contractAddress));
+List<TokenBalance> finalResult = new List<TokenBalance>();
+TokenBalance[] tokenBalances = balances.balances;
+AddItemsFromArrayToList(tokenBalances, finalResult);
+while (tokenBalances.page.more) {
+    tokenBalances = await GetTokenBalances(new GetTokenBalancesArgs(accountAddress, contractAddress, tokenBalances.page));
+    AddItemsFromArrayToList(tokenBalances, finalResult);
+}
+```
+
+Para simplificar esta operación, hemos creado un wrapper `GetTokenBalancesOrganizedInDictionary`. Esto obtendrá todos los TokenBalances para un contractAddress y userAccountAddress dados y los organizará en un Dictionary que mapea tokenID (BigInteger) a TokenBalance. En general, esta será la forma más común de uso.
+
+```csharp
+IIndexer chainIndexer = new ChainIndexer(chain);
+Dictionary<BigInteger, TokenBalance> tokenBalancesDictionary = await chainIndexer.GetTokenBalancesOrganizedInDictionary(accountAddress, contractAddress);
+```
+
+Esto hará que consultar el balance respectivo de cada token id sea mucho más sencillo también.
+
+## Obtener Suministro de Tokens
+Si necesita obtener el suministro total de tokens para un smart contract específico, puede usar la tarea asíncrona `GetTokenSupplies`.
+
+```csharp
+IIndexer chainIndexer = new ChainIndexer(chain);
+GetTokenSuppliesReturn tokenSupplies = await chainIndexer.GetTokenSupplies(new GetTokenSuppliesArgs(contractAddress))
+```
+
+No esperamos que esta sea una operación muy común, pero está disponible por si la necesita.
+
+### Obtener Mapa de Suministros de Tokens
+Para usuarios avanzados de `GetTokenSupplies`, también ofrecemos la tarea asíncrona `GetTokenSuppliesMap` que le permite obtener los suministros de múltiples contratos de tokens y token ids en un mapa.
+
+```csharp
+IIndexer indexer = new ChainIndexer(Chain.Polygon);
+string usdcAddress = "0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359".ToLower();
+string wmaticAddress = "0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270".ToLower();
+string skyweaverAddress = "0x631998e91476da5b870d741192fc5cbc55f5a52e".ToLower();
+string skyweaverTokenId1 = "68657";
+string skyweaverTokenId2 = "66669";
+string skyweaverTokenId3 = "66668";
+GetTokenSuppliesMapReturn suppliesMapReturn = await indexer.GetTokenSuppliesMap(new GetTokenSuppliesMapArgs(
+    new Dictionary<string, string[]>()
+    {
+        { usdcAddress, new string[] { } },
+        { wmaticAddress, new string[] { "0" } },
+        { skyweaverAddress, new string[] { skyweaverTokenId1, skyweaverTokenId2, skyweaverTokenId3 } },
+    }));
+Dictionary<string, TokenSupply[]> suppliesMap = suppliesMapReturn.supplies;
+```
+
+Aquí, puede esperar que `suppliesMap[usdcAddress].Length = 1` con el objeto TokenSupply relacionado al suministro del token ERC20.
+
+De manera similar, puede esperar que `suppliesMap[skyweaverAddress].Length = 3` con el objeto TokenSupply relacionado a los token ids especificados.
+
+## Obtener Historial de Transacciones
+Para obtener el historial de transacciones de una cuenta, debe usar el método `GetTransactionHistory`.
+
+```csharp
+IIndexer chainIndexer = new ChainIndexer(chain);
+GetTransactionHistoryReturn history = await chainIndexer.GetTransactionHistory(
+    new GetTransactionHistoryArgs(new TransactionHistoryFilter()
+    {
+        accountAddress = userAccountAddress;
+    })
+);
+```
+
+El objeto `TransactionHistoryFilter` le permite especificar cómo desea filtrar su consulta de historial de transacciones, por ejemplo, por dirección(es) de cuenta, dirección(es) de contrato, etc. Más información [aquí](/api-references/indexer/examples/transaction-history).

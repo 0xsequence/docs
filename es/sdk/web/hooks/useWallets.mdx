@@ -1,0 +1,144 @@
+---
+title: useWallets
+description: Hook para gestionar wallets conectados
+sidebarTitle: useWallets
+---
+
+## Características
+Este hook ofrece una interfaz unificada para gestionar wallets conectados, tanto integrados (WaaS) como externos. Se solicita al usuario firmar una transacción con su wallet activo para vincular wallets, lo que habilita la funcionalidad de solo lectura.
+
+Características principales:
+- Obtener información de todos los wallets conectados
+- Establecer un wallet específico como activo
+- Desconectar wallets
+- Ver wallets vinculados para wallets integrados
+- Actualizar la lista de wallets vinculados
+
+Para wallets integrados (Wallet-as-a-Service), el hook obtiene automáticamente los wallets vinculados si están disponibles. Los wallets vinculados son wallets adicionales que se han conectado al wallet integrado principal.
+
+## Importar
+
+```tsx
+import { useWallets } from '@0xsequence/connect'
+```
+
+## Uso
+
+```tsx
+import { useWallets } from '@0xsequence/connect'
+
+function App() {
+  const { 
+    wallets, 
+    linkedWallets, 
+    setActiveWallet, 
+    disconnectWallet,
+    refetchLinkedWallets
+  } = useWallets()
+  
+  return (
+    <div>
+      <h2>Connected Wallets</h2>
+      <div>
+        {wallets.map(wallet => (
+          <div key={wallet.address}>
+            <span>
+              {wallet.name}: {wallet.address.slice(0, 6)}...{wallet.address.slice(-4)}
+            </span>
+            {wallet.isActive ? ' (Active)' : ''}
+            {wallet.isEmbedded ? ' (Embedded)' : ''}
+            <button onClick={() => setActiveWallet(wallet.address)}>
+              Set Active
+            </button>
+            <button onClick={() => disconnectWallet(wallet.address)}>
+              Disconnect
+            </button>
+          </div>
+        ))}
+      </div>
+      
+      {linkedWallets && linkedWallets.length > 0 && (
+        <>
+          <h2>Linked Wallets</h2>
+          <button onClick={refetchLinkedWallets}>Refresh</button>
+          <div>
+            {linkedWallets.map(linkedWallet => (
+              <div key={linkedWallet.walletAddress}>
+                {linkedWallet.walletAddress.slice(0, 6)}...{linkedWallet.walletAddress.slice(-4)}
+              </div>
+            ))}
+          </div>
+        </>
+      )}
+    </div>
+  )
+}
+```
+
+## Tipo de retorno: `UseWalletsReturnType`
+El hook retorna un objeto con las siguientes propiedades:
+
+```tsx
+interface UseWalletsReturnType {
+  wallets: ConnectedWallet[]
+  linkedWallets: LinkedWallet[] | undefined
+  setActiveWallet: (address: string) => Promise<void>
+  disconnectWallet: (address: string) => Promise<void>
+  refetchLinkedWallets: () => Promise<void>
+}
+```
+
+### Propiedades
+
+#### wallets
+`ConnectedWallet[]`
+
+Arreglo de todos los wallets conectados.
+
+```tsx
+interface ConnectedWallet {
+  id: string       // Unique identifier for the wallet (connector id)
+  name: string     // Display name of the wallet
+  address: string  // The wallet's Ethereum address
+  isActive: boolean // Whether this wallet is currently active
+  isEmbedded: boolean // Whether this is an embedded wallet (WaaS)
+}
+```
+
+#### linkedWallets
+`LinkedWallet[] | undefined`
+
+Arreglo de wallets vinculados para el wallet integrado activo (si existe). Solo disponible al usar un wallet WaaS.
+
+```tsx
+interface LinkedWallet {
+  id: number;
+  walletType?: string;
+  walletAddress: string;
+  linkedWalletAddress: string;
+  createdAt?: string;
+}
+```
+
+#### setActiveWallet
+`(address: string) => Promise<void>`
+
+Función para establecer un wallet como activo por su dirección.
+
+| Parámetro | Type     | Description                                               |
+| --------- | -------- | --------------------------------------------------------- |
+| `address` | `string` | La dirección Ethereum del wallet a establecer como activo |
+
+#### disconnectWallet
+`(address: string) => Promise<void>`
+
+Función para desconectar un wallet por su dirección.
+
+| Parámetro | Type     | Description                                    |
+| --------- | -------- | ---------------------------------------------- |
+| `address` | `string` | La dirección Ethereum del wallet a desconectar |
+
+#### refetchLinkedWallets
+`() => Promise<void>`
+
+Función para actualizar la lista de wallets vinculados. Útil después de vincular un nuevo wallet.

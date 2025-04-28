@@ -1,0 +1,32 @@
+---
+title: Creando Ofertas
+---
+
+Al construir su marketplace, puede que quiera dar a sus usuarios la oportunidad de hacer ofertas para comprar coleccionables. Probablemente querrá mostrar una interfaz que muestre los coleccionables que son vendibles en su marketplace.
+
+Una vez que su usuario haya seleccionado el coleccionable, la cantidad y el precio que desea ofrecer para la compra, deberá crear la oferta.
+
+```
+ICheckout checkout = new Checkout(_wallet, _chain);
+Step[] steps = await checkout.GenerateOfferTransaction(collectionContractAddress, tokenId, amount, ContractType.ERC1155, currencyTokenAddress, pricePerTokenInstance, expiryDateTime);
+TransactionReturn result = await steps.SubmitAsTransactions(_wallet, _chain);
+if (result is SuccessfulTransactionReturn successTransaction) {
+    // Handle success case
+}else {
+    // Handle fail case
+}
+```
+
+Puede acelerar el proceso usando nuestra Boilerplate Factory
+
+Para balances de tokens en wallet
+
+```csharp
+            BoilerplateFactory.OpenCreateOfferPanel(Transform parent, ICheckout checkout, TokenBalance item, Action onClose = null)
+```
+
+Para órdenes de coleccionables en el marketplace
+
+```csharp
+            BoilerplateFactory. OpenCreateOfferPanel(Transform parent,ICheckout checkout, CollectibleOrder item, Action onClose = null)
+```

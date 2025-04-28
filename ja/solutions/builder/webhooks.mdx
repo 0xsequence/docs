@@ -1,0 +1,97 @@
+---
+title: Sequence BuilderのWebhooks
+description: このセクションでは、ゲーム開発者がSequence BuilderでWebhooksを使い、複数のブロックチェーン上のイベントを監視する方法を説明します。
+sidebarTitle: Webhooks
+---
+
+Sequence Builderは、ゲーム開発者向けに、当社が提供する複数のブロックチェーン上のイベントを監視するインデクサーを提供し、httpsコールバックで通知します。
+
+<Warning>
+  cURL、TypeScript、Goを使ったプログラム的なWebhooks追加方法をご希望の場合は、[こちらのウォークスルー](/api-references/indexer/examples/webhook-listener)をご覧ください。
+</Warning>
+
+#### ゲームでどのようなデータを監視できますか？
+
+- コントラクトからのミント
+- TokenIDの移転
+- アカウントアドレスによるトランザクション
+- コントラクトから発行されたイベントトピック
+- コントラクトから発行されたイベントトピックハッシュ
+
+## Webhooksの作成方法
+以下の手順でWebhooksを作成できます
+1. プロジェクトを選択し、Webhooksセクションへ移動
+2. ネットワークを選択し、新しいWebhookを追加
+3. Webhookの詳細を入力
+
+<Steps>
+  <Step title="プロジェクトを選択し、Webhooksセクションへ移動">
+    画面左上でプロジェクトを選択し、サイドバーの`Indexer`セクションから`Webhooks`タブを選択します。
+
+    <Frame>
+      ![indexer webhooks select](/images/builder/builder_indexer_webhooks_select.png)
+    </Frame>
+  </Step>
+
+  <Step title="ネットワークを選択し、新しいWebhookを追加">
+    Webhooksタブ下のドロップダウンから、プロジェクト内でWebhookを作成したいネットワークを選択します。目的のネットワークが表示されていない場合は、[ネットワークを追加](/support/builder/project-settings#3-network-settings)してから、その後、`+ Add New Webhook` を選択してください。
+
+    <Frame>
+      ![indexer webhooks add new webhook](/images/builder/builder_indexer_webhooks_add_new_webhook.png)
+    </Frame>
+  </Step>
+
+  <Step title="Webhookの詳細を入力">
+    Webhookの`URL`、`Contract Address(es)`、'Events'など、必要な詳細を入力します。
+
+    Eventsフィールドでは、任意のコントラクトイベントを解析できますが、スマートコントラクトに記載されている通り、正確にイベントを入力する必要があります。たとえば、トランスファーイベントを検出する場合は、`indexed`キーワードを含めて `Transfer(address indexed from, address indexed to, uint256 amount)` と入力します。一般的なイベントタイプの例は[こちら](/api-references/indexer/examples/webhook-listener#on-chain-token-event-types)で、よく使われるケースやSequence特有のものも確認できます。
+
+    希望するフィールドを入力したら、`Add Webhook` を選択してください。
+
+    <Note>
+      Webhookエンドポイントが必要な場合は、[webhook.site](https://webhook.site/) をご利用いただけます。
+
+      または、以下のいずれかのテンプレートコードを利用することもできます。
+
+      [Nodejs TypeScript Webhook](https://github.com/0xsequence-demos/template-nodejs-webhook-server)（[ngrok](https://ngrok.com/)と組み合わせて利用）
+    </Note>
+
+    <Frame>
+      ![Webhookの詳細を入力して追加](/images/builder/builder_indexer_webhooks_add_webhook.png)
+    </Frame>
+
+    これで完了です！
+  </Step>
+</Steps>
+
+## Webhookの削除または更新
+以下の手順でWebhookの更新や削除を行う方法をご案内します。
+1. プロジェクトを選択し、Webhooksセクションへ移動
+2. Webhookを更新または削除するには、ギアアイコンを選択してください。
+3. Webhookの更新または削除
+
+<Steps>
+  <Step title="プロジェクトを選択し、Webhooksセクションへ移動">
+    画面左上でプロジェクトを選択し、サイドバーの`Indexer`セクションから`Webhooks`タブを選択します。
+
+    <Frame>
+      ![indexer webhooks select](/images/builder/builder_indexer_webhooks_select.png)
+    </Frame>
+  </Step>
+
+  <Step title="Webhookを更新または削除するには、ギアアイコンを選択してください。">
+    Webhook画面で、削除または更新したいWebhookのギア `⚙` を選択します。
+
+    <Frame>
+      ![Webhookの更新をクリック](/images/builder/builder_indexer_webhook_select.png)
+    </Frame>
+  </Step>
+
+  <Step title="Webhookの更新または削除">
+    その後、`Update Webhook` または `Remove` を選択してWebhookを更新または削除できます。
+
+    <Frame>
+      ![更新または削除](/images/builder/builder_indexer_webhooks_update_or_remove.png)
+    </Frame>
+  </Step>
+</Steps>

@@ -1,0 +1,30 @@
+---
+title: "Guía de migración: Cambio a Sequence Embedded Wallets"
+description: "Migrando desde otro wallet a un wallet embebido de Sequence"
+sidebarTitle: "Migrando Sequence"
+---
+
+## Resumen
+Este documento brinda orientación para usuarios que migran desde otros proveedores (como Thirdweb, Venly, etc.) a Sequence Embedded Wallets. El enfoque principal recomendado es el patrón de migración Just-In-Time (JIT), que ocurre cuando los usuarios inician sesión por primera vez después de la migración.
+
+## Proceso de migración Just-In-Time
+El proceso de migración JIT está diseñado para que los usuarios pasen de su proveedor de wallet actual a Sequence Embedded Wallets con la menor interrupción posible. Este proceso ocurre automáticamente cuando un usuario inicia sesión por primera vez después de que se implementa la migración, y el proceso es el siguiente:
+1.  **Autenticación del usuario**
+    - Cuando un usuario intenta iniciar sesión, se autentica con su proveedor social o correo electrónico preferido usando el SDK de Sequence Embedded Wallets.
+    - Una vez autenticado, los datos del usuario autenticado, como correo electrónico, nombre de usuario u otro identificador único junto con la dirección del wallet de Sequence, se envían a su backend.
+
+2.  **Consulta y actualización de base de datos**
+    - Actualice su base de datos de usuarios agregando una columna 'sequenceWallet'.
+    - La base de datos se consulta con el identificador único del usuario para recuperar el registro correspondiente.
+    - El sistema verifica si ya existe un 'sequenceWallet' para este usuario. Si es así, no se realiza ninguna acción.
+    - Si no se encuentra una dirección de wallet de Sequence:
+      a. El wallet de Sequence recibido se inserta en la columna 'sequenceWallet'.
+    - Si el usuario no existe en la base de datos, inserte la información recibida como un usuario nuevo.
+
+3.  **Migración de activos**
+    - Después de que el usuario inicia sesión correctamente, el sistema verifica si la migración de activos ya se realizó.
+    - Si no es así, se muestra un mensaje al usuario explicando la necesidad de migrar sus activos desde su wallet anterior al nuevo Sequence Embedded Wallet.
+    - El usuario inicia sesión en el proveedor anterior como un evento único y migra los activos deseados a su nuevo wallet de Sequence.
+    - Sugerimos usar el Indexer de Sequence para consultar los activos relevantes y mostrar estos junto con los montos al usuario para facilitar la migración.
+
+Por favor, contáctenos si su migración es más compleja y con gusto le ayudaremos.

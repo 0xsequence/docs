@@ -1,0 +1,88 @@
+---
+title: useIndexerClient
+description: Hook para gestionar un cliente de Sequence Indexer para una red específica
+sidebarTitle: useIndexerClient
+---
+
+## Importar
+
+```tsx
+import { useIndexerClient } from '@0xsequence/hooks'
+```
+
+## Uso
+
+```tsx
+import { useIndexerClient } from '@0xsequence/hooks'
+import { ContractVerificationStatus } from '@0xsequence/connect'
+
+function TokenBalanceChecker() {
+  const chainId = 1 // Ethereum mainnet
+  const indexerClient = useIndexerClient(chainId)
+  const { address } = useAccount()
+
+  const checkBalance = async () => {
+    // Get native token balance
+    const nativeBalance = await indexerClient.getNativeTokenBalance({
+      accountAddress: address
+    })
+
+    // Get token balances
+    const tokenBalances = await indexerClient.getTokenBalancesSummary({
+      filter: {
+        accountAddresses: [address],
+        contractStatus: ContractVerificationStatus.ALL,
+        omitNativeBalances: true
+      }
+    })
+
+    console.log('Native balance:', nativeBalance)
+    console.log('Token balances:', tokenBalances)
+  }
+
+  return (
+    <button onClick={checkBalance}>
+      Check Balances
+    </button>
+  )
+}
+```
+
+## Tipo de retorno: `SequenceIndexer`
+Retorna una instancia de `SequenceIndexer` configurada para el ID de red especificado.
+
+## Parámetros
+
+### chainId
+`ChainId`
+
+El ID de la red para crear un cliente indexador. Debe ser un ID de red soportado por `@0xsequence/network`.
+
+## Hooks relacionados
+Para aplicaciones que necesitan trabajar con múltiples redes simultáneamente, considere usar `useIndexerClients`. Acepta un arreglo de IDs de red y retorna un Map de clientes indexadores, permitiendo operaciones en paralelo entre diferentes redes.
+
+### Uso con `useIndexerClients`
+
+```tsx
+import { useIndexerClients } from '@0xsequence/hooks'
+
+const TransactionFetcher = () => {
+  // Get indexer clients for Ethereum mainnet and Polygon
+  const indexerClients = useIndexerClients([1, 137])
+
+  // Use the clients to fetch data
+  const fetchData = async () => {
+    // Get Ethereum client
+    const ethClient = indexerClients.get(1)
+
+    // Get Polygon client
+    const polygonClient = indexerClients.get(137)
+
+    // Make parallel requests
+    const [ethData, polygonData] = await Promise.all([
+      ethClient.getTransactionHistory(...),
+      polygonClient.getTransactionHistory(...)
+    ])
+  }
+}
+```

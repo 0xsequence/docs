@@ -1,0 +1,81 @@
+---
+title: メッセージ署名によるユーザー認証
+description: Sequenceを使ってユーザーのウォレットアドレスで認証する方法をご紹介します。ユーザーにウォレット接続を促し、メッセージ署名で本人確認を簡単に行えます。
+---
+
+## ウォレットアドレスの取得
+ユーザーのSequenceウォレットアドレスを取得するには：
+
+```ts
+const wallet = sequence.getWallet()
+const address = wallet.getAddress()
+console.log(address)
+```
+
+## ウォレット認証
+多くの場合、ユーザーにウォレットを接続してもらい、そのアドレスを本当に管理しているか確認したい場面があります。アプリケーションでは、ユーザーにウォレットでメッセージに署名してもらい、その署名を検証することで本人確認を行うのが一般的です。
+
+このような一般的なワークフローの場合、Sequenceはユーザーがあなたのdappにウォレットを接続する際に、アカウントアドレスの認証も自動で行うことができます。これにより、ユーザー体験がよりシンプルでスムーズになります。
+
+```ts
+import { sequence } from '0xsequence'
+
+const wallet = sequence.getWallet()
+
+const connectDetails = await wallet.connect({
+  app: 'Your Dapp name',
+  authorize: true // <---<<< this will automatically sign+verify a EIP712 message when user clicks "Connect"
+})
+```
+
+ユーザーには次のように表示されます：
+
+<Frame caption="Sequence on-demand sign in, connect">
+  <img src="/images/authorize_connect.png" />
+</Frame>
+
+上記の例では、`connect()`関数に`authorize: true`を渡しています。これにより、ユーザーは自分の身元を証明するために**EIP712署名メッセージ**にサインします。これによって、接続されたウォレットアドレスを確実に認証することができます。
+
+署名済みメッセージの証明は`connectDetails.proof`で取得できます。これは[ethauth](https://github.com/0xsequence/ethauth.js)のシンプルな規約を使ったEIP712署名オブジェクトです。
+
+<Note>
+  EIP712では、単なるプレーンテキストの文字列ではなく、実際のオブジェクトを使って署名することができます。
+</Note>
+
+## ウォレットのサーバーサイド認証
+上記の例は、クライアントサイドでユーザーの身元を接続・確認する方法を示していますが、Sequenceの認証証明をサーバー側で認証したい場合は、以下のスニペットで実現できます。
+
+```ts
+import { ValidateSequenceWalletProof } from '@0xsequence/auth'
+import { commons, v2 } from '@0xsequence/core'
+import { ETHAuth } from '@0xsequence/ethauth'
+import { trackers } from '@0xsequence/sessions'
+import * as ethers from 'ethers'
+
+// ...
+
+const rpcUrl = 'https://polygon-mainnet.infura.io/v3/<your infura key here>'
+const provider = new ethers.providers.JsonRpcProvider(rpcUrl)
+
+// create an EIP-6492-aware ETHAuth proof validator
+const validator = ValidateSequenceWalletProof(
+  () => new commons.reader.OnChainReader(provider),
+  new trackers.remote.RemoteConfigTracker('https://sessions.sequence.app'),
+  v2.DeployedWalletContext
+)
+const ethauth = new ETHAuth(validator)
+await ethauth.configJsonRpcProvider(rpcUrl)
+
+try {
+  const proof = await ethAuth.decodeProof(connectDetails.proof.proofString)
+  console.log(`proof for address ${proof.address} is valid`)
+} catch (err) {
+  console.log(`invalid proof -- do not trust address: ${err}`)
+}
+```
+
+GoアプリケーションでSequenceを利用する方法については、[Go Sequence SDK](https://github.com/0xsequence/go-sequence)をご覧ください。
+
+サーバーがJavascript/TypescriptやGo以外の言語で書かれている場合でも、[EIP1271（スマートウォレットの署名メッセージ検証標準）](https://eips.ethereum.org/EIPS/eip-1271)で署名を検証するだけです。
+
+ご質問やサポートが必要な場合は、いつでも[Discord](https://discord.gg/sequence)でご連絡ください。

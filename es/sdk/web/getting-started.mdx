@@ -1,0 +1,261 @@
+---
+title: Primeros pasos con Web SDK
+description: Aprenda cómo comenzar con Web SDK instalando los paquetes necesarios y utilizando los conectores de wagmi para usar un Embedded Wallet o un Native EOA Wallet para autenticación.
+sidebarTitle: Primeros pasos
+---
+
+# Configurando su Dapp
+Para utilizar el wrapper `SequenceConnect` y conectar wallets web3 a su aplicación, siga estos pasos:
+
+<Note>
+  Web SDK está construido sobre wagmi, así que para configuraciones avanzadas, envío de transacciones, llamadas a contratos, etc., consulte la [documentación de wagmi](https://wagmi.sh/react/WagmiConfig).
+</Note>
+
+<Tabs>
+  <Tab title="Aplicación Vite">
+    <Steps>
+      <Step title="Cree un proyecto React con Vite">
+        Comenzaremos creando un proyecto de [React](https://react.dev/) con [vite](https://vitejs.dev/):
+
+        ```sh
+        npm create vite
+        # or
+        pnpm create vite
+        # or
+        yarn create vite
+        ```
+      </Step>
+
+      <Step title="Instale las dependencias de Web SDK">
+        ```bash
+        npm install @0xsequence/connect wagmi ethers@6.13.0 viem 0xsequence @tanstack/react-query
+        # or
+        pnpm install @0xsequence/connect wagmi ethers@6.13.0 viem 0xsequence @tanstack/react-query
+        # or
+        yarn add @0xsequence/connect wagmi ethers@6.13.0 viem 0xsequence @tanstack/react-query
+        ```
+      </Step>
+
+      <Step title="Crear una configuración">
+        A continuación, deberá crear una variable de configuración para `SequenceConnect` como `waas` (es decir, un [Embedded Wallet](/sdk/headless-wallet/quickstart)).
+
+        Primero obtenga una [WaaS Config Key desde Sequence Builder](https://sequence.build/) y una [clave de acceso al proyecto](/support/builder/project-settings#copy-your-access-key), luego asegúrese de que el origen de su proyecto esté en la lista blanca en la [Configuración de Embedded Wallet en Builder](https://sequence.build).
+        Si desea permitir WalletConnect también necesitará un [Wallet Connect ID](https://cloud.reown.com/sign-in).
+        Para configurar el inicio de sesión con Google, siga la [Configuración de Google para Embedded Wallet](../../solutions/builder/embedded-wallet/google-configuration).
+
+        ```typescript [config.ts]
+        import { createConfig } from "@0xsequence/connect";
+
+        export const config: any = createConfig("waas", {
+          projectAccessKey: "<your-project-access-key>",
+          chainIds: [1, 137],
+          defaultChainId: 1,
+          appName: "Demo Dapp",
+          waasConfigKey: "<your-waas-config-key>", // for waas
+          google: {
+            clientId: "<your-google-client-id>",
+          },
+          walletConnect: {
+            projectId: "<your-wallet-connect-project-id>",
+          },
+        });
+        ```
+
+        Para personalizar aún más, [puede ver parámetros de configuración adicionales.](/sdk/web/custom-configuration)
+      </Step>
+
+      <Step title="Configurar el componente Provider">
+        La configuración que creamos en el [paso 3](/sdk/web/getting-started#create-a-config) debe pasarse a los providers a continuación en el `main.tsx`.
+
+        ```typescript [main.tsx]
+        import React from "react";
+        import ReactDOM from "react-dom/client";
+        import "index.css";
+
+        import App from "./App";
+        import { config } from "./config";
+        import { SequenceConnect } from "@0xsequence/connect";
+
+        function Dapp() {
+          return (
+            <SequenceConnect config={config}>
+              <App />
+            </SequenceConnect>
+          );
+        }
+
+        ReactDOM.createRoot(document.getElementById("root")!).render(
+          <React.StrictMode>
+            <Dapp />
+          </React.StrictMode>
+        );
+        ```
+      </Step>
+
+      <Step title="Disparar el modal de conexión">
+        ```typescript [App.tsx]
+        import './App.css'
+        import { useOpenConnectModal } from '@0xsequence/connect'
+
+        function App() {
+          const {setOpenConnectModal} = useOpenConnectModal()
+          
+          return (
+            <>
+              <button onClick={() => setOpenConnectModal(true)}>Connect</button>
+            </>
+          )
+        }
+
+        export default App
+        ```
+
+        Para interacciones web3, wagmi expone un conjunto de hooks de React que facilitan funciones comunes como el envío de transacciones.
+      </Step>
+    </Steps>
+  </Tab>
+
+  <Tab title="Aplicación NextJS">
+    <Steps>
+      <Step title="Cree un proyecto NextJS">
+        Comenzaremos creando un proyecto de [NextJS](https://nextjs.org/) con [create-next-app](https://nextjs.org/docs/getting-started):
+
+        ```sh
+        npx create-next-app@latest
+        # or
+        pnpm create next-app
+        # or
+        yarn create next-app
+        ```
+      </Step>
+
+      <Step title="Instale las dependencias de Web SDK">
+        ```bash
+        npm install @0xsequence/connect wagmi ethers@6.13.0 viem 0xsequence @tanstack/react-query
+        # or
+        pnpm install @0xsequence/connect wagmi ethers@6.13.0 viem 0xsequence @tanstack/react-query
+        # or
+        yarn add @0xsequence/connect wagmi ethers@6.13.0 viem 0xsequence @tanstack/react-query
+        ```
+      </Step>
+
+      <Step title="Crear una configuración">
+        A continuación, deberá crear una variable de configuración para `SequenceConnect` como `waas` (es decir, un [Embedded Wallet](/sdk/headless-wallet/quickstart)).
+
+        Primero obtenga una [WaaS Config Key desde Sequence Builder](https://sequence.build/) y una [clave de acceso al proyecto](/support/builder/project-settings#copy-your-access-key), luego asegúrese de que el origen de su proyecto esté en la lista blanca en la [Configuración de Embedded Wallet en Builder](https://sequence.build).
+        Si desea permitir WalletConnect también necesitará un [Wallet Connect ID](https://cloud.reown.com/sign-in).
+        Para configurar el inicio de sesión con Google, siga la [Configuración de Google para Embedded Wallet](../../solutions/builder/embedded-wallet/google-configuration).
+
+        ```typescript [src/app/config.ts]
+        import { createConfig } from "@0xsequence/connect";
+
+        export const config = createConfig("waas" /*or, 'universal'*/, {
+          projectAccessKey: "<your-project-access-key>",
+          chainIds: [1, 137],
+          defaultChainId: 1,
+          appName: "Demo Dapp",
+          waasConfigKey: "<your-waas-config-key>", // for waas
+          google: {
+            clientId: "<your-google-client-id>",
+          },
+          walletConnect: {
+            projectId: "<your-wallet-connect-project-id>",
+          },
+        });
+        ```
+
+        Para personalizar aún más, [puede ver parámetros de configuración adicionales.](/sdk/web/custom-configuration)
+      </Step>
+
+      <Step title="Configurar el componente Provider">
+        La configuración que creamos en el [paso 3](/sdk/web/getting-started#create-a-config) debe pasarse al provider de SequenceConnect.
+
+        Cree un archivo separado "providers.tsx" para envolver su aplicación en el componente Providers.
+
+        ```typescript [src/app/providers.tsx]
+        "use client";
+
+        import React from "react"
+        import { config } from "./config"
+        import { SequenceConnect } from "@0xsequence/connect"
+
+        const Providers = ({ children }: { children: React.ReactNode }) => {
+            return (
+                <SequenceConnect config={config}>
+                    {children}
+                </SequenceConnect>
+            )
+        }
+
+        export default Providers;
+        ```
+      </Step>
+
+      <Step title="Envuelva su app en Providers">
+        Envuelva su app en el componente Providers.
+
+        ```typescript [src/app/layout.tsx]
+        import type { Metadata } from "next";
+        import { Geist, Geist_Mono } from "next/font/google";
+        import "./globals.css";
+        import Providers from "./providers";
+
+        const geistSans = Geist({
+          variable: "--font-geist-sans",
+          subsets: ["latin"],
+        });
+
+        const geistMono = Geist_Mono({
+          variable: "--font-geist-mono",
+          subsets: ["latin"],
+        });
+
+        export const metadata: Metadata = {
+          title: "Create Next App",
+          description: "Generated by create next app",
+        };
+
+        export default function RootLayout({
+          children,
+        }: Readonly<{
+          children: React.ReactNode;
+        }>) {
+          return (
+            <html lang="en">
+              <body
+                className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+              >
+                <Providers>
+                  {children}
+                </Providers>
+              </body>
+            </html>
+          );
+        }
+        ```
+      </Step>
+
+      <Step title="Disparar el modal de conexión">
+        ```typescript [App.tsx]
+        "use client"
+
+        import { useOpenConnectModal } from '@0xsequence/connect'
+
+        function Home() {
+          const { setOpenConnectModal } = useOpenConnectModal()
+
+          return (
+            <>
+              <button onClick={() => setOpenConnectModal(true)}>Connect</button>
+            </>
+          )
+        }
+
+        export default Home
+        ```
+
+        Para interacciones web3, wagmi expone un conjunto de hooks de React que facilitan funciones comunes como el envío de transacciones.
+      </Step>
+    </Steps>
+  </Tab>
+</Tabs>

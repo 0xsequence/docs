@@ -1,0 +1,77 @@
+---
+title: エンクレーブ検証
+description: WaaS エンクレーブのセキュリティは、検証済みエンクレーブによるコード整合性の検証に依存しています。
+sidebarTitle: エンクレーブ検証
+---
+
+WaaS エンクレーブのセキュリティは、コードの整合性検証に基づいています。
+
+リスク許容度や技術リソースに応じて、稼働中のエンクレーブに対して2つの検証方法から選択できます。
+
+## 簡易検証方法
+
+### 必要条件
+この検証プロセスは Linux または macOS システムでのみ動作します。以下のツールが最新版でローカルにインストール・設定されている必要があります：
+- [Docker](https://www.docker.com/)
+- git
+- make
+
+### PCR0 の特定
+このページにブラウザまたは curl でアクセスしてください：[https://waas.sequence.app/status](https://waas.sequence.app/status)。
+
+後で使用するために、`ver` と `pcr0` の値を控えておいてください。
+
+出力例は次のようになります：
+
+チェックサムはファイルの整合性を検証するため、実行ごとに異なる場合があります。一方、同じコードに対する PCR0 は常に一定であることが、上記の例からも分かります。
+
+出力例は次のようになります：
+
+```
+{
+  "healthOK": true,
+  "startTime": "2024-04-08T17:06:20.177514099Z",
+  "uptime": 167168,
+  "ver": "v1.1.1",
+  "pcr0": "77541a3d09cdf2728417c1537d190be0998cc84f8aec95a4f1e823c91a007d97f276c2453be7f653fd73fb862b42fcee"
+}
+```
+
+### エンクレーブファイルのビルド
+
+1. リポジトリをローカルにクローンし、前のステップで取得した `ver` の値を `v1.1.1` の部分に置き換えてください：
+
+```
+git clone -b v1.1.1 https://github.com/0xsequence/waas-authenticator.git
+cd waas-authenticator
+```
+
+2. 次のコマンドを実行します。バージョンは先ほどと同様に置き換えてください：
+
+```
+make VERSION=v1.1.1 eif
+```
+
+3. コマンドの出力と、先ほど控えた PCR0 の値を比較してください。例：
+
+```
+Output written into /out/waas-auth.v1.1.1.eif
+BootMeasurement: Sha384 { ... }: {"HashAlgorithm": "Sha384 { ... }", "PCR0": "77541a3d09cdf2728417c1537d190be0998cc84f8aec95a4f1e823c91a007d97f276c2453be7f653fd73fb862b42fcee", "PCR1": "b7ada9ee8a3fa0a2c74c23ddd04a58f0b095d0465327b2d8461b9b81bcbc7236563ff0326c8614fe9205669636955199", "PCR2": "365294f408bcc5913b44110544bb611255d05666f89fd182900330bc117744fa563c2afcf74808b719ac7a29492099c6"}
+SHA256 checksum:
+3843b48b32b98fa311cbcd1604c0c6931f03c75075212e8bb4c06d02a3d53509  waas-auth.v1.1.1.eif
+```
+
+チェックサムはファイルの整合性確認用のため、実行ごとに異なる場合があります。ただし、同じコードに対する PCR0 は常に同じ値になります。これは上記の例でも確認できます。
+
+## 複雑な検証方法
+簡易的な方法では、作成したエンクレーブファイルの PCR0 を「稼働中」のエンクレーブと比較しますが、これは完全な証明にはなりません。2つの値を比較するだけでは十分な証拠にならず、エンクレーブが改ざんされている可能性も否定できません。実際、各リリースの PCR0 値は公開されています（[https://github.com/0xsequence/waas-authenticator/releases](https://github.com/0xsequence/waas-authenticator/releases)）。
+
+ここで、暗号学的なアテステーションが必要となります。現時点では検証用ツールは公開していませんが、AWS のガイド（[https://docs.aws.amazon.com/enclaves/latest/user/verify-root.html](https://docs.aws.amazon.com/enclaves/latest/user/verify-root.html)）を利用して検証できます。
+
+すべてのエンクレーブリクエストはアテステーションドキュメントを返します。これは Base64 でエンコードされ、`X-Attestation-Document` レスポンスヘッダーに含まれています。リクエストには `X-Attestation-Nonce` ヘッダーが含まれる場合もあり、その値が署名されアテステーションドキュメントに含まれます。
+
+例えば、次のようにしてアテステーションドキュメントを取得できます：
+
+```
+curl -si https://waas.sequence.app/health -H X-Attestation-Nonce:0123456789abcdef | grep x-attestation-document
+```

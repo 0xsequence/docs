@@ -1,0 +1,123 @@
+---
+title: useSwapModal
+description: Hook para abrir el modal de intercambio (swap)
+sidebarTitle: useSwapModal
+---
+
+## Importar
+
+```tsx
+import { useSwapModal } from '@0xsequence/checkout'
+```
+
+## Uso
+
+```tsx
+import { useSwapModal } from '@0xsequence/checkout'
+import { encodeFunctionData, parseAbi } from 'viem'
+
+function App() {
+  const { openSwapModal } = useSwapModal()
+  
+  const handleSwap = () => {
+    // Target token information
+    const chainId = 137 // Polygon
+    const currencyAddress = '0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359' // USDC on Polygon
+    const currencyAmount = '20000' // 0.02 USDC (in smallest units)
+    
+    // Optional: Transaction to execute after swap is completed
+    const data = encodeFunctionData({ 
+      abi: parseAbi(['function demo()']), 
+      functionName: 'demo', 
+      args: [] 
+    })
+    
+    // Open the swap modal
+    openSwapModal({
+      onSuccess: () => {
+        console.log('swap successful!')
+      },
+      chainId,
+      currencyAddress,
+      currencyAmount,
+      postSwapTransactions: [
+        {
+          to: '0x37470dac8a0255141745906c972e414b1409b470',
+          data
+        }
+      ],
+      title: 'Swap and Pay',
+      description: 'Select a token in your wallet to swap to 0.2 USDC.'
+    })
+  }
+  
+  return (
+    <button onClick={handleSwap}>
+      Swap with Sequence Pay
+    </button>
+  )
+}
+```
+
+## Tipo de retorno: `UseSwapModalReturnType`
+El hook retorna un objeto con las siguientes propiedades:
+
+```tsx
+type UseSwapModalReturnType = {
+  openSwapModal: (settings: SwapModalSettings) => void
+  closeSwapModal: () => void
+  swapModalSettings: SwapModalSettings | undefined
+}
+```
+
+### Propiedades
+
+#### openSwapModal
+`(settings: SwapModalSettings) => void`
+
+Función para abrir el modal de Swap con la configuración especificada.
+
+**Parámetros:**
+
+El objeto `settings` puede incluir las siguientes propiedades:
+
+| Parámetro              | Type                                | Description                                                                            |
+| ---------------------- | ----------------------------------- | -------------------------------------------------------------------------------------- |
+| `chainId`              | `number`                            | ID de la red blockchain donde se realizará el swap                                     |
+| `currencyAddress`      | `string`                            | Dirección del contrato del token objetivo                                              |
+| `currencyAmount`       | `string`                            | Cantidad del token objetivo en unidades mínimas                                        |
+| `postSwapTransactions` | `Array<{to: string, data: string}>` | (Opcional) Transacciones a ejecutar después de completar el swap                       |
+| `disableMainCurrency`  | `boolean`                           | (Opcional) Si es true, deshabilita el intercambio usando la moneda principal de la red |
+| `title`                | `string`                            | (Opcional) Título personalizado para el modal de swap                                  |
+| `description`          | `string`                            | (Opcional) Descripción personalizada para el modal de swap                             |
+| `onSuccess`            | `() => void`                        | (Opcional) Callback cuando el swap es exitoso                                          |
+| `onError`              | `(error: Error) => void`            | (Opcional) Callback cuando ocurre un error                                             |
+| `onClose`              | `() => void`                        | (Opcional) Callback cuando se cierra el modal                                          |
+| `blockConfirmations`   | `number`                            | (Opcional) Número de confirmaciones de bloque a esperar para completar el swap         |
+
+#### closeSwapModal
+`() => void`
+
+Función para cerrar el modal de Swap.
+
+#### swapModalSettings
+`SwapModalSettings | undefined`
+
+La configuración actual para el modal de Swap.
+
+```tsx
+export interface SwapModalSettings {
+  chainId: number
+  currencyAddress: string
+  currencyAmount: string
+  title?: string
+  description?: string
+  disableMainCurrency?: boolean
+  postSwapTransactions?: Transaction[]
+  blockConfirmations?: number
+  onSuccess?: (txHash: string) => void
+}
+```
+
+## Notas
+Este hook proporciona métodos para controlar el modal de Swap, que permite a los usuarios swapear tokens en su wallet por una moneda objetivo. El modal de Swap permite a los usuarios seleccionar tokens de su wallet para swapearlos por un token objetivo, con la opción de ejecutar transacciones adicionales después de completar el swap.

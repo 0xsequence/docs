@@ -1,0 +1,90 @@
+---
+title: オンランプ概要
+description: Web SDKのチェックアウトオンランプモーダルを使うことで、開発者はユーザーを簡単にクレジットカードで法定通貨から暗号資産へオンボードできます。
+sidebarTitle: オンランプ
+---
+
+このインテグレーションにより、クレジットカードでさまざまなネットワークのトークンを購入できます。
+
+<Frame>
+  ![](/images/kit/kit-on-ramp.png)
+</Frame>
+
+## インテグレーション
+オンランプ機能を組み込むには、以下の手順に従ってください。
+
+<Steps>
+  <Step title="Web SDKで接続する">
+    [はじめに](/sdk/web/getting-started)ガイドを完了してください。
+  </Step>
+
+  <Step title="1. @0xsequence/checkout ライブラリをインストールする">
+    ```bash
+    npm install @0xsequence/checkout
+    # or
+    pnpm install @0xsequence/checkout
+    # or
+    yarn add @0xsequence/checkout
+    ```
+  </Step>
+
+  <Step title="2. アプリ内で `SequenceConnect` プロバイダーの下に `SequenceCheckoutProvider` を配置する：">
+    ```jsx
+    import { SequenceCheckoutProvider } from '@0xsequence/checkout'
+    import { SequenceConnect } from '@0xsequence/connect'
+    import { config } from './config'
+
+    const App = () => {
+      return (
+        <SequenceConnect config={config}>
+          <SequenceCheckoutProvider>
+            <Page />
+          </SequenceCheckoutProvider>
+        </SequenceConnect>
+      )
+    }
+    ```
+  </Step>
+
+  <Step title="3. クレジットカードで資金を追加する">
+    `triggerAddFunds` 関数を呼び出してモーダルを表示します
+
+    ```js
+      import { useAddFundsModal } from '@0xsequence/checkout'
+      import { useAccount } from 'wagmi'
+
+      const MyComponent = () => {
+        const { address: recipientAddress } = useAccount()
+        const { triggerAddFunds: toggleAddFunds } = useAddFundsModal()
+
+        const onClick = () => {
+          toggleAddFunds({
+            walletAddress: recipientAddress,
+          })
+        }
+
+        return (
+          <button onClick={onClick}>Add Funds</button>
+        )
+      }
+    ```
+  </Step>
+</Steps>
+
+おめでとうございます！Web SDKを使ってウォレットに資金を追加する方法を学びました。
+
+# 構成の概要
+toggleAddFundsのパラメータで利用できる設定カスタマイズオプションは以下の通りです。
+
+```ts
+interface AddFundsSettings {
+  walletAddress: string | Hex // Address of the wallet where funds will be added
+  fiatAmount?: string // Specify the amount in fiat to add
+  fiatCurrency?: string // Specify the fiat currency (e.g., USD, EUR)
+  defaultFiatAmount?: string // Default amount in fiat to add
+  defaultCryptoCurrency?: string // Default cryptocurrency to use (e.g., ETH, BTC)
+  cryptoCurrencyList?: string // List of cryptocurrencies available for selection. Example: "USDT,BTC,USDC"
+  networks?: string // Specify network(s) to use for the transaction. Example: "mainnet,ethereum"
+  onClose?: () => void // Callback function to execute when the modal is closed
+}
+```

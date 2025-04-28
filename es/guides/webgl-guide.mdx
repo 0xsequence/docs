@@ -1,38 +1,38 @@
 ---
 title: Juego Aviator Web3 con WebGL
-description: Aprende cómo integrar WebGL en un juego usando herramientas de Sequence Stack para obtener logros y utilizar ERC1155 personalizados.
-sidebarTitle: Crea un juego con WebGL
+description: Aprenda cómo integrar WebGL en un juego usando herramientas del Sequence Stack para ganar logros y usar ERC1155 personalizados.
+sidebarTitle: Construya un juego con WebGL
 ---
 
 Tiempo estimado: 40 minutos
 
-En esta guía veremos cómo integrar WebGL en un juego, aprovechando herramientas de Sequence Stack para obtener logros y utilizar ERC1155 personalizados para jugar dentro del juego.
+En esta guía, repasaremos el proceso de integración de WebGL en un juego, aprovechando herramientas del Sequence Stack para ganar logros y usar ERC1155 personalizados para jugar dentro del juego.
 
 <Note>
   Puede jugar una versión en vivo del juego [aquí](https://0xsequence.github.io/aviator-demo/)
 
-  El código completo de este juego se encuentra [aquí](https://github.com/0xsequence/aviator-demo/)
+  El código completo de este juego se puede encontrar [aquí](https://github.com/0xsequence/aviator-demo/)
 
-  Y el código base para esta guía está disponible [aquí](https://github.com/0xsequence-demos/template-webgl-js-sequence-kit-starter)
+  Y el código plantilla completo que usaremos para la guía se puede encontrar [aquí](https://github.com/0xsequence-demos/template-webgl-js-sequence-kit-starter)
 </Note>
 
 Estas herramientas le permitirán realizar:
-1. [Configuración del proyecto con Webpack](/guides/webgl-guide#1-project-setup-with-webpack): Habilite una estructura de proyecto con WebGL para ser compilada por Webpack
-2. [Integre el Web SDK](/guides/webgl-guide#2-integrate-sequence-kit): Permita que todas las EOAs y Sequence Wallet autentiquen al usuario
-3. [Despliegue un contrato de coleccionables](/guides/webgl-guide#3-deploy-a-collectibles-contract): Cree su propio contrato de coleccionables
-4. [Despliegue un Minter Remoto y acuñe tokens de logros en el juego](/guides/webgl-guide#4-deploy-a-remote-minter-and-mint-in-game-achievement-tokens): Realiza transacciones sin gas usando Cloudflare Workers
-5. [Aproveche los objetos dentro del juego](/guides/webgl-guide#5-leverage-items-in-game): Integre coleccionables en el juego usando Sequence Indexer
-6. [Quema tokens de logros del juego](/guides/webgl-guide#6-burn-in-game-achievement-tokens): Quema logros del juego con wagmi
-7. [(Opcional) Integre Embedded Wallet en el Web SDK](/guides/webgl-guide#7-optional-integrate-embedded-wallet-into-sequence-kit): Habilite una experiencia fluida sin el uso de mensajes firmados por el usuario
+1. [Configuración del Proyecto con Webpack](/guides/webgl-guide#1-project-setup-with-webpack): Habilite una estructura de proyecto con WebGL para ser compilada por Webpack
+2. [Integrar Web SDK](/guides/webgl-guide#2-integrate-sequence-kit): Permita que todos los EOAs y Sequence Wallet autentiquen al usuario
+3. [Desplegar un contrato de coleccionables](/guides/webgl-guide#3-deploy-a-collectibles-contract): Cree su propio contrato de coleccionables
+4. [Desplegar un Remote Minter y mintear tokens dentro del juego](/guides/webgl-guide#4-deploy-a-remote-minter-and-mint-in-game-achievement-tokens): Realice transacciones relay sin gas con Cloudflare workers
+5. [Aproveche los ítems dentro del juego](/guides/webgl-guide#5-leverage-items-in-game): Integre coleccionables en el juego usando Sequence Indexer
+6. [Queme tokens de logros dentro del juego](/guides/webgl-guide#6-burn-in-game-achievement-tokens): Queme logros del juego con wagmi
+7. [(Opcional) Integre Embedded Wallet en Web SDK](/guides/webgl-guide#7-optional-integrate-embedded-wallet-into-sequence-kit): Permita una experiencia fluida sin el uso de mensajes firmados por el firmante
 
 ## 1. Configuración del proyecto con webpack
 
-#### Clonar repositorio
-Primero comenzaremos clonando un proyecto base, que tiene algunos componentes basados en WebGL creados con `three`, todo compilado usando [webpack](https://webpack.js.org/)
+#### Clonar el repositorio
+Primero comenzaremos clonando un proyecto plantilla, que incluye algunos componentes basados en WebGL creados con `three`, todos compilados usando [webpack](https://webpack.js.org/)
 
-[Template WebGL JS Web SDK Starter](https://github.com/0xsequence-demos/template-webgl-js-sequence-kit-starter/tree/simple-start)
+[Plantilla WebGL JS Web SDK Starter](https://github.com/0xsequence-demos/template-webgl-js-sequence-kit-starter/tree/simple-start)
 
-Clone el repositorio anterior y acceda a la carpeta con `cd template-webgl-js-sequence-kit-starter`
+Clona el repositorio anterior y accede a él con `cd template-webgl-js-sequence-kit-starter`.
 
 #### Actualice `.env`
 Cree un archivo `.env` (usando el `.env.example`) con las variables de entorno
@@ -42,7 +42,7 @@ PROJECT_ACCESS_KEY=
 WALLET_CONNECT_ID=
 ```
 
-Luego, ejecute los siguientes comandos para iniciar la aplicación
+Y ejecute los siguientes comandos para iniciar la aplicación
 
 ```
 # or your choice of package manager
@@ -50,13 +50,13 @@ pnpm install
 pnpm run dev
 ```
 
-Debería ver un avión volando sobre el agua
+¡Listo! Debería ver un avión volando sobre el agua
 
-## 2. Integre el Web SDK
-Ahora que tenemos la estructura del proyecto lista, podemos integrar el Web SDK
+## 2. Integrar Web SDK
+Ahora que tenemos la estructura del proyecto lista, podemos integrar Web SDK
 
 #### Configurar el componente `App.jsx`
-Cree una carpeta dentro de `src` llamada `react` y cree dos archivos: `App.jsx` y `Login.jsx`
+Cree una carpeta dentro de `src` llamada `react` y cree 2 archivos: `App.jsx` y `Login.jsx`
 
 En `App.jsx` incluya el siguiente código
 
@@ -175,7 +175,7 @@ export default Login;
 ```
 
 #### Renderizar el componente en Javascript `index.js`
-Finalmente, en el `index.js` importe el componente `App.jsx` y renderícelo para que se agregue al elemento con id `root` en `index.html`
+Finalmente, en `index.js` importe el componente `App.jsx` y renderícelo para que se agregue al elemento con id `root` en `index.html`
 
 ```js
 import * as ReactDOM from 'react-dom/client';
@@ -190,7 +190,7 @@ root.render(
 );
 ```
 
-##### Cree un manejador de clics para abrir el modal de inicio de sesión
+##### Crear un manejador de clic para llamar al modal de inicio de sesión
 Agregue el siguiente código al componente `Login.jsx`
 
 ```js
@@ -199,7 +199,7 @@ window.setOpenConnectModal = () => {
 };
 ```
 
-Y el siguiente código del manejador de clics en `index.js`
+Y el siguiente código del manejador de clic en `index.js`
 
 ```ts
 function handleMouseUp(event) {
@@ -224,35 +224,35 @@ Y agregue estos elementos a su `index.html`
 <div className="world" id="world"></div>
 ```
 
-Ahora tendrá un botón que hace aparecer un modal
+¡Listo! Ahora tendrá un botón que hace aparecer un modal
 
-## 3. Despliegue un contrato inteligente de coleccionables
+## 3. Implemente un contrato de coleccionables
 Necesitará crear un coleccionable desde el [Sequence Builder](https://sequence.build), lo cual puede lograr siguiendo esta [guía](/solutions/collectibles/contracts/deploy-an-item-collection)
 
-Deberíamos crear dos colecciones: una para los tokens de logros y otra para los aviones
+Deberíamos crear 2 colecciones: una para los tokens de logros y otra para los aviones
 
-## 4. Despliegue un Remote Minter y acuñe tokens de logros en el juego
-Luego, para enviar transacciones a la blockchain de manera sencilla y sin gas, implemente un [Cloudflare Worker](/guides/mint-collectibles-serverless) para acuñar objetos desde un contrato desplegado en el paso anterior, asegurándose de que la dirección del contrato API de transacciones esté ingresada como un `Minter Role`
+## 4. Desplegar un Remote Minter y mintear tokens de logros dentro del juego
+Luego, para enviar transacciones a la blockchain de manera fluida y sin gas, implemente un [Cloudflare Worker](/guides/mint-collectibles-serverless) para mintear ítems desde un contrato desplegado en el paso anterior, asegurándose de que la dirección del contrato de la API de transacciones esté ingresada como `Minter Role`
 
-Permitiremos múltiples rutas para acuñar coleccionables: un coleccionable de avión y un coleccionable de logros.
+Permitiremos que existan múltiples caminos para mintear coleccionables: un coleccionable de avión y un coleccionable de logro.
 
-Esto se logra en el código agregando una clave/valor `isPlane` al cuerpo de la solicitud normal de cloudflare, y creando un `if/else` adicional en el worker de cloudflare.
+Esto se logra en el código agregando una clave/valor `isPlane` al cuerpo de la solicitud normal de cloudflare, y creando un `if/else` adicional en el cloudflare worker.
 
 Puede ver el código para esto en este [repositorio de github](https://github.com/0xsequence-demos/template-webgl-js-sequence-kit-starter/blob/master/cloudflare/noisy-silence-ee19/src/index.ts#L80)
 
-Para esta guía, ejecutaremos todo el código de cloudflare en un entorno de desarrollo local, lo cual puede lograrse iniciando el worker de cloudflare en la carpeta del proyecto correspondiente con:
+Para esta guía, ejecutaremos todo el código de cloudflare en un entorno de desarrollo local, esto se puede hacer iniciando el cloudflare worker en la carpeta del proyecto, así:
 
 ```
 wrangler dev
 ```
 
-## 5. Aproveche los objetos dentro del juego
-Esta sección se dividirá en 2 implementaciones para actualizar la interfaz de usuario según los cambios de propiedad de activos en el juego:
-- Mostrar cambios de avión según los activos de la Wallet
-- Mostrar cambios en la interfaz de usuario según los activos de la Wallet
+## 5. Aproveche los ítems dentro del juego
+Esta sección se dividirá en 2 implementaciones para actualizar la UI según los cambios de propiedad de activos dentro del juego:
+- Mostrar cambios de avión según los activos del wallet
+- Mostrar cambios en la UI según los activos del wallet
 
-#### Mostrar cambios de avión según los activos de la Wallet
-Para implementar cambios en el juego según los activos que posee la wallet, puede implementar un botón que acuñe un token y luego, en la respuesta, verifique los cambios en el indexer
+#### Mostrar cambios de avión según los activos del wallet
+Para implementar cambios en el juego según los activos que tiene el wallet, puede implementar un botón que mintea un token y luego, en la respuesta, verifica los cambios en el indexer
 
 En el `index.js` incluimos un botón conectado al atributo `onclick` del elemento en index.html
 
@@ -265,7 +265,7 @@ window.mintPlane = () => {
 };
 ```
 
-Donde `callContract` se encarga de la acuñación llamando a un fetch que está envuelto en un mutex para asegurar que solo ocurra una acuñación a la vez y evitar que se presione el botón repetidamente. Esto se agrega a la clase `SequenceController` en `/API/SequenceController.js`
+Donde `callContract` se encarga del minteo llamando a un fetch que está envuelto en un mutex para asegurar que solo ocurra un minteo a la vez, evitando clics repetidos, y se agrega a la clase `SequenceController` en `/API/SequenceController.js`
 
 ```js
 import { Mutex, E_CANCELED} from 'async-mutex';
@@ -311,11 +311,11 @@ async callContract(tokenId, isPlane, callback) {
 }
 ```
 
-y `fetchPlaneTokens` consultará el resultado repetidamente hasta que haya un activo en su billetera, actualizando el `color del avión` para representar un avión diferente.
+y `fetchPlaneTokens` hará polling del resultado hasta que haya un activo en su wallet, actualizando el `plane color` para representar un avión diferente.
 
-`fetchPlaneTokens` se implementa con el siguiente código, donde la condición de balance es mayor que 1, y el `tokenID` es igual al id que se busca.
+`fetchPlaneTokens` se implementa con el siguiente código, donde la condición de balance es mayor que 1, y el `tokenID` es igual al id buscado.
 
-Esta lógica condicional de la interfaz de usuario cambiaría según la aplicación.
+Esta lógica condicional de la UI cambiaría según su aplicación
 
 ```js
 import { SequenceIndexer } from '@0xsequence/indexer';
@@ -344,12 +344,12 @@ async fetchPlaneTokens(){
 }
 ```
 
-#### Mostrar cambios en la interfaz según los activos de la billetera
-A continuación, implementamos un cambio en la interfaz de usuario donde agregamos un botón de `quemar logro`, según si el usuario tiene un logro.
+#### Mostrar cambios en la UI según los activos del wallet
+A continuación, implementamos un cambio en la UI donde agregamos un botón de `burn achievement`, dependiendo de si el usuario tiene un logro o no
 
-Primero, implemente una lógica similar para el controlador de clics en html/js como antes.
+Primero, implementar la lógica de manejador de clic HTML/JS similar a la anterior
 
-donde esta vez, el valor de `isPlane` de `callContract` se establece en `false`
+donde esta vez, el valor `isPlane` de `callContract` se establece en `false`
 
 ```js
 // index.js
@@ -362,7 +362,8 @@ window.mintAchievement = () => {
 ```
 
 <Warning>
-  Nota: en un juego real, la acuñación del token de logro ocurriría en función de algún evento desencadenante dentro del juego, pero para simplificar hemos incluido un botón.
+  Nota: en un juego real, este minteo del token de logro ocurriría en base a
+  algún evento disparador dentro del juego, pero para simplificar hemos incluido un botón
 </Warning>
 
 Esta vez, llamamos a `fetchTokensFromAchievementMint` que se agrega al `SequenceController`
@@ -391,10 +392,10 @@ Esta vez, llamamos a `fetchTokensFromAchievementMint` que se agrega al `Sequence
   }
 ```
 
-Esto hace que solo si hay un saldo devuelto por el indexador, el atributo `display` permite que el botón se muestre.
+Esto hace que solo si hay un balance devuelto por el indexer, el atributo `display` haga aparecer el botón
 
-## 6. Quemar tokens de logros dentro del juego
-Finalmente, para quemar el token de logro, ya no podemos usar un Cloudflare Worker para las acciones enviadas a la blockchain, porque cuando la acuñación se realizó 'en nombre de' la dirección usando la API de transacciones (lo que hace que el `msg.sender` en el contrato sea una de las direcciones del `relayer`), en este caso queremos asegurarnos de que el `msg.sender` en el contrato demuestre la propiedad del token y que la transacción sea enviada directamente desde el usuario. Usaremos funciones frontend de `wagmi` y algo de composición de clases para lograrlo.
+## 6. Quemar tokens de logro dentro del juego
+Finalmente, para quemar el token de logro, ya no podemos usar un Cloudflare Worker para las acciones enviadas a la blockchain, porque cuando el minteo se realizó 'en nombre de' la dirección usando la API de transacciones (haciendo que el `msg.sender` en el contrato sea una de las direcciones del `relayer`), para esto, queremos asegurarnos de que el `msg.sender` en el contrato demuestre la propiedad del token y que la transacción sea enviada directamente por el usuario. Usaremos funciones frontend de `wagmi` y algo de composición de clases para lograrlo.
 
 ```js
 // index.js
@@ -406,7 +407,7 @@ window.burn = () => {
 };
 ```
 
-Donde `burnToken` es una función pasada desde nuestro componente React que utiliza un patrón similar con mutexes, y enviamos la transacción usando `sendTransaction` del paquete `wagmi`, esperando una actualización del hash de la transacción para devolver el callback.
+Donde `burnToken` es una función pasada desde nuestro componente react que usa un patrón similar de mutexes, y enviamos la transacción usando `sendTransaction` del paquete `wagmi`, esperando la actualización del hash de la transacción para devolver el callback
 
 ```js
 // react/Login.jsx
@@ -503,7 +504,7 @@ async init(walletClient, sendTransactionBurn) {
 }
 ```
 
-Luego, para que el token quemado tenga un efecto en la interfaz de usuario, ocultamos el botón utilizado para quemar el token, lo cual se logra con el siguiente código en el `SequenceController`.
+Luego, para que el token quemado tenga un efecto en la UI, ocultamos el botón usado para quemar el token en el lugar inicial, lo cual se logra con el siguiente código en el `SequenceController`
 
 ```js
 async fetchTokensFromBurn(tokenID){
@@ -530,14 +531,14 @@ async fetchTokensFromBurn(tokenID){
 
 ¡Y listo! Puede ver un ejemplo completo del código [aquí](https://github.com/0xsequence-demos/template-webgl-js-sequence-kit-starter)
 
-## 7. (Opcional) Integrar Embedded Wallet en el Web SDK
-Si quiere facilitar la experiencia del usuario para que no tenga que firmar transacciones en ningún momento, puede habilitar una Embedded Wallet actualizando la configuración de su componente React del Web SDK.
+## 7. (Opcional) Integre el Embedded Wallet en Web SDK
+Si desea facilitar el recorrido del usuario para que no tenga que firmar transacciones en ningún momento, puede habilitar el Embedded Wallet actualizando la configuración de su componente react de Web SDK.
 
-Al hacer esto, reducimos la cantidad de ventanas emergentes al quemar tokens con `wagmi`, ya que la obtención de tokens de logros y la acuñación de coleccionables se realizan usando un Cloudflare Worker para transacciones sin gas.
+Al hacer esto, reducimos los pop-ups al quemar tokens con `wagmi`, ya que la entrega de tokens de logro y el minteo de coleccionables se completan usando un Cloudflare Worker para transacciones sin gas.
 
-Esto se puede lograr agregando algunas variables de entorno y cambiando el tipo de conector que utiliza.
+Esto se puede lograr agregando algunas variables de entorno y cambiando el tipo de conector que usamos.
 
-Primero, actualice su archivo `.env` con los siguientes secretos de entorno
+Primero actualice su archivo `.env` con los siguientes secretos de entorno
 
 ```
 WAAS_CONFIG_KEY=
@@ -545,7 +546,7 @@ GOOGLE_CLIENT_ID=
 APPLE_CLIENT_ID=
 ```
 
-Luego, pase estas variables a su conector del Web SDK en `App.jsx`
+Luego pase estas variables a su conector de Web SDK en `App.jsx`
 
 ```js
 
@@ -601,6 +602,6 @@ function App(props) {
 Y eso es todo, no se requiere más integración para completar los flujos de transacción
 
 <Note>
-  Para obtener más información sobre las billeteras dentro del juego, consulte
+  Para aprender más sobre Wallets dentro del juego, vea
   [aquí](/solutions/wallets/embedded-wallet/overview)
 </Note>

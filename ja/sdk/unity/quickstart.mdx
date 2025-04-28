@@ -1,0 +1,54 @@
+---
+title: クイックスタート
+description: Sequence Unity SDK のクイックスタートドキュメントです。
+---
+
+<Steps>
+  <Step title="Unity SDK のインストール">
+    Sequence Unity SDK の最新版を [OpenUPM](/sdk/unity/installation#openupm) からインストールするか、
+    [Unity のパッケージマネージャー UI](/sdk/unity/installation#or-using-package-manager-ui) を利用し、
+    以下の Git URL を指定してください：`https://github.com/0xsequence/sequence-unity.git?path=/Packages/Sequence-Unity`
+  </Step>
+
+  <Step title="SDK の設定">
+    [Sequence Builder](https://sequence.build) にサインインし、プロジェクトを作成します。
+
+    下記の手順で Builder から設定ファイルをダウンロードしてください。
+
+    <Frame>
+      <img src="/images/unity/builder_config_file.png" />
+    </Frame>
+
+    このファイルを `Resources` フォルダのルートに配置します。
+  </Step>
+
+  <Step title="ログイン処理の統合">
+    まず、メールのワンタイムパスワード（OTP）を使ってウォレットセッションを確立します。パッケージマネージャー UI から `Setup` サンプルをインポートすると、
+    プロジェクトの `Resources/` ディレクトリに一式のボイラープレートが配置されます。
+    [ログイン用ボイラープレート](/sdk/unity/bootstrap_game#login) を作成し、指定したメールアドレスにワンタイムパスワードを送信できるようにします。
+
+    最初の機能が統合できたら、Google、Apple、PlayFab などの[追加ログインプロバイダー](/sdk/unity/onboard/authentication/intro)にも対応できます。
+
+    ```csharp
+    BoilerplateFactory.OpenSequenceLoginWindow(parent);
+    ```
+
+    <Frame>
+      <img src="/images/unity/unity_boilerplate_login.png" />
+    </Frame>
+  </Step>
+
+  <Step title="Sequence の機能をテストする">
+    Sequence Unity SDK には、ゲーム開発をすぐに始められるように様々な[ボイラープレート](/sdk/unity/bootstrap_game)が用意されています。
+    設定が完了したら、プレイヤープロフィールやインベントリ、ゲーム内ショップを表示するプレハブを作成できます。
+    [プレイヤープロフィールの統合方法](/sdk/unity/bootstrap_game#player-profile)もご覧ください。
+
+    ```csharp
+    BoilerplateFactory.OpenSequencePlayerProfile(parent, wallet, chain);
+    ```
+
+    <Frame>
+      <img src="/images/unity/unity_boilerplate_profile.png" />
+    </Frame>
+  </Step>
+</Steps>

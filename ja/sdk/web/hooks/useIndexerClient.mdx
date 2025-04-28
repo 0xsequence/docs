@@ -1,0 +1,88 @@
+---
+title: useIndexerClient
+description: 特定チェーン用のSequence Indexerクライアントを管理するためのフック
+sidebarTitle: useIndexerClient
+---
+
+## インポート
+
+```tsx
+import { useIndexerClient } from '@0xsequence/hooks'
+```
+
+## 使い方
+
+```tsx
+import { useIndexerClient } from '@0xsequence/hooks'
+import { ContractVerificationStatus } from '@0xsequence/connect'
+
+function TokenBalanceChecker() {
+  const chainId = 1 // Ethereum mainnet
+  const indexerClient = useIndexerClient(chainId)
+  const { address } = useAccount()
+
+  const checkBalance = async () => {
+    // Get native token balance
+    const nativeBalance = await indexerClient.getNativeTokenBalance({
+      accountAddress: address
+    })
+
+    // Get token balances
+    const tokenBalances = await indexerClient.getTokenBalancesSummary({
+      filter: {
+        accountAddresses: [address],
+        contractStatus: ContractVerificationStatus.ALL,
+        omitNativeBalances: true
+      }
+    })
+
+    console.log('Native balance:', nativeBalance)
+    console.log('Token balances:', tokenBalances)
+  }
+
+  return (
+    <button onClick={checkBalance}>
+      Check Balances
+    </button>
+  )
+}
+```
+
+## 返却型: `SequenceIndexer`
+指定したチェーンID用に設定された`SequenceIndexer`インスタンスを返します。
+
+## パラメータ
+
+### chainId
+`ChainId`
+
+インデクサークライアントを作成するチェーンID。`@0xsequence/network`でサポートされているチェーンIDである必要があります。
+
+## 関連フック
+複数チェーンを同時に扱う必要があるアプリケーションでは、`useIndexerClients`の利用を検討してください。チェーンIDの配列を受け取り、インデクサークライアントのMapを返すため、異なるネットワークで並行処理が可能です。
+
+### `useIndexerClients`の使用例
+
+```tsx
+import { useIndexerClients } from '@0xsequence/hooks'
+
+const TransactionFetcher = () => {
+  // Get indexer clients for Ethereum mainnet and Polygon
+  const indexerClients = useIndexerClients([1, 137])
+
+  // Use the clients to fetch data
+  const fetchData = async () => {
+    // Get Ethereum client
+    const ethClient = indexerClients.get(1)
+
+    // Get Polygon client
+    const polygonClient = indexerClients.get(137)
+
+    // Make parallel requests
+    const [ethData, polygonData] = await Promise.all([
+      ethClient.getTransactionHistory(...),
+      polygonClient.getTransactionHistory(...)
+    ])
+  }
+}
+```

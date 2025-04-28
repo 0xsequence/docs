@@ -1,0 +1,148 @@
+---
+title: useGetSingleTokenBalanceSummary
+description: Hook para obtener el balance de un token específico de una cuenta en una cadena
+sidebarTitle: useGetSingleTokenBalanceSummary
+---
+
+## Importar
+
+```tsx
+import { useGetSingleTokenBalanceSummary, ZERO_ADDRESS } from '@0xsequence/hooks'
+```
+
+## Uso
+
+```tsx
+import { useGetSingleTokenBalanceSummary, ZERO_ADDRESS } from '@0xsequence/hooks'
+import { useAccount } from 'wagmi'
+
+// Fetch native ETH balance
+function NativeBalance() {
+  const { address } = useAccount()
+  
+  const {
+    data: ethBalance,
+    isLoading,
+    isError
+  } = useGetSingleTokenBalanceSummary({
+    chainId: 1,
+    accountAddress: address || '',
+    contractAddress: ZERO_ADDRESS
+  })
+
+  if (isLoading) return <div>Loading...</div>
+  if (isError) return <div>Error fetching balance</div>
+
+  return <div>ETH Balance: {ethBalance?.balance}</div>
+}
+
+// Fetch USDC balance
+function TokenBalance() {
+  const { address } = useAccount()
+  
+  const {
+    data: usdcBalance,
+    isLoading,
+    isError
+  } = useGetSingleTokenBalanceSummary({
+    chainId: 1,
+    accountAddress: address || '',
+    contractAddress: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48', // USDC
+    hideCollectibles: true
+  })
+
+  if (isLoading) return <div>Loading...</div>
+  if (isError) return <div>Error fetching balance</div>
+
+  return <div>USDC Balance: {usdcBalance?.balance}</div>
+}
+```
+
+## Tipo de retorno: `UseQueryResult<TokenBalance>`
+El hook retorna todas las propiedades de `UseQueryResult` de React Query con los datos de balances de tokens. Esta es la estructura detallada:
+
+```tsx
+interface TokenBalance {
+  contractType: ContractType
+  contractAddress: string
+  accountAddress: string
+  tokenID?: string
+  balance: string
+  blockHash: string
+  blockNumber: number
+  chainId: number
+  uniqueCollectibles: string
+  isSummary: boolean
+  contractInfo?: ContractInfo
+  tokenMetadata?: TokenMetadata
+}
+```
+
+### Propiedades
+
+#### data
+`TokenBalance | undefined`
+
+Objeto de balance de token que contiene:
+- `contractType`: El tipo de contrato (ERC20, ERC721, ERC1155)
+- `contractAddress`: Dirección del contrato del token
+- La dirección cuyo balance fue consultado
+- `balance`: El monto del balance en las unidades base del token
+- `chainId`: El ID de la cadena de donde se obtuvo el balance
+- `blockHash`: Hash del bloque que contiene el balance
+- `blockNumber`: Número del bloque que contiene el balance
+- `tokenID`: ID de token opcional para NFTs
+- `uniqueCollectibles`: Cantidad de coleccionables únicos
+- `isSummary`: Indica si este es un balance de resumen
+- `contractInfo`: Información opcional del contrato
+- `tokenMetadata`: Metadatos opcionales del token
+
+#### isLoading
+`boolean`
+
+Estado de carga para la obtención de datos.
+
+#### isError
+`boolean`
+
+Estado de error que indica si la consulta falló.
+
+#### error
+`Error | null`
+
+Cualquier error que ocurrió durante la obtención de datos.
+
+## Parámetros
+El hook acepta dos parámetros:
+
+### args: `GetSingleTokenBalanceSummaryArgs`
+
+```tsx
+interface GetSingleTokenBalanceSummaryArgs {
+  chainId: number
+  accountAddress: string
+  contractAddress: string
+}
+```
+
+| Parámetro         | Type     | Description                                                                 |
+| ----------------- | -------- | --------------------------------------------------------------------------- |
+| `chainId`         | `number` | El chain ID del cual obtener el balance                                     |
+| `accountAddress`  | `string` | La dirección para la cual obtener el balance                                |
+| `contractAddress` | `string` | La dirección del contrato del token (use ZERO\_ADDRESS para tokens nativos) |
+
+### options: `BalanceHookOptions`
+
+```tsx
+interface BalanceHookOptions {
+  disabled?: boolean
+  retry?: boolean
+  hideCollectibles?: boolean
+}
+```
+
+| Parámetro          | Type      | Description                                                                |
+| ------------------ | --------- | -------------------------------------------------------------------------- |
+| `disabled`         | `boolean` | (Opcional) Deshabilitar la consulta para que no se ejecute automáticamente |
+| `retry`            | `boolean` | (Opcional) Indica si se deben reintentar las consultas fallidas            |
+| `hideCollectibles` | `boolean` | (Opcional) Si es true, filtra tokens ERC721 y ERC1155                      |

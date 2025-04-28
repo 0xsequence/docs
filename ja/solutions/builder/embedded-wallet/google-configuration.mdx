@@ -1,0 +1,60 @@
+---
+title: Embedded WalletのGoogle設定
+description: Embedded Walletインスタンス用のGoogle OAuthクライアントの設定方法をご案内します。ウェブ、Android、iOSアプリケーション向けにOAuthクライアントIDを作成する手順に従ってください。
+sidebarTitle: Googleの設定
+---
+
+Google認証をEmbedded Walletインスタンスに統合するには、Google Developer ConsoleでGoogle OAuthクライアントを設定する必要があります。Embedded Walletをネイティブモバイル、デスクトップ、またはウェブアプリケーションのいずれに統合するかによって、適切な設定を選択してください。
+
+## OAuthクライアントIDの作成
+まず、[Google Developer Console](https://console.cloud.google.com/)にアクセスし、「APIとサービス」>「認証情報」へ進みます。「認証情報を作成」>「OAuthクライアントID」を選択してください。まだの場合は、OAuth同意画面の設定も必要になる場合があります。
+
+<Frame>
+  ![Google Developer Console 認証情報](/images/embedded_wallet/google/1.png)
+</Frame>
+
+アプリケーションの種類に応じて、「ウェブアプリケーション」「iOS」「Android」から選択してください。
+
+<Frame>
+  ![アプリケーションタイプ](/images/embedded_wallet/google/2.png)
+</Frame>
+
+以降の手順は、設定するアプリケーションタイプによって異なります。
+
+## ウェブアプリケーションの設定
+ウェブアプリケーション用のクライアントIDを設定する場合、以下の情報が必要です：
+1. アプリケーション名
+2. 承認済みJavaScriptオリジン：このクライアントIDと連携を許可するドメインのリスト
+3. 承認済みリダイレクトURI：認証成功時にユーザーがリダイレクトされるURIのリストです。Sequence SDKでは、デフォルトでSDKを読み込んだ同じページにリダイレクトされます。
+
+<Frame>
+  ![ウェブアプリケーション設定](/images/embedded_wallet/google/3.png)
+</Frame>
+
+<Note>
+  ポート付きのlocalhostアドレス（例：`localhost:4444`）を承認済みオリジンに追加する場合、テスト時に動作させるためにはポートなしの`localhost`も追加する必要があります。
+</Note>
+
+## Androidアプリケーションの設定
+Androidアプリケーション用にクライアントIDを設定する場合、以下の情報が必要です：
+1. アプリケーション名
+2. パッケージ名：これはAndroidプロジェクトの一意のアプリケーションパッケージ名です。
+3. SHA-1証明書フィンガープリント：これはアプリケーションバンドルのSHA-1フィンガープリントです。画面の指示に従い、`keytool`を使って生成できます。
+
+![Androidアプリケーション設定](/images/embedded_wallet/google/4.png)
+
+## iOSアプリケーションの設定
+iOSアプリケーション用にクライアントIDを設定する場合、以下の情報が必要です：
+1. アプリケーション名
+2. バンドルID：これはiOSプロジェクトの一意のバンドル識別子です。
+
+<Frame>
+  ![iOSアプリケーション設定](/images/embedded_wallet/google/5.png)
+</Frame>
+
+## クライアントIDの取得
+アプリケーションを作成すると、クライアントIDが表示されます。コピーして、Sequence BuilderのログインプロバイダーのクライアントIDとして使用してください。
+
+<Frame>
+  ![クライアントID](/images/embedded_wallet/google/6.png)
+</Frame>

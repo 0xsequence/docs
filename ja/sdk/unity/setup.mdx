@@ -1,0 +1,25 @@
+---
+title: セットアップ
+description: Sequence インフラストラクチャスタックを利用した web3 ゲーム向け Unity SDK セットアップのドキュメントです。
+---
+
+# セットアップ
+
+1. Sequence Builder で [Embedded Wallet の設定](/sdk/headless-wallet/quickstart) を行ってください。
+2. Builder UI から Unity 用設定 ScriptableObject `SequenceConfig.asset` をダウンロードします。
+
+<Frame>
+  <img src="/images/unity/builder_config_file.png" />
+</Frame>
+
+3.  ダウンロードした `SequenceConfig.asset` ScriptableObject を Resources フォルダのルートに配置してください。[Resources.Load](https://docs.unity3d.com/6000.0/Documentation/ScriptReference/Resources.Load.html) で読み込まれます。設定値（特に以下）を必ずご確認ください：
+
+    a) `Url Scheme` - これはアプリケーション固有の文字列に必ず置き換えてください。非常に重要です。これを怠ると、ソーシャルサインイン時に予期しない動作が発生し、正常に動作しません。
+
+    b) `StoreSessionPrivateKeyInSecureStorage` - 一部プラットフォームで利用可能です。プラットフォームのネイティブなセキュアストレージと連携しています。有効にすると、セッションウォレット情報（秘密鍵を含む）をセキュアストレージに保存し、アプリ終了後も自動的にセッションを復元しようとします（再ログイン不要）。無効（デフォルト）または非対応プラットフォームの場合、セッションウォレットの秘密鍵はアプリの実行メモリから外部に出ませんが、アプリ終了時には再度サインインが必要です。デフォルトの `LoginPanel` UI（[セッションの復元](/sdk/unity/onboard/recovering-sessions)参照）がこの動作を自動で処理し、適切なページへ誘導します。
+
+    c) `EnableMultipleAccountsPerEmail` - デフォルトでは、SDK は1つのメールアドレスにつき1アカウントのみ作成可能です。アカウントは最初に利用したログイン方法（メール＋OTP、PlayFab、Google など）に紐づきますが、追加のログイン方法も関連付け可能です（詳細は[認証セクション](/sdk/unity/onboard/authentication/federated-accounts)参照）。`EnableMultipleAccountsPerEmail` を有効にすると、1つのメールアドレスで複数アカウント（異なるログイン方法ごと）を作成できます。ただし、この動作はエンドユーザーにとって混乱を招く可能性があるため、基本的にはデフォルトの無効設定を推奨します。
+
+<Warning>続行する前に、Builder で Embedded Wallet の設定が正しく行われているか必ずご確認ください。詳しくは[こちらのガイド](/sdk/headless-wallet/quickstart)をご覧ください。</Warning>
+
+<Warning>Builder から設定キーを正しくコピー＆ペーストしたか必ず再確認してください！SDK 統合時によくある問題です。"invalid tenant" というエラーが出た場合は、設定に誤りがあります。[こちらのガイド](/sdk/headless-wallet/quickstart)もご参照ください。</Warning>

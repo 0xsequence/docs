@@ -1,0 +1,140 @@
+---
+title: スマートコントラクト
+---
+
+既にデプロイ済みのコントラクトに対して `Contract` オブジェクトを作成するのは容易です。
+
+```csharp
+Contract contract = new Contract(contractAddress, abi);
+```
+
+必須ではありませんが、コントラクトオブジェクト作成時にはコントラクトABIを文字列で指定することを<i>強く</i>推奨します。指定しない場合、ABIのエンコード・デコード機能を十分に活用できません。
+この方法を選択した場合、関数呼び出しやクエリ時には関数名＋パラメータ型（例：ERC20のtransferメソッドなら transfer(address,uint256)）を完全な関数シグネチャとして指定する必要があり、クエリの返り値も常に文字列となります。
+
+## スマートコントラクト関数の呼び出し
+スマートコントラクトを呼び出すには、`CallFunction` メソッドを使って `CallContractFunction` オブジェクトを作成します。これにより、クライアントと `ContractCall` オブジェクトを `Create` async Task に渡すことで、適切なgasPrice、gasLimit、nonce、dataを含む新しい `EthTransaction` を組み立てます。
+
+スマートコントラクトを呼び出す例は以下の通りです。
+
+```csharp
+Contract erc20Contract = new Contract(contractAddress, contractAbi); // We'll use the well-known ERC20 contract as our example case
+TransactionReceipt receipt = await erc20Contract.CallFunction("transfer", toAddress, amountAsBigInteger).SendTransactionMethodAndWaitForReceipt(wallet, client);
+```
+
+注意：レシートを待たずに送信したい場合は、`SendTransactionMethod` を利用できます。
+
+また、`EthTransaction` の作成だけを行い、後で送信したい場合は、`CallFunction` から直接 `CallContractFunction` オブジェクトを利用できます。
+
+```csharp
+Contract erc20Contract = new Contract(contractAddress, contractAbi); // We'll use the well-known ERC20 contract as our example case
+EthTransaction transaction = await erc20Contract.CallFunction("transfer", toAddress, amountAsBigInteger).Create(client, new ContractCall(wallet.GetAddress()));
+TransactionReceipt receipt = await wallet.SendTransactionAndWaitForReceipt(client, transaction);
+
+// or 
+CallContractFunction transactionCreator = erc20Contract.CallFunction("transfer", toAddress, amountAsBigInteger);
+EthTransaction transaction = await transactionCreator.Create(client, new ContractCall(wallet.GetAddress()));
+TransactionReceipt receipt = await wallet.SendTransactionAndWaitForReceipt(client, transaction);
+
+// or 
+CallContractFunction transactionCreator = erc20Contract.CallFunction("transfer", toAddress, amountAsBigInteger);
+TransactionReceipt receipt = await transactionCreator.SendTransactionMethodAndWaitForReceipt(wallet, client);
+```
+
+`CallFunction` メソッドは任意の数の引数を受け取れることに気づくでしょう。ABIや関数シグネチャで定義された順番通りに引数を渡してください。
+
+## データ型マッピングの理解
+スマートコントラクトとやり取りする際、EVMのデータ型がSequenceEthereumライブラリ内でC#のデータ型にどのようにマッピングされているかを理解することが重要です。
+
+例えば、ABIが整数を期待している箇所に文字列を渡した場合、その文字列が整数に変換可能であっても例外が発生します。
+
+### アドレス
+C#では、`string`型を使うか、`Address`のインスタンスを作成することができます。文字列の場合は、必ず`0x`で始まり、42文字の固定長である16進数文字列であることを確認してください。
+
+```csharp
+Address address = new Address("0x123...");
+```
+
+### 整数型
+`int256`、`uint8`、`uint256`などの整数型には、System.Numericsの`BigInteger`型を使用します。
+
+```csharp
+// Simple number
+BigInteger number = new BigInteger(10000);
+
+// From hex
+string hexString = "0x0000000...01";
+BigInteger number = hexString.HexStringToBigInteger();
+```
+
+### バイト型
+Solidityのバイト型データをC#で定義するには、`byte16`や`byte32`などの型には`FixedByte`を作成する方法があります。
+コントラクトで`bytes`型が必要な場合は、任意の値を任意の長さの`byte[]`に変換できます。
+
+C#でデータが16進数文字列として表現されている場合は、`HexStringToByteArray()`関数を使って、その値を元のバイト配列に変換してください。
+
+`byte32[]`のようなバイト配列は、C#では単純に`FixedByte[]`として作成します。
+
+```csharp
+// byte16 or byte32
+new FixedByte(16, new byte[] {});
+
+// bytes
+string someString = "abc0123456789";
+byte[] bytes = someString.ToByteArray();
+
+// signature
+string signature = "0x0ab123...";
+byte[] bytes = signature.HexStringToByteArray();
+```
+
+### 構造体
+オンチェーン関数に構造体を渡す場合は、タプルを使用します。以下はSolidityの構造体の例と、それをSequenceのUnity SDKでどのように定義し、`Contract.CallFunction`関数の引数として渡すかの例です。
+
+Solidity構造体
+
+```solidity
+struct ExampleStruct {
+    address wallet;
+    uint256 amount;
+    byte32 data;
+}
+```
+
+C#での対応例
+
+```csharp
+Address wallet = new Address("0x...");
+BigInteger amount = new BigInteger(10000);
+FixedByte data = new FixedByte(32, byteArrayData);
+var arg = new Tuple<Address, BigInteger, FixedByte>(wallet, amount, data);
+```
+
+### その他の型
+Solidityの`string`や`bool`などの基本的なデータ型は、C#でも同じデータ型を使用できます。
+
+## コントラクトのクエリ
+スマートコントラクトからデータを読み取る場合は、`SendQuery<T>`メソッドを使ってコントラクトにクエリを送り、結果を型Tで受け取ります。
+スマートコントラクトをクエリする例は以下の通りです。
+
+```csharp
+Contract erc20Contract = new Contract(contractAddress, contractAbi); // We'll use the well-known ERC20 contract as our example case
+BigIntegar balance = await erc20Contract.SendQuery<BigIntegar>(client, "balanceOf", address);
+```
+
+また、クエリを作成して後で送信したい場合は、`QueryContract<T>`を使ってデリゲートを作成できます。
+
+```csharp
+Contract erc20Contract = new Contract(contractAddress, contractAbi); // We'll use the well-known ERC20 contract as our example case
+QueryContractMessageSender<BigIntegar> balanceQuery = erc20Contract.QueryContract<BigIntegar>("balanceOf", address);
+BigIntegar balance = await balanceQuery(client);
+// or
+BigIntegar balance = await balanceQuery.SendQuery(client);
+```
+
+## コントラクトのデプロイ
+コントラクトをデプロイしたい場合は、`ContractDeployer`を利用できます。
+
+```csharp
+ContractDeploymentResult deploymentResult = await ContractDeployer.Deploy(client, wallet, contractBytecodeAsString);
+string newlyDeployedContractAddress = deploymentResult.Receipt.contractAddress;
+```

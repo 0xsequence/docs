@@ -1,80 +1,81 @@
 ---
 title: Creando e integrando funciones de juegos Web3 con el SDK de Unreal Engine de Sequence
-description: Integre Sequence Wallet, recupere los activos de sus jugadores, firme mensajes, envíe transacciones y más usando el SDK de Unreal de Sequence.
-sidebarTitle: Cree un juego Web3 con Unreal Engine
+description: Integre la wallet de Sequence, obtenga los activos de los jugadores, firme mensajes, envíe transacciones y más usando el SDK de Unreal de Sequence.
+sidebarTitle: Cree un juego Web 3 en Unreal Engine
 ---
 
 # Introducción a Cropout - Guía de juego en Unreal Engine
-Cropout es un juego casual de estrategia en tiempo real con vista superior creado con Unreal Engine. En esta guía mostraremos cómo integrar funciones de Embedded Wallet usando el SDK de Unreal de Sequence.
+Cropout es un juego casual RTS de vista superior desarrollado con Unreal Engine. En esta guía mostraremos cómo integrar funciones de Embedded Wallet usando el SDK de Unreal de Sequence.
 
-Con esta integración, los jugadores podrán acceder a funciones como wallets de contratos inteligentes, propiedad de activos dentro del juego y gestión de transacciones, sin ventanas emergentes molestas ni necesidad de pagar tarifas de gas.
+Con esta integración, los jugadores podrán acceder a funciones como smart contract wallets, propiedad de activos dentro del juego y gestión de transacciones, todo sin ventanas emergentes molestas ni necesidad de pagar tarifas de gas.
 
-Consulte el [boilerplate de esta guía.](https://github.com/0xsequence/sequence-unreal)
+Consulte el boilerplate para esta guía.
 [Aprenda más sobre Embedded Wallets.](/solutions/wallets/overview#what-are-the-differences-between-these-options)
 
 ## 1. Configuración
 
-### Descargue el ejemplo del juego
-Si ya tiene Unreal Engine instalado, vaya directamente a la [página de Cropout de Unreal.](https://www.unrealengine.com/en-US/blog/cropout-casual-rts-game-sample-project).
+### Descargue el juego de ejemplo
+Si ya tiene Unreal Engine instalado, vaya directamente a la [página de Cropout en Unreal.](https://www.unrealengine.com/en-US/blog/cropout-casual-rts-game-sample-project).
 
-Si no lo tiene, comience por instalar Epic Games Launcher:
+Si no, comience instalando Epic Games Launcher:
 1.  Descargue e instale el launcher desde el [sitio web de Epic Games.](https://www.unrealengine.com/en-US/download).
 
-2.  Inicie sesión: inicie sesión o cree una cuenta de Epic Games.
+2.  Inicie sesión: Ingrese o cree una cuenta de Epic Games.
 
 3.  Encuentre el proyecto: Vaya a la pestaña de Unreal Engine, luego a la sección Learn, y busque "Cropout Sample Project".
 
 4.  Descargar: Haga clic en Add to Library y luego en Install para descargar los archivos del proyecto.
 
-## Descargue el SDK Sequence para Unreal Engine
-Para comenzar, descargue la [última versión](https://github.com/0xsequence/sequence-unreal/releases) del SDK Sequence y ponga la carpeta `SequencePlugin` dentro de la carpeta `Plugin` de su proyecto de Unreal.
+## Descargue el SDK de Unreal Engine de Sequence
+Para comenzar, descargue la [última versión](https://github.com/0xsequence/sequence-unreal/releases) del SDK de Sequence y coloque la carpeta `SequencePlugin` en la carpeta `Plugin` de su proyecto Unreal.
 
-Como alternativa, [obtenga el SDK desde Epic Games Marketplace.](/sdk/unreal/installation#using-epic-games-marketplace)
+Alternativamente, [obtenga el SDK desde el Epic Games Marketplace.](/sdk/unreal/installation#using-epic-games-marketplace)
 
 ### Configure su proyecto
 
-1.  [Inicie sesión en la consola de Sequence Builder.](/solutions/builder/getting-started)
+1.  [Inicie sesión en el Builder Console de Sequence.](/solutions/builder/getting-started)
 
-2.  [Cree un proyecto para su juego en la Builder Console.](/support/builder/project-management)
+2.  [Cree un proyecto para su juego en el Builder Console.](/support/builder/project-management)
 
-3.  Configure un [Embedded Wallet en la Builder Console.](/solutions/builder/embedded-wallet#embedded-wallet-in-builder)
+3.  Configure una [Embedded Wallet en el Builder Console.](/solutions/builder/embedded-wallet#embedded-wallet-in-builder)
 
-4.  En el archivo `SequenceConfig.ini`, agregue su `WaaS Config Key` y su Builder API Key desde la [Builder Console](/solutions/builder/getting-started#claim-an-api-access-key) en `Settings > API Access Keys`.
+4.  En su archivo `SequenceConfig.ini`, agregue su `WaaS Config Key` y su Builder API Key desde el [Builder Console](/solutions/builder/getting-started#claim-an-api-access-key) en `Settings > API Access Keys`.
 
-5.  No olvide agregar los ID de cliente Oauth que prefiera, que debe configurar en Builder en `Onboard > Embedded Wallet > Configuration`.
+5.  No olvide agregar sus IDs de cliente Oauth preferidos, que debe configurar en el Builder en `Onboard > Embedded Wallet > Configuration`.
 
 ### Inicie sesión usando la interfaz integrada
-En el blueprint del menú principal, generaremos nuestro Actor `Sequence Connector`, el cual iniciará y mostrará el panel de inicio de sesión.
+En el blueprint del nivel del menú principal, generaremos nuestro Actor `Sequence Connector`, que iniciará y mostrará el panel de inicio de sesión.
 
 Recomendamos usar la interfaz integrada para fines de desarrollo. Aquí tiene una [explicación más detallada.](/sdk/unreal/user_interfaces/)
-Para personalizaciones adicionales, [aprenda cómo crear su propia interfaz.](/sdk/unreal/authentication/)
+Para mayor personalización, [aprenda cómo crear su propia interfaz.](/sdk/unreal/authentication/)
 
-## 2. Configuración de Network Id y Chain
-Para comenzar la interacción con el SDK de Sequence, abra el blueprint _Sequence Connector_, ubique el evento `Auth Success` en _Event Graph > Begin Play_. Llamaremos a `Api Update Network Id` desde el subsistema SequenceWalletBP para configurar la wallet en la cadena seleccionada de su proyecto en Builder. En el mismo evento, también llamaremos a `Set Chain` desde el subsistema Sequence Indexer para poder obtener correctamente los activos.
+## 2. Configuración del Network Id y la cadena
+Para comenzar nuestra interacción con el SDK de Sequence, abra el _Sequence Connector_ blueprint, localice el evento `Auth Success` en _Event Graph > Begin Play_, y llamaremos a `Api Update Network Id` desde el Subsystem SequenceWalletBP para configurar el wallet en la red seleccionada de su proyecto en Builder.
+En el mismo evento, también llamaremos a `Set Chain` desde el Subsystem Sequence Indexer para poder obtener correctamente los assets.
 
-## 3. Obtener la dirección de la wallet
-Para mostrar la dirección de la wallet, primero recuperamos la referencia de la wallet del usuario usando SequenceWalletBP y la usamos para obtener y mostrar la dirección de la wallet en la red seleccionada usando `Api GetWallet Address` del subsistema SequenceWalletBP. Mostraremos la dirección del usuario en UI\_Layer\_Menu.
+## 3. Obtener dirección del Wallet
+Para mostrar la dirección del wallet, primero obtenemos nuevamente la referencia del wallet del usuario usando SequenceWalletBP y la utilizamos para obtener y mostrar la dirección del wallet en la red seleccionada usando `Api GetWallet Address` del Subsystem SequenceWalletBP. Mostraremos la dirección del usuario en UI\_Layer\_Menu.
 
 ## 4. Configure sus NFTs
-En nuestro caso, comenzamos con un contrato ERC-1155 para nuestros paquetes de recursos y mejoras de cultivo. Para crear los NFTs, vaya a [Builder Console >  Deploy > Contracts](/solutions/builder/contracts/) y seleccione `Web3 Game Item`.
+En nuestro caso, comenzamos con un contrato ERC-1155, para nuestros Resource Bundle packs y Farming Boosts. Para crear los NFTs vaya a [Builder Console >  Deploy > Contracts](/solutions/builder/contracts/) y seleccione `Web3 Game Item`.
 
-Una vez creados nuestros elementos, crearemos sus respectivos contratos de venta desplegando un nuevo contrato y seleccionando `Web3 Game Item(Sale)`.
+Una vez que hayamos creado nuestros ítems, ahora crearemos sus respectivos contratos de venta desplegando un nuevo contrato y seleccionando `Web 3 Game Item(Sale)`.
 
-Agregaremos a nuestros Web3 Game Items las recompensas correspondientes y la dirección del contrato de venta como propiedad.
+Agregaremos a nuestros Web 3 Game items sus recompensas correspondientes y la dirección de su contrato de venta como una propiedad.
 
 ### Obteniendo nuestros NFTs
-Para recuperar los NFTs recién creados, usaremos el subsistema Indexer para llamar a Get Token Supply, que nos devolverá la información y metadatos para la dirección del contrato indicada. Esto se encuentra en el blueprint `CUI_Purchase`.
+Para obtener nuestros NFTs recién creados, usaremos el subsistema Indexer para llamar a Get Token Supply, lo que nos devolverá la información y los metadatos para la dirección del contrato indicada. Esto lo encontrará en el blueprint `CUI_Purchase`.
 
 ### Comprar un NFT
-Para permitir que el jugador compre un NFT, usaremos el subsistema SequenceSDK para crear y enviar una transacción `PrimaryPurchase` al `Web 3 Game Item(Sale)` deseado y usaremos la propiedad "Sale" del contrato para referenciar nuestro `Web 3 Game Item(Sale)`. Esto se encuentra en el blueprint `CUI_PurchaseItem`.
+Para permitir que el jugador compre un NFT, usaremos el subsistema SequenceSDK para crear y enviar una transacción `PrimaryPurchase` al `Web 3 Game Item(Sale)` deseado y utilizaremos la propiedad "Sale" del contrato para referenciar nuestro `Web 3 Game Item(Sale)`. Esto lo encontrará en el blueprint `CUI_PurchaseItem`.
 
 ### Obtener los NFTs del jugador
-Para recuperar los NFTs del jugador, usaremos el subsistema Indexer para llamar a `Get Token Balances`, que nos devolverá todos los balances de contratos para la dirección de billetera indicada. Una vez obtenidos, volveremos a llamar a Get Token Balances, pero esta vez para cada contrato específico, lo que nos devolverá el balance, así como la información y los metadatos de ese contrato. Esto se encuentra en el blueprint `CUI_Vault`.
+Para obtener los NFTs del jugador, usaremos el Subsystem Indexer para llamar a `Get Token Balances`, lo que nos devolverá todos los balances de contratos para la dirección del wallet indicada. Una vez que se devuelvan, llamaremos nuevamente a Get Token Balances, pero esta vez para cada contrato específico, lo que nos devolverá el balance más la información y metadatos para ese contrato. Esto lo encontrará en el blueprint `CUI_Vault`.
 
 ### Quemar los NFTs del jugador
-Para otorgar al jugador las recompensas por usar uno de nuestros NFTs, usaremos el subsistema SequenceSDK para crear y enviar una transacción `Burn` del `Web 3 Game Item` deseado, lo que nos devolverá el estado de la transacción y la dirección del contrato, para verificar el éxito de la quema del ítem. En caso de éxito, usaremos las propiedades del contrato para dar la recompensa al jugador. Esto se encuentra en el blueprint `CUI_VaultItem`.
+Para dar al jugador las recompensas por usar uno de nuestros NFTs, usaremos el subsistema SequenceSDK para crear y enviar una transacción `Burn` del `Web 3 Game Item` deseado, lo que nos devolverá el estado de la transacción y la dirección del contrato, para verificar el éxito del quemado del ítem. Si es exitoso, usaremos las propiedades del contrato para dar al jugador su recompensa. Esto lo encontrará en el blueprint `CUI_VaultItem`.
 
-Para una explicación más detallada, consulte las secciones [Leer desde Blockchain](/sdk/unreal/read-from-blockchain/) y [Escribir en Blockchain](/sdk/unreal/write-to-blockchain/).
+Para una explicación más detallada, vaya a las secciones [Leer desde Blockchain](/sdk/unreal/read-from-blockchain/) y [Escribir en Blockchain](/sdk/unreal/write-to-blockchain/).
 
 ## 5. Cerrar sesión del jugador
-Para cerrar la sesión del jugador y terminar su sesión, llamaremos a `Clear Session` del subsistema Sequence Sessions. Así eliminaremos sus credenciales almacenadas y el usuario deberá iniciar sesión nuevamente cuando regrese. Llamaremos a este método en el UI\_Layer\_Menu.
+Para cerrar la sesión del jugador y terminar su sesión, llamaremos a `Clear Session` del Sequence Sessions Subsystem, de esta manera eliminaremos sus credenciales almacenadas y el usuario deberá iniciar sesión nuevamente cuando regrese. Llamaremos a este método en el UI\_Layer\_Menu.

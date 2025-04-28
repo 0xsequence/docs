@@ -1,0 +1,29 @@
+---
+title: 外部ウォレットの接続
+description: このコンテンツでは、Web インターフェースを使って埋め込みウォレットと外部ウォレットを接続する方法について詳しく説明しています。
+---
+
+# 外部ウォレットの接続
+ほとんどのユーザー操作は埋め込みウォレットを通じて行われますが、一部のユーザーは既存のウォレットをゲームに接続したい場合があります。これにより、ユーザーがトークンを埋め込みウォレットに移すことなく、トークンの保有を確認できます。
+
+[外部ウォレットを埋め込みウォレットに接続する](/sdk/web/overview) ことが Web インターフェース経由で可能です。
+
+まず、この接続を仲介するサーバーを設定してください。[こちらのガイド](/sdk/web/overview) をご覧いただき、サーバーの設定が完了したら戻ってきてください（Unity 側で Builder 設定や埋め込みウォレットの Web アプリ統合はすでに済んでいるため、最初の手順やセッション認証証明の署名に関するセクションは省略できます）。
+
+サーバーの設定が完了したら、`EOAWalletLinker` を作成できます。
+
+```csharp
+EOAWalletLinker linker = new EOAWalletLinker(wallet, "yourServersBaseUrl/generateNonce");
+```
+
+ウォレット連携用のURLは、次のように生成できます。
+
+```csharp
+string url = await linker.GenerateEOAWalletlink(chain);
+```
+
+または、生成したURLをデバイスのデフォルトブラウザで開くこともできます（[Application.OpenURL](https://docs.unity3d.com/ScriptReference/Application.OpenURL.html) を利用）。
+
+```csharp
+linker.OpenEOAWalletLink(chain); // note: this is an awaitable async method.
+```

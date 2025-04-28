@@ -1,0 +1,76 @@
+---
+title: Federación de cuentas Embedded Wallet
+description: Este contenido brinda información detallada sobre cómo implementar la capacidad de federar y vincular una o varias wallets a una sesión principal de embedded wallet, describiendo las mejores prácticas cuando se combina con wallets de invitado efímeros que luego se convierten en embedded wallets permanentes on-chain.
+sidebarTitle: Soporte multi-cuenta
+---
+
+Las Sequence Embedded Wallets permiten federar múltiples cuentas sociales a una sola dirección de wallet. Esto permite que las experiencias tengan una única dirección on-chain, mientras que los usuarios pueden acceder a la wallet mediante múltiples puntos de autenticación de identidad.
+
+Una característica importante de la Federación de Cuentas Embedded Wallet es que estas wallets se agrupan según el primer proveedor de inicio de sesión, ya sea autenticado por inicio de sesión con redes sociales, correo electrónico o una wallet de invitado. Esto significa que la dirección de la wallet se basa en la primera wallet con la que se inició sesión y los siguientes inicios de sesión se vincularán a esa wallet inicial.
+
+Cuando una cuenta federada se ha conectado a una cuenta principal, cerrar sesión y luego usar individualmente esa cuenta previamente vinculada generará la misma dirección en el futuro.
+
+## Federación de cuentas de proveedor social
+Lo siguiente permite a un desarrollador iniciar una autenticación usando `initAuth` con [los mismos parámetros que la primera sesión iniciada en el objeto `WaaS`](/sdk/headless-wallet/use-wallets#authenticated-embedded-wallet) con un proveedor social o de invitado adicional, donde el `challenge` del proveedor se devuelve y se pasa a la función `linkAccount`:
+
+```ts
+const challenge = await sequence.initAuth({/* same params as signIn function */})
+const linkResponse = await sequence.linkAccount(challenge)
+```
+
+## Federación de cuentas con contraseña de un solo uso por correo electrónico
+Usar el método de contraseña de un solo uso por correo electrónico para autenticarse requiere que la contraseña enviada al correo del usuario se pase en el challenge y se llame mediante la función `linkAccount`:
+
+```ts
+const challenge = await sequence.initAuth({ email })
+
+// if the linking account is email then you need to provide the answer (code)
+const linkResponse = await sequence.linkAccount(challenge.withAnswer(code))
+```
+
+## Federación de cuentas con wallets de invitado
+Es común que los juegos permitan que un usuario inicie sesión en segundo plano de una aplicación con una [wallet de invitado](/sdk/headless-wallet/authentication#guest-embedded-wallet),
+que esa wallet se almacene en el caché por el SDK, y luego se le pida al usuario que use un proveedor de inicio de sesión con redes sociales para vincularlo a la wallet inicial usando uno de los [métodos explicados anteriormente](/sdk/headless-wallet/account-federation#embedded-wallet-account-federation).
+
+Por lo tanto, si se han acumulado activos en la wallet, se han realizado transacciones on-chain o se han guardado firmas, la wallet puede mantener continuidad.
+
+Utilizar primero un wallet de invitado permite que el usuario pruebe un juego o experiencia de manera invisible, antes de autenticarse a largo plazo y así facilitar el proceso de incorporación.
+
+Los desarrolladores pueden aplicar las metodologías anteriores una vez que el invitado esté autenticado, para garantizar que el usuario pueda volver a acceder a su cuenta en el futuro.
+
+## Listar cuentas
+Al llamar a `listAccounts` se devolverá un objeto con lo siguiente: un arreglo de objetos `accounts` (con `id`, `type` y `issuer`), así como el `currentAccountId`, por ejemplo: `"Guest:0x0104...`:
+
+```ts
+import { SequenceWaaS } from "@0xsequence/waas";
+
+const sequence = new SequenceWaaS(
+  {
+    projectAccessKey: `${process.env.VITE_PROJECT_ACCESS_KEY}`,
+    waasConfigKey: `${process.env.VITE_WAAS_CONFIG_KEY}`,
+    network: "arbitrum-nova",
+  }
+)
+
+... // authentication
+
+const response = await sequence.listAccounts()
+
+console.log(response.accounts)
+console.log(response.currentAccountId)
+```
+
+## Eliminar cuentas
+También puede eliminar cuentas de la lista de cuentas previamente asociadas con su configuración:
+
+```ts
+// Call list accounts
+const accounts = await sequence.listAccounts();
+const accountId = accounts[0].id; // Get the ID of the first account
+
+try {
+    await sequence.removeAccount(accountId);
+} catch (error) {
+    console.error('Failed to remove account:', error);
+}
+```

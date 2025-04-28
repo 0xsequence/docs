@@ -1,0 +1,99 @@
+---
+title: Sequence Builderでアイテムのメタデータを管理する方法
+description: このガイドでは、Pinataを活用したIPFSホスティングを使い、Sequence Builderでトークンのメタデータを管理する方法を解説します。
+---
+
+## はじめに
+このガイドに従えば、[Pinata](https://www.pinata.cloud/)を使ったIPFSホスティングと組み合わせて、Sequence Builderでコントラクトアイテムのメタデータを簡単に管理できます。
+
+## ステップ1：トークン画像とメタデータの準備
+まずは、すべてのトークン画像を用意しましょう。各トークンごとに`id.json`（例：`1.json`、`2.json`など）という名前のメタデータファイルが必要です。最低限、これらのファイルは以下のような内容になります。
+
+```json
+{
+    "name": "Token Name",
+    "description": "Token Description",
+    "image": "ipfs://"
+}
+```
+
+ご想像の通り、ここからさらに発展させることも可能です。独自のアイテム属性をこのトークンに埋め込んだり、動的に生成したりできます。
+
+## ステップ2：Pinata.cloudでのセットアップ
+[Pinata.cloud](https://www.pinata.cloud/)にアクセスしてアカウントを作成します。各トークン画像を個別のファイルとしてアップロードしてください。次に、各トークンのメタデータJSONファイルを、そのトークンの`ipfs`アドレスで更新します。Pinataから各ファイルのCID（コンテンツ識別子）をコピーし、JSONファイルの`ipfs://`の後ろに貼り付けます。以下のようになります。
+
+```json
+{
+    "name": "Token Name",
+    "description": "Token Description",
+    "image": "ipfs://QmdJzQExj2wnNY7pNNn4KauzckjH4vA5xhoxmmis919Ev3"
+}
+```
+
+![Pinataの設定](/images/guides/manage-contract-metadata-builder/1.jpeg)
+
+## ステップ3：メタデータファイルのアップロード
+すべてのJSONメタデータファイルをパソコン上の1つのフォルダにまとめます。Pinataの「Upload > Folder」機能を使ってこのフォルダをアップロードし、フォルダ全体のCIDをコピーします。
+
+![メタデータのアップロード](/images/guides/manage-contract-metadata-builder/2.jpeg)
+
+## ステップ4：フォルダURLの取得
+Pinataで作成したフォルダ名をクリックすると、新しいタブでアップロード済みのJSONファイル一覧が表示されます。このフォルダのURLをコピーしてください。
+
+![PinataからフォルダURLを取得](/images/guides/manage-contract-metadata-builder/3.jpeg)
+
+## ステップ5：Sequence Builderでのセットアップ
+[Sequence Builder](https://sequence.build/)にアクセスし、アカウントを作成して、希望するネットワークでプロジェクトを作成します。Contractsセクションで「Deploy New Contract」をクリックします。
+
+![Builderでコントラクトを設定](/images/guides/manage-contract-metadata-builder/4.jpeg)
+
+## ステップ6：コントラクトのデプロイ
+「Web3 Game Item Collection（ERC-1155）」を選択し、コントラクト名を入力します。Sequence Builderが自動的にコントラクトをオンチェーンにデプロイします。
+
+![コントラクトのデプロイ](/images/guides/manage-contract-metadata-builder/5.jpeg)
+
+## ステップ7：コントラクト詳細画面へ移動
+トランザクションに署名すると、コントラクトの準備が完了します。クリックして詳細画面を表示しましょう。
+
+![コントラクト詳細](/images/guides/manage-contract-metadata-builder/6.jpeg)
+
+## ステップ8：コントラクト属性の更新
+「Write Contract」セクションに移動します。ここで、デプロイしたばかりのERC-1155コントラクトの属性を変更できます。今は以下の2つのメソッドに注目しましょう。
+- `setBaseMetadataURI`は、作成者がこのコントラクトのベースメタデータURLを設定するためのものです。NFT IDに応じて、作成したJSONファイルのURLを指定します。
+- `mint`は、トークンを1つミントして、指定したアドレスに送信します。
+
+## ステップ9：ベースメタデータURIの設定
+`setBaseMetadataURI`までスクロールし、展開して、`tokenBaseURI`欄に先ほどPinataで取得したJSONフォルダのプレビューURLを貼り付けます。以下のようになります。
+
+```
+https://azure-wooden-lemur-911.mypinata.cloud/ipfs/QmW5gvYGWb98GsN8VjTRWu4pLn6jryEXNxZKNWpPhVwtDm/
+```
+
+「Write」をクリックすると再度署名を求められます。これでコントラクトがオンチェーンで更新され、メタデータのベースが設定されます。指定したトークンIDがこのURLに`.json`を付けて追加されます。たとえば、トークンID 123をミントすると、`tokenBaseURI + 123.json`が参照されます。
+
+![ベースメタデータ設定](/images/guides/manage-contract-metadata-builder/7.jpeg)
+
+## ステップ10：ミントの実行
+いよいよミントを実行します。`mint`までスクロールし、展開して必要事項を入力します。
+- `to (address)`：トークンを送るアドレスです。自分のSequenceウォレットアドレスや他の有効なアドレスを入力してください。
+- `tokenId (uint256)`：トークンIDです。Pinataのフォルダ内に`tokenId.json`ファイルがあれば、問題なく動作します。
+- `amount (uint256)`：ミントするトークン数（通常は1）。
+- `data (bytes)`：この簡単な手順では`0x00`を入力してください。
+
+![ミントテスト](/images/guides/manage-contract-metadata-builder/8.jpeg)
+
+## ステップ11：最終確認と鑑賞
+「Write」をクリックしてトランザクションに署名します。これでトークンのミントが完了です！「Tokens」セクションで、ミントしたトークンの名前や画像を確認できます。
+
+![ミント完了](/images/guides/manage-contract-metadata-builder/9.jpeg)
+
+## ステップ12：メタデータの更新
+トークンのメタデータに誤りがあった場合は、いつでも修正し、Sequence Metadataのリフレッシュエンドポイントを呼び出して該当トークンを再読み込みできます。
+
+```
+curl -X GET "https://metadata.sequence.app/tokens/mumbai/0xb392c99d9f8e3e0b248e5c283818be5bf5cecca7/1/refresh"
+```
+
+形式は次の通りです：`https://metadata.sequence.app/tokens/<chain-name>/<contract-address>/<token-id>/refresh`
+
+ミントの準備ができたら、[安全にトークンをミントするためのサーバーレスエンドポイントの立ち上げ方法](/guides/mint-collectibles-serverless)もご覧ください。

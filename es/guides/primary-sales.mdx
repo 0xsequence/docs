@@ -1,20 +1,20 @@
 ---
 title: Venda sus artículos de juego a través de una tienda web
-description: Esta guía cubre la creación de ventas primarias de Sequence. Incluye los pasos para crear el contrato de ventas, crear el contrato NFT, crear la colección, autenticar la billetera, comprar y mintear.
+description: Esta guía cubre la creación de una Primary Sales de Sequence. Incluye los pasos para crear el contrato de ventas, crear el contrato NFT, crear la colección, autenticación de wallet, compra y proceso de minteo.
 sidebarTitle: Venda sus artículos de juego ERC-1155 a través de una tienda web
 ---
 
 Acelere el crecimiento de su juego vendiendo artículos directamente a sus jugadores. En esta guía, repasaremos los pasos para desplegar un contrato de Venta Primaria utilizando cualquier moneda personalizada o existente para una tienda web que utiliza artículos de juego de un contrato ERC1155. Usaremos las siguientes tecnologías de la plataforma Sequence:
-1. [Contrato de venta primaria](/solutions/collectibles/contracts/deploy-primary-sales-contract/): Cómo configurar y desplegar contratos para lanzar una venta primaria — ideal para una tienda web, lanzamiento NFT y más.
-2. [Embedded Wallet](/solutions/wallets/embedded-wallet/overview): Usa el Web SDK y Sequence Embedded Wallet para autenticar a un usuario.
-3. [Sequence Indexer](/solutions/builder/indexer): Aprovecha Sequence Indexer para consultar metadatos de NFT y activos de la billetera del usuario.
-4. [Sequence Metadata](/solutions/builder/collections): Actualiza y gestiona los metadatos de una colección o token mediante la interfaz y API de Sequence Builder.
+1. [Primary Sales Contract](/solutions/collectibles/contracts/deploy-primary-sales-contract/): Cómo configurar y desplegar contratos para lanzar una venta primaria — ideal para una tienda web, NFT Drop y más.
+2. [Embedded Wallet](/solutions/wallets/embedded-wallet/overview): Use el Web SDK y Sequence Embedded Wallet para autenticar a un usuario.
+3. [Sequence Indexer](/solutions/builder/indexer): Aproveche Sequence Indexer para consultar metadatos de NFT y activos del wallet del usuario.
+4. [Sequence Metadata](/solutions/builder/collections): Actualice y gestione los metadatos de una colección o token mediante la UI y API de Sequence Builder.
 
-## Clona el boilerplate de venta primaria para artículos de juego
+## Clone el boilerplate de Primary Sales para ítems de juego
 
 <Tabs>
   <Tab title="Sequence CLI">
-    #### Puedes clonar fácilmente el repositorio de venta primaria usando el [Sequence CLI](https://github.com/0xsequence/sequence-cli/)
+    #### Puede clonar fácilmente el repositorio de Primary Sales usando el [Sequence CLI](https://github.com/0xsequence/sequence-cli/)
 
     ```bash
     npx sequence-cli boilerplates create-primary-drop-sale-starter
@@ -22,7 +22,7 @@ Acelere el crecimiento de su juego vendiendo artículos directamente a sus jugad
   </Tab>
 
   <Tab title="Github">
-    #### Puedes clonar el repositorio de venta primaria desde Github
+    #### Puede clonar el repositorio de Primary Sales desde Github
 
     ```shell
     git clone https://github.com/0xsequence-demos/primary-sale-1155-boilerplate.git
@@ -40,21 +40,21 @@ Acelere el crecimiento de su juego vendiendo artículos directamente a sus jugad
 
     <br />
 
-    Después de instalar las dependencias, `.env.example` se copiará automáticamente a `.env`, para que puedas probar el funcionamiento con claves preconfiguradas.
+    Después de instalar las dependencias, `.env.example` se copiará automáticamente a `.env`, para que pueda probar con las llaves preconfiguradas.
 
     <br />
 
-    Cuando estés listo, reemplaza el contenido de `.env` con la información de tu proyecto.
+    Cuando esté listo, reemplace el contenido de `.env` con la información de su proyecto.
   </Tab>
 
   <Tab title="Plantilla de Github">
-    #### Puedes usar la plantilla del repositorio de Primary Sales desde Github
+    #### Puede usar la plantilla del repositorio de Primary Sales desde Github
 
     Vaya a [https://github.com/0xsequence-demos/primary-sale-1155-boilerplate](https://github.com/0xsequence-demos/primary-sale-1155-boilerplate) y haga clic en "Use this Template" en la esquina superior derecha.
 
     <br />
 
-    Clona tu nuevo repositorio.
+    Clone su nuevo repositorio.
 
     <br />
 
@@ -68,24 +68,24 @@ Acelere el crecimiento de su juego vendiendo artículos directamente a sus jugad
 
     <br />
 
-    Después de instalar las dependencias, `.env.example` se copiará automáticamente a `.env`, para que puedas probar el funcionamiento con claves preconfiguradas.
+    Después de instalar las dependencias, `.env.example` se copiará automáticamente a `.env`, para que pueda probar con las llaves preconfiguradas.
 
     <br />
 
-    Cuando estés listo, reemplaza el contenido de `.env` con la información de tu proyecto.
+    Cuando esté listo, reemplace el contenido de `.env` con la información de su proyecto.
   </Tab>
 </Tabs>
 
-## Configura tus propios contratos de Primary Sales en el repositorio
+## Configure sus propios contratos de Primary Sales en el repositorio
 Le proporcionamos algunos contratos y variables de ejemplo para que pueda comenzar. Sin embargo, probablemente querrá usar sus propios contratos. Para configurarlo, simplemente siga los pasos a continuación:
 
 <Steps>
-  <Step title="Despliega un contrato de Primary Sales en Sequence Builder.">
-    Primero necesitamos un Contrato de Ventas Primarias junto con un contrato ERC1155 que contendrá los artículos del juego que queremos vender. Para hacerlo, siga la [guía](/solutions/collectibles/contracts/deploy-primary-sales-contract) aquí.
+  <Step title="Despliegue un contrato de Primary Sales en Sequence Builder.">
+    Primero necesitamos un contrato de Venta Primaria junto con un contrato ERC1155 que contendrá los artículos del juego que queremos vender. Para hacerlo, siga la [guía](/solutions/collectibles/contracts/deploy-primary-sales-contract) aquí.
   </Step>
 
-  <Step title="Configura las opciones de venta para el proyecto.">
-    Una vez desplegado el contrato de ventas, simplemente actualiza la configuración de ventas en el boilerplate. Ve a `src/salesConfigs.ts` y modifica la variable salesConfigs agregando cada venta de contrato en un arreglo con las redes que quieras soportar para tu proyecto. Ejemplo:
+  <Step title="Configure las opciones de venta para el proyecto.">
+    Una vez que tengamos nuestro contrato de ventas desplegado, simplemente actualizaremos la configuración de ventas en el boilerplate. Vaya a `src/salesConfigs.ts` y modifique la variable salesConfigs agregando cada venta de contrato en un array para su proyecto con las redes que quiera soportar. Ejemplo:
 
     ```ts
     export const salesConfigs: SaleConfiguration[] = [
@@ -107,12 +107,12 @@ Le proporcionamos algunos contratos y variables de ejemplo para que pueda comenz
     ```
 
     <Note>
-      Puede ver todas las cadenas actualmente soportadas por Sequence <a href="https://status.sequence.info" target="_blank" rel="noopener noreferrer" style={{ fontWeight: 700 }}>aquí</a>.
+      Puede ver todas las cadenas disponibles actualmente soportadas por Sequence <a href="https://status.sequence.info" target="_blank" rel="noopener noreferrer" style={{ fontWeight: 700 }}>aquí</a>.
     </Note>
   </Step>
 
-  <Step title="Establece un chainId predeterminado para el proyecto.">
-    Para establecer el chainId predeterminado, ve a `src/salesConfigs.ts` y modifica la variable defaultChainId con el chainId que deseas mostrar por defecto en el proyecto. Debe coincidir con un chainId presente en tu variable salesConfigs. Por ejemplo:
+  <Step title="Establezca un chainId predeterminado para el proyecto.">
+    Para establecer el chainId predeterminado, vaya a `src/salesConfigs.ts` y modifique la variable defaultChainId con el chainId que desea mostrar por defecto en el proyecto. Debe coincidir con un chainId presente en su variable salesConfigs. Por ejemplo:
 
     ```ts
     // In this case, the chosen `defaultChainId` is 80002 (amoy), which is present in the previously declared `salesConfigs` variable.
@@ -121,6 +121,6 @@ Le proporcionamos algunos contratos y variables de ejemplo para que pueda comenz
 
     ### ¡Listo!
 
-    Sus ventas primarias deberían aparecer y funcionar correctamente a partir de este punto. Para realizar una compra, asegúrese de tener en su billetera el token correspondiente que configuró como moneda para la venta, seleccione la cantidad deseada y haga clic en comprar.
+    A partir de este punto, sus ventas primarias deberían aparecer y funcionar correctamente. Para realizar una compra, asegúrese de tener en su wallet el token correspondiente que configuró como moneda para la venta, incremente la cantidad y haga clic en comprar.
   </Step>
 </Steps>

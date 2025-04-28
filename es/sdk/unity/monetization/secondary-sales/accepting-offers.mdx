@@ -1,0 +1,40 @@
+---
+title: Aceptar Ofertas
+---
+
+Si hay ofertas pendientes, los usuarios pueden habilitarse para "aceptar" ofertas, vendiendo su(s) coleccionable(s) al usuario que hizo la oferta.
+
+Puede leer las ofertas pendientes usando `ListCollectibleOffersWithHighestPricedOfferFirst`:
+
+```csharp
+IMarketplaceReader reader = new MarketplaceReader(chain);
+ListCollectibleListingsReturn collectiblesResponse = await reader.ListCollectibleOffersWithHighestPricedOfferFirst(collectibleContractAddress, optionalCollectiblesFilter);
+```
+
+O, si desea obtener todas las ofertas vendibles para su usuario, puede usar el método auxiliar `ListAllSellableOffers` (o simplemente proporcionar el `CollectiblesFilter` a continuación):
+
+```csharp
+IMarketplaceReader reader = new MarketplaceReader(chain);
+CollectibleOrder[] sellableOffers = await reader.ListAllSellableOffers(userAddress, collectionContractAddress, optionalCollectiblesFilter);
+```
+
+Esto agregará la dirección del usuario (dirección del vendedor) a los filtros `inAccounts` y `ordersNotCreatedBy` en el objeto CollectiblesFilter. Este método también manejará la paginación por usted, realizando solicitudes continuamente hasta que no haya más páginas, así que úselo con precaución si espera una gran cantidad de ofertas. Si espera muchas ofertas, simplemente use `ListCollectibleOffersWithHighestPricedOfferFirst` y proporcione el `CollectiblesFilter` descrito.
+
+Una vez que el usuario haya seleccionado la oferta que desea aceptar y la cantidad de instancias de coleccionables que quiere vender, puede completar la oferta/vender el(los) coleccionable(s):
+
+```csharp
+ICheckout checkout = new Checkout(_wallet, _chain);
+Step[] steps = await checkout.GenerateSellTransaction(selectedOrders, amount);
+TransactionReturn result = await steps.SubmitAsTransactions(_wallet, _chain);
+if (result is SuccessfulTransactionReturn successTransaction) {
+    // Handle success case
+}else {
+    // Handle fail case
+}
+```
+
+Puede acelerar el proceso usando nuestra Boilerplate Factory
+
+```csharp
+            BoilerplateFactory.OpenSellOfferPanel(Transform parent, ICheckout checkout, CollectibleOrder item, Action onClose = null)
+```

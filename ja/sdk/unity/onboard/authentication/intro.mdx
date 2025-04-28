@@ -1,0 +1,43 @@
+# 認証 - はじめに
+Embedded Wallet SDKとして、認証は非常に重要です。認証は、ユーザーの認証情報と紐付けてセッション署名用ウォレットを確立することで機能します。Embedded Wallet の仕組みについて詳しくは、[Embedded Wallet ドキュメント](/solutions/wallets/embedded-wallet/overview)をご覧ください。
+
+認証を実装するには、`LoginPanel` プレハブの利用をおすすめします。このプレハブは `SequenceExamples > Prefabs` にありますので、シーン内の [Canvas](https://docs.unity3d.com/2020.1/Documentation/Manual/UICanvas.html) 配下にドラッグしてドロップしてください。`Canvas` には `Canvas Scaler` コンポーネントを追加し、「Scale with Screen Size」UIスケールモードを使用することを推奨します。これにより、LoginPanel（およびこの Canvas 配下の他の UI 要素）は、ビルドターゲットを切り替えた際にも自動的にスケーリングされます。
+
+注意：`LoginPanel` はデフォルトで非表示になっています。引数なしで `Open` メソッドを呼び出すことで表示できます。これを簡単に扱うため、`LoginPanel` の GameObject 自体は無効化されていませんので、[GetComponentInChildren](https://docs.unity3d.com/ScriptReference/Component.GetComponentInChildren.html) や [FindObjectOfType](https://docs.unity3d.com/ScriptReference/Object.FindObjectOfType.html) などを使って `LoginPanel` の MonoBehaviour への参照を取得してください。
+
+これにより、2つの認証方法へ簡単にアクセスできます：
+1.  [メール＋OTPサインイン](/sdk/unity/onboard/authentication/email)
+
+2.  [OIDCベースのソーシャルサインイン](/sdk/unity/onboard/authentication/oidc)
+
+SDKはさらに以下の認証方法もサポートしています：
+3\.  [PlayFabサインイン](/sdk/unity/onboard/authentication/playfab)
+4. [ゲストサインイン](/sdk/unity/onboard/authentication/guest)
+
+## `SequenceWallet` の取得
+サポートされている認証方法のいずれかで認証情報を取得した後（詳細は各ドキュメントをご参照ください）、新しく作成された `SequenceWallet` への参照を取得する必要があります。
+
+`SequenceWallet.OnWalletCreated` イベントを購読してください。以下のコードスニペットで実装できます：
+
+```csharp
+SequenceWallet.OnWalletCreated += OnWalletCreatedHandler;
+
+public void OnWalletCreatedHandler(SequenceWallet wallet) {
+  // Do something
+}
+```
+
+ここで `OnWalletCreatedHandler` は `SequenceWallet` を唯一の引数として受け取る関数です。Unityでイベントの扱いに慣れていない場合は、こちらの [Reddit投稿](https://www.reddit.com/r/gamedev/comments/u3hz2v/how_to_use_events_a_supersimple_unity_example/) が参考になります！
+
+## エラー処理
+ログイン処理中のエラーを検知するため、`OnLoginFailed` イベントも購読してください。
+
+```csharp
+SequenceLogin login = SequenceLogin.GetInstance();
+login.OnLoginFailed += OnLoginFailedHandler;
+
+public void OnLoginFailedHandler(string message, LoginMethod method, string email, List<LoginMethod> loginMethods = default)
+{
+  Debug.LogError($"Error logging in: {message} with login method {method} and email {email}");
+}
+```

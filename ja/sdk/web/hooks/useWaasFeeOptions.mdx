@@ -1,0 +1,182 @@
+---
+title: useWaasFeeOptions
+description: ガス支払い用のWaaS手数料オプションを扱うためのフック
+sidebarTitle: useWaasFeeOptions
+---
+
+## インポート
+
+```tsx
+import { useWaasFeeOptions } from '@0xsequence/connect'
+```
+
+## 使い方
+
+```tsx
+import { useWaasFeeOptions } from '@0xsequence/connect'
+import { useEffect, useState } from 'react'
+
+function App() {
+  // Use the hook with default balance checking
+  // This will return the wallet balance for each fee option
+  const [
+    pendingFeeOptionConfirmation,
+    confirmPendingFeeOption,
+    rejectPendingFeeOption
+  ] = useWaasFeeOptions()
+  
+  // Or skip balance checking if needed
+  // const [pendingFeeOptionConfirmation, confirmPendingFeeOption, rejectPendingFeeOption] =
+  //   useWaasFeeOptions({ skipFeeBalanceCheck: true })
+  
+  const [selectedFeeOptionTokenName, setSelectedFeeOptionTokenName] = useState<string>()
+  
+  // Initialize with first option when fee options become available
+  useEffect(() => {
+    if (pendingFeeOptionConfirmation) {
+      console.log('Pending fee options: ', pendingFeeOptionConfirmation.options)
+      
+      // You could select the first fee option by default
+      if (pendingFeeOptionConfirmation.options.length > 0) {
+        const firstOption = pendingFeeOptionConfirmation.options[0]
+        setSelectedFeeOptionTokenName(firstOption.token.symbol)
+      }
+    }
+  }, [pendingFeeOptionConfirmation])
+  
+  // Handle fee option selection and confirmation
+  const handleConfirmFee = (tokenAddress: string | null) => {
+    if (pendingFeeOptionConfirmation) {
+      confirmPendingFeeOption(pendingFeeOptionConfirmation.id, tokenAddress)
+    }
+  }
+  
+  // Handle fee option rejection
+  const handleRejectFee = () => {
+    if (pendingFeeOptionConfirmation) {
+      rejectPendingFeeOption(pendingFeeOptionConfirmation.id)
+    }
+  }
+  
+  // Render fee options UI
+  if (pendingFeeOptionConfirmation) {
+    return (
+      <div>
+        <h2>Select Fee Payment Token</h2>
+        <div>
+          {pendingFeeOptionConfirmation.options.map((option) => (
+            <div key={option.token.symbol || option.token.contractAddress}>
+              <input
+                type="radio"
+                name="feeOption"
+                checked={selectedFeeOptionTokenName === option.token.symbol}
+                onChange={() => setSelectedFeeOptionTokenName(option.token.symbol)}
+              />
+              <label>
+                {option.token.symbol} - {option.token.contractAddress ? 
+                  option.token.contractAddress : 'Native Token'}
+                {/* Display balance info if extended with balance data */}
+                {'balanceFormatted' in option && 
+                  ` (Balance: ${option.balanceFormatted} ${option.token.symbol})`}
+              </label>
+            </div>
+          ))}
+        </div>
+        <div>
+          <button onClick={() => handleConfirmFee(
+            pendingFeeOptionConfirmation.options.find(
+              opt => opt.token.symbol === selectedFeeOptionTokenName
+            )?.token.contractAddress || null
+          )}>
+            Confirm
+          </button>
+          <button onClick={handleRejectFee}>Cancel</button>
+        </div>
+      </div>
+    )
+  }
+  
+  return <div>No pending fee confirmation</div>
+}
+```
+
+## パラメータ
+このフックは、以下のプロパティを持つオプションの設定オブジェクトを受け取ります：
+
+```tsx
+interface WaasFeeOptionsConfig {
+  skipFeeBalanceCheck?: boolean
+}
+```
+
+| パラメータ                 | 型         | 説明                                  |
+| --------------------- | --------- | ----------------------------------- |
+| `skipFeeBalanceCheck` | `boolean` | トークン残高の確認をスキップするかどうか（デフォルト：`false`） |
+
+## 返り値の型：`UseWaasFeeOptionsReturnType`
+このフックは、以下の要素を持つタプルを返します：
+
+```tsx
+type UseWaasFeeOptionsReturnType = [
+  pendingFeeOptionConfirmation: WaasFeeOptionConfirmation | undefined,
+  confirmPendingFeeOption: (id: string, feeTokenAddress: string | null) => void,
+  rejectPendingFeeOption: (id: string) => void
+]
+```
+
+### プロパティ
+
+#### pendingFeeOptionConfirmation
+`WaasFeeOptionConfirmation | undefined`
+
+トランザクションが保留中の場合は現在の手数料確認の詳細を含むオブジェクト、保留中でない場合は`undefined`。
+
+```tsx
+type WaasFeeOptionConfirmation = {
+  id: string                                // Unique identifier for the fee confirmation
+  options: FeeOptionExtended[] | FeeOption[] // Available fee options with balance information
+  chainId: number                           // Chain ID where the transaction will be executed
+}
+```
+
+`skipFeeBalanceCheck`が`false`の場合、オプションは残高情報を含む`FeeOptionExtended`型になります：
+
+```tsx
+type FeeOptionExtended = FeeOption & {
+  balance: string               // Raw balance string
+  balanceFormatted: string      // Formatted balance with proper decimals
+  hasEnoughBalanceForFee: boolean // Indicates if wallet has enough balance
+}
+```
+
+#### confirmPendingFeeOption
+`(id: string, feeTokenAddress: string | null) => void`
+
+選択した手数料オプションを確定する関数です。
+
+| パラメータ             | 型        | 説明      |                                              |
+| ----------------- | -------- | ------- | -------------------------------------------- |
+| `id`              | `string` | 手数料確認ID |                                              |
+| `feeTokenAddress` | \`string | null\`  | 手数料支払いに使用するトークンのアドレス（ネイティブトークンの場合は`null`を指定） |
+
+#### rejectPendingFeeOption
+`(id: string) => void`
+
+現在の手数料オプション選択を却下する関数です。
+
+| パラメータ | 型        | 説明          |
+| ----- | -------- | ----------- |
+| `id`  | `string` | 却下する手数料確認ID |
+
+## 補足
+このフックは、WaaS（Wallet as a Service）でスポンサーされていないトランザクションの手数料オプションを扱う機能を提供します。
+
+主な特徴：
+- ネイティブトークンやERC20トークンでのトランザクション手数料オプションを取得
+- （`skipFeeBalanceCheck`が`true`でない限り）各手数料オプションごとにユーザーのウォレット残高を自動取得
+- ユーザーが希望する手数料トークンを選択可能
+- 手数料選択の確定・却下が可能
+
+このフックはSequence WaaSプロバイダーと連携し、手数料確認リクエストを受け取り、ユーザーが手数料トークンを選択できるUIを表示します。
+
+フックの使い方について詳しくは、[ERC20でガスを支払う](/sdk/web/guides/pay-gas-in-erc20)ガイドをご覧ください。

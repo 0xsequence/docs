@@ -1,51 +1,51 @@
 ---
 title: Cofres del tesoro con minteo por IA
-description: Aprende cómo crear una aplicación web3 usando React con recompensas generadas por IA de cofres del tesoro. Utiliza una Embedded Wallet para autenticación, Cloudflare Worker para facilitar las transacciones y herramientas de Sequence Stack.
-sidebarTitle: Cree un cofre del tesoro con minteo por IA
+description: Aprenda a construir una aplicación web3 usando React con loot generado por IA desde cofres del tesoro. Utilice Embedded Wallet para autenticación, Cloudflare Worker para facilitar transacciones y herramientas de Sequence Stack.
+sidebarTitle: Construya un cofre del tesoro con minteo por IA
 ---
 
-Tiempo estimado: 50-60 minutos
+Tiempo para completar: 50-60 minutos
 
-En esta guía, crearemos una aplicación web3 construida en [React](https://react.dev/), utilizando herramientas de Sequence Stack para mintear recompensas generadas por IA de cofres del tesoro usando una Embedded Wallet para autenticación y Cloudflare workers para transacciones fáciles y sin confirmación.
+En esta guía, crearemos una aplicación web3 construida en [React](https://react.dev/), aprovechando herramientas de Sequence Stack para mintear loot generado por IA desde cofres del tesoro usando Embedded Wallet para autenticación y Cloudflare Worker para transacciones fáciles y sin confirmación.
 
-Hemos integrado esto en un [juego dungeon crawler](https://0xsequence-demos.github.io/demo-dungeon-minter/) para mostrar estas funciones en un entorno de juego en el que puedes jugar y ganar recompensas.
+Esto está integrado en un [juego dungeon crawler](https://0xsequence-demos.github.io/demo-dungeon-minter/) para mostrar estas funciones en un entorno de juego donde puede jugar y ganar loot.
 
 <Note>
-  El código completo se encuentra en los siguientes repositorios:
+  El código completo está disponible en los siguientes repositorios:
 
   - [Juego Dungeon Crawler Web3 en React](https://github.com/0xsequence-demos/demo-dungeon-minter)
   - [Plantilla Embedded Wallet](https://github.com/0xsequence-demos/template-embedded-wallet-web2-auth)
   - [Cloudflare Worker](https://github.com/0xsequence-demos/demo-cloudflare-worker-treasure-chests/)
-  - [API de recompensas tipo Diablo](https://github.com/0xsequence-demos/integration-diablo-loot-api)
+  - [API de loot estilo Diablo](https://github.com/0xsequence-demos/integration-diablo-loot-api)
 </Note>
 
 Estas herramientas le permitirán realizar:
-1. [Registro en la consola de Sequence Builder y creación de proyecto](/guides/treasure-chest-guide#1-sequence-builder-console-signup-and-project-creation): Cree un proyecto con el Builder
-2. [Gestión de claves de acceso](/guides/treasure-chest-guide#2-access-key-management): Obtén una clave de acceso pública, una clave secreta y una clave de configuración WaaS para interactuar con Sequence Stack
-3. [Integración de Embedded Wallet](/guides/treasure-chest-guide#3-embedded-wallet-integration): Integre una Embedded Wallet en la aplicación
-4. [Despliegue un contrato y patrocine gas](/guides/treasure-chest-guide#4-deploy-a-contract-and-sponsor-gas): Despliegue un contrato de ítems y patrocine el gas
-5. [Implemente un Cloudflare Worker](/guides/treasure-chest-guide#5-deploy-transactions-api-on-a-cloudflare-worker): Implemente un Cloudflare Worker para transacciones sin gas y sin confirmación
-6. [Generar Prompts e Imágenes con IA](/guides/treasure-chest-guide#6-generating-ai-prompts-and-images): Crea prompts para IA a partir de una API y genera imágenes para cargarlas
-7. [Almacene medios en el servicio de metadatos de Sequence](/guides/treasure-chest-guide#7-store-media-to-sequence-metadata-service): Suba metadatos de colecciones y tokens a Sequence
-8. [Asegure su Cloudflare Worker](/guides/treasure-chest-guide#8-minting-with-your-cloudflare-worker): Prevenga solicitudes externas a su Cloudflare Worker restringiendo la URL de referencia
-9. [(Opcional) Restricción de minteo nativo por billetera](/guides/treasure-chest-guide#9-optional-native-mint-restriction-per-wallet): Limite la cantidad diaria de minteos por billetera
+1. [Registro en Sequence Builder Console y creación de proyecto](/guides/treasure-chest-guide#1-sequence-builder-console-signup-and-project-creation): Cree un proyecto con el Builder
+2. [Gestión de claves de acceso](/guides/treasure-chest-guide#2-access-key-management): Reclame una clave de acceso pública, una clave secreta y una clave de configuración waas para interactuar con Sequence Stack
+3. [Integración de Embedded Wallet](/guides/treasure-chest-guide#3-embedded-wallet-integration): Integre un Embedded Wallet en la aplicación
+4. [Despliegue de contrato y patrocinio de gas](/guides/treasure-chest-guide#4-deploy-a-contract-and-sponsor-gas): Despliegue un contrato de ítems y patrocine el gas
+5. [Despliegue de un Cloudflare Worker](/guides/treasure-chest-guide#5-deploy-transactions-api-on-a-cloudflare-worker): Despliegue un Cloudflare Worker para transacciones sin gas y sin confirmación
+6. [Generación de prompts e imágenes con IA](/guides/treasure-chest-guide#6-generating-ai-prompts-and-images): Cree prompts de IA a partir de una API y genere imágenes para cargar
+7. [Almacenar medios en el servicio de metadatos de Sequence](/guides/treasure-chest-guide#7-store-media-to-sequence-metadata-service): Suba metadatos de colección y tokens a Sequence
+8. [Asegure su Cloudflare Worker](/guides/treasure-chest-guide#8-minting-with-your-cloudflare-worker): Evite solicitudes externas a su Cloudflare Worker restringiendo la URL de referencia
+9. [(Opcional) Restricción de minteo nativo por wallet](/guides/treasure-chest-guide#9-optional-native-mint-restriction-per-wallet): Limite el minteo diario por wallet
 
-## 1. Registro en Sequence Builder Console y la creación de un proyecto
-Primero, siga [esta guía paso a paso](/support/builder/project-management) para aprender cómo registrarse en [Sequence Builder Console](https://sequence.build/) y cómo crear un proyecto.
+## 1. Registro en Sequence Builder Console y creación de proyecto
+Primero, siga [esta guía](/support/builder/project-management) para aprender cómo registrarse en el [Sequence Builder Console](https://sequence.build/) y crear un proyecto.
 
-Para usar ciertas funciones, como `Gas Sponsoring` y la `Transactions API`, necesita actualizar el plan de su proyecto a `Developer` [siguiendo esta guía](/support/builder/project-settings#5-billing-settings)
+Para usar ciertas funciones, como `Gas Sponsoring` y el uso de la `Transactions API`, deberá actualizar su plan de proyecto a `Developer` [siguiendo esta guía](/support/builder/project-settings#5-billing-settings)
 
 ## 2. Gestión de claves de acceso
-Ahora que tiene un proyecto, necesita obtener 3 claves de acceso diferentes para autenticar su aplicación con Sequence Stack:
-1. `Waas Config Key` utilizada para Embedded Wallet, puede consultar más información [aquí](/solutions/builder/embedded-wallet)
-2. `Public Access Key` utilizada para Embedded Wallet y Transactions API, puede reclamarla [aquí](/solutions/builder/getting-started#claim-an-api-access-key)
+Ahora que tiene un proyecto, necesitará obtener 3 claves de acceso diferentes para su proyecto y así autenticar su aplicación con Sequence Stack:
+1. `Waas Config Key` utilizada para Embedded Wallet, puede aprender más [aquí](/solutions/builder/embedded-wallet)
+2. `Public Access Key` utilizada para Embedded Wallet y Transactions API, puede obtenerla [aquí](/solutions/builder/getting-started#claim-an-api-access-key)
 3. `Secret Access Key` utilizada para el servicio de metadatos, siguiendo estos pasos
 
 ### Creación de clave de acceso secreta
 
 <Steps>
-  <Step title="Acceda a la configuración">
-    Primero, acceda a la configuración y seleccione API Keys
+  <Step title="Acceder a configuración">
+    Primero, acceda a la configuración y seleccione las claves de API
 
     <Frame>
       ![builder settings access keys](/images/builder/builder_settings_access_keys.png)
@@ -67,17 +67,17 @@ Ahora que tiene un proyecto, necesita obtener 3 claves de acceso diferentes para
       ![builder settings add service account](/images/builder/builder_settings_add_service_account_confirm.png)
     </Frame>
 
-    Por último, `copie` la clave y guárdela en un lugar seguro, ya que no podrá volver a acceder a ella en el futuro desde la consola de Builder.
+    Por último, copie la clave y guárdela en un lugar seguro, ya que no podrá acceder a ella nuevamente desde el Builder Console.
   </Step>
 </Steps>
 
 ## 3. Integración de Embedded Wallet
 
 <Note>
-  Puede ver y clonar el repositorio de plantilla [aquí](https://github.com/0xsequence-demos/template-embedded-wallet-web2-auth)
+  Puede ver y clonar el repositorio de la plantilla [aquí](https://github.com/0xsequence-demos/template-embedded-wallet-web2-auth)
 </Note>
 
-Comenzaremos desde cero construyendo el proyecto con las piezas necesarias para habilitar el uso de Sequence Embedded Wallet, lo que permite que los usuarios se registren en su aplicación usando proveedores de autenticación web2.
+Comenzaremos desde cero construyendo el proyecto con los componentes necesarios para habilitar el uso de un Sequence Embedded Wallet, lo que permite que los usuarios se incorporen a su aplicación usando proveedores de autenticación web2.
 
 Primero, cree una carpeta de proyecto con `mkdir <project>`, luego `cd <project>` y cree un proyecto `vite` usando React:
 
@@ -103,9 +103,9 @@ npm install @0xsequence/waas
 yarn add @0xsequence/waas
 ```
 
-Todos los archivos nuevos que cree en los siguientes pasos deben ubicarse en `/src`.
+Todos los archivos nuevos creados en los siguientes pasos deben crearse en `/src`
 
-Primero, cree un archivo llamado, por ejemplo, `SequenceEmbeddedWallet.ts` con el siguiente código de inicialización:
+Primero, cree un archivo llamado algo como `SequenceEmbeddedWallet.ts` con el siguiente código de inicialización:
 
 ```typescript
 import { SequenceWaaS } from '@0xsequence/waas'
@@ -150,7 +150,7 @@ export function useSessionHash() {
 }
 ```
 
-Por último, para implementar la autenticación con Google, necesitará envolver su aplicación con `GoogleOAuthProvider`. El siguiente comando instalará este proveedor y el inicio de sesión con Apple, que se usará más adelante:
+Por último, para implementar la autenticación de Google, necesitará el `GoogleOAuthProvider` para envolver su aplicación. El siguiente comando instalará esto y el inicio de sesión con Apple, que se usará más adelante:
 
 ```shell
 pnpm i @react-oauth/google react-apple-signin-auth
@@ -186,13 +186,13 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
 )
 ```
 
-Una vez que su `main.tsx` esté listo, cree los botones de inicio de sesión, que se verán así:
+Una vez que su `main.tsx` esté listo, creemos los botones de inicio de sesión, que se verán así:
 
 <Frame>
-  ![inicio de sesión social con embedded wallet](/images/guides/treasure-chest/guide_treasure_chest_embedded_wallet_template.png)
+  ![embedded wallet social login](/images/guides/treasure-chest/guide_treasure_chest_embedded_wallet_template.png)
 </Frame>
 
-En `App.tsx` use el siguiente código que verifica si un usuario está conectado y muestra la dirección de la billetera según el usuario autenticado, junto con los diferentes botones y manejadores de autenticación social:
+En `App.tsx` use el siguiente código que verifica si un usuario está conectado y muestra una dirección de wallet según el usuario autenticado, con los distintos botones y manejadores de inicio de sesión con redes sociales:
 
 ```typescript
 import { useState, useEffect } from 'react'
@@ -314,7 +314,7 @@ function App() {
 export default App
 ```
 
-Luego, incluya un archivo `.env` en la raíz de su proyecto, agréguelo a `.gitignore` y actualícelo con los siguientes valores obtenidos de Sequence Builder:
+Luego, incluya un archivo `.env` en la raíz de su proyecto, agréguelo a `.gitignore` y actualícelo con los siguientes valores obtenidos desde el Sequence Builder:
 
 ```
 VITE_PROJECT_ACCESS_KEY=
@@ -331,41 +331,41 @@ Ejecute su código con el siguiente comando en la carpeta raíz y pruébelo:
 pnpm run dev
 ```
 
-## 4. Implemente un contrato y patrocine gas
-Vamos a implementar un contrato de token para poder vincular las imágenes generadas por IA a los metadatos de cada token. Al implementar su contrato, se recomienda usar un `ERC1155` en lugar de un `ERC721`. Los beneficios de usar un `ERC1155` son:
+## 4. Despliegue un contrato y patrocine gas
+Vamos a desplegar un contrato de token para poder vincular las imágenes generadas por IA con los metadatos de cualquier token. Al desplegar su contrato, se recomienda usar un `ERC1155` en lugar de un `ERC721`. Los beneficios de usar un `ERC1155` son:
 - Semi-fungible: ideal para activos de juegos que pueden tener múltiples copias del mismo objeto.
-- Ahorro de gas: para proyectos que requieren múltiples tokens, ya que un solo ERC1155 puede contener muchas variedades diferentes.
+- Ahorro de gas: para proyectos que requieren varios tokens, ya que un solo ERC1155 puede contener muchas variedades diferentes.
 
-En cuanto al ahorro de gas, en vez de implementar un contrato nuevo para cada tipo de token, un solo contrato ERC1155 puede manejar todo el estado del sistema, reduciendo costos y complejidad.
+En cuanto al beneficio de ahorro de gas, en vez de desplegar un nuevo contrato para cada tipo de token, un solo contrato ERC1155 puede mantener el estado completo del sistema, reduciendo costos y complejidad en el despliegue.
 
-Para desplegar un contrato, puede seguir [esta guía](/solutions/collectibles/contracts/deploy-an-item-collection) para desplegar su ERC1155 y actualizar su `wrangler.toml` con la `CONTRACT_ADDRESS`.
+Para desplegar un contrato, puedes seguir [esta guía](/solutions/collectibles/contracts/deploy-an-item-collection) para desplegar tu ERC1155 y actualizar tu `wrangler.toml` con el `CONTRACT_ADDRESS`.
 
-Luego, para que la función de acuñación funcione de manera automática y las transacciones sean sin gas para su relayer (retransmisor), debe hacer que la API de Transacciones de Sequence utilice los créditos de su cuenta en su plan de facturación actualizado patrocinando la dirección de su contrato inteligente desplegado.
+Luego, para que la función de minteo funcione de manera programática y las transacciones sean sin gas para su relayer, necesitará que la Transactions API utilice los créditos de su cuenta en su plan de facturación actualizado patrocinando la dirección de su contrato inteligente desplegado.
 
-Para permitir que la API de Transacciones de Sequence retransmita transacciones sin comisión, patrocine el gas siguiendo [esta guía](/solutions/builder/gas-tank#watch-the-gas-tank-in-action-in-builder) para el contrato desplegado.
+Para permitir que la Transactions API retransmita transacciones sin comisión, patrocine el gas siguiendo [esta guía](/solutions/builder/gas-tank#watch-the-gas-tank-in-action-in-builder) para el contrato desplegado.
 
 <Note>
   Todos los testnets de Sequence son gratuitos
 </Note>
 
-## 5. Implemente la API de Transacciones de Sequence en un Cloudflare Worker
-Siguiendo el paso anterior, la API de Transacciones de Sequence puede implementarse en un Cloudflare Worker para que la interacción del usuario en un juego o aplicación sea fluida, sin necesidad de firma de confirmación ni pago de gas. En este caso, el worker usará la API de Transacciones de Sequence para acuñar tokens a la dirección del usuario. Además, no tendrá que preocuparse por la velocidad de las transacciones, el rendimiento o los reorgs, y disfrutará de escalabilidad automática con Cloudflare.
+## 5. Despliegue la Transactions API en un Cloudflare Worker
+Siguiendo el paso anterior, la Transactions API de Sequence puedes implementar en un Cloudflare Worker sin servidor para que la interacción del usuario en el juego o la app sea fluida, sin que sea necesario firmar una confirmación ni pagar gas. En este caso, el Worker aprovechará la Transactions API de Sequence para mintear tokens a la dirección del usuario. Además, te beneficias de no tener que preocuparte por la velocidad de las transacciones, el rendimiento o los reorgs, y disfrutas de escalabilidad automática con Cloudflare.
 
-### Acuñación de un token
-Si desea aprender cómo desplegar un Cloudflare Worker desde cero, puede seguir [esta guía](/guides/mint-collectibles-serverless) sobre cómo crear un servicio de acuñación de NFT sin servidor con su contrato `ERC1155` desplegado o simplemente clonar la [plantilla](https://github.com/0xsequence-demos/demo-cloudflare-worker-treasure-chests/) específica para esta guía.
+### Minteo de un token
+Si deseas aprender cómo desplegar un Cloudflare Worker desde cero, puedes seguir [esta guía](/guides/mint-collectibles-serverless) sobre cómo crear un servicio de minteo de NFT sin servidor con tu contrato `ERC1155` desplegado o simplemente clonar la [plantilla](https://github.com/0xsequence-demos/demo-cloudflare-worker-treasure-chests/) específica para esta guía.
 
 <Warning>
-  Asegúrese de que, si está usando un contrato Sequence Standard ERC1155 Items, otorgue el `MINTER_ROLE` a la dirección de su cuenta relayer (retransmisor).
+  Asegúrese de que, si está usando un Sequence Standard ERC1155 Items Contract, otorgue el `MINTER_ROLE` a la dirección de su cuenta relayer.
 </Warning>
 
-Una vez configurado, llamaremos al punto de acceso (endpoint) de la instancia de Cloudflare para acuñar nuestros NFTs en un paso posterior.
+Una vez configurado, llamaremos al endpoint de la instancia de Cloudflare Worker para mintear nuestros NFTs en un paso posterior.
 
-## 6. Generación de instrucciones (prompts) e imágenes con IA
-Al comenzar a generar imágenes con IA, necesitará una fuente de instrucciones (prompts) para el modelo de IA que produzca contenido multimedia. Para esta guía y demostración, hemos obtenido instrucciones (prompts) de los objetos del [juego Diablo](https://d07riv.github.io/diabloweb/).
+## 6. Generación de prompts e imágenes con IA
+Al comenzar su experiencia en la generación de imágenes con IA, necesitará una fuente de prompts de modelos de IA para producir contenido. Para esta guía y demo, hemos obtenido prompts de los objetos incluidos en el [juego Diablo](https://d07riv.github.io/diabloweb/).
 
 En la [plantilla](https://github.com/0xsequence-demos/demo-cloudflare-worker-treasure-chests/), hemos incluido código para llamar a una API ya desplegada y código para analizar la respuesta.
 
-Con esta API, mostraremos cómo generar imágenes usando la instrucción (prompt) de la API de Diablo desplegada dentro de la función `generate` en el Cloudflare Worker:
+Con esta API, mostraremos cómo generar imágenes usando el prompt de la API de Diablo desplegada dentro de la función `generate` en el Cloudflare worker:
 
 ```typescript
 const generate = async () => {
@@ -388,10 +388,10 @@ const generate = async () => {
 }
 ```
 
-Luego complete la función `getInferenceWithItem` para obtener la referencia de inferencia instanciada desde la Scenario API y pasar una instrucción (prompt), que es el `name` y `type` del botín generado, además de algunos parámetros adicionales del modelo, los cuales pueden personalizarse según la [documentación de Scenario API](https://docs.scenario.com/reference/postmodelsinferencesbymodelid):
+Luego complete la función `getInferenceWithItem` para obtener la referencia de inferencia instanciada desde la Scenario API y pasarle un `prompt` que es el nombre y tipo del loot generado, así como algunos parámetros adicionales del modelo, los cuales pueden personalizarse según la [documentación de la Scenario API](https://docs.scenario.com/reference/postmodelsinferencesbymodelid):
 
 <Note>
-  Para esta guía, elegimos el tipo de scheduler `EulerDiscreteScheduler` de Scenario API por su calidad y tiempo, pero si desea experimentar con otros schedulers, puede usar [este CLI local personalizado](https://github.com/moskalyk/scenario-gg-benchmark-cli) y revisar los resultados en el panel de [Scenario.gg](https://scenario.gg/)
+  Para esta guía, elegimos el tipo de scheduler `EulerDiscreteScheduler` de la Scenario API por su calidad y tiempo, pero si desea experimentar con otros schedulers, puede usar [este CLI local personalizado](https://github.com/moskalyk/scenario-gg-benchmark-cli) y revisar los resultados en el dashboard de [Scenario.gg](https://scenario.gg/)
 </Note>
 
 ```typescript
@@ -431,7 +431,7 @@ const getInferenceWithItem = async (env: Env, prompt: any) => {
 }
 ```
 
-Luego simplemente implementamos las funciones anteriores en el código de React:
+Luego simplemente implementamos las funciones anteriores en el código de react:
 
 ```js
 	...
@@ -445,7 +445,7 @@ Luego simplemente implementamos las funciones anteriores en el código de React:
 	...
 ```
 
-Una vez que tengamos el `inferenceId` podemos consultar el estado de la inferencia y devolver el resultado cuando esté completo, lo que se indica con el descriptor de estado `succeeded`:
+Una vez que tengamos el `inferenceId` podemos consultar el estado de la inferencia y devolver el resultado cuando esté completo, lo cual se indica con el descriptor de estado `succeeded`:
 
 ```typescript
 const getInferenceObjectWithPolling = async (env: Env, id: any) => {
@@ -499,7 +499,7 @@ const getInferenceObjectWithPolling = async (env: Env, id: any) => {
 }
 ```
 
-Nuevamente, agregamos la función anterior al código de React y pasamos el `inferenceId`. Cuando reciba la respuesta, puede obtener la URL de la imagen con `resObject.inference.images[0].url`:
+Nuevamente, agregamos la función anterior al código de React y pasamos el inferenceId. Cuando recibas la respuesta, puedes obtener la url de la imagen con `resObject.inference.images[0].url`:
 
 ```typescript
 	...
@@ -516,18 +516,18 @@ Nuevamente, agregamos la función anterior al código de React y pasamos el `inf
 ```
 
 <Note>
-  Cabe señalar que puede diseñar aplicaciones que devuelvan varias imágenes por instrucción (prompt), permitiendo que el usuario en la interfaz de usuario elija la generación correcta.
+  Cabe señalar que puede diseñar aplicaciones que devuelvan varias imágenes por prompt y permitir que el usuario, desde la interfaz de usuario, elija la generación correcta.
 </Note>
 
 ## 7. Almacenar medios en Sequence Metadata Service
-Con nuestra `url` de medios obtenida de la API de Scenario, podemos proceder a almacenar el recurso en el `Sequence Metadata Service`. Esto permite vincular la imagen generada por IA a los metadatos específicos del token, todo a través de llamadas REST-API.
+Con la `url` del medio obtenida de la Scenario API, podemos pasar a almacenar el recurso en el `Sequence Metadata Service`. Esto le permite vincular la imagen generada por IA con los metadatos específicos del token, todo a través de llamadas REST-API.
 
-Cada recompensa de cofre del tesoro en Dungeon Minter sigue el mismo proceso, donde los metadatos se almacenan primero usando la API de Sequence Metadata; la `url` y el `tokenID` generado aleatoriamente (que permite solicitudes en paralelo) se devuelven al cliente. Luego, el usuario da su consentimiento, tras revisar el coleccionable, para acuñar el token, donde el `tokenID` y la dirección del usuario se envían de vuelta al Cloudflare Worker creado en [Paso 5](/guides/treasure-chest-guide#5-deploy-a-cloudflare-worker).
+Cada recompensa de cofre del Dungeon Minter sigue el mismo proceso, donde primero se almacenan los metadatos usando la Sequence Metadata API, y se devuelve al cliente la `url` y el `tokenID` generado aleatoriamente (lo que permite solicitudes en paralelo). Luego, el usuario da su consentimiento, tras inspeccionar el coleccionable, para mintear el token, donde el `tokenID` y la `address` del usuario se envían de vuelta al worker creado en el [Paso 5](/guides/treasure-chest-guide#5-deploy-a-cloudflare-worker).
 
 ### Implementación
-Complete e integre la [guía](/guides/metadata-guide) para construir su servicio de medios sin servidor utilizando la API de Sequence Metadata que usa Cloudflare Workers, o simplemente clone nuestra [plantilla](https://github.com/0xsequence-demos/demo-cloudflare-worker-treasure-chests/) de Cloudflare para esta guía.
+Complete e integre [esta guía](/guides/metadata-guide) para construir su servicio de medios sin servidor aprovechando la Sequence Metadata API que utiliza Cloudflare workers, o simplemente clone nuestra [plantilla](https://github.com/0xsequence-demos/demo-cloudflare-worker-treasure-chests/) de cloudflare para esta guía.
 
-Una vez listo, pase el `tokenID` y la `url` del medio almacenado al frontend para que se muestre, permitiendo que el usuario acuñe después de ver lo que va a acuñar:
+Una vez terminado, pase el `tokenID` y la `url` del medio almacenado al frontend para que se muestre y el usuario pueda mintear después de ver qué va a mintear:
 
 ```typescript
     const randomTokenIDSpace = ethers.parseUnits(String('10000'), 18)
@@ -538,8 +538,8 @@ Una vez listo, pase el `tokenID` y la `url` del medio almacenado al frontend par
 	return new Response(JSON.stringify({tokenID: String(randomTokenIDSpace), image: response.url }), { status: 200 });
 ```
 
-## 8. Acuñación con su Cloudflare Worker
-El último paso es finalmente acuñar el `tokenId` correspondiente que vinculó previamente a los metadatos, a la dirección del usuario. Aquí enviamos una solicitud al Cloudflare Worker que creamos en el Paso 5, el cual acuñará el token para el usuario.
+## 8. Minteo con su Cloudflare Worker
+El último paso es finalmente mintear el tokenId correspondiente que vinculó previamente a los metadatos, a la dirección del usuario. Aquí enviamos una solicitud al Cloudflare Worker que creamos en el Paso 5, el cual minteará el token al usuario.
 
 ```typescript
 const data = {
@@ -559,7 +559,7 @@ const res = await fetch(ENDPOINT, {
 const json = await res.json()
 ```
 
-Un punto importante es que probablemente querrá asegurarse de que sus Cloudflare Workers solo procesen solicitudes de un origen frontend específico; puede simplemente revisar los `request.headers` para el valor de `Referrer` y compararlo con el `CLIENT_URL` en el `wrangler.toml`:
+Un punto importante es que probablemente querrá asegurarse de que sus Cloudflare workers solo procesen solicitudes desde un origen frontend específico; simplemente puede verificar el valor `Referrer` en los `request.headers` y compararlo con el `CLIENT_URL` en el `wrangler.toml`:
 
 ```typescript
 async function handleRequest(request: any, env: Env, ctx: ExecutionContext) {
@@ -575,23 +575,23 @@ async function handleRequest(request: any, env: Env, ctx: ExecutionContext) {
 ```
 
 ## Conclusión
-Recapitulemos lo que hemos hecho durante este tutorial:
+Recapitulemos lo que hicimos durante este tutorial:
 
-**Hemos visto cómo crear un proyecto en Sequence y
-obtener acceso a nuestra suite de APIs. Desplegamos y configuramos una billetera embebida para asegurar una experiencia de juego fluida en un ejemplo de juego dungeon crawler.
-Además, utilizamos la plataforma Sequence para desplegar un contrato, patrocinar gas para ese contrato y así simplificar la experiencia del usuario. También desplegamos un acuñador de NFT sin servidor usando la API de Transacciones de Sequence, lo que permite que su juego escale a millones de jugadores y maneje interacciones complejas en blockchain como reorganizaciones.
-Por otra parte, aprovechamos la API de scenario.gg para crear dinámicamente recursos de juego como recompensas para los jugadores. Estas imágenes luego se vinculan a los metadatos de un NFT usando la API de Sequence Metadata. Ahora sabe cómo acuñar arte generado por IA para su juego impulsado por Scenario.gg y Sequence.**
+**Vimos cómo crear un proyecto Sequence y
+obtener acceso a nuestra suite de APIs. Desplegamos y configuramos un wallet embebido para asegurar una experiencia de juego fluida en un ejemplo de dungeon crawler.
+Además, utilizamos la plataforma Sequence para desplegar un contrato y patrocinar gas para ese contrato, simplificando la experiencia del usuario. También desplegamos un minteador de NFT sin servidor usando la Sequence Transaction API, lo que permite que su juego escale a millones de jugadores y maneje interacciones blockchain complejas como reorgs.
+Asimismo, aprovechamos la API de scenario.gg para crear dinámicamente activos de juego como recompensas para los jugadores. Estas imágenes luego se vinculan a los metadatos de un NFT usando la Sequence Metadata API. Ahora debería entender cómo mintear arte de IA para su juego impulsado por Scenario.gg y Sequence.**
 
-Es evidente cuántos componentes intervienen en la creación de un juego escalable, seguro y **divertido** habilitado con blockchain, pero la plataforma Sequence junto con Scenario lo tiene cubierto.
+Está claro cuántos componentes intervienen en la creación de un juego blockchain escalable, seguro y **divertido**, pero la plataforma Sequence junto con Scenario le brinda todo lo que necesita.
 
-Por último, puede ver todos los pasos anteriores integrados en una experiencia completa con nuestro [juego dungeon crawler](https://0xsequence-demos.github.io/demo-dungeon-minter/) para enfrentarse al laberinto y conseguir su propio botín.
+Por último, puede ver todos los pasos anteriores integrados en una experiencia completa con nuestro [juego dungeon crawler](https://0xsequence-demos.github.io/demo-dungeon-minter/) para explorar el laberinto y obtener su propio botín.
 
-¡Feliz desarrollo!
+¡Feliz construcción!
 
-## 9. (Opcional) Restricción de acuñación nativa por billetera
-Como opción para evitar el uso excesivo de la acuñación de cofres del tesoro desde billeteras específicas, se puede establecer un parámetro llamado `DAILY_MINT_RESTRICTION` en el `wrangler.toml` como un máximo de acuñaciones permitidas por día. Y, si lo considera necesario, puede agregar un `ADMIN` (administrador) a su protocolo para poder acuñar una cantidad infinita.
+## 9. (Opcional) Restricción de minteo nativo por wallet
+Como opción para evitar el uso excesivo del minteo de cofres desde wallets específicas, se puede establecer un parámetro llamado `DAILY_MINT_RESTRICTION` en el `wrangler.toml` como un máximo de minteos permitidos por día. Y, si lo considera necesario, puede agregar un `ADMIN` a su protocolo para poder mintear una cantidad infinita.
 
-Estas funciones pueden implementarse en el código siguiendo los siguientes pasos:
+Estas funciones pueden implementarse en el código con los siguientes pasos:
 
 ```typescript
 async function handleRequest(request: any, env: Env, ctx: ExecutionContext) {
@@ -612,15 +612,15 @@ Donde `hasDailyMintAllowance` se divide en 2 funciones:
 - `fullPaginationDay` de transacciones de la `address` del usuario
 - `mintCount` que corresponde a que el `from` sea la dirección `0x`
 
-### Paginación completa del indexador para un día
+### Paginación completa del Indexer por un día
 
 <Note>
-  Como nota adicional, la pila de Sequence Indexer solo almacena 30 días de transacciones en este periodo de tiempo, por lo que puede extender el rango de tiempo desde un día hasta este máximo.
+  Como nota adicional, la pila de Sequence Indexer solo almacena 30 días de transacciones en este periodo, así que puede ampliar el rango de tiempo desde un día hasta este máximo.
 </Note>
 
 Para usar el Sequence Indexer, necesitaremos ejecutar `pnpm install @0xsequence/indexer`
 
-Luego, para implementarlo, usamos un bucle while que obtiene el primer lote de transacciones y el valor de `page.after` del indexador, y verifica continuamente si la marca de tiempo es menor a 24 horas, agregando a un arreglo temporal en cada pasada. Esto asegura que obtengamos todas las transacciones disponibles:
+Luego, para implementarlo, usamos un bucle while que obtiene el primer lote de transacciones y el valor de `page.after` del indexer, y verifica continuamente si la marca de tiempo es menor a 24 horas, agregando a un arreglo temporal en cada pasada. Esto asegura que obtengamos todas las transacciones disponibles:
 
 ```typescript
 import { SequenceIndexer } from '@0xsequence/indexer'
@@ -685,8 +685,8 @@ const fullPaginationDay = async (env: Env, address: string) => {
 }
 ```
 
-### Conteo de acuñaciones por día
-Todos los coleccionables acuñados desde los contratos estándar de Sequence `ERC721` y `ERC1155` provienen de la dirección `0x`:
+### Conteo de minteos en un día
+Todos los coleccionables minteados desde los contratos estándar Sequence `ERC721` y `ERC1155` provienen de la dirección `0x`:
 
 ```typescript
 const mintCount = (env: Env, txs: any) => {
@@ -701,7 +701,7 @@ const mintCount = (env: Env, txs: any) => {
 }
 ```
 
-### Permiso de acuñación diaria
+### Tiene asignación diaria de minteo
 
 ```typescript
 const hasDailyMintAllowance = async (env: Env, address: string) => {

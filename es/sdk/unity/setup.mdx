@@ -1,0 +1,25 @@
+---
+title: Setup
+description: Documentación para la configuración del SDK de Unity para la infraestructura de Sequence orientada a juegos web3.
+---
+
+# Setup
+
+1. [Configure su Embedded Wallet](/sdk/headless-wallet/quickstart) en el Sequence Builder
+2. Descargue el ScriptableObject de configuración de Unity `SequenceConfig.asset` desde la interfaz de Builder
+
+<Frame>
+  <img src="/images/unity/builder_config_file.png" />
+</Frame>
+
+3.  Coloque su ScriptableObject `SequenceConfig.asset` recién descargado en la raíz de una carpeta Resources. Se cargará usando [Resources.Load](https://docs.unity3d.com/6000.0/Documentation/ScriptReference/Resources.Load.html). Verifique dos veces los valores de su configuración, en particular:
+
+    a) `Url Scheme` - Debe reemplazar esto con una cadena única para su aplicación. Esto es muy importante. Si no lo hace, se producirán comportamientos inesperados al iniciar sesión con redes sociales y no funcionará.
+
+    b) `StoreSessionPrivateKeyInSecureStorage` - Disponible en algunas plataformas: hemos integrado el sistema de almacenamiento seguro nativo de la plataforma. Si está habilitado, almacenaremos la información de la wallet de la sesión (incluida la clave privada) en almacenamiento seguro y trataremos de recuperar la sesión automáticamente para el usuario después de cerrar la app (así no tendrá que iniciar sesión de nuevo). Si está deshabilitado (por defecto) o en una plataforma no soportada, las claves privadas de la wallet de la sesión nunca salen de la memoria en tiempo de ejecución de la aplicación; sin embargo, su usuario tendrá que iniciar sesión nuevamente cada vez que cierre la app. La interfaz predeterminada `LoginPanel` (vea [Recuperar sesiones](/sdk/unity/onboard/recovering-sessions)) gestionará este comportamiento automáticamente, navegando a la página correspondiente.
+
+    c) `EnableMultipleAccountsPerEmail` - Por defecto, el SDK solo permite a los usuarios crear una cuenta por correo electrónico. La cuenta se asocia inicialmente con el método de inicio de sesión utilizado (correo + OTP, PlayFab, Google, etc.); el usuario puede asociar métodos de inicio de sesión adicionales a su cuenta (más información en la [sección de Autenticación](/sdk/unity/onboard/authentication/federated-accounts)). Si se habilita `EnableMultipleAccountsPerEmail`, los usuarios tienen la opción de crear múltiples cuentas por dirección de correo (asociadas a diferentes métodos de inicio de sesión). Aunque hemos habilitado esta funcionalidad, en general consideramos que este comportamiento puede ser confuso para los usuarios finales y recomendamos a los integradores mantener esta opción deshabilitada por defecto.
+
+<Warning>Antes de continuar, por favor asegúrese de haber configurado correctamente el Embedded Wallet en el Builder. Consulte esta [guía](/sdk/headless-wallet/quickstart).</Warning>
+
+<Warning>¡Por favor, verifique que haya copiado y pegado correctamente las claves de configuración desde el Builder! Este es el problema más común reportado al integrar nuestro SDK. Si recibe una respuesta de "invalid tenant", ¡hay un error en su configuración! Consulte esta [guía](/sdk/headless-wallet/quickstart).</Warning>

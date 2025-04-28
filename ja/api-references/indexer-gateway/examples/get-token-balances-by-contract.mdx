@@ -1,0 +1,143 @@
+---
+title: Fetch token balances from specific contracts across all networks.
+description: This content provides instructions on fetching token balances from specific contracts.
+---
+
+# Balance Updates API
+In the following examples, we're going to use the `GetTokenBalancesByContract`
+API.
+
+## `GetTokenBalancesByContract`
+
+- Request: POST /rpc/IndexerGateway/GetTokenBalancesByContract
+- Content-Type: application/json
+- Body (in JSON):
+  - `chainIds` (\[]int - optional) -- return results only for the chains that match the given ID.
+  - `networks` (\[]string - optional) -- return results only for the chains that match the given names.
+  - `filter` (object) --
+    - `contractAddresses`
+    - `accountAddresses`
+    - `contractStatus`
+  - `omitMetadata` (boolean - optional - default: false)
+
+### Get the USDC balances
+Example: Retrieve USDC token balances for a specific account (
+`0xd8da6bf26964af9d7eed9e03e53415d37aa96045`) across multiple networks
+- USDC on Mainnet `0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48`
+- USDC on Polygon `0x3c499c542cef5e3811e1192ce70d8cc03d5c3359`
+- USDC on BSC `0x8ac76a51cc950d9822d68b83fe1ad97b32cd580d`
+
+<CodeGroup>
+  ```shell [Curl]
+  curl -X POST \
+    -H "Content-Type: application/json" \
+    -H "X-Access-Key: AQAAAAAAAF_JvPALhBthL7VGn6jV0YDqaFY" \
+    https://indexer.sequence.app/rpc/IndexerGateway/GetTokenBalancesByContract \
+    -d '{
+      "filter": {
+          "accountAddresses": [
+              "0xd8da6bf26964af9d7eed9e03e53415d37aa96045"
+          ],
+          "contractAddresses": [
+              "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+              "0x3c499c542cef5e3811e1192ce70d8cc03d5c3359",
+              "0x8ac76a51cc950d9822d68b83fe1ad97b32cd580d"
+          ]
+      }
+    }'
+  ```
+
+  ```ts [Typescript]
+  import { SequenceIndexerGateway } from '@0xsequence/indexer'
+
+  const INDEXER_TOKEN = 'AQAAAAAAAF_JvPALhBthL7VGn6jV0YDqaFY';
+  const ACCOUNT_ADDRESS = '0xd8da6bf26964af9d7eed9e03e53415d37aa96045';
+
+  const indexerGateway = new SequenceIndexerGateway(
+    'https://indexer.sequence.app',
+    INDEXER_TOKEN
+  )
+
+  const res = await indexerGateway.getTokenBalancesByContract({
+    filter: {
+      accountAddresses: [ACCOUNT_ADDRESS],
+      contractAddresses: [
+        '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48', // USDC on Ethereum
+        '0x3c499c542cef5e3811e1192ce70d8cc03d5c3359', // USDC on Polygon
+        '0x8ac76a51cc950d9822d68b83fe1ad97b32cd580d'  // USDC on BSC
+      ]
+    }
+  });
+
+  // Token Balances
+  res.balances.forEach(({ chainId, results }) => {
+    console.log(`chainId: ${chainId}`);
+    results.forEach(({ contractAddress, balance }) => {
+      console.log(`\tcontractAddress: ${contractAddress}, balance: ${balance}`);
+    });
+  });
+  ```
+
+  ```go [Go]
+  package main
+
+  import (
+  	"context"
+  	"fmt"
+  	"log"
+  	"net/http"
+
+  	"github.com/0xsequence/go-sequence/indexer"
+  	"github.com/0xsequence/go-sequence/lib/prototyp"
+  )
+
+  const indexerToken = "AQAAAAAAAF_JvPALhBthL7VGn6jV0YDqaFY"
+
+  func main() {
+  	ctx := context.TODO()
+
+  	seqIndexerGW := indexer.NewIndexerGatewayClient(
+  		"https://indexer.sequence.app",
+  		http.DefaultClient,
+  	)
+
+  	authCtx, err := indexer.WithHTTPRequestHeaders(ctx, http.Header{
+  		"X-Access-Key": []string{indexerToken},
+  	})
+  	if err != nil {
+  		log.Fatal(err)
+  	}
+
+  	accountAddress := prototyp.HashFromString("0xd8da6bf26964af9d7eed9e03e53415d37aa96045")
+  	contractAddresses := []prototyp.Hash{
+  		prototyp.HashFromString("0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48"), // USDC on Ethereum
+  		prototyp.HashFromString("0x3c499c542cef5e3811e1192ce70d8cc03d5c3359"), // USDC on Polygon
+  		prototyp.HashFromString("0x8ac76a51cc950d9822d68b83fe1ad97b32cd580d"), // USDC on BSC
+  	}
+
+  	_, balances, err := seqIndexerGW.GetTokenBalancesByContract(
+  		authCtx,
+  		nil, // No chainId filter
+  		nil, // No network filter
+  		&indexer.TokenBalancesByContractFilter{
+  			AccountAddresses:  []prototyp.Hash{accountAddress},
+  			ContractAddresses: contractAddresses,
+  		},
+  		nil, // Default omitMetadata
+  		nil, // Default page
+  	)
+  	if err != nil {
+  		log.Fatal(err)
+  	}
+
+  	// Token Balances
+  	for _, balance := range balances {
+  		fmt.Printf("chainId: %d\n", balance.ChainID)
+  		for _, result := range balance.Results {
+  			fmt.Printf("\tcontractAddress: %s, balance: %s\n",
+  				result.ContractAddress, result.Balance)
+  		}
+  	}
+  }
+  ```
+</CodeGroup>

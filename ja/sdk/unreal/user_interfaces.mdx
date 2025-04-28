@@ -1,0 +1,102 @@
+---
+title: UI のブートストラップ
+sidebarTitle: サインイン UI
+description: Sequenceインフラストラクチャスタックを用いたweb3ゲーム向けUnreal SDK概要のドキュメントです。
+---
+
+## 組み込み UI のセットアップ
+`[BP_CustomSpectatorPawn]` を利用できますが、このクラスとその親クラスはプラグイン内にあるため、プラグインをアップデートするとプラグイン内で行った変更はすべて失われます。これらは主に参考用や出発点として提供されています。_強くおすすめ_ するのは、`BP_CustomSpectatorPawn` をプラグインフォルダの外に複製し、親クラスもプラグイン外のご自身の C++ クラスに変更することです。
+
+UI を表示する前に、GameMode の追加設定が必要です。SequencePlugin には、プラグインコンテンツフォルダの `[Demonstration]` 内にサンプル GameMode `[GM_Sequence]` が同梱されています。この GameMode を複製してプラグインフォルダの外に移動し、`[GM_Sequence]` を開いてデフォルトの Pawn を先ほど作成した Pawn Blueprint に設定してください。
+
+最後に、プロジェクト設定でこの GameMode をデフォルトの GameMode として設定する必要があります。具体的には `ProjectSettings -> Maps & Modes` で設定します。
+
+<Note>
+  Unreal のウェブブラウザプラグインは Chromium 埋め込みブラウザを使用しています。お使いのデバイスが対応していない場合は、Unreal の `Launch URL` 機能を代わりにご利用ください。
+</Note>
+
+<Tip>
+  さっそくプロジェクトを実行してみましょう！ここまで正しく設定できていれば、ソーシャル認証でログインできるはずです。
+</Tip>
+
+### 組み込み UI のカスタマイズ
+_SequencePlugin Content/Core/Style_ フォルダ内に `F_SequenceUIStyle` という構造体があります。この構造体のデフォルト値セクションで、UI 全体の色や画像を変更できます。現在は `Sequence_Style_Dark_Mode` のみを参照しています。
+
+## カスタム UI 連携
+まずは `[UAuthenticator]` UObject を `[UAuthenticator * Auth = NewObject<UAuthenticator>()]` のように作成します。この UObject が Sequence の認証処理を管理します。
+
+C++ の **UObject** 内で、`[SequenceBackendManager.h/.cpp]` のように一連のパススルー `[UFUNCTIONS]` をセットアップします。各呼び出しは `[UAuthenticator]` で実装されているので、**ご自身の** UAuthenticator UObject でデータを渡すだけです。
+
+```cpp
+/*
+   Used to initiate mobile Social Signin
+   (No other calls need to be made to complete mobile SSO)
+*/
+void InitiateMobileSSO(const ESocialSigninType& Type)
+/*
+   Optional Call,
+   Used to set a custom encryptor implementation for the Authentication Process
+*/
+void SetCustomEncryptor(UGenericNativeEncryptor * EncryptorIn);
+/*
+   This call is for generating a login URL for Desktop based Social Signin
+   the received URL is fed into a WebBrowser to begin the login process
+*/
+FString GetLoginURL(const ESocialSigninType& Type);
+/*
+   This is call is for undergoing social login once an ID_Token has been collected.
+*/
+void SocialLogin(const FString& IDTokenIn);
+/*
+   This Call is made after you've collected the email address from the Users in the UI
+   The Delegate **[AuthRequiresCode]** will fire when a code is ready to be received
+   by the UAuthenticator
+*/
+void EmailLogin(const FString& EmailIn);
+/*
+   This is call is made after the Delegate **[AuthRequiresCode]** is fired
+   The Code collected from the User in the GUI is sent in via this call
+*/
+void EmailCode(const FString& CodeIn);
+/*
+   Optional call used to retrieve stored credentials on disk
+*/
+FStoredCredentials_BE GetStoredCredentials() const;
+/*
+   Optional call used to check if the credentials on disk are valid or not
+*/
+bool StoredCredentialsValid();
+```
+
+### デリゲートへのバインド
+サインインを呼び出す前に、**\[AuthSuccess]**、**\[AuthFailure]**、**\[AuthRequiresCode]** の各デリゲートに必ずバインドしてください。以下のようにバインドできます。
+
+```cpp
+this->authenticator->AuthRequiresCode.AddDynamic(this, &AYourClass::YourCallReadyToReceiveCode);
+this->authenticator->AuthFailure.AddDynamic(this, &AYourClass::YourCallShowAuthFailureScreen);
+```
+
+**\[AuthSuccess]** にはパラメータも渡されるため、次のようにバインドします。
+
+```cpp
+FScriptDelegate del;
+del.BindUFunction(this, "CallShowAuthSuccessScreen");
+this->authenticator->AuthSuccess.Add(del);
+```
+
+**注意:** カスタム GUI を構築する際は `SequenceBackendManager.h/.cpp` の使用を自身のものに置き換えてください。ここでは説明のために参照例として使っています。\[CallShowAuthSuccessScreen] は SequenceBackendManager.h で次のように定義されています。
+
+```cpp
+UFUNCTION()
+void CallShowAuthSuccessScreen(const FCredentials_BE& CredentialsIn);
+And in SequenceBackendManager.cpp like so:
+
+void ASequenceBackendManager::CallShowAuthSuccessScreen(const FCredentials_BE& CredentialsIn)
+{
+this->Credentials = CredentialsIn;
+if (this->ShowAuthSuccessDelegate.IsBound())
+  this->ShowAuthSuccessDelegate.Broadcast(Credentials);
+else
+  UE_LOG(LogTemp, Error, TEXT("**[Nothing bound to: ShowAuthSuccessDelegate]**"));
+}
+```

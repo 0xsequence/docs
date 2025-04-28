@@ -1,30 +1,30 @@
 ---
 title: Usando Unity IAP para vender NFTs
-description: Cómo agregamos NFTs disponibles para compra mediante IAP (compras dentro de la aplicación) en la App Store de iOS y Google Play Store en Jelly Forest, y cómo puede hacer algo similar en sus propios juegos
+description: Cómo agregamos NFTs comprables vía IAP (compra dentro de la app) en la App Store de iOS y Google Play Store a Jelly Forest y cómo hacer algo similar en sus propios juegos
 sidebarTitle: Usando Unity IAP para vender NFTs
 ---
 
-La mayoría de los jugadores no tendrá criptomonedas en sus billeteras. Ingresar fondos a criptomonedas usando métodos tradicionales puede ser complicado para los jugadores y demasiado estresante para los usuarios con menos experiencia técnica. En cualquier caso, minimizar la fricción en los pagos siempre ha sido un requisito muy importante para una estrategia de monetización efectiva. El método con menos fricción para realizar microtransacciones para la mayoría de los usuarios en móviles será el método de compra dentro de la app al que ya están acostumbrados: IAP a través de la App Store de iOS y Google Play Store de Android. Esto es especialmente cierto si utiliza billeteras integradas y crea juegos en los que la blockchain es invisible.
+La mayoría de sus jugadores no tendrán criptomonedas en sus wallets. Ingresar fondos a criptomonedas usando métodos tradicionales puede ser complicado para los jugadores y puede ser demasiado estresante para usuarios con menos experiencia técnica. En cualquier caso, minimizar la fricción en los pagos siempre ha sido un requisito muy importante para una estrategia de monetización efectiva. El método más sencillo para realizar microtransacciones para la mayoría de los usuarios en móviles será con el método de compra dentro de la app al que ya están acostumbrados: IAP a través de la App Store de iOS y Google Play Store de Android. Esto es especialmente cierto si está usando Embedded Wallets y construyendo juegos donde la blockchain es invisible.
 
-Esta guía explicará cómo actualizamos [Jelly Forest, nuestro juego de muestra de Embedded Wallet creado con Unity](/guides/jelly-forest-unity-guide), para agregar una IAP que acuña un divertido sombrero de hot dog para su Jelly.
+Esta guía explicará cómo actualizamos [Jelly Forest, nuestro juego de demostración de Embedded Wallet hecho con Unity](/guides/jelly-forest-unity-guide), para agregar una compra IAP que mintear un divertido sombrero de hot dog para su Jelly.
 
-## Despliegue un contrato inteligente
-El primer paso, si aún no lo ha hecho, es [desplegar un contrato inteligente](/solutions/collectibles/contracts/deploy-an-item-collection) que definirá y representará los NFTs que desea vender a sus jugadores y mostrar en su juego.
+## Desplegar un Smart Contract
+El primer paso, si aún no lo ha hecho, es [desplegar un smart contract](/solutions/collectibles/contracts/deploy-an-item-collection) que definirá y representará los NFTs que desea vender a sus jugadores y mostrar en su juego.
 
-Una vez que haya desplegado su contrato inteligente, no olvide [agregar la dirección de su contrato como Sponsored Address en la página "Gas Sponsoring"](/solutions/builder/gas-tank#gas-tank-in-builder) de la Builder Console. Así, las tarifas de gas de sus usuarios se cubrirán automáticamente usando sus créditos de cómputo cuando interactúen con los contratos inteligentes de su juego.
+Una vez que haya implementado su contrato inteligente, no olvide [agregar la dirección de su contrato como Sponsored Address en la página de "Gas Sponsoring"](/solutions/builder/gas-tank#gas-tank-in-builder) del Builder Console. Así, los usuarios tendrán sus comisiones de gas patrocinadas automáticamente usando sus créditos de cómputo al interactuar con los contratos inteligentes de su juego.
 
-## Despliegue un Remote Minter
-Por defecto, los contratos ERC1155/721 desplegados a través de la Builder Console requieren que quienes llamen tengan los permisos adecuados para acuñar un token. Aunque esto parezca una molestia, ¡es algo positivo! Sin esto, cualquiera podría llamar al método de acuñación en su contrato y otorgarse infinitos objetos dentro del juego.
+## Desplegar un Remote Minter
+Por defecto, los contratos ERC1155/721 desplegados a través del Builder Console requieren que quienes llamen tengan los permisos apropiados para mintear un token. Aunque esto pueda parecer una molestia a primera vista, ¡es algo bueno! Sin esto, cualquiera podría llamar al método de minteo en su contrato y darse a sí mismo ítems infinitos en el juego.
 
-Deberá desplegar un servidor con una billetera Sequence (u otra) y otorgarle permisos de acuñación en la Builder Console.
+Querrá implementar un servidor con un wallet de Sequence (u otro) y darle permisos de minteo en el Builder Console.
 
 ### Cómo lo hicimos en Jelly Forest
-En Jelly Forest, todas las monedas que recolecta el jugador durante la partida se acuñan como tokens ERC1155. Así es como lo hicimos:
-1. Regístrese en [Cloudflare](https://www.cloudflare.com/) — aquí es donde alojamos el código del servicio de acuñación; puede usar cualquier otro método que prefiera
+En Jelly Forest, todas las monedas que recolecta durante el juego se mintean como tokens ERC1155. Así es como lo hicimos:
+1. Regístrese en [Cloudflare](https://www.cloudflare.com/) – aquí es donde alojamos el código del servicio de minteo; si lo prefiere, puede usar cualquier otro método
 2. Abra la terminal u otra línea de comandos
 3. `git clone https://github.com/0xsequence-demos/cloudflare-worker-sequence-relayer.git` luego `cd cloudflare-worker-sequence-relayer`
 4. `git checkout permissionedMinter`
-5. `pnpm install` - para instalar las dependencias
+5. `pnpm install` – para instalar las dependencias
 6. Instale wrangler
 
 ```
@@ -32,45 +32,45 @@ pnpm install wrangler --save-dev
 alias wrangler='./node_modules/.bin/wrangler'
 ```
 
-e inicie sesión en su cuenta
+inicie sesión
 
 ```
 wrangler login
 ```
 
 7. Abra `wrangler.toml`
-   1. Dé un nombre a su servidor cambiando el valor de `name`
-   2. Cree una nueva [billetera EOA](https://ethereum.stackexchange.com/questions/5828/what-is-an-eoa-account) y exporte la clave privada. Cualquier billetera EOA es válida. Puede usar Metamask para [configurar una billetera fácilmente](https://support.metamask.io/hc/en-us/articles/360015489531-Getting-started-with-MetaMask) y [exportar la clave privada](https://support.metamask.io/hc/en-us/articles/360015289632-How-to-export-an-account-s-private-key). Tenga cuidado con la clave privada y no la almacene en texto plano en su computadora ni la suba a un sistema de control de versiones. Establezca esto en `PKEY`
+   1. Asigne un nombre a su servidor cambiando el valor de `name`
+   2. Cree un nuevo [wallet EOA](https://ethereum.stackexchange.com/questions/5828/what-is-an-eoa-account) y exporte la clave privada. Cualquier wallet EOA funciona. Puede usar Metamask para [configurar un wallet fácilmente](https://support.metamask.io/hc/en-us/articles/360015489531-Getting-started-with-MetaMask) y [exportar la clave privada](https://support.metamask.io/hc/en-us/articles/360015289632-How-to-export-an-account-s-private-key). ¡Tenga mucho cuidado con la clave privada y no la guarde en texto plano en su computadora ni la suba a control de versiones! Establezca esto en `PKEY`
    3. Establezca el `CONTRACT_ADDRESS`
-   4. Establezca el `PROJECT_ACCESS_KEY` — es la clave API de producción que obtuvo en la Builder Console al configurar el objeto scriptable `SequenceConfig`
-   5. Establezca el `CHAIN_HANDLE` — si no está seguro de cuál es, puede ver el `CHAIN_HANDLE` de cada red respectiva en la página Node Gateway de la Builder Console.
-8. `pnpm dev` - esto desplegará el servidor localmente. Debería ver en la línea de comandos en qué localhost se desplegó
+   4. Establezca el `PROJECT_ACCESS_KEY` – esta es su clave API de producción del Builder Console que obtuvo antes al configurar el objeto scriptable `SequenceConfig`
+   5. Establezca el `CHAIN_HANDLE` – si no está seguro de cuál es, puede ver el `CHAIN_HANDLE` de cada red respectiva en la página Node Gateway del Builder Console.
+8. `pnpm dev` – esto implementará el servidor localmente. Debería ver en la línea de comandos a qué localhost se implementó
 9. Abra otra ventana de línea de comandos
-10. `curl http://localhost:8787` - reemplace por el localhost que le haya sido asignado. Esto hará ping al servidor.
-11. En la línea de comandos donde se está ejecutando el servidor local, debería ver que se ha registrado la dirección de la billetera del minter
-12. Otorgue permisos de acuñación a esta dirección en la Builder Console
-    1. Busque el contrato en `Contracts` y haga clic para abrirlo
+10. `curl http://localhost:8787` – sustituya el localhost que le hayan asignado. Esto enviará un ping al servidor.
+11. En la línea de comandos donde está corriendo el servidor localhost, debería ver que la dirección del wallet del minter ha sido registrada
+12. Otorgue permisos de minteo a esta dirección en el Builder Console
+    1. Busque el contrato bajo `Contracts` y haga clic para abrirlo
     2. Haga clic en `Write Contract`
     3. Expanda `grantRole`
-    4. En `role` ingrese `0x9f2df0fed2c77648de5860a4cc508cd0818c85b8b8a1ab4ceeef8d981c8956a6` — este es el hash Keccak-256 de `MINTER_ROLE`
-    5. En `account` pegue la dirección de la billetera del minter
-13. `wrangler deploy` - esto desplegará el código en un [Cloudflare Worker](https://developers.cloudflare.com/workers/) y le dará una URL de acuñación
+    4. En `role` ingrese `0x9f2df0fed2c77648de5860a4cc508cd0818c85b8b8a1ab4ceeef8d981c8956a6` – este es el hash Keccak-256 de `MINTER_ROLE`
+    5. En `account` pegue la dirección del wallet del minter
+13. `wrangler deploy` – esto implementará el código en un [Cloudflare Worker](https://developers.cloudflare.com/workers/) y le dará una URL de minteo
 
-¡Listo! Ahora, cuando enviamos una solicitud POST a nuestro servidor con un cuerpo [definido en C#](https://github.com/0xsequence/sequence-unity/blob/master/Packages/Sequence-Unity/Sequence/SequenceSDK/Relayer/MintingRequestProver.cs#L103), donde el `proof` es generado por el cliente que envía la solicitud de acuñación. En el SDK de Unity esto se implementa mediante el [MintingRequestProver](https://github.com/0xsequence/sequence-unity/blob/master/Packages/Sequence-Unity/Sequence/SequenceSDK/Relayer/MintingRequestProver.cs#L27).
+¡Listo! Ahora, cuando enviamos una solicitud POST a nuestro servidor con un cuerpo [definido en C#](https://github.com/0xsequence/sequence-unity/blob/master/Packages/Sequence-Unity/Sequence/SequenceSDK/Relayer/MintingRequestProver.cs#L103), donde el `proof` es generado por el cliente que envía la solicitud de minteo. En el Unity SDK esto se implementa mediante el [MintingRequestProver](https://github.com/0xsequence/sequence-unity/blob/master/Packages/Sequence-Unity/Sequence/SequenceSDK/Relayer/MintingRequestProver.cs#L27).
 
-### Gestione tokens comprados por IAP con el Remote Minter
-Arriba, hemos desplegado un remote minter que es útil para acuñar tokens que pueden obtenerse mediante acciones dentro del juego. Veamos cómo podemos aprovechar este servidor para acuñar también tokens que se pueden comprar mediante IAP.
+### Manejar los tokens comprados por IAP con el Remote Minter
+Arriba, desplegamos un remote minter que es útil para mintear tokens que pueden ganarse mediante acciones dentro del juego. Veamos cómo podemos aprovechar este servidor para también mintear tokens que se pueden comprar vía IAP.
 
-Notará que también se puede incluir un recibo en el payload enviado al minter remoto. Aquí es donde debes incluir el recibo de IAP recibido de Google/Apple. [Unity recomienda](https://docs.unity3d.com/Packages/com.unity.purchasing@4.0/manual/BackendReceiptValidation.html) usar el [proyecto IAP de Nobuyori Takahashi](https://github.com/voltrue2/in-app-purchase) para verificar los recibos de IAP recibidos a través de Unity IAP en el servidor.
+Notará que también se puede incluir un recibo en el payload enviado al remote minter. Aquí es donde incluirá el recibo IAP de Google/Apple. [Unity recomienda](https://docs.unity3d.com/Packages/com.unity.purchasing@4.0/manual/BackendReceiptValidation.html) usar el [proyecto IAP de Nobuyori Takahashi](https://github.com/voltrue2/in-app-purchase) para verificar los recibos IAP recibidos vía Unity IAP en el servidor.
 
-Una vez que haya validado el recibo en el servidor, puede continuar con la lógica de acuñación, usando el código de ejemplo proporcionado arriba como referencia.
+Una vez que haya validado el recibo en el servidor, puede continuar con su lógica de minteo, usando el código de ejemplo provisto arriba como referencia.
 
 ## Implementación en Unity
-En el lado de Unity, el primer paso es integrar [Unity IAP](https://docs.unity3d.com/Manual/UnityIAP.html) en tu proyecto.
+En el lado de Unity, el primer paso es integrar [Unity IAP](https://docs.unity3d.com/Manual/UnityIAP.html) en su proyecto.
 
-En sus métodos `ProcessPurchase` dentro de su `IStoreListener` del proceso de integración, querrá iniciar el proceso de acuñación. En Jelly Forest, esto se realiza mediante los scripts [UnityIAP](https://github.com/0xsequence/sequence-unity-demo/blob/JellyForest/Scripts/UnityIAP.cs) y [PremiumItem](https://github.com/0xsequence/sequence-unity-demo/blob/JellyForest/Scripts/Items/PremiumItem.cs).
+En sus métodos `ProcessPurchase` en su `IStoreListener` del proceso de integración, querrá iniciar el proceso de minteo. En Jelly Forest, esto se hace a través de los scripts [UnityIAP](https://github.com/0xsequence/sequence-unity-demo/blob/JellyForest/Scripts/UnityIAP.cs) y [PremiumItem](https://github.com/0xsequence/sequence-unity-demo/blob/JellyForest/Scripts/Items/PremiumItem.cs).
 
-En cuanto al payload, puede ver en la implementación de `PremiumItem` que estoy agregando un PermissionedMintTransaction a un `TransactionQueuer`.
+En cuanto al payload, puede ver en la implementación de `PremiumItem` que estoy agregando una PermissionedMintTransaction a un `TransactionQueuer`.
 
 ```csharp
 public void AddToPremiumTransactionQueue(PermissionedMintTransaction payload, string iapReceipt)
@@ -83,7 +83,7 @@ public void AddToPremiumTransactionQueue(PermissionedMintTransaction payload, st
 
 donde `_permissionedMinterTransactionQueuer` es un `PermissionedMinterTransactionQueuer`.
 
-Esto enviará un payload con este formato:
+Esto enviará un payload en este formato:
 
 ```json
 ProofPayload: 
@@ -108,8 +108,8 @@ This JSON get stringified and included in the MintingRequestProof:
 }
 ```
 
-Para más información sobre las colas de transacciones, consulta [este documento](/sdk/unity/power/write-to-blockchain#transaction-queuers).
+Para más información sobre los transaction queuers (gestores de transacciones), consulte [este documento](/sdk/unity/power/write-to-blockchain#transaction-queuers).
 
 <Warning>
-  Apple y Google permiten a los usuarios la opción de realizar contracargos por IAP hechas por error. En este caso, el usuario aún tendrá los tokens acuñados. Aunque puedes manejar esto por medios tradicionales (por ejemplo, bloqueando a jugadores que realizan contracargos con frecuencia), debes tener cuidado de no vender NFTs de alto valor por este método debido al riesgo de contracargos fraudulentos.
+  Apple y Google permiten a los usuarios la opción de hacer un contracargo de una compra IAP hecha por error. En este caso, su usuario aún tendrá el/los token(s) minteados. Aunque puede manejar esto por medios tradicionales (por ejemplo, prohibiendo a jugadores que frecuentemente hacen contracargos), debe tener cuidado de no vender NFT de alto valor por este método debido al riesgo de contracargos fraudulentos.
 </Warning>

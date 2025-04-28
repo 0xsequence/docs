@@ -1,0 +1,120 @@
+---
+title: コレクション
+description: Sequence Builderでは、コレクションのメタデータ（詳細、画像、プロパティなど）を管理できます。コレクションをデプロイ可能なコントラクトにリンクし、簡単にクラフティングフローを構築できます。Sequenceサーバー上でコレクション情報の更新や公開・非公開設定も可能です。
+sidebarTitle: コレクションの管理
+---
+
+Sequence Builderでは、コレクションのメタデータ（詳細、画像、プロパティなど）を管理できます。Builder内でコレクションをデプロイ可能なコントラクトにリンクし、簡単にクラフティングフローを構築できます。
+
+メディアやメタデータはSequenceサーバーに保存され、一部機能によりコレクション情報の更新や公開・非公開設定を管理できます。
+
+<Tip>
+  NFTコレクションのメタデータ管理には[API](/api-references/metadata/overview)も利用できます。
+</Tip>
+
+## 1. コレクションの作成
+まず、[Sequence Builder](https://sequence.build)の左上ドロップダウンからプロジェクトを選択し、左ナビゲーションの`Collections`ページを開き、`+ Create a collection`を選択します。
+
+<Frame>
+  ![create collection](/images/collections/collections_create_collection.png)
+</Frame>
+
+次に、コレクションの詳細（`Collection Name`やコントラクト情報の`Description`、`Collection Data`の「Visible (Public)」または「Private (Hidden)」の選択、データを公開したい場合はVisible (Public)を選択、プロジェクトの`External Link`としてウェブサイトのURL）を入力します。
+
+<Frame>
+  ![add details to collection](/images/collections/collections_create_collection_input_details.png)
+</Frame>
+
+## 2. コントラクトのリンク
+コレクション作成後、まずコントラクトをリンクできます。コレクティブルコントラクト（例：`ERC1155`や`ERC721`）をデプロイし、デプロイ時に`baseMetadataURI`を設定した上で、`Link contract`を選択します。
+
+次に、`Deploy new contract`を選択します。
+
+<Frame>
+  ![link a contract](/images/collections/collections_collections_link_contract.png)
+</Frame>
+
+コントラクトタイプを選択するか、ご自身のコントラクトをアップロードします。
+
+<Frame>
+  ![contract type](/images/collections/collections_link_contract_choose_contract_type.png)
+</Frame>
+
+次に、選択したコントラクトタイプの詳細が表示されます
+
+<Frame>
+  ![contract type chosen](/images/collections/collections_link_contract_confirm_contract.png)
+</Frame>
+
+そして、`Network`、`Contract Name`、`Royalties`などのコントラクト詳細を入力し、Collectibleを[Token Directory](/api-references/indexer/examples/metadata-tips)に公開するかどうかを選択します。最後に`Deploy Contract`を選択し、Sequenceのポップアップでトランザクション署名を完了してください。
+
+<Frame>
+  ![contract details](/images/collections/collections_deploy_contract.png)
+</Frame>
+
+その後、コントラクトの`Read Contract`タブを確認すると、`baseURI`から`Read`を実行した際に、Sequenceから取得したメタデータURLが表示されます。Indexerから読み込む場合は、メタデータURLの末尾に`<token_id>.json`が追加され、そのコレクティブルのjsonを参照できます。
+
+<Frame>
+  ![base uriを読む](/images/collections/collection_read_base_uri.png)
+</Frame>
+
+## 3. コレクティブルの作成
+コレクションの一部としてコレクティブルを作成するには、`Collections`ページに戻り、`+ Add a collectible`を選択します。
+
+<Frame>
+  ![コレクティブルを追加](/images/collections/collections_add_a_collectible.png)
+</Frame>
+
+次に、`Collectible Name`や`Description`などの詳細を更新し、グレーのフィールドを選択してアートワークをアップロードします。
+
+<Frame>
+  ![コレクティブルの詳細を更新](/images/collections/collections_update_art_and_details.png)
+</Frame>
+
+#### メタデータプロパティを追加
+また、`+ Add a property`を選択することで、コレクティブルに特定のプロパティを追加できます。これは、ゲームでメタデータを利用する際に数値や文字列などの情報を記録するのに便利です。
+
+<Frame>
+  ![プロパティを追加](/images/collections/collection_add_property.png)
+</Frame>
+
+各プロパティにキーと値を割り当てます
+
+<Frame>
+  ![プロパティを割り当て](/images/collections/collection_assign_properties.png)
+</Frame>
+
+これまでの手順を完了すると、コレクションにコレクティブルが追加されます。
+
+<Frame>
+  ![コレクティブル追加の最終結果](/images/collections/collections_final_result_of_collectible.png)
+</Frame>
+
+## 4. 設定で情報を更新
+いつでも設定からコレクティブルの詳細を更新できます
+
+<Frame>
+  ![設定](/images/collections/collections_access_settings.png)
+</Frame>
+
+設定画面では、`Collection Name`、`Description`、`Collection data`の公開範囲、ウェブサイトへの`External Link`など、各情報フィールドを更新できます。
+
+<Frame>
+  ![設定](/images/collections/collections_update_info.png)
+</Frame>
+
+#### コレクションデータの削除
+`Delete collection data`を選択すると、そのコントラクトのコレクションデータをすべて削除できます。この操作は元に戻せませんのでご注意ください。
+
+## 5. メタデータトークンURIの参照
+現在、`Link Contract`では事前にデプロイされたコントラクトは利用できませんが、Collectionから`Token Metadata URI`を取得し、既存コントラクトの`setBaseMetadataURI`に設定できます。URIは`Metadata URIs`ボタンから取得可能です。
+
+<Frame>
+  ![メタデータURIをコピー](/images/collections/collections_metadata_uris.png)
+</Frame>
+
+モーダルから`Token Metadata URI`をコピーし、そのURIを使って`setBaseMetadataURI`関数でコントラクトに書き込むか、アプリケーションで直接メタデータを参照する場合はURIの末尾に`<token_id>.json`を追加してアクセスします。
+
+<Frame>
+  ![メタデータURIにアクセス](/images/collections/collections_token_metadata_uri.png)
+</Frame>

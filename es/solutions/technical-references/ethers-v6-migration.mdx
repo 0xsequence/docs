@@ -1,0 +1,85 @@
+---
+title: Guía de migración a Ethers v6
+description: Soporte para ethers v6 y guías de migración para actualizar el código de ethers v5 a v6
+sidebarTitle: Soporte para Ethers v6
+---
+
+El paquete @0xsequence versión 2.0 ahora requiere como mínimo la versión de Ethers `ethers@6.13.0`.
+
+<Note>
+  Si no puede actualizar a ethers v6, puede usar la versión 1.10.5 de @0xsequence o la 3.0.0 de @0xsequence/kit.
+</Note>
+
+Si ha estado desarrollando con `ethers@^5.0.0` anteriormente, a continuación se describen los cambios más comunes al usar Ethers con Sequence:
+
+## Proveedor RPC Estático y Predeterminado
+Para usar ethers y conectarse a un nodo blockchain mediante llamadas [RPC](https://en.wikipedia.org/wiki/Remote_procedure_call) para consultar información, existen diferencias entre hacerlo de forma estática o predeterminada:
+
+```typescript provider.ts
+// v5
+const provider = new ethers.providers.StaticJsonRpcProvider(chainConfig.rpcUrl);
+
+// v6: If you know the network ahead of time and wish
+// to avoid even a single eth_chainId call
+const provider = new ethers.JsonRpcProvider(chainConfig.rpcUrl, undefined, {
+	staticNetwork: new ethers.Network('<CHAIN_HANDLE>', <CHAIN_ID>)
+});
+
+// v6: If you want the network automatically detected,
+// this will query eth_chainId only once
+const provider = new ethers.JsonRpcProvider(chainConfig.rpcUrl, undefined, {
+  staticNetwork: true
+});
+```
+
+## Soporte para Números Grandes
+Si utiliza números grandes para generar ID de tokens aleatorios, nonces u otras aplicaciones que requieran números grandes en formato de cadena, ethers ahora soporta BigInt de ES2020 integrado en los entornos modernos de JavaScript.
+
+```typescript bigNumber.ts
+// v5
+value = BigNumber.from("1000")
+
+// v6 
+// Notice the suffix n (using literal notation).
+value = 1000n
+
+// v6 
+// Using the BigInt function for strings
+value = BigInt("1000")
+```
+
+## Eliminación de Utilidades de Ethers
+Al usar Ethers notará que ya no existe la ruta `ethers.utils`. Por lo tanto, todas las rutas deben actualizarse eliminando `utils`:
+
+```typescript contract_parameters.ts
+// v5
+const amountBigNumber = ethers.utils.parseUnits(String(price), 18); // currency price based on correct decimals for token contract
+const erc20Interface = new ethers.utils.Interface([
+          "function approve(address spender, uint256 amount) external returns (bool)"
+        ]);
+        
+// v6
+const amountBigNumber = ethers.parseUnits(String(price), 18); // currency price based on correct decimals for token contract
+const erc20Interface = new ethers.Interface([
+          "function approve(address spender, uint256 amount) external returns (bool)"
+        ]);
+```
+
+## Empaquetado de Valores Hash de Utilidad
+Si utiliza utilidades de ethers para crear firmas y luego usa `ecrecover` en cadena, la creación de firmas ahora es ligeramente diferente:
+
+```typescript signature_creation.ts
+// v5
+const hash = ethers.utils.solidityKeccak256(['uint', 'uint'], [value1, blockNumber])
+const arr = ethers.utils.arrayify(hash)
+const signature = await wallet.signMessage(arr)
+
+// v6
+const hash = ethers.solidityPackedKeccak256(['uint', 'uint'], [value1, blockNumber])
+const arr = ethers.getBytes(hash)
+const signature = await wallet.signMessage(arr)
+```
+
+<Tip>
+  Para información completa sobre las diferencias entre Ethers `v5` y `v6` puede leer más [aquí](https://docs.ethers.org/v6/migrating/) en la documentación oficial.
+</Tip>

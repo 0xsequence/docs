@@ -1,30 +1,31 @@
 ---
-title: Construye un servidor de retransmisión de transacciones
-description: Aprenda a construir un servidor de retransmisión de transacciones con Sequence, permitiendo que su servidor envíe transacciones en nombre de los usuarios de manera fluida.
+title: Cómo construir un servidor de retransmisión de transacciones
+description: Aprenda cómo construir un servidor de retransmisión de transacciones con Sequence, permitiendo que su servidor envíe transacciones en nombre de los usuarios de manera fluida.
 sidebarTitle: Cree un servicio de transacciones backend
 ---
 
-Con Sequence, puedes crear una billetera de contrato inteligente que tu servidor puede usar para enviar transacciones para tus usuarios sin tener que preocuparte por la velocidad de las transacciones, el rendimiento o las reorganizaciones (reorgs).
+Con Sequence, puedes crear un smart contract wallet que tu servidor puede usar para enviar transacciones para tus usuarios
+sin tener que preocuparte por la velocidad de las transacciones, el rendimiento o los reorgs.
 
-La única diferencia respecto al uso de una billetera Sequence típica al enviar transacciones a la blockchain es que, a nivel de contrato inteligente, el `msg.sender` es una de las direcciones de billetera de Sequence Relayers. Para los contratos estándar de Sequence Builder, esto no es un problema cuando se combina con una solicitud de la API de transacciones retransmitidas.
+La única diferencia respecto al uso de un wallet Sequence típico al enviar transacciones a la blockchain, es que a nivel de smart contract el `msg.sender` es una de las direcciones de wallet de Sequence Relayers. Para los contratos estándar de Sequence Builder, esto no es un problema cuando se combina con una solicitud a la Transactions API de relayed transactions.
 
 <Note>
-  Por defecto, las transacciones de Sequence se ejecutarán de forma secuencial.
+  Por defecto, las transacciones de Sequence se ejecutan de forma secuencial.
 </Note>
 
-Los siguientes pasos te guiarán sobre cómo crear tu servidor y acuñar coleccionables a una dirección de billetera:
-1. Configuración del entorno con servidor Express: Cree un servidor basado en NodeJs usando la librería Express para aceptar solicitudes HTTP
+Los siguientes pasos te guiarán para crear tu servidor y mintear coleccionables a una dirección de wallet:
+1. Configuración del entorno con Express Server: Cree un servidor basado en NodeJs usando la librería Express para aceptar solicitudes HTTP
 2. Gestión de proyecto y clave de acceso: Solicite una clave de acceso pública para interactuar con el stack de Sequence
-3. Despliegue del contrato de coleccionables: Implemente un contrato de coleccionables para poder enviar transacciones a la blockchain y acuñar tokens a una dirección de billetera
-4. Construya un relayer patrocinado con la API de Transacciones: Cree una función para usar en una ruta de Express que llame a la API de Transacciones de Sequence desde un contrato patrocinado
+3. Despliegue del contrato de coleccionables: Despliegue un contrato de coleccionables para poder enviar transacciones a la blockchain y mintear tokens a una dirección de wallet
+4. Construcción de un relayer patrocinado con la Transactions API: Cree una función para usar en una ruta de Express que llame a la Transactions API de Sequence desde un contrato patrocinado
 
 Funciones adicionales:
-- (Opcional) Retransmisión con moneda que posee la billetera: Crea una función para usar en una ruta de Express que llame a la API de Transacciones de Sequence pagada usando una moneda que posea la billetera
-- (Opcional) Retransmisión de transacciones en paralelo: Realiza agrupamiento de transacciones para enviar una moneda
+- (Opcional) Retransmisión con moneda propia de la wallet: Crea una función para usar en una ruta de Express que llame a la Transactions API de Sequence y pague usando una moneda que posee la wallet
+- (Opcional) Retransmisión de transacciones en paralelo: Realiza agrupación de transacciones para enviar una moneda
 
 <Steps>
-  <Step title="Configuración del entorno con servidor Express">
-    Asegúrese de tener instalado `pnpm` (u otro gestor de paquetes de node) con el siguiente comando:
+  <Step title="Configuración del entorno con Express Server">
+    Asegúrate de tener instalado `pnpm` (u otro gestor de paquetes de Node) con el siguiente comando:
 
     ```shell
     curl -fsSL https://get.pnpm.io/install.sh | sh -
@@ -33,16 +34,16 @@ Funciones adicionales:
     Luego, clone el [siguiente código de plantilla de express](https://github.com/0xsequence-demos/template-node-transactions-backend/tree/template-starter)
 
     <Note>
-      Express es un framework minimalista y flexible para aplicaciones web en Node.js que ofrece un conjunto robusto de funciones para aplicaciones web y móviles, que usaremos en esta guía.
+      Express es un framework minimalista y flexible para aplicaciones web en Node.js que ofrece un conjunto robusto de funciones para aplicaciones web y móviles, y será utilizado en esta guía.
     </Note>
 
-    Una vez que el código esté en tu máquina local, ejecuta tu servidor y cliente con el siguiente comando:
+    Una vez que el código esté en su máquina local, ejecute su servidor y cliente con el siguiente comando:
 
     ```shell
     pnpm run start
     ```
 
-    Dentro del código hay una ruta llamada `/mint` que puedes llamar desde la línea de comandos para hacer pruebas.
+    Dentro del código hay una ruta llamada `/mint` que puede llamarse desde la CLI para pruebas.
 
     Pruebe con este ejemplo de solicitud curl:
 
@@ -58,11 +59,11 @@ Funciones adicionales:
   </Step>
 
   <Step title="Gestión de proyecto y clave de acceso">
-    Primero, siga [esta guía](/support/builder/project-management) para registrarse en [Sequence Builder](https://sequence.build/) y aprender cómo crear un proyecto.
+    Primero, siga [esta guía](/support/builder/project-management) para aprender cómo registrarse en [Sequence Builder](https://sequence.build/) y cómo crear un proyecto.
 
-    Luego, para usar la API de Transacciones, deberá actualizar su facturación a `Developer`, lo cual puede hacer siguiendo [esta guía](/support/builder/project-settings#5-billing-settings).
+    Luego, para usar la Transactions API, deberá actualizar su facturación a `Developer`, lo cual puede hacer siguiendo [esta guía](/support/builder/project-settings#5-billing-settings).
 
-    Finalmente, se requiere una `Public Access Key` para la API de Transacciones, que puede obtener siguiendo [esta guía](/solutions/builder/getting-started#claim-an-api-access-key).
+    Finalmente, se requiere una `Public Access Key` para la Transactions API, que puede obtener siguiendo [esta guía](/solutions/builder/getting-started#claim-an-api-access-key).
 
     Por último, actualice el archivo `.env.example` a `.env` con lo siguiente:
 
@@ -76,7 +77,7 @@ Funciones adicionales:
     Siga [esta guía](/solutions/collectibles/contracts/deploy-an-item-collection) para desplegar un contrato de coleccionables.
 
     <Note>
-      Si está usando una red que no es de pruebas y necesita patrocinar su contrato, puede hacerlo siguiendo [esta guía]()
+      Si está usando una red que no es testnet y necesita patrocinar su contrato, puede hacerlo siguiendo [esta guía]()
     </Note>
 
     Finalmente, actualice el archivo `.env` con su contrato de coleccionables desplegado:
@@ -86,7 +87,7 @@ Funciones adicionales:
     COLLECTIBLE_CONTRACT_ADDRESS="<ADDRESS>"
     ```
 
-    ## Cree un relayer patrocinado con la API de Transacciones
+    ## Construya un relayer patrocinado con la Transactions API
 
     <Note>
       El código completo para esta sección se encuentra [aquí](https://github.com/0xsequence-demos/template-node-transactions-backend)
@@ -99,17 +100,17 @@ Funciones adicionales:
     import { findSupportedNetwork, NetworkConfig } from '@0xsequence/network'
     ```
 
-    Luego, su servidor necesitará una billetera EOA que pueda firmar mensajes. Será el propietario de la billetera Sequence de su servidor, la cual se usará para enviar transacciones.
+    Luego, su servidor necesitará una wallet EOA que pueda firmar mensajes. Será la propietaria de su wallet Sequence del lado del servidor, la cual se usará para enviar transacciones.
 
     <Warning>
-      Abrir una sesión puede desencadenar una migración de su billetera Sequence a una nueva versión. Esto podría ser de `v1` a `v2` o de `v2` a versiones futuras.
+      Abrir una sesión puede desencadenar una migración de su wallet Sequence a una nueva versión, esto podría ser de `v1` a `v2` o de `v2` a versiones futuras.
 
-      La migración es un proceso irreversible; una vez que su billetera se migra, no puede volver a una versión anterior.
+      La migración es un proceso irreversible; una vez que su wallet es migrada, no puede volver a una versión anterior.
 
       Para detectar cualquier migración no deseada, puede usar el callback `onMigration`.
     </Warning>
 
-    Para implementar la función `callContract`, incluya el siguiente código que utiliza un solo firmante para retransmitir transacciones:
+    Para implementar la función `callContract`, incluya el siguiente código que utiliza un único firmante para retransmitir transacciones:
 
     ```typescript
     const callContract = async (address: string, tokenID: number): Promise<ethers.providers.TransactionResponse> => {
@@ -153,7 +154,7 @@ Funciones adicionales:
     }
     ```
 
-    Por último, actualice el archivo `.env` con una clave privada para una billetera que puede generarse desde [esta aplicación](https://sequence-ethauthproof-viewer.vercel.app/) (solo para fines de demostración). Para producción, recomendamos generar claves privadas de forma segura en su computadora local usando [este script de ejemplo](https://github.com/0xsequence-demos/script-generate-evm-private-key).
+    Por último, actualice el archivo `.env` con una clave privada para una wallet que puede generarse desde [esta aplicación](https://sequence-ethauthproof-viewer.vercel.app/) (solo para fines de demostración). Para producción, recomendamos generar claves privadas de forma segura y local en su computadora usando [este script de ejemplo](https://github.com/0xsequence-demos/script-generate-evm-private-key).
 
     Luego, actualice la variable `PKEY` con la clave:
 
@@ -162,13 +163,13 @@ Funciones adicionales:
     PKEY='<WALLET_PRIVATE_KEY>'
     ```
 
-    ### Conceder el rol de minter a la dirección de la billetera relayer
+    ### Otorgar el rol MINTER\_ROLE a la dirección de la wallet relayer
 
-    Debe actualizar el acceso de roles del contrato en Builder para aceptar solicitudes solo desde la dirección de la billetera minter.
+    Debe actualizar el acceso por roles del contrato en el Builder para que solo reciba solicitudes desde la dirección de la wallet minter.
 
-    En Sequence Builder, otorgue el permiso de minter a su dirección de la API de transacciones de Sequence.
+    Puede hacer esto en Sequence Builder otorgando el `minter permission` a su `Sequence Wallet Transactions API Address`.
 
-    Para hacerlo, abra su proyecto, vaya a la página de `Contracts`, seleccione sus `Linked contracts` y, en la pestaña `Write Contract`, expanda el método `grantRole`.
+    Para hacerlo, abra su proyecto, navegue a la página de `Contracts`, seleccione sus `Linked contracts` y, en la pestaña `Write Contract`, expanda el método `grantRole`.
 
     Complete con los siguientes datos:
 
@@ -177,16 +178,16 @@ Funciones adicionales:
     `address account`: `<Generated Sequence Transactions API Wallet Address>`
 
     <Frame>
-      <img src="/images/relayer/grant_role.png" alt="Conceder un rol al relayer" />
+      <img src="/images/relayer/grant_role.png" alt="Otorgue un rol al relayer" />
     </Frame>
 
-    Donde la cadena `role` ingresada es el resultado de `keccak256("MINTER_ROLE")` en solidity o `ethers.solidityPackedKeccak256(ethers.toUtf8Bytes("MINTER_ROLE"))` en javascript
+    Donde el valor de `role` ingresado es el resultado de `keccak256("MINTER_ROLE")` en solidity o `ethers.solidityPackedKeccak256(ethers.toUtf8Bytes("MINTER_ROLE"))` en javascript
 
-    Esto hace que solo su dirección específica pueda acuñar desde el contrato; de lo contrario, generará un error.
+    Esto hace que solo su dirección específica pueda mintear desde el contrato; de lo contrario, dará error.
 
     Complete la actualización del rol haciendo clic en `write` y firme la transacción patrocinada.
 
-    Su aplicación ya está lista para que envíe una transacción de prueba desde el frontend del cliente iniciando sesión en su billetera y haciendo clic en `mint`.
+    Su aplicación ya está lista para que envíe una transacción de prueba desde el frontend del cliente iniciando sesión en su wallet y haciendo clic en mintear.
 
     ¡Pruébelo!
 
@@ -196,8 +197,8 @@ Funciones adicionales:
   </Step>
 </Steps>
 
-## (Opcional) Retransmisión con moneda disponible en la billetera
-También puede forzar una forma específica de pagar las comisiones de gas:
+## (Opcional) Relevo con moneda propia de la wallet
+También puede forzar una forma específica de pagar las tarifas de gas:
 
 ```ts
 import { Session } from '@0xsequence/auth'
@@ -255,14 +256,14 @@ if (txnReceipt.status != 1) {
 }
 ```
 
-## (Opcional) Relayer de transacciones en paralelo
-Si desea enviar múltiples transacciones independientes sin necesidad de agruparlas, también puede enviarlas en espacios de nonce distintos (diferentes valores de nonce).
+## (Opcional) Relevo de transacciones en paralelo
+Si desea enviar múltiples transacciones independientes sin necesidad de agruparlas, también puede enviarlas en espacios de nonce distintos.
 
-Usar espacios de nonce distintos para sus transacciones le indica a la API de transacciones que no hay dependencia entre ellas y que pueden ejecutarse en la blockchain en cualquier orden.
+Usar espacios de nonce distintos para sus transacciones le indica a la Transactions API que no hay dependencia entre ellas y que pueden ejecutarse en la blockchain en cualquier orden.
 
-Esto permite que las transacciones se envíen de forma inmediata, sin esperar a un lote completo.
+Esto permite que las transacciones se envíen de inmediato, sin búfer, sin tener que esperar a un lote completo.
 
-Aquí tiene un ejemplo de cómo hacerlo:
+Aquí hay un ejemplo de cómo hacerlo:
 
 ```js
 // Generate random nonce spaces with ~0% probability of collision

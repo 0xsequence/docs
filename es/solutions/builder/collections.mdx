@@ -1,0 +1,120 @@
+---
+title: Colecciones
+description: Sequence Builder le permite gestionar Colecciones de metadatos de coleccionables, incluyendo detalles, imágenes y propiedades. Puede vincular Colecciones a contratos desplegables para flujos de creación sencillos. Controle las actualizaciones y la visualización pública/privada de la información de la colección en los servidores de Sequence.
+sidebarTitle: Gestión de Colecciones
+---
+
+Sequence Builder ofrece la posibilidad de gestionar Colecciones de metadatos de coleccionables, incluyendo: detalles, imágenes y propiedades de los coleccionables. Dentro del Builder, las Colecciones pueden vincularse a contratos desplegables desde el Builder para flujos de creación sencillos.
+
+Los medios y metadatos se guardan en los servidores de Sequence, donde ciertas funciones le permiten tener control sobre las actualizaciones y la visualización pública o privada de la información de su colección.
+
+<Tip>
+  También están disponibles [APIs](/api-references/metadata/overview) para gestionar los metadatos de su colección de NFT.
+</Tip>
+
+## 1. Crear una Colección
+Primero, navegue a su proyecto desde el menú desplegable en la parte superior izquierda de [Sequence Builder](https://sequence.build) y seleccione la vista de página `Collections` en la barra lateral izquierda, luego haga clic en `+ Create a collection`
+
+<Frame>
+  ![crear colección](/images/collections/collections_create_collection.png)
+</Frame>
+
+Luego ingrese los detalles de la colección, como el `Collection Name`, la `Description` para la información del contrato, y en `Collection Data` elija si será `Visible (Public)` o `Private (Hidden)`. Para que los datos sean visibles, seleccione Visible (Public). Incluya también el `External Link` de su proyecto a un sitio web.
+
+<Frame>
+  ![agregar detalles a la colección](/images/collections/collections_create_collection_input_details.png)
+</Frame>
+
+## 2. Vincular un Contrato
+Después de crear una colección, puede vincular un contrato desplegando un contrato de coleccionables (por ejemplo, `ERC1155` o `ERC721`) y configurando el `baseMetadataURI` durante el despliegue al seleccionar `Link contract`
+
+Luego seleccione `Deploy new contract`
+
+<Frame>
+  ![vincular un contrato](/images/collections/collections_collections_link_contract.png)
+</Frame>
+
+Seleccione el tipo de contrato o cargue uno propio
+
+<Frame>
+  ![tipo de contrato](/images/collections/collections_link_contract_choose_contract_type.png)
+</Frame>
+
+A continuación, podrá ver los detalles del tipo de contrato seleccionado
+
+<Frame>
+  ![tipo de contrato elegido](/images/collections/collections_link_contract_confirm_contract.png)
+</Frame>
+
+Complete los detalles del contrato, especificando la `Network`, el `Contract Name` y los `Royalties`, si desea publicar el coleccionable en el [Token Directory](/api-references/indexer/examples/metadata-tips) y finalmente seleccione `Deploy Contract` para completar la firma de la transacción en la ventana emergente de Sequence.
+
+<Frame>
+  ![detalles del contrato](/images/collections/collections_deploy_contract.png)
+</Frame>
+
+Luego, si revisa la pestaña `Read Contract` del contrato y hace clic en `Read` sobre el campo `baseURI`, verá la URL de los metadatos de Sequence. Cuando se consulta desde el Indexer, se añade `<token_id>.json` al final para referenciar el json del coleccionable.
+
+<Frame>
+  ![leer base uri](/images/collections/collection_read_base_uri.png)
+</Frame>
+
+## 3. Crear un Coleccionable
+Para crear un coleccionable como parte de la colección, regrese a la página `Collections` y seleccione `+ Add a collectible`
+
+<Frame>
+  ![agregar un coleccionable](/images/collections/collections_add_a_collectible.png)
+</Frame>
+
+Luego actualice los detalles como el `Collectible Name` y la `Description`, y cargue su arte seleccionando el campo gris.
+
+<Frame>
+  ![actualizar detalles del coleccionable](/images/collections/collections_update_art_and_details.png)
+</Frame>
+
+#### Agregar una propiedad de metadatos
+También puede agregar ciertas propiedades a su coleccionable seleccionando `+ Add a property`, lo cual es útil para inscribir información adicional como números o cadenas de texto cuando se usan los metadatos en cualquier juego.
+
+<Frame>
+  ![agregar una propiedad](/images/collections/collection_add_property.png)
+</Frame>
+
+Asigne la clave y el valor a cada propiedad
+
+<Frame>
+  ![asignar propiedades](/images/collections/collection_assign_properties.png)
+</Frame>
+
+Complete los pasos anteriores hasta obtener el resultado final de un coleccionable agregado a una colección
+
+<Frame>
+  ![resultado final del coleccionable agregado](/images/collections/collections_final_result_of_collectible.png)
+</Frame>
+
+## 4. Actualizar información en Configuración
+En cualquier momento puede actualizar los detalles de su coleccionable en configuración
+
+<Frame>
+  ![configuración](/images/collections/collections_access_settings.png)
+</Frame>
+
+Una vez en configuración, puede actualizar cualquiera de los campos de información, como: `Collection Name`, `Description`, visibilidad de los `Collection data` y un `External Link` para referenciar un sitio web.
+
+<Frame>
+  ![configuración](/images/collections/collections_update_info.png)
+</Frame>
+
+#### Eliminar datos de la colección
+Puede eliminar todos los datos de la colección del contrato seleccionando `Delete collection data`, lo que eliminará permanentemente todos los datos. Esta acción no se puede deshacer.
+
+## 5. Referenciar el Metadata Token URI
+Actualmente, para `Link Contract` no puede usar contratos predesplegados, pero puede leer el `Token Metadata URI` de la colección para configurar el `setBaseMetadataURI` de sus contratos existentes. El URI se puede obtener accediendo al botón `Metadata URIs`
+
+<Frame>
+  ![copiar metadata uris](/images/collections/collections_metadata_uris.png)
+</Frame>
+
+Luego copie el `Token Metadata URI` desde la ventana modal y utilícelo para escribir en un contrato con la función `setBaseMetadataURI`, o úselo para referenciar metadatos directamente en una aplicación agregando `<token_id>.json` al URI para acceder a los metadatos.
+
+<Frame>
+  ![acceder a metadata uris](/images/collections/collections_token_metadata_uri.png)
+</Frame>

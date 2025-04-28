@@ -1,0 +1,38 @@
+---
+title: Tokens
+---
+
+Dado que su uso es tan común, hemos proporcionado envoltorios `ERC20`, `ERC721` y `ERC1155` de la clase `Contract` con ABIs predefinidos para facilitar su uso. Al interactuar con tokens, se recomienda utilizar estos.
+
+Cualquiera de estos envoltorios de contrato puede crearse mediante un constructor estándar que solo requiere la dirección del contrato. Por ejemplo:
+
+```csharp
+ERC20 erc20 = new ERC20(contractAddress);
+```
+
+También puede proporcionar su propio ABI si necesita modificar el nuestro por defecto; sin embargo, hacerlo puede requerir que modifique o reescriba los envoltorios del contrato.
+
+Un ejemplo de consulta:
+
+```csharp
+string symbol = await erc20.Symbol(client);
+BigIntegar balance = await erc20.BalanceOf(client, address);
+```
+
+Un ejemplo de envío de una transacción:
+
+```csharp
+TransactionReceipt receipt = await erc20.Mint(toAddress, DecimalNormalizer.NormalizeAsBigInteger(1)).SendTransactionMethodAndWaitForReceipt(wallet, client);
+```
+
+Como envoltorio de `Contract`, también tiene la opción de no crear el `EthTransaction` y enviarlo más adelante.
+
+```csharp
+CallContractFunction transactionCreator = erc20.Transfer(toAddress, DecimalNormalizer.NormalizeAsBigInteger(1));
+EthTransaction transaction = await transactionCreator.Create(client, new ContractCall(wallet.GetAddress()));
+TransactionReceipt receipt = await wallet.SendTransactionAndWaitForReceipt(client, transaction);
+```
+
+# Bonus: Ownable
+De forma similar a los tokens, también hemos proporcionado un envoltorio `Ownable` para su conveniencia, que incluye un ABI predefinido para los métodos que implementan la interfaz [Ownable](https://docs.openzeppelin.com/contracts/2.x/access-control#ownership-and-ownable).
+`ERC20`, `ERC721` y `ERC1155` heredan de este, pero le recomendamos usar `Ownable` siempre que desee interactuar con los métodos Ownable en cualquier contrato arbitrario, por comodidad y seguridad.

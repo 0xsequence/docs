@@ -1,0 +1,91 @@
+---
+title: Firmas sin confirmación en el wallet
+description: Este contenido explica el concepto de usar claves de sesión, claves privadas efímeras almacenadas del lado del cliente, para agilizar la interacción de los usuarios en aplicaciones descentralizadas.
+---
+
+Es posible crear una aplicación donde los usuarios firmen mensajes sin requerir una confirmación en su wallet de Sequence cada vez. Esto es posible usando _claves de sesión_ o claves efímeras.
+
+# Claves de sesión
+Las claves de sesión son claves privadas efímeras que pueden generarse y almacenarse del lado del cliente, normalmente en el almacenamiento local del usuario. Ofrecen una forma conveniente y segura para que los usuarios autoricen acciones específicas en una aplicación descentralizada sin requerir que confirmen cada acción a través de su wallet principal.
+
+Al firmar un mensaje con su wallet principal (por ejemplo, Sequence Wallet), los usuarios pueden autorizar una clave de sesión para actuar en su nombre por un tiempo o alcance limitado. Las aplicaciones pueden entonces interpretar los mensajes firmados por la clave de sesión como si vinieran directamente del wallet del usuario, simplificando la experiencia.
+
+Las claves de sesión son especialmente útiles para aplicaciones que requieren interacciones frecuentes del usuario, ya que ayudan a reducir la cantidad de confirmaciones en el wallet necesarias, manteniendo un proceso de autenticación seguro y verificable.
+
+# Uso de claves de sesión con Sequence
+
+### 1. Inicializar Sequence Wallet y conectar
+
+```javascript
+import { Wallet } from '@0xsequence/wallet'
+import { ethers } from 'ethers'
+
+const wallet = new Wallet()
+await wallet.connect()
+
+const signer = wallet.getSigner()
+const userAddress = signer.getAddress()
+```
+
+### 2. Generar una clave de sesión
+Cree una nueva clave privada efímera, guárdela en el almacenamiento local y derive la dirección asociada:
+
+```javascript
+const sessionPrivateKey = ethers.randomBytes(32)
+localStorage.setItem('sessionPrivateKey', ethers.hexlify(sessionPrivateKey))
+const sessionWallet = new ethers.Wallet(sessionPrivateKey)
+const sessionAddress = await sessionWallet.getAddress()
+```
+
+### 3. Firmar mensaje de autorización
+Firme un mensaje con el wallet Sequence del usuario para autorizar la clave de sesión:
+
+```javascript
+const authorizationMessage = `Authorize this device to play this game.`
+const signature = await signer.signMessage(authorizationMessage)
+```
+
+### 4. Verificar la firma de autorización
+Verifique la firma en el servidor o del lado del cliente usando funciones utilitarias de Sequence:
+
+```javascript
+const provider = wallet.getProvider()
+const chainId = await wallet.getChainId()
+
+const isValid = await wallet.utils.isValidMessageSignature(
+  userAddress,
+  authorizationMessage,
+  signature,
+  chainId
+)
+
+if (isValid) {
+  console.log('Session key authorized')
+} else {
+  console.log('Session key not authorized')
+}
+```
+
+### 5. Firmar mensaje con la clave de sesión
+Use la clave de sesión para firmar un mensaje del lado del cliente sin interacción del usuario:
+
+```javascript
+const message = 'Perform action without wallet confirmation'
+const sessionSignature = await sessionWallet.signMessage(message)
+```
+
+### 6. Verificar la firma de la sesión
+Verifique la firma de la sesión en el servidor o del lado del cliente:
+
+```javascript
+const recoveredSessionAddress = ethers.verifyMessage(message, sessionSignature)
+if (recoveredSessionAddress === sessionAddress) {
+  console.log('Session signature valid')
+} else {
+  console.log('Session signature invalid')
+}
+```
+
+<Note>
+  Debe obtener la clave de sesión almacenada en el almacenamiento local al cargar la aplicación y solo crear una nueva clave de sesión si no se encuentra ninguna.
+</Note>

@@ -1,0 +1,27 @@
+---
+title: クレジットカードでのチェックアウト
+---
+
+一次販売コントラクトでのクレジットカード決済は、現在SardineとTransakが対応しています（今後、他の決済サービスプロバイダーも対応予定です）。
+
+## セットアップ
+一次販売コントラクトをデプロイしたら、Sequenceチームにご連絡いただき、一次販売コントラクトアドレス、チェーン、選択した価格通貨、監査レポート（弊社の一次販売コントラクト以外を利用する場合）をホワイトリスト登録のためにご提供ください。決済サービスプロバイダーからホワイトリスト登録の回答があり次第、ご連絡し、必要な情報（例：`TransakContractId`）をお渡しします。
+
+<Tip>決済サービスプロバイダーでのコントラクトのホワイトリスト登録には時間がかかる場合があります！このプロセスは迅速化できない場合があるため、早めの対応をおすすめします！</Tip>
+
+### Transak
+SequenceチームからTransakの`ContractId`を受け取ったら、`TransakContractId`のインスタンスを作成します。
+
+```
+TransakContractId contractId = new TransakContractId(contractIdStringFromSequenceTeam, saleContractAddress, chain, priceTokenSymbol);
+```
+
+`IFiatPay`インスタンスで`ConfigureSaleContractId`を呼び出し、上記で取得した`TransakContractId`を`GetNftCheckoutLink`の前に設定してください。
+
+## 仕組みについて
+大まかに言えば、決済サービスプロバイダーのAPI／コントラクトに、コレクションコントラクトからコレクティブルをミントするための適切な権限を付与します。
+
+ユーザーがWebベースのチェックアウト決済フローに進むと、決済サービスプロバイダーが実行するために必要なトランザクションcalldataを含めます。ユーザーの支払いが完了すると、決済サービスプロバイダーがcalldataに署名・実行し、ユーザーにコレクティブルをミントします。
+
+![シーケンス図](/images/unity/SequenceDiagram-PrimarySalesCheckoutFlow.png)
+[出典](https://github.com/0xsequence/sequence-unity/blob/Feature/marketplaceCheckout/Packages/Sequence-Unity/Sequence/SequenceSDK/Pay/SD_PrimarySalesCheckoutFlow.mmd)

@@ -1,19 +1,19 @@
 ---
 title: API de Sequence Analytics en Dune
-description: Aprenda a usar la función de analítica de Sequence Builder para consultar datos de usuarios del proyecto mediante un Cloudflare Worker.
+description: Aprenda cómo usar la función de analíticas de Sequence Builder para consultar datos de usuarios del proyecto con un Cloudflare Worker sin servidor.
 sidebarTitle: Aproveche la API de Sequence Analytics en Dune
 ---
 
-Tiempo estimado: 20 a 30 minutos
+Tiempo para completar: 20-30 minutos
 
-En esta guía, mostraremos cómo utilizar la función de analítica de [Sequence Builder](https://sequence.build/) para consultar información sobre el uso de los usuarios en el proyecto. Para ello, utilizaremos un [Cloudflare Worker](https://www.cloudflare.com/).
+En esta guía, mostraremos cómo utilizar la función de analíticas de [Sequence Builder](https://sequence.build/) para consultar información sobre el uso de los usuarios en el proyecto específico, aprovechando un [Cloudflare Worker](https://www.cloudflare.com/) sin servidor.
 
-Presente a su comunidad el rendimiento del proyecto a través de un panel de [Dune](https://dune.com/) para fomentar el sentido de conexión, o utilice la API generada para incorporar bucles de retroalimentación inteligente en su juego impulsados por analíticas de usuarios.
+Muestre a la comunidad el rendimiento del proyecto mediante un panel de [Dune](https://dune.com/) para mostrar la conectividad, o utilice la API generada para incorporar bucles de retroalimentación inteligente en su juego impulsados por analíticas de usuario.
 
 Puede ver un ejemplo del resultado de esta guía [aquí](https://dune.com/mmhorizon/dungeon-minter-analytics)
 1. Gestión de claves de acceso: Solicite una clave de acceso secreta para interactuar con el stack de Sequence
-2. Cloudflare Worker: Cree una función que consulte el stack de Sequence y genere datos específicos de su proyecto
-3. Panel de Dune: Cree una visualización de los datos en un panel de control compartible
+2. Cloudflare Worker: Cree una función que consulte el stack de Sequence y genere puntos de datos específicos del proyecto
+3. Panel de Dune: Cree una vista de los datos como un panel que se puede compartir
 
 <Note>
   Puede encontrar una referencia al código de plantilla
@@ -26,8 +26,8 @@ Necesitará obtener una clave de acceso secreta para el proyecto con el fin de a
 ### Creación de clave de acceso secreta
 
 <Steps>
-  <Step title="Acceda a la configuración">
-    Primero, acceda a la configuración y seleccione la tarjeta de claves API:
+  <Step title="Acceder a configuración">
+    Primero, acceda a la configuración y seleccione la tarjeta de API Keys:
 
     <Frame>
       ![builder settings access keys](/images/builder/builder_settings_access_keys.png)
@@ -49,12 +49,12 @@ Necesitará obtener una clave de acceso secreta para el proyecto con el fin de a
       ![builder settings add service account](/images/builder/builder_settings_add_service_account_confirm.png)
     </Frame>
 
-    Finalmente, copie la clave y guárdela en un lugar seguro, ya que no podrá acceder a ella nuevamente desde Sequence Builder.
+    Finalmente, `copie` la clave y guárdela en un lugar seguro, ya que no podrá acceder a ella nuevamente desde Sequence Builder.
   </Step>
 </Steps>
 
 ## 2. Cloudflare Worker
-En este ejemplo, utilizamos un Cloudflare Worker para aprovechar el escalado automático según el uso del panel de control y facilitar los despliegues desde la línea de comandos. También puede utilizar su propio backend u otras alternativas sin servidor.
+En este ejemplo, utilizamos un Cloudflare Worker para aprovechar el escalado automático según el uso del panel y despliegues sencillos desde la CLI, pero por supuesto puede usar su propio backend u otras alternativas sin servidor.
 
 <Steps>
   <Step title="Crear proyecto">
@@ -62,7 +62,7 @@ En este ejemplo, utilizamos un Cloudflare Worker para aprovechar el escalado aut
   </Step>
 
   <Step title="Worker 'Hello World'">
-    Asegúrese de tener instalado wrangler cli en su proyecto y configure la palabra clave `wrangler` como un alias en su sesión local de bash.
+    Asegúrese de tener instalado el CLI de wrangler en su proyecto y defina la palabra clave `wrangler` como un alias en su sesión local de bash.
 
     ```shell
     pnpm install wrangler --save-dev
@@ -75,30 +75,31 @@ En este ejemplo, utilizamos un Cloudflare Worker para aprovechar el escalado aut
     wrangler login
     ```
 
-    Una vez conectado, inicialice el proyecto en el directorio con el comando `wrangler init` y acepte uno de los nombres de carpeta generados aleatoriamente que prefiera. Siga las indicaciones para inicializar su aplicación typescript `"Hello World" Worker` con control de versiones en git.
+    Una vez que haya iniciado sesión, inicialice el proyecto en el directorio con el comando `wrangler init` y acepte uno de los nombres de carpeta generados aleatoriamente que prefiera, siguiendo las indicaciones para inicializar su aplicación `"Hello World" Worker` con seguimiento en git y TypeScript.
 
     ```shell
     wrangler init
     ```
 
-    Para completar este paso, presione enter 4 veces después de `wrangler init`, respondiendo `No` en los dos últimos pasos para rechazar el control de versiones con git y el despliegue.
+    Para completar este paso, presione enter 4 veces después de `wrangler init`, respondiendo `No` en los últimos 2 pasos para rechazar el versionado con git y el despliegue.
 
-    Se clonará un repositorio inicial que puede usar para desplegar código en la nube.
+    Esto clonará un repositorio inicial que puede usar para desplegar código en la nube.
 
     <Note>
       Pruebas locales de la API <br />
-      En cualquier momento de la guía, puede usar el comando `wrangler dev` en la carpeta del proyecto para realizar pruebas locales
+      En cualquier momento de la guía, puede usar el comando `wrangler dev` en la carpeta del proyecto para
+      realizar pruebas locales
     </Note>
 
     #### Despliegue de prueba
 
-    Finalmente, cambie al directorio del proyecto generado aleatoriamente con `cd` y ejecute el comando `wrangler deploy`.
+    Finalmente, cambie al directorio del proyecto generado aleatoriamente usando `cd` y ejecute el comando `wrangler deploy`.
 
-    Esto mostrará una URL, la cual puede ingresar en su navegador en la dirección `https://<app>.<account>.workers.dev` para ver el resultado `Hello World!`.
+    Esto debería mostrar una URL, que puede ingresar en el navegador como `https://<app>.<account>.workers.dev` para ver el resultado `Hello World!`.
   </Step>
 
-  <Step title="Configuración, rutas y funciones simuladas">
-    Una vez que tenga el proyecto configurado, actualice su `wrangler.toml` con las siguientes variables, donde `DAYS` es el periodo de tiempo que desea analizar:
+  <Step title="Configurar la configuración, las rutas y las funciones simuladas">
+    Una vez que tenga el proyecto listo, actualice su `wrangler.toml` con las siguientes variables, donde `DAYS` es el periodo de tiempo que desea consultar:
 
     ```shell
     [vars]
@@ -117,7 +118,7 @@ En este ejemplo, utilizamos un Cloudflare Worker para aprovechar el escalado aut
     }
     ```
 
-    Reemplace la función `fetch` existente por las siguientes llamadas a funciones simuladas:
+    Reemplace la función `fetch` existente con las siguientes llamadas a funciones simuladas:
 
     ```ts
     export default {
@@ -149,7 +150,7 @@ En este ejemplo, utilizamos un Cloudflare Worker para aprovechar el escalado aut
     ```
   </Step>
 
-  <Step title="Formato de fecha">
+  <Step title="Formateo de fechas">
     A continuación, incluya las siguientes funciones utilitarias para analizar la fecha correcta a partir del valor actualizado en el `wrangler.toml` para la variable `DAYS`:
 
     ```ts
@@ -200,7 +201,7 @@ En este ejemplo, utilizamos un Cloudflare Worker para aprovechar el escalado aut
   </Step>
 
   <Step title="Total de transacciones enviadas">
-    Por último, agregue la siguiente función para el Total de transacciones enviadas:
+    Por último, agregue la siguiente función para el `Total Transactions Sent`:
 
     ```ts
     const handleTotalTxns = async (env: Env, request: Request) => {
@@ -229,8 +230,8 @@ En este ejemplo, utilizamos un Cloudflare Worker para aprovechar el escalado aut
     ```
   </Step>
 
-  <Step title="Incluir los días sin datos en el intervalo">
-    La API de Sequence Analytics excluye los días sin actividad en la respuesta. Sin embargo, si desea incluir días sin datos en sus consultas de Dune para mostrar los días sin datos en el intervalo de tiempo, puede usar la siguiente función para completar los días que no muestran datos en el formato de fecha correcto:
+  <Step title="Espaciado incluido para días sin datos">
+    En la API de Sequence Analytics, los días sin actividad se eliminan de la respuesta. Sin embargo, si desea incluir días sin datos en sus consultas de Dune para mostrar el espaciado temporal en relación con los datos, puede usar la siguiente función para completar los días que no muestran datos en el formato de fecha correcto:
 
     ```typescript
     const fillMissingDates = (data: any[], startDate: string, endDate: string) => {
@@ -252,7 +253,7 @@ En este ejemplo, utilizamos un Cloudflare Worker para aprovechar el escalado aut
     };
     ```
 
-    Luego, para **ambas** respuestas de llamada, incluya la siguiente llamada al método con los datos de `walletStats` como parámetro:
+    Luego, para **ambas** respuestas de llamada, incluya la siguiente llamada de método pasando los datos de `walletStats`:
 
     ```typescript
     	...
@@ -264,22 +265,22 @@ En este ejemplo, utilizamos un Cloudflare Worker para aprovechar el escalado aut
   </Step>
 </Steps>
 
-Ahora puede probar su API accediendo a las rutas correspondientes en el nombre de host (`/dailyActiveUsers` y `/totalTransactionsSent`) una vez que haya vuelto a desplegar con `wrangler deploy`.
+Ahora puede probar su API llamando a las rutas correspondientes con el nombre del host (`/dailyActiveUsers` y `/totalTransactionsSent`) una vez que haya vuelto a desplegar con `wrangler deploy`.
 
 <Note>
   Para más ejemplos de endpoints disponibles a través de la API de Analytics, consulte la página de
-  [Descripción general](/api-references/analytics/overview).
+  [descripción general](/api-references/analytics/overview).
 </Note>
 
 ## 3. Panel de Dune
 
 <Steps>
   <Step title="Registro en Dune">
-    Primero, cree una cuenta en [Dune](https://dune.com/)
+    Primero, regístrese en [Dune](https://dune.com/)
   </Step>
 
   <Step title="Crear consulta">
-    Ingrese a su cuenta en `https://dune.com/<account>` y seleccione el botón `Create` y luego `New query`.
+    Acceda a su cuenta en `https://dune.com/<account>` y seleccione el botón `Create` y luego `New query`.
 
     <Frame>
       ![dune create query](/images/guides/analytics/dune_create_query.png)
@@ -301,9 +302,9 @@ Ahora puede probar su API accediendo a las rutas correspondientes en el nombre d
 
     ```
 
-    Una vez que vea los resultados, cree una `New visualization`.
+    Una vez que se muestren los resultados, cree una `New visualization`.
 
-    Luego, seleccione `Add visualization` después de que el `Bar chart` predeterminado esté seleccionado en el menú desplegable (o personalícelo si lo prefiere).
+    Luego, seleccione `Add visualization` después de que el `Bar chart` predeterminado esté seleccionado en el menú desplegable (aunque puede personalizarlo si lo desea).
 
     <Frame>
       ![add visualization](/images/guides/analytics/dune_add_visualization.png)
@@ -331,19 +332,19 @@ Ahora puede probar su API accediendo a las rutas correspondientes en el nombre d
 
     ```
 
-    Una vez que vea los resultados, cree una `New visualization`.
+    Una vez que se muestren los resultados, cree una `New visualization`.
 
-    Luego, seleccione `Add visualization` y desplácese hasta `Counter` para crear un widget contador que muestre el total absoluto devuelto por la API.
+    Luego, seleccione `Add visualization` y desplácese hacia abajo hasta `Counter` para crear un widget contador que muestre el total absoluto devuelto por la API.
   </Step>
 
-  <Step title="Crear nuevo panel de control">
-    Acceda a los botones que dicen `Create` > `New dashboard` e ingrese un nombre para el nuevo panel de control.
+  <Step title="Crear nuevo panel">
+    Acceda a los botones que dicen `Create` > `New dashboard` e ingrese un nombre para el nuevo panel.
 
     <Frame>
       ![dune create dashboard](/images/guides/analytics/dune_create_dashboard.png)
     </Frame>
 
-    Después de crearlo, agregue las dos consultas anteriores seleccionando `Edit` y luego `Add visualization`.
+    Una vez creado, agregue las 2 consultas anteriores seleccionando `Edit` y `Add visualization`.
 
     <Frame>
       ![dune edit dashboard](/images/guides/analytics/dune_edit_dashboard.png)
@@ -353,10 +354,10 @@ Ahora puede probar su API accediendo a las rutas correspondientes en el nombre d
       ![dune add visualization from dashboard](/images/guides/analytics/dune_add_visualization_from_dashboard.png)
     </Frame>
 
-    Para cada consulta, busque el nombre en la ventana emergente, seleccione `Add` para cada una, luego `Done` en la ventana y `Done` en el panel.
+    Para cada consulta, busque el nombre en el modal y seleccione `Add` para cada una, luego `Done` en el modal y `Done` en el panel.
   </Step>
 </Steps>
 
-¡Felicidades! Ahora puedes compartir los datos de uso de tu proyecto con tu equipo o comunidad. Finaliza haciendo clic en el botón `Share`.
+¡Felicidades! Ahora puedes compartir el uso de datos de tu proyecto con tu equipo o comunidad. Finaliza haciendo clic en el botón `Share`.
 
 <Frame>![dune share dashboard](/images/guides/analytics/dune_share_dashboard.png)</Frame>

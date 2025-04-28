@@ -1,0 +1,143 @@
+---
+title: Tokens API
+sidebarTitle: Fetch Tokens
+---
+
+## Fetches list of ERC20, ERC721 and ERC1155 tokens and metadata in any wallet.
+_Sequence Indexer `GetTokenBalances` Method:_
+- Request: POST /rpc/Indexer/GetTokenBalances
+- Content-Type: application/json
+- Body (in JSON):
+  - `accountAddress` (string) -- the wallet account address
+  - `includeMetadata` (boolean - optional - default: false) -- toggle token metadata to be included in the response
+  - `metadataOptions` (object - optional) -- additional options for metadata
+    - `verifiedOnly` (boolean - optional) -- return only contracts which are 'verified' to help reduce spam
+    - `includeContracts` (\[]string - optional) -- list of specific contract addresses to always be included, even if verifiedOnly is enabled.
+  - `includeCollectionTokens` (boolean - optional - default: true) -- toggle to represent ERC721 / ERC1155 tokens as a single summary item in the response
+
+<CodeGroup>
+  ```shell Curl
+  curl -X POST -H "Content-Type: application/json" -H "X-Access-Key: AQAAAAAAAF_JvPALhBthL7VGn6jV0YDqaFY" https://polygon-indexer.sequence.app/rpc/Indexer/GetTokenBalances -d '{ "accountAddress": "0x8e3E38fe7367dd3b52D1e281E4e8400447C8d8B9", "includeMetadata": true }'
+  ```
+
+  ```ts Typescript
+  // Works in both a Webapp (browser) or Node.js:
+  import { SequenceIndexer } from '@0xsequence/indexer'
+
+  const indexer = new SequenceIndexer('https://polygon-indexer.sequence.app', 'AQAAAAAAAF_JvPALhBthL7VGn6jV0YDqaFY')
+
+  // try any account address you'd like :)
+  const accountAddress = '0xabc...'
+
+  // query Sequence Indexer for all token balances of the account on Polygon
+  const tokenBalances = await indexer.getTokenBalances({
+  	accountAddress: accountAddress,
+  	includeMetadata: true
+  })
+  console.log('tokens in your account:', tokenBalances)
+  ```
+
+  ```go Go
+  import (
+  	"context"
+  	"fmt"
+  	"log"
+  	"net/http"
+
+  	"github.com/0xsequence/go-sequence/indexer"
+  )
+
+  func GetTokenBalances(accountAddress string) {
+  	seqIndexer := indexer.NewIndexer("https://polygon-indexer.sequence.app", "AQAAAAAAAF_JvPALhBthL7VGn6jV0YDqaFY")
+
+  	includeMetadata := true
+
+  	tokenBalances, _, err := seqIndexer.GetTokenBalances(context.Background(), &accountAddress, nil, &includeMetadata, nil, nil)
+  	if err != nil {
+  		log.Fatal(err)
+  	}
+  	fmt.Println("tokenBalances:", tokenBalances)
+  }
+  ```
+</CodeGroup>
+
+<Note>
+  **PRO TIP: fetching ERC721/1155 token IDs**
+
+  You'll notice that, by default, `GetTokenBalances` will return at most one token instance from each contract.
+  In order to fetch ERC721/1155 token balances, you must pass the `contractAddress` to the `GetTokenBalances` method.
+  This will return all of the tokens owned by `accountAddress` from the specified `contractAddress`.
+  See section below for more information.
+</Note>
+
+## Fetch token IDs, balances and metadata of ERC721 and ERC1155 collections.
+_Sequence Indexer `GetTokenBalances` Method:_
+- Request: POST /rpc/Indexer/GetTokenBalances
+- Content-Type: application/json
+- Body (in JSON):
+  - `accountAddress` (string) -- the wallet account address
+  - `contractAddress` (string) -- the contract address of the ERC721 / ERC1155 collection
+  - `includeMetadata` (boolean - optional - default: false) -- toggle token metadata to be included in the response
+  - `metadataOptions` (object - optional) -- additional options for metadata
+    - `verifiedOnly` (boolean - optional) -- return only contracts which are 'verified' to help reduce spam
+    - `includeContracts` (\[]string - optional) -- list of specific contract addresses to always be included, even if verifiedOnly is enabled.
+
+<br />
+
+**Example: `GetTokenBalances` of a contract + account address on Polygon using an `PROJECT_ACCESS_KEY`**
+
+<CodeGroup>
+  ```bash Curl
+  curl -X POST -H "Content-Type: application/json" -H "X-Access-Key: PROJECT_ACCESS_KEY" https://polygon-indexer.sequence.app/rpc/Indexer/GetTokenBalances -d '{ "contractAddress": "0x631998e91476DA5B870D741192fc5Cbc55F5a52E", "accountAddress": "0x8e3E38fe7367dd3b52D1e281E4e8400447C8d8B9", "includeMetadata": true }'
+  ```
+
+  ```typescript Typescript
+  // Works in both a Webapp (browser) or Node.js:
+  import { SequenceIndexer } from '@0xsequence/indexer'
+
+  const indexer = new SequenceIndexer('https://polygon-indexer.sequence.app', 'AQAAAAAAAF_JvPALhBthL7VGn6jV0YDqaFY')
+
+  // try any contract and account address you'd like :)
+  const contractAddress = '0x631998e91476DA5B870D741192fc5Cbc55F5a52E'
+  const accountAddress = '0xabc...'
+
+  // query Sequence Indexer for all nft balances of the account on Polygon
+  const nftBalances = await indexer.getTokenBalances({
+  	contractAddress: contractAddress,
+  	accountAddress: accountAddress,
+  	includeMetadata: true
+  })
+
+  console.log('collection of items:', nftBalances)
+  ```
+
+  ```go Go
+  import (
+  	"context"
+  	"fmt"
+  	"log"
+  	"net/http"
+
+  	"github.com/0xsequence/go-sequence/indexer"
+  )
+
+  func GetTokenBalances(contractAddress, accountAddress string) {
+  	seqIndexer := indexer.NewIndexer("https://polygon-indexer.sequence.app", "AQAAAAAAAF_JvPALhBthL7VGn6jV0YDqaFY")
+
+  	includeMetadata := true
+
+  	metadataOptions := indexer.MetadataOptions{
+  		VerifiedOnly:     true, // Set to true if you want to fetch only verified contracts
+  		UnverifiedOnly:   false,
+  		IncludeContracts: nil, // Provide a list of specific contracts to include, if any
+  	}
+
+  	nftBalances, _, err := seqIndexer.GetTokenBalances(context.Background(), &accountAddress, nil, nil, nil, &metadataOptions, nil, nil)
+  	if err != nil {
+  		log.Fatal(err)
+  	}
+
+  	fmt.Println("nftBalances:", nftBalances)
+  }
+  ```
+</CodeGroup>

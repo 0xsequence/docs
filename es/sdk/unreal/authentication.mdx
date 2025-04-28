@@ -1,0 +1,224 @@
+---
+title: Autenticación de usuarios
+description: Documentación para la API del SDK de Unreal para gestionar sesiones en la infraestructura de Sequence orientada a juegos web3.
+---
+
+Visite nuestra página de [Requisitos de Plataforma](/sdk/unreal/platforms) para información detallada sobre la configuración y para asegurarse
+de que los métodos de autenticación que elija estén correctamente configurados en su proyecto de Builder.
+
+## Iniciar sesión con OTP por correo electrónico
+Permita que los usuarios inicien sesión con cualquier correo electrónico, y recibirán una contraseña de un solo uso en su bandeja de entrada.
+Escuche el evento Email Requires Code.
+
+<Tabs>
+  <Tab title="Blueprint">
+    <Frame>
+      <img src="/images/unreal/email_otp.png" />
+    </Frame>
+  </Tab>
+</Tabs>
+
+## Inicio de sesión con redes sociales
+Para iniciar la autenticación basada en SSO en escritorio, debe navegar a un navegador para obtener el id\_token necesario.
+En dispositivos móviles, nuestro SDK maneja este proceso por usted utilizando plugins integrados.
+
+En plataformas de escritorio, escuche el evento `Sign in Web View Required` y abra la `Sign In URL` que se retorna.
+En plataformas móviles, escuche el evento `Id Token Received`.
+
+Cuando llame a las funciones de `Sign In`, escuche el evento `Session Established` en el subsistema `SequenceSessionsBP`
+para saber cuándo la solicitud de inicio de sesión fue exitosa. Escuche `Session Creation Failure` si ocurre algún error.
+
+### Obtener Google Id Token
+
+<Tabs>
+  <Tab title="Blueprint">
+    <Frame>
+      <img src="/images/unreal/google_idtoken.png" />
+    </Frame>
+  </Tab>
+</Tabs>
+
+### Obtener Apple Id Token
+
+<Tabs>
+  <Tab title="Blueprint">
+    <Frame>
+      <img src="/images/unreal/apple_idtoken.png" />
+    </Frame>
+  </Tab>
+</Tabs>
+
+### Iniciar sesión con Google
+Inicie sesión con un Google Id Token válido. Puede obtenerlo desde el nodo [Get Google Id Token](/sdk/unreal/authentication#get-google-id-token).
+
+<Tabs>
+  <Tab title="Blueprint">
+    <Frame>
+      <img src="/images/unreal/unreal_signin_google.png" />
+    </Frame>
+  </Tab>
+</Tabs>
+
+### Iniciar sesión con Apple
+Inicie sesión con un Apple Id Token válido. Puede obtenerlo desde el nodo [Get Apple Id Token](/sdk/unreal/authentication#get-apple-id-token).
+
+<Tabs>
+  <Tab title="Blueprint">
+    <Frame>
+      <img src="/images/unreal/unreal_signin_apple.png" />
+    </Frame>
+  </Tab>
+</Tabs>
+
+### Iniciar sesión con Epic
+Inicie sesión con un Epic Games Id Token válido. Consulte el [EOS Plugin para Unreal](https://dev.epicgames.com/documentation/en-us/unreal-engine/online-subsystem-eos-plugin-in-unreal-engine)
+
+<Tabs>
+  <Tab title="Blueprint">
+    <Frame>
+      <img src="/images/unreal/unreal_signin_epic.png" />
+    </Frame>
+  </Tab>
+</Tabs>
+
+### Iniciar sesión con OIDC Id Token
+Utilice este método para iniciar una sesión usando un Id token válido de Google, Apple o Epic Games.
+
+<Tabs>
+  <Tab title="Blueprint">
+    <Frame>
+      <img src="/images/unreal/token_session.png" />
+    </Frame>
+  </Tab>
+</Tabs>
+
+## PlayFab
+Deberá incluir su PlayFab Title ID en el archivo `SequenceConfig.ini`
+durante la [Configuración](/sdk/unreal/configuration) y [configurar PlayFab en el Builder](/solutions/builder/embedded-wallet/playfab-configuration).
+
+### Registrar un nuevo usuario de PlayFab
+
+<Tabs>
+  <Tab title="Blueprint">
+    <Frame>
+      <img src="/images/unreal/playfab_registration.png" />
+    </Frame>
+  </Tab>
+</Tabs>
+
+### Iniciar sesión con un usuario existente de PlayFab
+
+<Tabs>
+  <Tab title="Blueprint">
+    <Frame>
+      <img src="/images/unreal/playfab_login.png" />
+    </Frame>
+  </Tab>
+</Tabs>
+
+### Integración personalizada de PlayFab
+Si tiene su propia integración de PlayFab, puede usarla. Una vez que reciba su SessionTicket de PlayFab, páselo para autenticación con las APIs de Sequence usando el método `PlayfabAuthenticateWithSessionTicket` en su objeto `USequenceAthenticator`.
+
+## Iniciar sesión como invitado
+Puede iniciar sesión a los usuarios como invitados. Sin embargo, tenga en cuenta que perderán acceso a su wallet si desinstalan la app o cierran sesión.
+
+<Tabs>
+  <Tab title="Blueprint">
+    <Frame>
+      <img src="/images/unreal/guest_session.png" />
+    </Frame>
+  </Tab>
+</Tabs>
+
+## Federar cuentas
+Con las Cuentas Federadas, puede asociar múltiples métodos de inicio de sesión con una sola cuenta y wallet.
+Si su usuario ha iniciado sesión como invitado, definitivamente querrá motivarlo a federar su
+cuenta para que tenga credenciales persistentes con las que pueda acceder a su Sequence Embedded Wallet en sesiones futuras.
+Mientras el usuario esté autenticado con la API de Sequence, puede agregar un método de inicio de sesión adicional usando la llamada correspondiente para federar la cuenta.
+
+<Tabs>
+  <Tab title="Blueprint">
+    <Frame>
+      <img src="/images/unreal/email_federation.png" />
+    </Frame>
+  </Tab>
+</Tabs>
+
+## Obtener Id Token
+Un caso de uso común es verificar la identidad del usuario en su backend después de que el usuario haya completado el proceso de inicio de sesión en su app cliente.
+Obtenga un Sequence Id Token de sus usuarios para enviarlo a su backend y verificarlo usando cualquier librería JWKS.
+Lea nuestra [Guía de Verificación Backend](/sdk/headless-wallet/verification) para más información.
+
+<Tabs>
+  <Tab title="Blueprint">
+    <Frame>
+      <img src="/images/unreal/get_id_token.png" />
+    </Frame>
+  </Tab>
+
+  <Tab title="C++">
+    ```cpp
+    const TFunction<void (FSeqIdTokenResponse_Data)> OnSuccess = [this](const FSeqIdTokenResponse_Data& Data) { };
+    const TFunction<void (FSequenceError)> OnFailure = [this](const FSequenceError& Err){ };
+
+    const TOptional<USequenceWallet*> WalletOptional = USequenceWallet::Get();
+    if (WalletOptional.IsSet() && WalletOptional.GetValue())
+    {
+        const USequenceWallet* Wallet = WalletOptional.GetValue();
+        Wallet->GetIdToken(Nonce, OnSuccess, OnFailure);
+    }
+    ```
+  </Tab>
+</Tabs>
+
+## Cerrar sesión
+Borre el caché de credenciales y cierre la sesión del usuario actual.
+
+<Tabs>
+  <Tab title="Blueprint">
+    <Frame>
+      <img src="/images/unreal/sign_out.png" />
+    </Frame>
+  </Tab>
+
+  <Tab title="C++">
+    ```cpp
+    const TOptional<USequenceWallet*> WalletOptional = USequenceWallet::Get();
+    if (WalletOptional.IsSet() && WalletOptional.GetValue())
+    {
+        USequenceWallet * Api = WalletOptional.GetValue();
+        Api->SignOut();
+    }
+    ```
+  </Tab>
+</Tabs>
+
+## Listar sesiones
+Lista las sesiones activas.
+
+<Tabs>
+  <Tab title="Blueprint">
+    <Frame>
+      <img src="/images/unreal/list_sessions.png" />
+    </Frame>
+  </Tab>
+
+  <Tab title="C++">
+    ```cpp
+    const TSuccessCallback<TArray<FSession>> OnSuccess = [=](TArray<FSession> Response)
+    {
+        //Response is a list of Sessions
+    };
+    const FFailureCallback OnFailure = [=](const FSequenceError& Error)
+    {
+        UE_LOG(LogTemp,Display,TEXT("Error Message: %s"),*Error.Message);
+    };
+    const TOptional<USequenceWallet*> WalletOptional = USequenceWallet::Get();
+    if (WalletOptional.IsSet() && WalletOptional.GetValue())
+    {
+        USequenceWallet * Api = WalletOptional.GetValue();
+        Api->ListSessions(OnSuccess,OnFailure);
+    }
+    ```
+  </Tab>
+</Tabs>

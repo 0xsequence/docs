@@ -1,0 +1,90 @@
+---
+title: Recuperación segura de sesión
+description: El SDK ofrece la opción de almacenar la información de la wallet de sesión de forma segura en ciertas plataformas utilizando el almacenamiento seguro nativo.
+---
+
+# Recuperación de sesiones
+Por defecto, el SDK requerirá que los usuarios inicien sesión cada vez que la aplicación se cierre completamente. Esto se debe a que, por defecto, no guardamos la información de la wallet de sesión (por ejemplo, claves privadas) en ningún tipo de almacenamiento persistente para proteger la seguridad del usuario.
+
+Sin embargo, en ciertas plataformas, hemos integrado el almacenamiento seguro nativo de la plataforma.
+
+Si habilita `StoreSessionPrivateKeyInSecureStorage` en su ScriptableObject `SequenceConfig`, almacenaremos automáticamente la información de la wallet de sesión por usted (en plataformas compatibles) y expondremos la opción de intentar recuperar la sesión en `SequenceLogin`. El `LoginPanel` predeterminado también gestionará automáticamente el flujo de UI para esto (vea [Autenticación](/sdk/unity/onboard/authentication/intro)). Si la plataforma no es compatible, esta opción no tendrá efecto.
+
+A continuación puede ver las plataformas compatibles y aprender sobre la solución de almacenamiento seguro de cada una; es importante entender los conceptos básicos de cómo funcionan estos sistemas y pensar cuidadosamente en las implicaciones de seguridad de almacenar claves privadas (o cualquier secreto) en almacenamiento persistente.
+
+## iOS
+En iOS, utilizamos el [iOS Keychain](https://developer.apple.com/documentation/security/keychain_services?language=objc).
+
+## MacOS
+En MacOS, utilizamos el [MacOS Keychain](https://developer.apple.com/documentation/security/keychain_services?language=objc).
+
+## Windows
+En PCs con Windows, utilizamos la [Crypto: Next Generation - Data Protection API (CNG DPAPI)](https://learn.microsoft.com/en-us/windows/win32/seccng/cng-dpapi)
+
+## Web
+En compilaciones Web, utilizamos [IndexedDB](https://developer.mozilla.org/en-US/docs/Web/API/IndexedDB_API) a través de [PlayerPrefs](https://docs.unity3d.com/ScriptReference/PlayerPrefs.html).
+
+## Android
+En compilaciones Android, utilizamos el [Android Keystore](https://developer.android.com/privacy-and-security/keystore).
+
+Nuestro plugin Keystore para Unity (incluido en el SDK) requiere una Plantilla Gradle Principal personalizada. Por favor, vaya a la configuración de su proyecto y, en `Player > Publishing Settings`, habilite `Custom Main Gradle Template`. Esto creará un archivo `Assets/Plugins/Android/mainTemplate.gradle` (o similar; el editor le mostrará la ruta) si aún no tiene uno. Aquí tiene un ejemplo de archivo `mainTemplate.gradle`; por favor, copie/pegue (o incorpore en su archivo existente).
+
+```
+apply plugin: 'com.android.library'
+**APPLY_PLUGINS**
+
+dependencies {
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+    implementation 'androidx.security:security-crypto:1.1.0-alpha03'
+
+**DEPS**}
+
+android {
+    compileSdkVersion **APIVERSION**
+    buildToolsVersion '**BUILDTOOLS**'
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+
+    defaultConfig {
+        minSdkVersion **MINSDKVERSION**
+        targetSdkVersion **TARGETSDKVERSION**
+        ndk {
+            abiFilters **ABIFILTERS**
+        }
+        versionCode **VERSIONCODE**
+        versionName '**VERSIONNAME**'
+        consumerProguardFiles 'proguard-unity.txt'**USER_PROGUARD**
+    }
+
+    lintOptions {
+        abortOnError false
+    }
+
+    aaptOptions {
+        noCompress = **BUILTIN_NOCOMPRESS** + unityStreamingAssets.tokenize(', ')
+        ignoreAssetsPattern = "!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~"
+    }**PACKAGING_OPTIONS**
+}**REPOSITORIES**
+**IL_CPP_BUILD_SETUP**
+**SOURCE_BUILD_SETUP**
+**EXTERNAL_SOURCES**
+```
+
+Nuestro plugin Keystore también requiere una Plantilla de Propiedades Gradle personalizada. Nuevamente, vaya a la configuración de su proyecto y, en `Player > Publishing Settings`, habilite `Custom Gradle Properties Template`. Esto creará un archivo `Assets/Plugins/Android/gradleTemplate.properties` (o similar; el editor le mostrará la ruta) si aún no tiene uno. Aquí tiene un ejemplo de archivo `gradleTemplate.properties`; por favor, copie/pegue (o incorpore en su archivo existente).
+
+```
+org.gradle.jvmargs=-Xmx**JVM_HEAP_SIZE**M
+org.gradle.parallel=true
+android.enableJetifier=true
+android.useAndroidX=true
+unityStreamingAssets=**STREAMING_ASSETS**
+**ADDITIONAL_PROPERTIES**
+
+android.enableR8=**MINIFY_WITH_R_EIGHT**
+```
+
+## Editor
+En el editor, usamos PlayerPrefs para el almacenamiento de claves privadas. También deberá habilitar 'EditorStoreSessionPrivateKeyInSecureStorage' en SequenceConfig para poder usar el almacenamiento seguro y recuperar sesiones desde el editor. Esta opción separada le facilita probar ambos flujos sin modificar el comportamiento de sus builds. El almacenamiento seguro en el editor es solo para fines de desarrollo y no debe considerarse seguro para almacenamiento a largo plazo.

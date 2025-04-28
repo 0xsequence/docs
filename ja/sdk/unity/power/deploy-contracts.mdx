@@ -1,0 +1,37 @@
+---
+title: スマートコントラクトのデプロイ
+---
+
+通常は [Builder](https://sequence.build/) を使ってスマートコントラクトをデプロイすることを推奨していますが、Unity（またはUnity製アプリケーション）からスマートコントラクトをデプロイしたい場合もあることを理解しています。
+
+コントラクトのデプロイはトランザクションの送信を伴い、これは [非同期Task](https://medium.com/@sonusprocks/async-await-in-c-unity-explained-in-easy-words-571ebb6a9369) で実行されます。`SequenceWallet.DeployContract` を非同期Task内で呼び出す際に `await` を使えば、`ContractDeploymentReturn` オブジェクトを直接取得できます。もしくは、推奨される方法として、`SequenceWallet.OnDeployContractComplete` および `SequenceWallet.OnDeployContractFailed` イベント用のハンドラー関数を設定し、どこからでも（awaitなしで）`SequenceWallet.DeployContract` メソッドを呼び出すこともできます。
+
+`SequenceWallet.DeployContract` は、特別な `SequenceWallet.SendTransaction` 呼び出しのラッパーであり、そのため `SequenceWallet.OnSendTransactionComplete` または `SequenceWallet.OnSendTransactionFailed` イベントも追加で受け取ることができます。
+
+```csharp
+public void OnDeployContractCompleteHandler(SuccessfulContractDeploymentReturn result) {
+    Address newlyDeployedContractAddress = result.DeployedContractAddress;
+
+    // Do something
+}
+
+public void OnDeployContractFailedHandler(FailedContractDeploymentReturn result) {
+    // Do something
+}
+
+public void OnWalletCreatedHander(SequenceWallet wallet) {
+    wallet.OnDeployContractComplete += OnDeployContractCompleteHandler;
+    wallet.OnDeployContractFailed += OnDeployContractFailedHandler;
+}
+```
+
+Unityでイベントの扱いに慣れていない場合は、この素晴らしい [Reddit投稿](https://www.reddit.com/r/gamedev/comments/u3hz2v/how_to_use_events_a_supersimple_unity_example/) をご覧ください。
+
+コントラクトをデプロイするには、まず[スマートコントラクトコードをバイトコードにコンパイル](https://medium.com/coinmonks/compiling-the-smart-contracts-8dcda8071638)し、そのバイトコードを16進数文字列としてC#スクリプトのいずれかに追加する必要があります。
+
+スマートコントラクトをデプロイするには、以下のコードスニペットを利用できます。
+
+```csharp
+string bytecode = "Here you'll paste your compiled bytecode"
+_wallet.DeployContract(Chain.Polygon, bytecode);
+```

@@ -1,55 +1,55 @@
 ---
-title: Demo de Wallet Embebida en React Native
-description: Aprende cómo integrar el SDK móvil de Sequence Wallet Embebida en una aplicación React Native para iOS y Android.
+title: Demo de Embedded Wallet en React Native
+description: Aprenda cómo integrar el Sequence Embedded Wallet Mobile SDK en una app React Native para iOS y Android.
 ---
 
-La siguiente guía implementa el SDK móvil de Sequence Wallet Embebida tanto para iOS como para Android.
+El siguiente walkthrough implementa el Sequence Embedded Wallet Mobile SDK tanto para iOS como para Android.
 
-La guía explica cómo clonar un repositorio de plantilla y construir una aplicación basada en [Expo](https://expo.dev/), la cual puedes bifurcar, para que un usuario pueda iniciar sesión con un correo de [Gmail](https://console.cloud.google.com/) o [Apple](https://developer.apple.com/) en una aplicación móvil.
+El walkthrough explicará cómo clonar un repositorio de plantilla y construir una app basada en [Expo](https://expo.dev/), la cual puede ser bifurcada, para que un usuario pueda iniciar sesión con un correo de [Gmail](https://console.cloud.google.com/) o [Apple](https://developer.apple.com/) en una aplicación móvil.
 
-Esta aplicación permite a los usuarios firmar mensajes y enviar transacciones en una aplicación de Wallet Embebida en React Native sobre la red `arbitrum-sepolia`.
+Esta aplicación permite a los usuarios firmar mensajes y enviar transacciones en una aplicación React Native Embedded Wallet en la red `arbitrum-sepolia`.
 
 ## Plantilla
 
 <Note>
-  Comienza con una [plantilla](https://github.com/0xsequence/demo-waas-react-native) que utiliza Sequence Embedded Wallet.
+  Comience con una [plantilla](https://github.com/0xsequence/demo-waas-react-native) que aprovecha el Sequence Embedded Wallet.
 </Note>
 
-## Instrucciones para compilar
+## Instrucciones de construcción
 
-### Prerrequisitos
+### Requisitos previos
 ::::steps
 
-#### Instalar Yarn
+#### Instale Yarn
 
 ```shell
 npm install --global yarn
 ```
 
-#### Descargar Android Studio
-Dirígete a este [enlace para descargar Android Studio](https://developer.android.com/studio)
+#### Descargue Android Studio
+Diríjase al siguiente [enlace para descargar Android Studio](https://developer.android.com/studio)
 
-#### Descargar Java 22 SDK
-Dirígete a este [enlace para descargar Java SDK](https://www.oracle.com/java/technologies/downloads/)
+#### Descargue Java 22 SDK
+Diríjase al siguiente [enlace para descargar Java SDK](https://www.oracle.com/java/technologies/downloads/)
 
-#### Configura las rutas de tu Java SDK
-Si usas macOS o Linux, configura la ruta de tu Java SDK con las siguientes líneas en tu `~/.bashrc` (o `~/.zshrc`)
+#### Configure sus rutas de Java SDK
+Si está en macOS o Linux, configure la ruta de su sdk de java con las siguientes líneas en su `~/.bashrc` (o `~/.zshrc`)
 
 ```shell
 export ANDROID_HOME=$HOME/Android/Sdk
 export PATH=$PATH:$ANDROID_HOME/tools:$ANDROID_HOME/platform-tools
 ```
 
-Y ejecuta el siguiente comando para aplicar los cambios
+Y ejecute el siguiente comando para que los cambios tengan efecto
 
 ```shell
 source ~/.bashrc
 ```
 
-#### Instala XCode (si usas macOS)
-Dirígete a este [enlace para descargar Xcode](https://developer.apple.com/xcode/)
+#### Instale XCode (si está en macOS)
+Diríjase al siguiente [enlace para descargar Xcode](https://developer.apple.com/xcode/)
 
-#### Instala `cocoapods` (si usas macOS)
+#### Instale `cocoapods` (si está en macOS)
 
 ```
 sudo gem install cocoapods
@@ -61,51 +61,51 @@ sudo gem install cocoapods
 ::::steps
 
 #### Clonar el repositorio
-Comienza clonando el repositorio en tu computadora
+Comience clonando el repositorio en su computadora
 
 ```shell
 git clone git@github.com:0xsequence/demo-waas-react-native.git
 ```
 
-#### Crear un archivo de claves
-Navega a la carpeta `/android/app` con `cd` y ejecuta el siguiente comando para crear un keystore (archivo de claves)
+#### Cree un archivo de clave
+Navegue a la carpeta `/android/app` con `cd` y ejecute el siguiente comando para crear un keystore
 
 ```
 keytool -genkey -v -keystore debug.keystore -storepass android -alias androiddebugkey -keypass android -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=Android Debug,O=Android,C=US"
 ```
 
 #### `yarn install`
-Ubícate en la raíz del repositorio que clonaste con `cd` y ejecuta
+Ubíquese en la raíz del repositorio que clonó con `cd` y ejecute
 
 ```shell
 yarn install
 ```
 
-#### Abre el proyecto con Android Studio
-Abre el repositorio del proyecto con Android Studio y permite que el editor indexe y construya el proyecto
+#### Abra el proyecto con Android Studio
+Abra el repositorio del proyecto con Android Studio y permita que el editor indexe y compile el proyecto
 
-#### Ejecuta la aplicación en Android
-Una vez compilado el proyecto, ubícate en la raíz del repositorio clonado con `cd` y ejecuta
+#### Ejecute la aplicación en Android
+Una vez que el proyecto se haya compilado, haga `cd` en la raíz del repositorio clonado y ejecute
 
 ```shell
 yarn android
 ```
 
-#### Ejecuta la aplicación en iOS (si usas macOS)
+#### Ejecute la aplicación en iOS (si está en macOS)
 
 ```shell
 yarn ios 
 ```
 
-Intenta iniciar sesión y enviar algunas transacciones de prueba
+Intente iniciar sesión y enviar algunas transacciones de prueba
 
-#### Actualiza la configuración de WaaS
-Por último, para permitir que la instancia de Wallet Embebida cree wallets al iniciar sesión en tu aplicación específica, accede a [esta página](https://sequence.build/project/default/wallet/embedded-wallet) desde tu proyecto para obtener una clave de configuración WaaS, y utiliza [esta guía](/solutions/builder/embedded-wallet) para entender los diferentes aspectos de la configuración de Wallet Embebida que deberás actualizar en tu código.
+#### Actualice la configuración de WaaS
+Por último, para permitir que la instancia de Embedded Wallet cree wallets al iniciar sesión en su aplicación específica, acceda a [esta página](https://sequence.build/project/default/wallet/embedded-wallet) desde su proyecto para obtener una clave de configuración WaaS, y utilice [esta guía](/solutions/builder/embedded-wallet) para comprender los diferentes aspectos de la configuración de Embedded Wallet que debe actualizar en su código.
 
-Luego, en la siguiente ruta en el archivo `waasSetup.ts` desde las líneas 5-13, actualiza las variables para tu aplicación específica con los valores de `projectAccessKey` y `waasConfigKey` del Sequence Builder, y los ID de cliente de autenticación social de Google desde la consola de Google.
+Luego, en la siguiente ruta, en el archivo `waasSetup.ts` desde las líneas 5-13, actualice las variables para su aplicación específica que está construyendo, con los valores de `projectAccessKey` y `waasConfigKey` del Sequence Builder, y los ID de cliente de autenticación social de Google desde Google Console.
 
-Después, actualiza el archivo `app.json` en la línea 13 con el `bundleIdentifier` de Apple
+Después, actualice el archivo `app.json` en la línea 13 con el `bundleIdentifier` de Apple.
 
-Finalmente, actualiza las líneas 428 para `clientId` y la línea 432 para `redirectUri` en `App.tsx` desde la consola de desarrollador de Apple.
+Finalmente, actualice la línea 428 para `clientId` y la línea 432 para `redirectUri` en `App.tsx` desde el Apple Developer Console.
 
 ::::

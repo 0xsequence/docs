@@ -1,0 +1,60 @@
+---
+title: Configuración de Google para Embedded Wallet
+description: Aprenda cómo configurar un cliente OAuth de Google para su instancia de Embedded Wallet. Siga los pasos para crear un OAuth Client ID para aplicaciones web, Android o iOS.
+sidebarTitle: Configuración de Google
+---
+
+Para integrar Google Auth en su instancia de Embedded Wallet, debe configurar un cliente OAuth de Google en Google Developer Console. Dependiendo de si está integrando Embedded Wallet en una aplicación móvil nativa, de escritorio o web, debe elegir la configuración adecuada.
+
+## Crear ID de cliente OAuth
+Para comenzar, acceda a la [Google Developer Console](https://console.cloud.google.com/) y navegue a APIs y servicios > Credenciales. Una vez allí, seleccione Crear credenciales > ID de cliente OAuth. Si aún no lo ha hecho, es posible que también deba configurar la pantalla de consentimiento OAuth para poder continuar.
+
+<Frame>
+  ![Credenciales de Google Developer Console](/images/embedded_wallet/google/1.png)
+</Frame>
+
+Dependiendo del tipo de aplicación, elija la opción Web Application, iOS o Android:
+
+<Frame>
+  ![Tipo de aplicación](/images/embedded_wallet/google/2.png)
+</Frame>
+
+Los pasos restantes dependerán del tipo de aplicación que esté configurando.
+
+## Configurar aplicación web
+Si está configurando su ID de cliente para una aplicación web, debe proporcionar lo siguiente:
+1. Nombre de la aplicación
+2. Orígenes JavaScript autorizados: Una lista de dominios que estarán permitidos para interactuar con este ID de cliente.
+3. URIs de redirección autorizados: Una lista de URIs de redirección a las que el usuario será dirigido tras autenticarse exitosamente. Por defecto, los SDK de Sequence redirigen a la misma página que carga el SDK.
+
+<Frame>
+  ![Configuración de aplicación web](/images/embedded_wallet/google/3.png)
+</Frame>
+
+<Note>
+  Si agrega una dirección localhost con puerto (por ejemplo, `localhost:4444`) a la lista de orígenes autorizados, también debe agregar `localhost` solo, sin el puerto, para que funcione durante las pruebas.
+</Note>
+
+## Configurar aplicación Android
+Si está configurando su ID de cliente para una aplicación Android, debe proporcionar lo siguiente:
+1. Nombre de la aplicación
+2. Nombre del paquete: Es el nombre único del paquete de su proyecto Android.
+3. Huella digital SHA-1 del certificado: Es la huella SHA-1 de su paquete de aplicación. Puede seguir las instrucciones en pantalla para generarla usando `keytool`.
+
+![Configuración de aplicación Android](/images/embedded_wallet/google/4.png)
+
+## Configurar aplicación iOS
+Si está configurando su ID de cliente para una aplicación iOS, debe proporcionar lo siguiente:
+1. Nombre de la aplicación
+2. ID del paquete (Bundle ID): Es el identificador único del paquete de su proyecto iOS.
+
+<Frame>
+  ![Configuración de aplicación iOS](/images/embedded_wallet/google/5.png)
+</Frame>
+
+## Obtenga su Client ID
+Una vez que cree su aplicación, se le mostrará un ID de cliente. Cópielo y úselo como su Client ID de proveedor de inicio de sesión en Sequence Builder.
+
+<Frame>
+  ![ID de cliente](/images/embedded_wallet/google/6.png)
+</Frame>

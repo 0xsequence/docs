@@ -1,0 +1,130 @@
+---
+title: useGetSwapQuote
+description: 実行可能なスワップ見積もりとトランザクションデータを取得するためのフック
+sidebarTitle: useGetSwapQuote
+---
+
+## インポート
+
+```tsx
+import { useGetSwapQuote } from '@0xsequence/hooks'
+```
+
+## 使い方
+
+```tsx
+import { useGetSwapQuote } from '@0xsequence/hooks'
+
+function SwapComponent() {
+  const { data: swapQuote, isLoading } = useGetSwapQuote({
+    userAddress: '0x123...',
+    buyCurrencyAddress: '0x456...',
+    sellCurrencyAddress: '0x789...',
+    buyAmount: '1000000000000000000', 
+    chainId: 1,
+    includeApprove: true
+  })
+
+  if (isLoading) return <div>Loading...</div>
+
+  return (
+    <div>
+      {swapQuote && (
+        <div>
+          Currency: {swapQuote.currencyAddress}
+          Price: {swapQuote.price}
+          Max Price: {swapQuote.maxPrice}
+          Transaction Value: {swapQuote.transactionValue}
+        </div>
+      )}
+    </div>
+  )
+}
+```
+
+## 返却型：`UseQueryResult<SwapQuote>`
+このフックはReact Queryの`UseQueryResult`の全プロパティと、スワップ見積もりデータを返します。詳細な構造は以下の通りです：
+
+```tsx
+interface SwapQuote {
+  currencyAddress: string
+  currencyBalance: string
+  price: string
+  maxPrice: string
+  to: string
+  transactionData: string
+  transactionValue: string
+  approveData: string
+}
+```
+
+### プロパティ
+
+#### data
+`SwapQuote | undefined`
+
+スワップ見積もりオブジェクト（以下を含む）：
+- `currencyAddress`: スワップ対象通貨のアドレス
+- `currencyBalance`: ユーザーのウォレット内の通貨残高
+- `price`: 現在のスワップ価格
+- `maxPrice`: スリッページを含むスワップの最大許容価格
+- `to`: スワップの送信先コントラクトアドレス
+- `transactionData`: スワップ実行用のエンコード済みトランザクションデータ
+- `transactionValue`: トランザクションとともに送信する金額
+- `approveData`: 承認トランザクションのエンコードデータ（includeApproveがtrueの場合）
+
+#### isLoading
+`boolean`
+
+データ取得時のローディング状態。
+
+#### isError
+`boolean`
+
+クエリが失敗した場合のエラー状態。
+
+#### エラー
+`Error | null`
+
+データ取得中に発生したエラー内容。
+
+## パラメータ
+このフックは2つのパラメータを受け取ります：
+
+### 引数: `UseGetSwapQuoteArgs`
+
+```tsx
+interface UseGetSwapQuoteArgs {
+  userAddress: string
+  buyCurrencyAddress: string
+  sellCurrencyAddress: string
+  buyAmount: string
+  chainId: number
+  includeApprove?: boolean
+  slippagePercentage?: number
+}
+```
+
+| パラメータ                 | 型         | 説明                           |
+| --------------------- | --------- | ---------------------------- |
+| `userAddress`         | `string`  | ユーザーのウォレットアドレス               |
+| `buyCurrencyAddress`  | `string`  | 購入する通貨のアドレス                  |
+| `sellCurrencyAddress` | `string`  | 売却する通貨のアドレス                  |
+| `buyAmount`           | `string`  | 購入する通貨の金額（基準単位）              |
+| `chainId`             | `number`  | スワップが行われるチェーンID              |
+| `includeApprove`      | `boolean` | （オプション）承認トランザクションデータを含めるかどうか |
+| `slippagePercentage`  | `number`  | （オプション）許容される最大スリッページ率        |
+
+### options: `HooksOptions`
+
+```tsx
+interface HooksOptions {
+  disabled?: boolean
+  retry?: boolean
+}
+```
+
+| パラメータ      | 型         | 説明                       |
+| ---------- | --------- | ------------------------ |
+| `disabled` | `boolean` | （オプション）クエリの自動実行を無効にします   |
+| `retry`    | `boolean` | （オプション）失敗したクエリを再試行するかどうか |

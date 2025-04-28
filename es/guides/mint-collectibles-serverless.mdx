@@ -1,35 +1,35 @@
 ---
-title: Acuñe coleccionables usando una API de transacciones sin gas y sin servidor
-description: Aprenda cómo acuñar coleccionables usando una API de transacciones sin gas y sin servidor con Sequence. Implemente la API en un worker de Cloudflare para interacciones de usuario fluidas y sin pagos de gas.
-sidebarTitle: Cree un servicio de acuñación de coleccionables
+title: Mintee coleccionables usando una API de transacciones serverless sin gas
+description: Aprenda cómo mintear coleccionables usando una API de transacciones serverless sin gas con Sequence. Implemente la API en un worker de Cloudflare para interacciones de usuario sin pagos de gas.
+sidebarTitle: Construya un servicio de minteo de coleccionables
 ---
 
-Tiempo estimado: 20 a 30 minutos
+Tiempo para completar: 20-30 minutos
 
-La API de transacciones de Sequence puede implementarse en un worker de Cloudflare (Cloudflare Worker) sin servidor para que la interacción del usuario en un juego o aplicación sea fluida, sin necesidad de firma de confirmación ni pago de gas. Además, no tendrá que preocuparse por la velocidad de las transacciones, el rendimiento o las reorganizaciones (reorgs) del relayer, y disfrutará de escalabilidad automática con Cloudflare.
+La API de transacciones de Sequence puede implementarse en un worker serverless de [Cloudflare](https://cloudflare.com/) para que la interacción de un usuario en un juego o app sea fluida, sin necesidad de firma de confirmación ni pago de gas. Además, no tendrá que preocuparse por la velocidad de transacción, el rendimiento ni los reorgs del relayer, y disfrutará de escalabilidad automática con Cloudflare.
 
-Los siguientes pasos le guiarán para crear su API de acuñación alojada en 4 pasos:
-1. [Configure el entorno de Cloudflare con Wrangler Cli y despliegue una prueba](/guides/mint-collectibles-serverless#1-setup-cloudflare-environment-with-wrangler-cli-and-deploy-a-test)
-2. [Despliegue, patrocine y actualice metadata para un contrato ERC1155 con Sequence Builder](/guides/mint-collectibles-serverless#2-deploy-sponsor-and-update-metadata-for-an-erc1155-contract-with-sequence-builder)
-3. [Use EthAuthProof para prevenir ataques DDoS a EOA (Externally Owned Accounts)](/guides/mint-collectibles-serverless#3-use-ethauthproof-to-prevent-eoa-ddos)
-4. [Acuñe un coleccionable a una wallet](/guides/mint-collectibles-serverless#4-mint-a-collectible-to-wallet)
+Los siguientes pasos le guiarán para construir su API de minteo alojada en 4 pasos:
+1. [Configurar el entorno de Cloudflare con Wrangler CLI y desplegar una prueba](/guides/mint-collectibles-serverless#1-setup-cloudflare-environment-with-wrangler-cli-and-deploy-a-test)
+2. [Desplegar, patrocinar y actualizar metadata para un contrato ERC1155 con Sequence Builder](/guides/mint-collectibles-serverless#2-deploy-sponsor-and-update-metadata-for-an-erc1155-contract-with-sequence-builder)
+3. [Usar EthAuthProof para prevenir DDoS de EOA](/guides/mint-collectibles-serverless#3-use-ethauthproof-to-prevent-eoa-ddos)
+4. [Mintear un coleccionable a una wallet](/guides/mint-collectibles-serverless#4-mint-a-collectible-to-wallet)
 
 El resultado: una API segura con las siguientes especificaciones:
 - HTTPS GET: devuelve blockNumber
-- HTTPS POST(proof, address): acuña un coleccionable y devuelve el hash de la transacción
+- HTTPS POST(proof, address): mintea un coleccionable y devuelve el hash de la transacción
 
 <Warning>
-  Necesitas conocimientos básicos de wrangler cli, npm y Sequence Builder para completar esta implementación.
+  Necesita conocimientos básicos de wrangler cli, npm y Sequence Builder para completar esta implementación.
 </Warning>
 
 <Note>
   [Vea el código completo aquí](https://github.com/0xsequence-demos/template-cloudflare-worker-sequence-transactions-api)
 </Note>
 
-## 1. Configure el entorno de Cloudflare con Wrangler Cli y despliegue una prueba
+## 1. Configurar el entorno de Cloudflare con Wrangler CLI y desplegar una prueba
 Para crear el proyecto desde cero, primero cree una carpeta con `mkdir`, ingrese a la carpeta con `cd` y ejecute `pnpm init` para crear un `package.json`.
 
-A continuación, asegúrese de tener instalado wrangler cli en su proyecto y configure la palabra clave `wrangler` como un alias en su sesión local de bash.
+A continuación, asegúrese de tener wrangler cli instalado en su proyecto y configure la palabra clave `wrangler` como un alias en su sesión local de bash.
 
 ```shell
 pnpm install wrangler --save-dev
@@ -42,15 +42,15 @@ Cree una cuenta en el [sitio de Cloudflare](https://cloudflare.com/) e inicie se
 wrangler login
 ```
 
-Una vez que haya iniciado sesión, inicialice el proyecto en el directorio aceptando uno de los nombres de carpeta generados aleatoriamente que le guste, y siga las indicaciones para inicializar su aplicación de worker typescript `"Hello World"` con control de versiones en git.
+Una vez que haya iniciado sesión, inicialice el proyecto en el directorio aceptando uno de los nombres de carpeta generados aleatoriamente que le guste, y siga las indicaciones para inicializar su aplicación typescript `"Hello World" Worker` con control de versiones en git.
 
 ```shell
 wrangler init
 ```
 
-Para completar este paso, presione enter 4 veces después de `wrangler init`, respondiendo `No` en los dos últimos pasos para rechazar el control de versiones con git y el despliegue.
+Para completar este paso, presione enter 4 veces después de `wrangler init`, respondiendo `No` en los últimos 2 pasos para rechazar el versionado con git y el despliegue.
 
-Se clonará un repositorio inicial que puede usar para desplegar código en la nube.
+Esto clonará un repositorio inicial que puede usar para desplegar código en la nube.
 
 <Note>
   Pruebas locales de la API <br />
@@ -58,24 +58,24 @@ Se clonará un repositorio inicial que puede usar para desplegar código en la n
 </Note>
 
 #### Despliegue de prueba
-Finalmente, cambie al directorio del proyecto generado aleatoriamente con `cd` y ejecute el comando `wrangler deploy`.
+Finalmente, cambie al directorio del proyecto generado aleatoriamente usando `cd` y ejecute el comando `wrangler deploy`.
 
-Esto mostrará una URL, la cual puede ingresar en su navegador en la dirección `https://<app>.<account>.workers.dev` para ver el resultado `Hello World!`.
+Esto debería mostrar una URL, que puede ingresar en el navegador como `https://<app>.<account>.workers.dev` para ver el resultado `Hello World!`.
 
-## 2. Despliegue, patrocine y actualice metadata para un contrato ERC1155 con Sequence Builder
+## 2. Desplegar, patrocinar y actualizar metadata para un contrato ERC1155 con Sequence Builder
 
 <Warning>
-  Para usar la API de transacciones, deberá actualizar su facturación a `Developer` para su proyecto en Sequence Builder, lo cual puede hacer con [esta guía](/support/builder/project-settings#5-billing-settings)
+  Para usar la API de transacciones, deberá actualizar su plan de facturación a `Developer` para su proyecto en Sequence Builder, lo cual puede hacer siguiendo [esta guía](/support/builder/project-settings#5-billing-settings)
 </Warning>
 
 Primero, siga [esta guía](/solutions/collectibles/contracts/deploy-an-item-collection) para desplegar un contrato.
 
-Luego, debes actualizar los permisos de acceso del contrato en Builder para que solo reciba solicitudes desde la dirección de la billetera de minteo; esto se realiza en dos pasos.
+Luego, debe actualizar el acceso por roles del contrato en el Builder para que solo reciba solicitudes desde la dirección de la wallet de minteo, lo cual puede hacerse en 2 pasos.
 
-En Sequence Builder, otorgue el permiso de minter a su dirección de la API de transacciones de Sequence.
+Puede hacer esto en Sequence Builder otorgando el `minter permission` a su `Sequence Wallet Transactions API Address`.
 
 Para saber cuál es la dirección de la API de transacciones con la que está trabajando, primero debe:
-1. Generar una usando esta [aplicación](https://sequence-ethauthproof-viewer.vercel.app/) seleccionando su red y generando una clave de wallet con el botón `generate local wallet` (solo para demostración)
+1. Generar una usando esta [app](https://sequence-ethauthproof-viewer.vercel.app/) seleccionando su red y generando una clave de wallet con el botón `generate local wallet` (solo para demostración)
 2. `Recomendado`: También puede imprimir localmente la dirección de cuenta generada a partir de una clave privada de wallet EOA usando el siguiente fragmento de código:
 
 ```ts
@@ -102,7 +102,7 @@ import { ethers } from "ethers";
 })();
 ```
 
-Para hacerlo, abra su proyecto, vaya a la página de `Contracts`, seleccione sus `Linked contracts` y, en la pestaña `Write Contract`, expanda el método `grantRole`.
+Para hacerlo, abra su proyecto, navegue a la página de `Contracts`, seleccione sus `Linked contracts` y, en la pestaña `Write Contract`, expanda el método `grantRole`.
 
 Complete con los siguientes datos:
 
@@ -111,23 +111,23 @@ Complete con los siguientes datos:
 `address account`: `<Generated Sequence Transactions API Wallet Address>`
 
 <Frame>
-  <img src="/images/relayer/grant_role.png" alt="Conceder un rol al relayer" />
+  <img src="/images/relayer/grant_role.png" alt="Otorgue un rol al relayer" />
 </Frame>
 
-Donde la cadena `role` ingresada es el resultado de `keccak256("MINTER_ROLE")` en solidity o `ethers.keccak256(ethers.toUtf8Bytes("MINTER_ROLE"))` en javascript
+Donde el string `role` ingresado es el resultado de `keccak256("MINTER_ROLE")` en solidity o `ethers.keccak256(ethers.toUtf8Bytes("MINTER_ROLE"))` en javascript
 
-Esto hace que solo su dirección específica pueda acuñar desde el contrato; de lo contrario, generará un error.
+Esto hace que solo su dirección específica pueda mintear desde el contrato; de lo contrario, dará error.
 
 Complete la actualización del rol haciendo clic en `write` y firme la transacción patrocinada.
 
-#### Actualizar Metadata
-A continuación, deberás actualizar los metadatos con tus medios o recursos para tu contrato, lo cual puedes hacer siguiendo esta guía [siguiendo esta guía](/solutions/collectibles/metadata/manage-metadata-builder).
+#### Actualizar metadata
+A continuación, deberá actualizar la metadata con sus medios o assets para su contrato, lo cual puede hacer [siguiendo esta guía](/solutions/collectibles/metadata/manage-metadata-builder).
 
 #### Patrocinio del contrato
 Finalmente, para patrocinar el contrato siga [esta guía](/solutions/builder/gas-tank) para patrocinar un contrato.
 
-## 3. Use EthAuthProof para prevenir DDoS de EOA
-Ahora que tenemos un contrato desplegado, podemos volver al directorio y proyecto del worker de Cloudflare, e instalar `ethers` y `0xsequence` para acceder a las APIs de Sequence y validar que la solicitud proviene de una billetera de Sequence confiable.
+## 3. Usar EthAuthProof para prevenir DDoS de EOA
+Ahora que tenemos un contrato desplegado, podemos volver al directorio y proyecto del worker de Cloudflare e instalar `ethers` y `0xsequence` para acceder a las APIs de sequence y realizar una validación de prueba que asegure que la solicitud proviene de una fuente confiable, una wallet de sequence.
 
 ```shell
 pnpm install 0xsequence @0xsequence/network
@@ -313,9 +313,9 @@ CHAIN_HANDLE = "" # // Standardized chain name – See https://docs.sequence.xyz
 ```
 
 #### Implementar el objeto Window en la plantilla de Wrangler
-Tenga en cuenta que, si intenta desplegar esto, obtendrá un error por falta del objeto `window` requerido por los módulos web3.
+Debe tener en cuenta que, si intenta desplegar esto, obtendrá un error por falta del objeto `window` requerido por los módulos web3.
 
-Para evitarlo, agregue la siguiente línea a su archivo `wrangler.toml` para hacer el entorno compatible.
+Para evitar esto, agregue la siguiente línea a su archivo `wrangler.toml` para hacer el entorno compatible.
 
 ```
 ...
@@ -323,10 +323,10 @@ node_compat = true # add this line
 ...
 ```
 
-#### Pruebas del despliegue
-Ahora puedes volver a desplegar usando `wrangler deploy`
+#### Probando el despliegue
+Ahora puede volver a desplegar usando `wrangler deploy`
 
-Y puedes realizar una solicitud curl para probar tu endpoint de la siguiente manera:
+Y realizar una solicitud curl para probar su endpoint así:
 
 ```shell
 curl -X POST https://your-worker.your-subdomain.workers.dev \
@@ -339,26 +339,26 @@ curl -X POST https://your-worker.your-subdomain.workers.dev \
 success
 ```
 
-Puedes obtener la prueba de dirección de tu billetera usando este [dapp](https://sequence-ethauthproof-viewer.vercel.app/) y siguiendo los pasos a continuación.
+Puede obtener la prueba de dirección de su wallet usando este [dapp](https://sequence-ethauthproof-viewer.vercel.app/) y seguir los pasos a continuación.
 
-#### Usando el visor ETHAuthProof dapp
-Cuando llegues a la página, lo primero que debes hacer es seleccionar una red.
+#### Usando el dapp ETHAuthProof Viewer
+Cuando llegue a la página, lo primero que debe hacer es seleccionar una red.
 
-Después tienes la opción de conectar y generar la prueba, o bien generar una billetera local.
+Luego tiene la opción de conectar y generar el Proof, o bien generar un wallet local.
 
 <Frame>
   ![Visor ETHAuthProof](/images/relayer/ethauthproof_viewer_connect.png)
 </Frame>
 
-Presiona el botón `connect` y luego `copy to clipboard`.
+Presione el botón `connect` y luego `copy to clipboard`.
 
 <Frame>
-  ![Visor ETHAuthProof copiar al portapapeles](/images/relayer/ethauthproof_viewer_copy.png)
+  ![ETHAuthProof Viewer copiar al portapapeles](/images/relayer/ethauthproof_viewer_copy.png)
 </Frame>
 
-Cabe señalar que es mejor no compartir este `ETHAuthProof` con nadie, ya que permitiría que otra persona demuestre la propiedad de tu billetera e interactúe con APIs específicas.
+Cabe señalar que es mejor no compartir este `ETHAuthProof` con nadie, ya que permitiría que otra persona demuestre la propiedad de su wallet e interactúe con APIs específicas.
 
-Por último, reemplaza el `url` con el de tu aplicación de [este paso](/guides/mint-collectibles-serverless#deploy-test), el `<some_proof>` con el valor generado que copiaste desde el visor dapp, y `<some_address>` con la dirección de tu billetera. Debería devolver solo la cadena simulada `0x`.
+Por último, reemplace el `url` con el de su app de [este paso](/guides/mint-collectibles-serverless#deploy-test), el `<some_proof>` con el valor generado que copió desde el dapp visor, y `<some_address>` con la dirección de su wallet. Debería devolver simplemente el string simulado `0x`.
 
 ```shell
 curl -X POST https://your-worker.your-subdomain.workers.dev \
@@ -366,14 +366,14 @@ curl -X POST https://your-worker.your-subdomain.workers.dev \
 -d '{"proof": "<some_proof>", "address": "<some_address>", "tokenId": 0 }'
 ```
 
-## 4. Acuñar un coleccionable a una billetera
-Finalmente, para desplegar y acuñar un coleccionable desde la dirección de contrato patrocinada, instala los siguientes paquetes
+## 4. Mintear un coleccionable al wallet
+Finalmente, para desplegar y mintear un coleccionable desde la dirección del contrato patrocinado, instalamos los siguientes paquetes
 
 ```shell
 pnpm install @0xsequence/auth ethers
 ```
 
-e implementa los métodos `callContract` y `getBlockNumber` que antes estaban simulados, de la siguiente manera:
+e implementamos los métodos `callContract` y `getBlockNumber` que antes estaban simulados, de la siguiente manera:
 
 ```ts
 import { ethers } from 'ethers'
@@ -439,6 +439,6 @@ const callContract = async (request: Request, env: Env, address: string, tokenId
 }
 ```
 
-Una vez completados estos pasos, puedes volver a desplegar y probar siguiendo las instrucciones de [este paso anterior](/guides/mint-collectibles-serverless#testing). Esta vez, la solicitud POST debería devolver el hash de la transacción de la acuñación realizada y la solicitud GET debería devolver un número de bloque.
+Una vez completados estos pasos, puede volver a desplegar y probar siguiendo los pasos descritos en [el paso anterior](/guides/mint-collectibles-serverless#testing). Esta vez, la solicitud POST debería devolver un hash de transacción por el minteo realizado y la solicitud GET debería devolver un número de bloque.
 
-Si quieres ver el código completo, consulta [un ejemplo de implementación aquí](https://github.com/0xsequence-demos/cloudflare-worker-sequence-transactions-api)
+Si quiere ver el código completo, consulte [un ejemplo de implementación aquí](https://github.com/0xsequence-demos/cloudflare-worker-sequence-transactions-api)

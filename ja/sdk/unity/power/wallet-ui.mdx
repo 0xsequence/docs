@@ -1,0 +1,50 @@
+---
+title: ウォレットUI
+---
+
+Wallet as a Service製品として、このSDKにはUIは不要です。ただし、一部のアプリではユーザー向けにウォレットUIを提供したい場合もあると考え、デフォルトUIの提供に取り組んでいます。
+
+このUIは `SequenceFrontend` に含まれています。
+
+シーンにUIを追加するには、`SequenceFrontend > Prefabs` 内にある `WalletPanel` プレハブを追加してください。開く際は Open メソッドを使用し、引数として `Sequence.EmbeddedWallet.IWallet`（例：`SequenceWallet`）を指定する必要があります。
+
+UIはまだ開発途中であり、一部の箇所ではモック（トランザクション履歴や価格の取得など）が使われていることにお気づきになるでしょう。これらは今後のSDKアップデートで置き換えられる予定ですが、ご自身で差し替えていただいても構いません（もしPRを送っていただければ大歓迎です！）。
+
+## 仕組みについて
+サンプルのSequence UIはいくつかの重要なコンポーネントで構成されています。
+
+### UIPage
+`UIPage`は、サンプルUIにおける「ページ」の基本実装です。例：`LoginPage`、`TokenInfoPage`
+
+ページの開閉や、選択した`ITween`の管理を担当します。
+
+### ITween
+`ITween`はアニメーション（イン／アウト）用のインターフェースで、`RectTransform`（`UIPage`に必須のコンポーネント）に適用できます。特定の`UIPage`や`UIPanel`のアニメーションが気に入らない場合は、`ITween`インターフェースを実装した他のMonoBehaviour（ご自身で作成したものも含む）に簡単に差し替え可能です。
+
+ヒント：独自のアニメーションを作成する時間を節約したい場合は、人気のある[DOTweenツールセット](https://assetstore.unity.com/packages/tools/animation/dotween-hotween-v2-27676)の利用を検討してください。
+
+### UIPanel
+`UIPage`を継承した`UIPanel`は、サンプルUIにおける「パネル」の基本実装です。例：`LoginPanel`、`WalletPanel`
+
+`UIPage`の役割に加え、UIPanelはUIPagesと`object[]`（開く際の引数）のスタックを管理し、必要なイベントリスナーや子ページ間のUI遷移（Sceneインスペクタの階層に従う）、「戻る」ボタンの処理なども担当します。
+
+### SequenceSampleUI
+`SequenceSampleUI`はサンプルUIの「マネージャー」として機能します。すべてのUIPanelへの参照を保持し、必要に応じて（`Start()`時など）開く役割を担います。サンプルUIの全部または一部をプロジェクトに組み込む場合は、`SequenceSampleUI`を参考にしつつ、ご自身のUI「マネージャー」と置き換えるのが実用的かもしれません。
+
+## UIのカスタマイズ性
+UnityのUIシステム上に構築されているため、UIは完全にカスタマイズ可能です。ぜひご自身のアプリに合わせて自由に「美しく」仕上げてください！
+
+### カラースキームマネージャー
+その手助けとして、基本的な`ColorSchemeManager`スクリプトを用意しました。デモシーンでお試しいただけます（[Package Managerからインポート可能](/sdk/unity/installation#samples)）。
+
+`ColorSchemeManager`を使うには、編集モードで以下の手順を行ってください。
+1. 上部メニューの `Assets > Create > Sequence > Color Scheme` から `Color Scheme` [スクリプタブルオブジェクト](https://docs.unity3d.com/Manual/class-ScriptableObject.html) を作成し、適切な名前を付けてください。
+2. 新しく作成したスクリプタブルオブジェクトで希望の色を設定します（アルファ値の設定もお忘れなく！Unityではデフォルトで0になっています）。
+3. インスペクタでシーン内の`ColorSchemeManager` MonoBehaviourを探してください。デモシーンでは、これは`SequenceCanvas`ゲームオブジェクトにアタッチされています。
+4. 作成したスクリプタブルオブジェクトをカラースキームとして設定します。
+5. 「Apply」をクリックしてください。適用には数秒かかる場合があり、Unityのインスペクタ更新の仕組み（バージョンによる）により、複数回クリックが必要な場合もあります。
+
+`ColorSchemeManager`は完璧な結果や理想的なUIをすぐに提供するものではありませんが、作業時間の短縮に役立てば幸いです。
+
+### さらなるカスタマイズツールも近日公開予定
+今後、より便利なツールを提供し、UIのカスタマイズをさらに簡単・迅速にできるようにしたいと考えています。私たちにもアイデアはありますが、皆さまご自身のニーズが一番よく分かるはずです。ご要望やアイデアがあれば、ぜひお気軽にご連絡ください。もちろん、PRのご提出も大歓迎です！

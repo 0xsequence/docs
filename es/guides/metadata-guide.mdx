@@ -1,29 +1,29 @@
 ---
 title: Gestión de metadatos de colecciones
-description: Cómo almacenar medios usando la API de Sequence Collections con Cloudflare Workers, así como leer desde la Metadata API para mostrar imágenes.
-sidebarTitle: Gestionar metadatos de colecciones
+description: Cómo almacenar archivos multimedia usando la API de Sequence Collections con Cloudflare Workers, así como leer desde la Metadata API para mostrar imágenes.
+sidebarTitle: Administrar metadatos de la colección
 ---
 
 Tiempo estimado: 20 minutos
 
-En esta guía mostraremos cómo almacenar medios usando la API de Sequence Collections con [Cloudflare Workers](https://www.cloudflare.com/), así como leer desde la Metadata API para mostrar imágenes.
+En esta guía le mostraremos cómo almacenar archivos multimedia usando la API de Sequence Collections con [Cloudflare Workers](https://www.cloudflare.com/), así como leer desde la Metadata API para mostrar imágenes.
 
 Esto se puede lograr en 8 pasos
-1. [Obtenga una clave secreta de API](/guides/metadata-guide#1-obtain-a-secret-api-key) desde la [Sequence Builder Console](https://sequence.build)
-2. [Cree una colección](/guides/metadata-guide#2-create-collection-from-a-curl-request) desde una solicitud cURL una sola vez
+1. [Obtenga una clave API secreta](/guides/metadata-guide#1-obtain-a-secret-api-key) desde el [Sequence Builder Console](https://sequence.build)
+2. [Cree una colección](/guides/metadata-guide#2-create-collection-from-a-curl-request) mediante una solicitud cURL una sola vez
 3. [Cree un token](/guides/metadata-guide#3-create-token-using-tokenid) usando un tokenID
-4. [Cree un activo](/guides/metadata-guide#4-create-asset-using-tokenid) usando un assetID
-5. [Almacenar una imagen](/guides/metadata-guide#5-store-image-asset) procesar y almacenar una imagen
-6. [Actualizar a no privado](/guides/metadata-guide#6-update-non-private-token) actualizar un activo para que no sea privado
-7. [Publique la colección](/guides/metadata-guide#7-publish-collection-from-a-curl-request) desde una solicitud cURL una sola vez
-8. [Mostrar el activo desde la API](/guides/metadata-guide#8-render-asset-from-api-publicly) desde una solicitud cURL una sola vez
+4. [Cree un asset](/guides/metadata-guide#4-create-asset-using-tokenid) usando un assetID
+5. [Almacene una imagen](/guides/metadata-guide#5-store-image-asset) procese y almacene una imagen
+6. [Actualice a no privado](/guides/metadata-guide#6-update-non-private-token) cambie un asset a no privado
+7. [Publique la colección](/guides/metadata-guide#7-publish-collection-from-a-curl-request) mediante una solicitud cURL una sola vez
+8. [Renderice el asset desde la API](/guides/metadata-guide#8-render-asset-from-api-publicly) mediante una solicitud cURL una sola vez
 
-Primero siga [esta sección de la Guía de Servicio de Acuñación de Coleccionables](/guides/mint-collectibles-serverless#1-setup-cloudflare-environment-with-wrangler-cli-and-deploy-a-test) para crear un Cloudflare Worker
+Primero siga [esta sección de la Guía de Servicio de Minteo de Coleccionables](/guides/mint-collectibles-serverless#1-setup-cloudflare-environment-with-wrangler-cli-and-deploy-a-test) para crear un Cloudflare Worker
 
-## 1. Obtenga una clave secreta de API
-Para utilizar el servicio backend, debe obtener una clave secreta de API (`Secret API`) para autenticar las solicitudes a su proyecto.
+## 1. Obtenga una clave API secreta
+Para utilizar el servicio backend, debe obtener una `Secret API` Key para autenticar las solicitudes a su proyecto.
 
-Primero, acceda a la configuración y seleccione las claves de API desde la [Sequence Builder Console](https://sequence.build/)
+Primero, acceda a la configuración y seleccione las claves API desde el [Sequence Builder Console](https://sequence.build/)
 
 <Frame>
   ![builder settings access keys](/images/builder/builder_settings_access_keys.png)
@@ -35,16 +35,16 @@ Desplácese hacia abajo y seleccione `+ Add Service Account`
   ![builder settings add service account](/images/builder/builder_settings_add_service_account.png)
 </Frame>
 
-Luego cambie el acceso a `write` y confirme
+Luego cambie el acceso a `write` y `confirm`
 
 <Frame>
   ![builder settings add service account](/images/builder/builder_settings_add_service_account_confirm.png)
 </Frame>
 
-Finalmente, `copie` la clave y guárdela en su `wrangler.toml` como `JWT_ACCESS_KEY`, ya que no podrá acceder a ella en el futuro desde la Sequence Builder Console.
+Finalmente, `copie` la clave y guárdela en su `wrangler.toml` como `JWT_ACCESS_KEY`, ya que no podrá acceder a ella en el futuro desde el Sequence Builder Console.
 
 ## 2. Crear una colección desde una solicitud cURL
-Como requisito único para subir medios al servicio, primero debe crear una colección. Utilice la `Secret API Key` y el `projectID` obtenidos desde la [Builder Console](https://sequence.build/)
+Como requisito previo para subir medios al servicio, primero debe crear una colección. Utilice la `Secret API Key` y el `projectID` obtenidos desde el [Builder Console](https://sequence.build/)
 
 Llamamos al servicio para obtener un `collectionID`
 
@@ -70,13 +70,13 @@ curl --location 'https://metadata.sequence.app/rpc/Collections/CreateCollection'
 
 Luego, establecemos el `collectionID` de la respuesta recibida en el `wrangler.toml` como `COLLECTION_ID`
 
-## 3. Crear Token usando TokenID
+## 3. Crear un token usando TokenID
 
 <Note>
-  Si utiliza un worker de Cloudflare, asegúrese de agregar `node_compat = true` a su `wrangler.toml` para que el objeto `window` pueda usarse en el paquete `@0xsequence/metadata`
+  Si usa un worker de Cloudflare, asegúrese de agregar `node_compat = true` a su `wrangler.toml` para que el objeto window esté disponible para el paquete `@0xsequence/metadata`
 </Note>
 
-Instale el paquete de metadatos para usar `SequenceCollections` con `pnpm install @0xsequence/metadata`
+Instale el paquete de metadata para usar `SequenceCollections` con `pnpm install @0xsequence/metadata`
 
 ```typescript
 import { SequenceCollections } from '@0xsequence/metadata'
@@ -101,8 +101,8 @@ const res1 = await collectionsService.createToken({
 
 ```
 
-## 4. Crear un activo usando TokenID
-En la solicitud, establezca el `metadadaField` (assetType) en `image`, completando los demás campos necesarios para obtener una respuesta de activo que se usará en el siguiente paso
+## 4. Crear un asset usando TokenID
+En la solicitud, establezca el `metadadaField` (assetType) en `image`, completando los otros campos necesarios para obtener una respuesta de asset que se usará en el siguiente paso
 
 ```typescript
 const jsonCreateAsset = await collectionsService.createAsset({
@@ -117,7 +117,7 @@ const jsonCreateAsset = await collectionsService.createAsset({
 
 ```
 
-## 5. Almacenar el activo de imagen
+## 5. Almacenar el asset de imagen
 Con el `asset.id` proporcionado del objeto `jsonCreateAsset` anterior
 
 ```typescript
@@ -182,8 +182,8 @@ const res3 = await collectionsService.updateToken({
 
 ---
 
-## 7. Publicar la colección desde una solicitud cURL
-Finalmente, también como una solicitud única, publicamos la colección usando el `projectID` y `collectionID` ejecutando el siguiente comando
+## 7. Publicar colección desde una solicitud cURL
+Finalmente, también como una solicitud única, publicamos la colección usando el `projectID` y el `collectionID` ejecutando el siguiente comando
 
 ```shell
 curl --location 'https://metadata.sequence.app/rpc/Collections/PublishCollection' \
@@ -195,12 +195,12 @@ curl --location 'https://metadata.sequence.app/rpc/Collections/PublishCollection
 }'
 ```
 
-Esto hará que la colección y todos los tokens con el indicador "private" en `false` sean accesibles públicamente, mientras que los demás permanecerán ocultos hasta que se cambie su estado
+Esto hará que la colección y todos los tokens con la propiedad `private` establecida en `false` sean accesibles públicamente, mientras que los demás permanecerán ocultos hasta que se cambie su estado
 
-## 8. Renderizar activo desde la API públicamente
-Puede probar lo realizado anteriormente llamando a esta solicitud cURL con las variables actualizadas, lo que descargará el archivo en su terminal local.
+## 8. Renderizar asset desde la API públicamente
+Puede probar su trabajo anterior llamando a esta solicitud cURL con las variables actualizadas, lo que descargará el archivo en su terminal local.
 
-O puede copiar y pegar la URL en un navegador para ver la imagen
+O puede copiar y pegar la URL en un navegador y ver la imagen
 
 Si usó el mismo código, el `<file_name>` será `image.png`
 
@@ -208,15 +208,15 @@ Si usó el mismo código, el `<file_name>` será `image.png`
 curl --location 'https://metadata.sequence.app/projects/<project_id>/collections/<collection_id>/tokens/<token_id>/<file_name>' --output stored_file.png
 ```
 
-Y si estaba usando la colección para el `baseURI` de un `ERC721` o `ERC1155`, escribiría en un contrato inteligente `setBaseMetadataURI` el siguiente `URI`
+Y si estaba usando la colección para el `baseURI` de un `ERC721` o `ERC1155`, escribiría en un smart contract `setBaseMetadataURI` la siguiente `URI`
 
 ```
 https://metadata.sequence.app/projects/<project_id>/collections/<collection_id>/tokens/
 ```
 
-Y el contrato inteligente agregará automáticamente el `tokenID` al final
+Y el smart contract agregará automáticamente el `tokenID` al final
 
-Pruébelo
+Pruébelo usted mismo
 
 ```shell [cURL]
 curl https://metadata.sequence.app/projects/1229/collections/40/tokens/457657099779485875855215293997335918990635014431
@@ -224,8 +224,8 @@ curl https://metadata.sequence.app/projects/1229/collections/40/tokens/457657099
 
 O en un [navegador](https://metadata.sequence.app/projects/1229/collections/40/tokens/457657099779485875855215293997335918990635014431)
 
-### Renderizar activo desde la API de forma privada
-Alternativamente, puede decidir mantener sus activos almacenados como privados, pero aún así renderizar los datos pasando una clave secreta de API en el `header` junto con los parámetros completos; para esta guía el `metadata_field` está configurado como `image`
+### Renderizar asset desde la API de forma privada
+Alternativamente, puede decidir mantener sus assets almacenados como privados, pero aún así renderizar los datos pasando una clave secreta de API en el `header` junto con los parámetros completos; para esta guía el `metadata_field` está configurado como `image`
 
 ```shell [cURL]
 curl --location 'https://metadata.sequence.app/projects/<project_id>/collections/<collection_id>/tokens/<token_id>/asset/<metadada_field>' \

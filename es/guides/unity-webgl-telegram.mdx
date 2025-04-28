@@ -1,14 +1,16 @@
 ---
 title: Cree un Mini-Juego de Telegram en Unity
-description: Esta guía cubre la creación de un Juego de Telegram usando el SDK de Unity de Sequence.
+description: Esta guía cubre la creación de un juego para Telegram usando el SDK de Unity de Sequence.
 sidebarTitle: Cree un Mini-Juego de Telegram en Unity
 ---
 
-Esta guía explica cómo configurar su Miniapp o juego de Telegram usando el SDK de Unity de Sequence, habilitando funcionalidad web3 en cadenas EVM para sus usuarios, para métodos de autenticación por correo electrónico y como invitado.
+Esta guía le llevará paso a paso para configurar su mini-app o juego de Telegram usando el SDK de Unity de Sequence, habilitando funcionalidad web3
+en cadenas EVM para sus usuarios, ya sea mediante métodos de autenticación por correo electrónico o como invitado.
 
-Desarrollaremos la lógica del juego en Unity, pero para desplegarlo como un Mini-Juego de Telegram, empaquetaremos la compilación WebGL dentro de un proyecto React.
+Desarrollaremos la lógica del juego en Unity, pero para desplegarlo como un Mini-Juego de Telegram, empaquetaremos la compilación WebGL
+dentro de un proyecto React.
 
-## Configure su Bot de Telegram
+## Configure su bot de Telegram
 
 <Steps>
   <Step title="Cree un Bot de Telegram con BotFather">
@@ -31,19 +33,24 @@ Desarrollaremos la lógica del juego en Unity, pero para desplegarlo como un Min
   </Step>
 </Steps>
 
-## Prepare su Proyecto Unity WebGL
+## Prepare su proyecto Unity WebGL
 
 <Steps>
   <Step title="Instale el SDK de Unity de Sequence">
-    Use una de nuestras [opciones recomendadas de instalación](/sdk/unity/installation) para su proyecto existente o utilice nuestro [Boilerplate de Unity](https://github.com/0xsequence/unity-embedded-wallet-boilerplate) si desea comenzar un proyecto desde cero.
+    Utilice una de nuestras [opciones recomendadas de instalación](/sdk/unity/installation) para su proyecto existente o use nuestro
+    [Unity Boilerplate](https://github.com/0xsequence/unity-embedded-wallet-boilerplate) si desea comenzar un proyecto desde cero.
   </Step>
 
-  <Step title="Interfaz para Dispositivos Móviles">
-    Asegúrese de que la interfaz de su juego esté optimizada para relaciones de aspecto móviles. Recomendamos usar el [Simulador de Dispositivos para Unity](https://docs.unity3d.com/2022.3/Documentation/Manual/device-simulator.html). Además, asegúrese de que el manejo de entradas esté configurado para controles táctiles.
+  <Step title="Interfaz para diseños móviles">
+    Asegúrese de que la interfaz de su juego esté optimizada para relaciones de aspecto móviles. Recomendamos usar el
+    [Device Simulator para Unity](https://docs.unity3d.com/2022.3/Documentation/Manual/device-simulator.html).
+    Además, asegúrese de que el manejo de entradas esté configurado para controles táctiles.
   </Step>
 
-  <Step title="Configure la Plantilla React de Sequence para WebGL">
-    El SDK de Unity de Sequence incluye una plantilla WebGL para exportar como proyecto React. Copie la carpeta `WebGLTemplates` desde `Packages/Sequence Embedded Wallet SDK/` a la carpeta `Assets/` de su proyecto. Vaya a `Project Settings` -> `Player` -> `WebGL` -> `Resolution and Presentation` y seleccione la plantilla `SequenceReact`.
+  <Step title="Configure la plantilla React de Sequence para WebGL">
+    El SDK de Unity de Sequence incluye una plantilla WebGL para exportar como un proyecto React.
+    Copie la carpeta `WebGLTemplates` desde `Packages/Sequence Embedded Wallet SDK/` a su directorio `Assets/` del proyecto.
+    Vaya a `Project Settings` -> `Player` -> `WebGL` -> `Resolution and Presentation` y seleccione la plantilla `SequenceReact`.
   </Step>
 
   <Step title="Configuración de Cloudflare">
@@ -63,7 +70,8 @@ Desarrollaremos la lógica del juego en Unity, pero para desplegarlo como un Min
   </Step>
 
   <Step title="Compile su juego WebGL como un proyecto React">
-    Abra el directorio raíz de su proyecto React en una terminal o en un IDE como Visual Studio Code, y ejecute el siguiente comando para probar su juego en el navegador.
+    Abra el directorio raíz de su proyecto React en una CLI o en un IDE como Visual Studio Code, y ejecute el siguiente
+    comando para probar su juego en el navegador.
 
     ```
     pnpm install
@@ -75,16 +83,18 @@ Desarrollaremos la lógica del juego en Unity, pero para desplegarlo como un Min
 ## Despliegue su Mini-Juego de Telegram
 
 <Steps>
-  <Step title="Autentíquese con su cuenta de Cloudflare">
+  <Step title="Autentíquese con la cuenta de Cloudflare">
     Desde el directorio raíz del proyecto React, despliegue la aplicación y la lógica de funciones en Cloudflare.
 
     1. Ejecute `pnpm wrangler pages deploy`
 
-    Esto le pedirá que se autentique con Cloudflare si aún no ha iniciado sesión. Cuando el despliegue sea exitoso, copie la URL donde su aplicación está alojada ahora.
+    Esto le pedirá autenticarse con Cloudflare si aún no ha iniciado sesión. Al completar el despliegue,
+    copie la URL donde ahora está alojada su aplicación.
   </Step>
 
   <Step title="Registre el Webhook con Telegram">
-    Ahora llamamos a nuestro endpoint `registerWebhook` en nuestra aplicación para registrar la función webhook con la URL de su aplicación desplegada para habilitar el acceso a la API de Telegram.
+    Ahora llamamos a nuestro endpoint `registerWebhook` en nuestra app para registrar la función webhook con la URL de su aplicación desplegada
+    y habilitar el acceso para la API de Telegram.
 
     ```shell
     curl -X POST \
@@ -99,4 +109,5 @@ Desarrollaremos la lógica del juego en Unity, pero para desplegarlo como un Min
 </Steps>
 
 ### ¡Pruebe su juego de Telegram!
-Envíe un mensaje a su bot en Telegram y verifique si responde. Debería ofrecerle la opción de compartir, jugar u obtener más información sobre el bot.
+Envíe un mensaje a su bot en Telegram y verifique si responde. ¡Debería contestarle con la opción de compartir,
+jugar u obtener más información sobre el bot.

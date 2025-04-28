@@ -1,0 +1,87 @@
+---
+title: useIndexerGatewayClient
+description: Hook para acceder al cliente Sequence Indexer Gateway para consultas multi-red
+sidebarTitle: useIndexerGatewayClient
+---
+
+## Importar
+
+```tsx
+import { useIndexerGatewayClient } from '@0xsequence/hooks'
+```
+
+## Uso
+
+```tsx
+import { useIndexerGatewayClient } from '@0xsequence/hooks'
+import { useAccount } from 'wagmi'
+
+function MultiChainBalances() {
+  const { address } = useAccount()
+  const indexerGatewayClient = useIndexerGatewayClient()
+  
+  // Example: Fetch token balances across chains
+  const fetchBalances = async () => {
+    const response = await indexerGatewayClient.getTokenBalancesSummary({
+      chainIds: [1, 137], // Ethereum and Polygon
+      filter: {
+        accountAddresses: [address || ''],
+        omitNativeBalances: false
+      }
+    })
+    
+    return response
+  }
+
+  return (
+    <div>
+      {/* ... */}
+    </div>
+  )
+}
+```
+
+## Tipo de retorno: `SequenceIndexerGateway`
+El hook retorna una instancia de `SequenceIndexerGateway` configurada con la configuración de su proyecto. Este cliente ofrece métodos para consultar datos de tokens a través de varias redes en una sola solicitud.
+
+### Métodos disponibles
+El cliente retornado incluye los siguientes métodos:
+
+```tsx
+interface SequenceIndexerGateway {
+  // Token Balance Methods
+  getNativeTokenBalance(args: GetNativeTokenBalanceArgs): Promise<GetNativeTokenBalanceReturn>
+  getTokenBalances(args: GetTokenBalancesArgs): Promise<GetTokenBalancesReturn>
+  getTokenBalancesSummary(args: GetTokenBalancesSummaryArgs): Promise<GetTokenBalancesSummaryReturn>
+  getTokenBalancesDetails(args: GetTokenBalancesDetailsArgs): Promise<GetTokenBalancesDetailsReturn>
+  getTokenBalancesByContract(args: GetTokenBalancesByContractArgs): Promise<GetTokenBalancesByContractReturn>
+  
+  // Balance Updates
+  getBalanceUpdates(args: GetBalanceUpdatesArgs): Promise<GetBalanceUpdatesReturn>
+  
+  // Service Status Methods
+  ping(): Promise<PingReturn>
+  version(): Promise<VersionReturn>
+  runtimeStatus(): Promise<RuntimeStatusReturn>
+}
+```
+
+## Parámetros
+El hook no acepta parámetros, pero utiliza la configuración del hook `useConfig`:
+
+```tsx
+interface Config {
+  projectAccessKey: string
+  env: {
+    indexerGatewayUrl: string
+    // ... other environment settings
+  }
+}
+```
+
+La configuración determina:
+- La URL del gateway para solicitudes API
+- La clave de acceso del proyecto para autenticación
+- Ajustes específicos del entorno
+
+El cliente se memoriza en función de `projectAccessKey` para evitar reinstanciaciones innecesarias.

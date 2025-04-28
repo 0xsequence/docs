@@ -1,38 +1,38 @@
 ---
-title: Transacciones de libro de órdenes
-description: Esta guía cubre la creación de un mercado personalizado utilizando herramientas del stack de Sequence. Incluye pasos para acuñar tokens, autenticación de billeteras, consultas a la blockchain, tipos de billeteras múltiples, creación de solicitudes, aceptación de órdenes y la integración opcional de una billetera embebida.
-sidebarTitle: Crea un mercado personalizado
+title: Transacciones de Orderbook
+description: Esta guía cubre la creación de un marketplace personalizado usando herramientas del stack de Sequence. Incluye pasos para mintear tokens, autenticación de wallet, consultas a la blockchain, tipos de wallets múltiples, creación de solicitudes, aceptación de órdenes y la integración opcional de un wallet integrado.
+sidebarTitle: Cree un Marketplace Personalizado
 ---
 
-En esta guía, repasaremos el proceso de crear un mercado personalizado usando unas pocas herramientas sencillas del stack de Sequence.
+En esta guía repasaremos el proceso de crear un marketplace personalizado usando algunas herramientas simples del stack de Sequence.
 
 Estas herramientas le permitirán realizar:
-1. [Acuñación](/guides/custom-marketplace#1-minting): Acuñar tokens a tu billetera desde Sequence Builder
-2. [Autenticación de billetera](/guides/custom-marketplace#2-wallet-authentication): Uso del Web SDK para autenticar a un usuario
-3. [Consultas a la blockchain](/guides/custom-marketplace#3-blockchain-queries): Consultar saldos de tokens usando el Indexer
-4. [Tipos de billeteras múltiples](/guides/custom-marketplace#4-multi-wallet-types): Permitir que los usuarios usen una Sequence Wallet o una EOA
-5. [Creación de solicitudes](/guides/custom-marketplace#5-request-creation): Crear solicitudes de venta en el Sequence Market Protocol
-6. [Aceptación de órdenes](/guides/custom-marketplace#6-order-accepting): Aceptar las mejores órdenes del mercado
-7. [(Opcional) Habilitar Billetera Embebida](/guides/custom-marketplace#7-optional-integrate-embedded-wallet-into-sequence-kit): Añada una experiencia de usuario más fluida con transacciones sin confirmación
+1. [Minteo](/guides/custom-marketplace#1-minting): Minteo de tokens a su wallet desde el Sequence Builder
+2. [Autenticación de Wallet](/guides/custom-marketplace#2-wallet-authentication): Uso del Web SDK para autenticar a un usuario
+3. [Consultas a la Blockchain](/guides/custom-marketplace#3-blockchain-queries): Consultar balances de tokens usando el Indexer
+4. [Tipos de Wallets Múltiples](/guides/custom-marketplace#4-multi-wallet-types): Permitir que los usuarios utilicen un Sequence Wallet o un EOA
+5. [Creación de Solicitudes](/guides/custom-marketplace#5-request-creation): Crear solicitudes de venta en el Sequence Market Protocol
+6. [Aceptación de Órdenes](/guides/custom-marketplace#6-order-accepting): Aceptar las mejores órdenes del Marketplace
+7. [(Opcional) Habilitar Wallet Embebido](/guides/custom-marketplace#7-optional-integrate-embedded-wallet-into-sequence-kit): Agregue una experiencia de usuario aún más fluida con transacciones sin confirmación
 
 <Note>
-  Vea un ejemplo de [dapp de marketplace simplificado](https://simple-marketplace-boilerplate.pages.dev/) que permite a los usuarios acuñar coleccionables, venderlos con Sequence Marketplace Protocol y realizar compras con USDC en `base-sepolia` obteniendo la mejor orden del Marketplace.
+  Vea un ejemplo de [dapp de marketplace simplificado](https://simple-marketplace-boilerplate.pages.dev/) que permite a los usuarios mintear coleccionables, venderlos con el Sequence Marketplace Protocol y realizar compras con USDC en `base-sepolia` obteniendo la mejor orden del Marketplace.
 
   El código se puede encontrar [aquí](https://github.com/0xsequence-demos/simple-marketplace-boilerplate)
 </Note>
 
-## 1. Minting
-El primer paso es crear un coleccionable desde Sequence Builder y acuñar algunos tokens, lo cual puede lograrse con esta [guía](/solutions/collectibles/contracts/deploy-an-item-collection) y usar el `tokenId` que acuñó en los siguientes pasos para consultar y completar órdenes.
+## 1. Minteo
+El primer paso es crear un coleccionable desde el Sequence Builder y mintear algunos tokens, lo cual puede lograrse con esta [guía](/solutions/collectibles/contracts/deploy-an-item-collection) y usar el `tokenId` que minteó en los siguientes pasos para consultar y cumplir órdenes.
 
-## 2. Autenticación de Billetera
-Para el proyecto, necesita una forma de autenticar al usuario con una billetera.
+## 2. Autenticación de Wallet
+Para su proyecto, necesitará una forma de autenticar a su usuario con un wallet.
 
-En el stack de Sequence puede elegir usar una [Embedded Wallet](/sdk/headless-wallet/quickstart) para una experiencia similar a web2, sin interfaz propia, o una [Ecosystem Wallet](/solutions/wallets/ecosystem/overview) con [Web SDK](/solutions/wallets/overview) para llegar a más tipos de billeteras.
+Su opción dentro del stack de Sequence es usar un [Embedded Wallet](/sdk/headless-wallet/quickstart) para una experiencia headless y similar a web2, o un [Ecosystem Wallet](/solutions/wallets/ecosystem/overview) con [Web SDK](/solutions/wallets/overview) para llegar a más tipos de wallets.
 
-Para esta guía usaremos una `Universal Sequence Wallet` con conector `Web SDK` (con opción de `Embedded Wallet`), que puede autenticar usuarios usando Google o Apple, además de billeteras que el usuario ya posea, como Coinbase o Metamask.
+Para esta guía usaremos un `Universal Sequence Wallet` con conector `Web SDK` (con opción de un `Embedded Wallet`), que puede autenticar usuarios usando Google o Apple, además de wallets traídos por el usuario como Coinbase o Metamask.
 
 ### Instalar Paquetes
-Puede crear un proyecto vanilla js/html/css desde un [template como este](https://github.com/moskalyk/vanilla-js-sequence-kit-starter) para una configuración rápida, o aquí te mostraremos cómo usar React desde cero.
+Puede crear un proyecto vanilla js/html/css desde un [template como este](https://github.com/moskalyk/vanilla-js-sequence-kit-starter) para una configuración rápida, o aquí le mostraremos cómo usar React desde cero.
 
 Comience creando un proyecto en una carpeta con el nombre que prefiera:
 
@@ -48,7 +48,7 @@ Luego, instale los paquetes requeridos en la carpeta `<project_name>`
 pnpm install @0xsequence/kit @0xsequence/kit-connectors wagmi ethers viem 0xsequence @tanstack/react-query
 ```
 
-Después, en `src`, junto a `index.tsx` en la carpeta, cree un archivo `config.ts` con el siguiente contenido:
+Después, en `src`, junto a `index.tsx`, cree un archivo `config.ts` con el siguiente contenido:
 
 ```js
 import { arbitrumSepolia, Chain } from 'wagmi/chains'
@@ -84,10 +84,10 @@ export { config }
 ```
 
 <Warning>
-  Asegúrese de incluir un archivo `.env` en la raíz de su proyecto para incluir los secretos del cliente
+  Asegúrese de incluir un archivo `.env` en la raíz de su proyecto para agregar los secretos de cliente
 </Warning>
 
-Luego, importe el `config` para ser usado por el `WagmiProvider` en el `index.tsx`
+Luego, importe el `config` para que sea consumido por el `WagmiProvider` en el `index.tsx`
 
 ```js
 import ReactDOM from "react-dom/client";
@@ -121,7 +121,7 @@ root.render(
 );
 ```
 
-Y finalmente, agregue un botón en `App.tsx` para que aparezca el modal del Web SDK
+Y finalmente, agregue un botón en el `App.tsx` para que aparezca el modal del Web SDK
 
 ```js
 import { useOpenConnectModal, useKitWallets } from "@0xsequence/kit";
@@ -153,7 +153,7 @@ function App() {
 export default App;
 ```
 
-¡Listo! Ahora tienes una aplicación que puede autorizar a un usuario y devolver una dirección de billetera.
+¡Listo! Ahora debería tener una aplicación que puede autorizar a un usuario y devolver una dirección de wallet.
 
 Ahora puede probarlo con:
 
@@ -162,15 +162,15 @@ pnpm run start
 ```
 
 ## 3. Consultas a la Blockchain
-Una vez que tenga uno o varios coleccionables creados, puede consultar los datos desde la dirección del contrato de su despliegue, que puede encontrar aquí:
+Una vez que tenga uno o varios coleccionables minteados, puede consultar los datos desde la dirección del contrato de su despliegue, que puede encontrar aquí:
 
 <Frame>
   ![copiar dirección del contrato](/images/marketplace/copy_contract.png)
 </Frame>
 
-Puede consultar datos usando el indexer, con este código donde una dirección de cuenta y una dirección de contrato (obtenidas del contrato desplegado desde Sequence Builder) se ingresan en la API del indexer
+Puede consultar datos usando el indexer, con este código donde una dirección de cuenta y la dirección del contrato (obtenidas del contrato desplegado desde el Sequence Builder) se ingresan en la API del indexer.
 
-Esto será importante cuando determine un `tokenID` para crear una orden en el marketplace. Para esta demostración, asumiremos que trabaja con un solo `tokenID`.
+Esto será importante cuando esté determinando un `tokenID` para crear una solicitud en el marketplace; para este demo, asumiremos que está trabajando con un solo `tokenID`.
 
 ```js
 // Works in both a Webapp (browser) or Node.js:
@@ -202,28 +202,28 @@ Donde la respuesta de la llamada al indexador arroja los siguientes datos:
   - `contractAddress` (string): la dirección del contrato del token
   - `accountAddress` (string): la dirección de la cuenta que desplegó el contrato
   - `tokenID` (string): el tokenID del token (siempre 0 si es ERC20)
-  - `balance` (string): el saldo del token
-  - `blockHash` (string): el hash de merkle de la transacción del bloque cuando se desplegó el token
-  - `blockNumber` (number): el número de bloque en el que se desplegó el token
+  - `balance` (string): el balance del token
+  - `blockHash` (string): el hash de merkle de la transacción del bloque donde se desplegó el token
+  - `blockNumber` (number): el número de bloque donde se desplegó el token
   - `chainId` (number): el id de la red del token
   - `contractType`
     - `chainId` (number): el id de la red del token
     - `address` (string): la dirección del token
-    - `name` (string): nombre del token a nivel de contrato
+    - `name` (string): nombre a nivel de contrato del token
     - `type` (string): el tipo de contrato (por ejemplo, ERC20, ERC721 o ERC1155)
     - `symbol` (string): el símbolo del token
     - `decimals` (number): la cantidad de decimales que tiene el token
-    - `logoURI` (string): el logo del token que se muestra en sequence.app
-    - `deployed` (boolean): indica si el token está desplegado
-    - `bytecodeHash` (string): hash del bytecode de un contrato inteligente desplegado en la blockchain
+    - `logoURI` (string): el logo del token mostrado en sequence.app
+    - `deployed` (boolean): si el token está desplegado
+    - `bytecodeHash` (string): hash del bytecode de un smart contract desplegado en la blockchain
     - `extensions`
       - `link` (string): el sitio web asociado para enlazar al proyecto
       - `description` (string): la descripción de metadatos del token
       - `ogImage` (string): la imagen de banner del token, mostrada en sequence.app
       - `originChainId` (number): el id de la red de origen que representa el token
       - `originAddress` (string): la dirección del contrato de origen que representa el token
-      - `verified` (boolean): indica si el token está verificado y es confiable
-      - `verifiedBy` (string): la fuente de verificación que explica por qué esto no es spam
+      - `verified` (boolean): si el token está verificado y es confiable
+      - `verifiedBy` (string): la fuente de verificación que indica por qué esto no es spam
   - `updatedAt` (date): la última vez que se actualizó el indexador
   - `tokenMetadata`
     - `tokenId` (string): el tokenID del token (siempre 0 si es ERC20)
@@ -237,10 +237,10 @@ Donde la respuesta de la llamada al indexador arroja los siguientes datos:
     - `updatedAt` (date): la última vez que se actualizaron los metadatos del token
 </Accordion>
 
-## 4. Tipos de billetera múltiple
-Debido a que en este ejemplo usamos el `Web SDK`, que permite usar una billetera Sequence además de su propia `EOA wallet`. El envío de transacciones a la blockchain será diferente, ya que con una `Sequence wallet` puede enviar transacciones en lote para optimizar los costos de gas. En cambio, con `wagmi` usando una EOA solo puede enviar una transacción a la vez.
+## 4. Tipos de Multi-wallet
+Debido a que en este ejemplo usamos `Web SDK`, que le permite usar una Sequence wallet además de su propia `EOA wallet`, el envío de transacciones a la blockchain será diferente. Con una Sequence wallet puede enviar transacciones en lote para optimizar el costo de gas, mientras que con `wagmi` usando una EOA solo puede enviar una transacción a la vez.
 
-Para lograr esto, seguimos algunos pasos para crear una variable de estado local que verifica qué billetera está autorizada.
+Para lograr esto, seguimos algunos pasos para crear una variable de estado local que verifica cuál wallet está autorizada.
 
 ```ts
 import { useEffect } from "react";
@@ -262,19 +262,20 @@ function App() {
 ```
 
 <Note>
-  En el protocolo Sequence Market, cuando crea una publicación, se denomina una `request`, y cuando acepta una solicitud se denomina un `order`.
+  En el protocolo Sequence Market, cuando crea una listing, se le llama
+  `request`, y cuando acepta un request se le llama `order`.
 </Note>
 
-## 5. Creación de solicitudes
+## 5. Creación de Request
 Para este ejemplo, usaremos `Arbitrum Sepolia USDC` del [faucet de la comunidad](https://faucet.circle.com/)
 
-Primero, diríjase allí para obtener algunos tokens y así poder crear una publicación con su solicitud.
+Vaya allí primero para obtener algunos tokens, así podrá crear una listing con su request.
 
 ---
 
-Luego, para crear una solicitud para el libro de órdenes, primero debemos asegurarnos de habilitar el contrato del libro de órdenes del marketplace con aprobación para transferir sus tokens.
+Luego, para crear un request para el orderbook, primero debemos asegurarnos de habilitar el contrato del orderbook del marketplace con aprobación para transferir sus tokens.
 
-Primero, verificamos que el marketplace esté aprobado para el contrato, mediante cierta lógica.
+Primero, verificamos que el marketplace esté aprobado para el contrato, con algo de lógica.
 
 ```js
 const ERC1155Contract = '0x1693ffc74edbb50d6138517fe5cd64fd1c917709'
@@ -309,7 +310,7 @@ function App() {
 }
 ```
 
-Después, necesitaremos crear la transacción con el ABI correcto para generar el calldata esperado para los diferentes casos: aprobado o no aprobado, y si se trata de una billetera Sequence o no.
+Después, necesitaremos armar la transacción con el ABI correcto para generar el calldata esperado según los distintos caminos: no estar aprobado versus estar aprobado, y si es una Sequence wallet o no.
 
 ```ts
 const [requestData, setRequestData] = useState<any>(null);
@@ -395,11 +396,11 @@ const createRequest = async () => {
 };
 ```
 
-Finalmente, en el caso donde la transacción no se realiza desde una billetera sequence y no está aprobada, debemos enviar una transacción una vez que haya un recibo de transacción del hook `useSendTransaction` usando un mutex para confirmar de qué transacción proviene el hash. Esto se hace en una función `useEffect` de React.
+Finalmente, en el caso donde la transacción no se realiza desde una Sequence wallet y no está aprobada, debemos enviar una transacción una vez que haya un recibo de transacción del hook `useSendTransaction` usando un mutex para confirmar de qué transacción proviene el hash. Esto se hace en una función `useEffect` de React.
 
 <Note>
   En programación, una exclusión mutua (mutex) es un objeto de programa que
-  impide que varios hilos accedan al mismo recurso compartido
+  previene que múltiples hilos accedan al mismo recurso compartido
   simultáneamente.
 </Note>
 
@@ -444,16 +445,16 @@ function App() {
   }, [requestData, hash]);
 ```
 
-¡Listo! Ha terminado de crear solicitudes para el protocolo Sequence Market, ahora puede implementar un botón y probar el flujo.
+¡Listo! Ya terminó de crear requests para el protocolo Sequence Market, ahora puede implementar un botón y probar el flujo.
 
-## 6. Aceptación de órdenes
-Ahora que tenemos una orden en el marketplace, necesitamos hacer algunas cosas:
-- `Consultar el Marketplace`: consultar el marketplace para obtener un `orderId` para aceptar una orden
-- `Saldo de moneda`: verificar el saldo de la moneda usando el indexador
-- `Aprobación de token`: verificar la aprobación de la moneda para que el marketplace pueda transferir tokens
+## 6. Aceptar Orders
+Ahora que tenemos un order en el marketplace, debemos hacer algunas cosas:
+- `Consultar el Marketplace`: consultar el marketplace para obtener un `orderId` correspondiente a la orden que desea aceptar
+- `Balance de Moneda`: verificar el balance de la moneda usando el indexador
+- `Aprobación de Token`: verificar la aprobación del token para que el marketplace pueda transferir tokens
 
 #### Consultar el Marketplace
-Consultemos el libro de órdenes del marketplace para obtener el `pricePerToken` y el `orderId` correspondientes.
+Consultemos el orderbook del marketplace para obtener el `pricePerToken` y el `orderId` de la orden que queremos aceptar.
 
 ```ts
   const getTopOrder = async (tokenID: string) => {
@@ -491,11 +492,11 @@ Consultemos el libro de órdenes del marketplace para obtener el `pricePerToken`
   }
 ```
 
-#### Saldo de moneda
-Usaremos el indexador para consultar el saldo y ver si el usuario tiene suficientes tokens para pagar la orden. Esto se puede hacer con el siguiente código:
+#### Balance de Moneda
+Usaremos el indexador para consultar el balance y ver si el usuario tiene suficientes tokens para pagar la orden. Esto se puede hacer con el siguiente código:
 
 <Warning>
-  Asegúrese de que, al comparar la dirección del contrato del token, esta esté en minúsculas.
+  Debe asegurarse de que al realizar una comparación de igualdad en la dirección del contrato del token, la dirección esté en minúsculas.
 </Warning>
 
 ```js
@@ -540,8 +541,8 @@ const acceptOrder = async () => {
 
 ```
 
-#### Aprobación de token
-Luego, verificaremos la aprobación del token de moneda para que el Marketplace pueda transferirlo.
+#### Aprobación de Token
+Luego, verificaremos la aprobación del token para que el Marketplace pueda transferir la moneda.
 
 ```ts
   const checkERC20Approval = async (ownerAddress: string, spenderAddress: string, tokenContractAddress: string, requiredAmount: string) => {
@@ -577,9 +578,9 @@ Luego, verificaremos la aprobación del token de moneda para que el Marketplace 
   }
 ```
 
-Finalmente, completaremos la lógica necesaria enviando realmente una transacción a la blockchain
+Finalmente, completaremos la lógica necesaria enviando realmente una transacción a la blockchain.
 
-Comenzamos con el mismo flujo que antes, considerando enviar una transacción por lotes si se trata de una billetera sequence y no está aprobada, o, si el Marketplace está aprobado para gastar sus tokens, solo se envía una transacción única.
+Comenzamos con el mismo flujo de antes, considerando el envío de transacciones en lote si es una Sequence wallet y no está aprobada, o, si el Marketplace ya está aprobado para gastar sus tokens, solo enviando una transacción.
 
 ```ts
   ...
@@ -652,7 +653,7 @@ Comenzamos con el mismo flujo que antes, considerando enviar una transacción po
     }
 ```
 
-Luego, en el flujo para no ser una billetera sequence y requerir aprobación, incluiremos otro `useEffect` con la verificación de mutex como antes.
+Luego, en el flujo donde no es una Sequence wallet y requiere aprobación, incluiremos otro `useEffect` con la verificación del mutex como antes.
 
 ```ts
   ...
@@ -670,10 +671,10 @@ Luego, en el flujo para no ser una billetera sequence y requerir aprobación, in
   }, [hash, acceptData]);
 ```
 
-¡Perfecto! Todo está listo si añade el controlador de clics de la función a un botón.
+¡Perfecto! Todo está listo si agrega el manejador de clic de la función a un botón.
 
 ## 7. (Opcional) Integrar Embedded Wallet en Web SDK
-Para que el conector Web SDK sea compatible con [Embedded Wallet](/sdk/headless-wallet/quickstart), necesitaremos instalar algunos paquetes y actualizar nuestro `config.ts` que usamos al principio de la guía.
+Para que su conector de Web SDK sea compatible con [Embedded Wallet](/sdk/headless-wallet/quickstart), necesitaremos instalar algunas versiones de paquetes y actualizar nuestro `config.ts` que usamos al inicio de la guía.
 
 La función Embedded Wallet permite transacciones sin confirmación, lo que puede crear una experiencia de usuario más fluida.
 
@@ -729,4 +730,4 @@ const config = createConfig({
 export { config };
 ```
 
-El último paso es asegurarse de actualizar a nuestro equipo con las URLs autorizadas de Google y Apple (por ejemplo, [http://localhost:3000](http://localhost:3000)) para llamar al flujo de inicio de sesión de Embedded Wallet.
+El último paso es asegurarse de actualizar a nuestro equipo con las URLs autorizadas de Google y Apple (por ejemplo, [http://localhost:3000](http://localhost:3000)) para poder llamar al flujo de inicio de sesión de Embedded Wallet.

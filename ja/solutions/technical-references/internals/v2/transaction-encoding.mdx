@@ -1,0 +1,38 @@
+---
+title: トランザクションエンコーディング
+description: この内容では、Sequenceウォレットが複数のトランザクションを1つにまとめるために使用する独自のトランザクションエンコーディング形式について説明します。
+---
+
+Sequenceウォレットは独自のトランザクションエンコーディング形式を使い、複数のトランザクションを1つにまとめて送信します。これにより、ウォレットとのやり取りに必要なトランザクション数を減らすことができます。
+また、この形式により、いずれかのトランザクションが失敗した場合に全体のバンドルをリバートするなどの機能もサポートしています。
+
+```solidity
+  struct Transaction {
+    bool delegateCall;   // Performs delegatecall
+    bool revertOnError;  // Reverts transaction bundle if tx fails
+    uint256 gasLimit;    // Maximum gas to be forwarded
+    address target;      // Address of the contract to call
+    uint256 value;       // Amount of ETH to pass with the call
+    bytes data;          // calldata to pass
+  }
+```
+
+`Transaction`構造体は、ウォレット用のトランザクションデータをエンコードするために使われます。これはウォレットコントラクトの`execute`関数で利用されます。
+
+`delegateCall`フィールドは、そのトランザクションを通常の`call`ではなく`delegatecall`で実行するかどうかを決定します。
+これは、対象コントラクトの機能をウォレットのコンテキストで実行したい場合に便利です。
+
+<Warning>
+  delegate callはウォレットのコンテキスト内でターゲットコントラクトを実行するため、ターゲットコントラクトが信頼できるものであり、悪意のあるコードが含まれていないことを確認することが重要です。
+</Warning>
+
+`revertOnError` フィールドは、トランザクションバンドル内のいずれかのトランザクションが失敗した場合に、バンドル全体をリバート（元に戻す）するかどうかを決定するために使用されます。
+複数の独立したトランザクションをまとめる場合、どれか一つでも失敗した際に全体をリバートすることで利便性が高まることがあります。
+
+`gasLimit` フィールドは、ターゲットコントラクトに転送するガスの最大量を指定します。
+
+`target` フィールドは、呼び出すコントラクトのアドレスです。
+
+`value` フィールドは、呼び出し時に送信するETHの量です。このETHはウォレットコントラクトからターゲットコントラクトへ送られます。
+
+`data` フィールドは、ターゲットコントラクトに渡すcalldataです。

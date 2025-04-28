@@ -1,0 +1,17 @@
+---
+title: ゲスト
+---
+
+ユーザーを素早くゲームに参加させたい場合は、ゲストログイン機能を利用できます。
+
+`SequenceLogin` インスタンスで `GuestLogin` を呼び出すだけです。
+
+```csharp
+SequenceLogin login = SequenceLogin.GetInstance();
+
+login.GuestLogin();
+```
+
+ご注意：ゲストログインユーザーは永続的な認証情報を持たないため、セッションが終了すると埋め込みウォレットへ再度アクセスできなくなります。セッション終了前に、必ずユーザーに[アカウントのフェデレーション](/sdk/unity/onboard/authentication/federated-accounts)を促し、今後のセッションのためにログイン方法と認証情報を紐付けてもらいましょう！
+
+<Tip>新しいウォレットが作成された際に受け取れるよう、`SequenceWallet.OnWalletCreated` イベントの購読をお忘れなく！</Tip>

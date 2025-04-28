@@ -1,0 +1,90 @@
+---
+title: Ecosystem Wallets entre aplicaciones
+description: Sequence Ecosystem Wallets permite crear una wallet unificada para los usuarios en todo el ecosistema.
+sidebarTitle: Integración entre aplicaciones
+---
+
+La solución cross-app de Sequence permite que sus usuarios utilicen sus embedded wallets del ecosistema en cualquier aplicación con la misma dirección de wallet, sin importar si están fuera de su ecosistema o integradas con Sequence usando conectores de wallet comunes como wagmi. Esto incluye:
+- Marketplaces externos
+- DEXs externos
+- Aplicaciones externas
+
+<Frame>
+  ![Arquitectura cross-app](/images/ecosystem/architecture.png "Sequence Cross-App Architecture")
+</Frame>
+
+<Note>
+  Puede ver una demo de nuestro conector de embedded wallet cross-app [aquí](https://cross-app-demo-dapp.pages.dev/).
+</Note>
+
+El embedded wallet cross-app implementa un flujo de comunicación entre la aplicación externa y la aplicación de wallet:
+- La app externa se comunica con la wallet a través del conector cross-app embedded wallet para Wagmi
+- El conector utiliza un ProviderTransport para manejar la comunicación
+- Los mensajes se envían entre ProviderTransport y WalletTransport
+- El componente Wallet gestiona tres funcionalidades principales:
+  - Autenticación de usuario
+  - Firmado de transacciones
+  - Firmado de mensajes
+
+La wallet puede abrirse y enviar mensajes de vuelta a la aplicación externa a través de la capa de transporte, permitiendo una comunicación segura entre aplicaciones. Es importante destacar que, para una integración cross-app, los usuarios deberán confirmar todas las interacciones.
+
+<Steps>
+  <Step title="Clone nuestra aplicación embedded wallet cross-app y el conector">
+    ```bash
+    git clone https://github.com/0xsequence/cross-app-embedded-wallet/tree/master && cd cross-app-embedded-Wallet/wallet
+    cp .env.example .env
+    ```
+  </Step>
+
+  <Step title="Actualice Wallet Transport con su configuración">
+    Agregue las variables de embedded wallet del ecosistema en el archivo `.env`. Luego, simplemente construya la aplicación de wallet con `pnpm build` y despliegue en su plataforma preferida, como Cloudflare Pages, con una URL pública.
+  </Step>
+
+  <Step title="Ejemplo de configuración de aplicación externa">
+    Ahora, configuraremos una aplicación externa de ejemplo donde pasamos la URL del conector de wallet a wagmi.
+
+    Vaya a la aplicación de ejemplo e instale las dependencias, en particular el paquete de conector cross-app de Sequence `@sequence-wallet/cross-app-connector`:
+
+    ```bash
+    cd ../dapp && pnpm install
+    ```
+
+    Luego actualice las variables de entorno con su clave de acceso del proyecto y la URL de la wallet que desplegó previamente:
+
+    ```bash
+    cp .env.example .env
+    ```
+  </Step>
+
+  <Step title="Actualice el conector Wagmi">
+    Por último, puede editar la configuración del conector wagmi ubicada en `src/wagmiConfig.ts` para su wallet específica. Aquí tiene un ejemplo de configuración que puede proporcionar a la aplicación externa:
+
+    ```
+    import { sequenceCrossAppEmbeddedWallet } from '@0xsequence/cross-app-embedded-wallet-connector'
+    import { createConfig, http } from 'wagmi'
+    import { arbitrumNova, arbitrumSepolia } from 'wagmi/chains'
+
+    const urlParams = new URLSearchParams(window.location.search)
+    const walletAppUrl = urlParams.get('walletAppUrl') ?? import.meta.env.VITE_WALLET_URL
+
+    const connector = sequenceCrossAppEmbeddedWallet(
+      {
+        projectAccessKey: import.meta.env.VITE_PROJECT_ACCESS_KEY,
+        walletUrl: walletAppUrl,
+        chainId: arbitrumNova.id, // Change this to your desired chain
+      }
+    );
+
+    export const config = createConfig({
+      chains: [arbitrumNova, arbitrumSepolia],
+      connectors: [connector],
+      transports: {
+        [arbitrumNova.id]: http(), // add Chain ID Transport
+        [arbitrumSepolia.id]: http()
+      }
+    })
+    ```
+  </Step>
+</Steps>
+
+Ahora puede compartir la configuración del conector de wallet con cualquier aplicación para que puedan aprovechar su ecosystem wallet en su aplicación y así sus usuarios puedan usar la misma dirección de wallet.

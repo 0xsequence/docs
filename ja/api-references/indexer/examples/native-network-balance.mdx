@@ -1,0 +1,58 @@
+---
+title: Native network balances (ie. ETH, MATIC, etc.)
+sidebarTitle: Native Network Balance
+---
+
+## Fetch native network balance (aka ETH on Ethereum, MATIC on Polygon, AVAX on Avalanche, BNB on BSC, etc.)
+_Sequence Indexer `GetEtherBalance` Method:_
+- Request: POST /rpc/Indexer/GetEtherBalance
+- Content-Type: application/json
+- Body (in JSON):
+  - `accountAddress` (string) -- the wallet account address
+
+**Example: `GetEtherBalance` MATIC balance of a wallet account address on Polygon using an `API_Access_Key`**
+
+<CodeGroup>
+  ```bash cURL
+  curl -X POST -H "Content-Type: application/json" -H "X-Access-Key: AQAAAAAAAF_JvPALhBthL7VGn6jV0YDqaFY" https://polygon-indexer.sequence.app/rpc/Indexer/GetEtherBalance -d '{ "accountAddress": "0x8e3E38fe7367dd3b52D1e281E4e8400447C8d8B9" }'
+  ```
+
+  ```ts Typescript
+  // Works in both a Webapp (browser) or Node.js:
+  import { SequenceIndexer } from '@0xsequence/indexer'
+
+  const indexer = new SequenceIndexer('https://polygon-indexer.sequence.app', 'AQAAAAAAAF_JvPALhBthL7VGn6jV0YDqaFY')
+
+  // try any account address you'd like :)
+  const accountAddress = '0xabc...'
+
+  // query Sequence Indexer for the MATIC balance on Polygon
+  const balance = await indexer.getEtherBalance({
+  	accountAddress: accountAddress,
+  })
+  	
+  console.log('tokens in your account:', tokenBalances)
+  ```
+
+  ```go Go
+  import (
+  	"context"
+  	"fmt"
+  	"log"
+  	"net/http"
+
+  	"github.com/0xsequence/go-sequence/indexer"
+  )
+
+  func GetEtherBalance(accountAddress string) {
+  	seqIndexer := indexer.NewIndexer("https://polygon-indexer.sequence.app", "AQAAAAAAAF_JvPALhBthL7VGn6jV0YDqaFY")
+
+  	nativeBalance, err := seqIndexer.GetEtherBalance(context.Background(), &accountAddress)
+  	
+  	if err != nil {
+  		log.Fatal(err)
+  	}
+  	fmt.Println("nativeBalance:", nativeBalance)
+  }
+  ```
+</CodeGroup>

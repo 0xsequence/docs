@@ -1,0 +1,55 @@
+---
+title: 注文の成立（フィル）
+---
+
+注文を部分的または完全に成立させる、もしくはキャンセルするには、トランザクションを生成して送信します。
+
+`ICheckout` インターフェース（`Checkout` によって実装）には、便利なメソッドやイベントがいくつか用意されています。
+
+## 注文とやり取りするためのトランザクションの構築
+以下の非同期リクエストは `Step[]` を返します。これらを使ってトランザクションを生成し、送信することで目的のアクションを実行します。
+
+```
+Step[] steps = await <insert here your desired method>;
+TransactionReturn result = await steps.SubmitAsTransactions(_wallet, _chain);
+// or 
+Transaction[] stepTransactions = steps.AsTransactionArray();
+```
+
+これらのメソッドはすべて直接awaitできます。また、`OnTransactionStepsReturn` や `OnTransactionStepsError` イベントを購読して、他の場所でレスポンスを処理することも可能です。
+1. `GenerateBuyTransaction` は、指定した `Order[]`/リスティング内のコレクティブルを、指定した数量だけ購入するために使用します。
+
+```
+ICheckout checkout = new Checkout(_wallet, _chain);
+Step[] steps = await checkout.GenerateBuyTransaction(listings, 5);
+```
+
+2. `GenerateSellTransaction` は、指定した `Order[]`/オファー内のコレクティブルを、指定した数量だけ売却するために使用します。
+
+```
+ICheckout checkout = new Checkout(_wallet, _chain);
+Step[] steps = await checkout.GenerateSellTransaction(offers, 3);
+```
+
+3. `GenerateListingTransaction` は、指定したコレクティブル・数量・価格で新しいリスティングを作成する際に使用します。
+
+```
+ICheckout checkout = new Checkout(_wallet, _chain);
+Step[] steps = await checkout.GenerateListingTransaction(collectionContractAddress, tokenId, 17, ContractType.ERC1155, currencyTokenAddress, 1000, expiryDateTime);
+```
+
+4. `GenerateOfferTransaction` は、指定したコレクティブル・数量・価格で新しいオファーを作成する際に使用します。
+
+```
+ICheckout checkout = new Checkout(_wallet, _chain);
+Step[] steps = await checkout.GenerateOfferTransaction(collectionContractAddress, tokenId, 46, ContractType.ERC1155, currencyTokenAddress, 850, expiryDateTime);
+```
+
+5. `GenerateCancelTransaction` は、ユーザーが作成した既存の注文をキャンセルする際に使用します。
+
+```
+ICheckout checkout = new Checkout(_wallet, _chain);
+Step[] steps = await checkout.GenerateCancelTransaction(collectionContractAddress, order);
+// Or alternatively provide the order id 
+Step[] steps = await checkout.GenerateCancelTransaction(collectionContractAddress, orderIdString);
+```

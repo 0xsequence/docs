@@ -1,0 +1,105 @@
+---
+title: useGetExchangeRate
+description: Hook para obtener tasas de cambio actuales de USD a otras monedas
+sidebarTitle: useGetExchangeRate
+---
+
+## Importar
+
+```tsx
+import { useGetExchangeRate } from '@0xsequence/hooks'
+```
+
+## Uso
+
+```tsx
+import { useGetExchangeRate } from '@0xsequence/hooks'
+
+function CurrencyConverter() {
+  const usdAmount = 100
+  const { 
+    data: rate = 1, 
+    isLoading, 
+    error,
+    isError,
+    isSuccess 
+  } = useGetExchangeRate('EUR')
+  
+  if (isLoading) {
+    return <div>Loading rates...</div>
+  }
+  
+  if (isError) {
+    return <div>Error: {error.message}</div>
+  }
+  
+  return (
+    <div>
+      <h2>Currency Conversion</h2>
+      {isSuccess && (
+        <div>
+          <p>{usdAmount} USD = {usdAmount * rate} EUR</p>
+          <p>Current Rate: 1 USD = {rate} EUR</p>
+        </div>
+      )}
+    </div>
+  )
+}
+
+// Example with multiple currencies
+function MultiCurrencyDisplay() {
+  const currencies = ['EUR', 'GBP', 'JPY']
+  
+  return (
+    <div>
+      <h2>USD Exchange Rates</h2>
+      {currencies.map(currency => (
+        <CurrencyRate 
+          key={currency} 
+          currency={currency} 
+        />
+      ))}
+    </div>
+  )
+}
+
+function CurrencyRate({ currency }) {
+  const { data: rate = 1 } = useGetExchangeRate(currency)
+  
+  return (
+    <div>
+      1 USD = {rate} {currency}
+    </div>
+  )
+}
+```
+
+## Parámetros
+
+### toCurrency
+`string`
+
+El código de la moneda de destino (por ejemplo, 'EUR', 'GBP', 'JPY'). Si se proporciona 'USD', retorna 1 como tasa de conversión.
+
+### options
+`HooksOptions` (opcional)
+
+```tsx
+interface HooksOptions {
+  retry?: boolean  // Whether to retry failed requests (defaults to true)
+  disabled?: boolean // Whether to disable the query
+}
+```
+
+## Tipo de retorno
+El hook retorna un objeto resultado de React Query:
+
+```tsx
+{
+  data: number          // The exchange rate value from USD to target currency
+  isLoading: boolean    // Whether the initial request is in progress
+  error: Error | null   // Any error that occurred
+  isError: boolean      // Whether an error occurred
+  isSuccess: boolean    // Whether the request was successful
+}
+```

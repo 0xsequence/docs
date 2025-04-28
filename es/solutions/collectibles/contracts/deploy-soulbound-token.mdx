@@ -1,0 +1,63 @@
+---
+title: Cómo implementar un contrato Soulbound Token en Sequence Builder
+description: Aprenda a desplegar contratos Soulbound Token en Sequence Builder para activos de juego exclusivos y no transferibles. Esta guía cubre la configuración, los pasos clave y las mejores prácticas para implementar NFTs no comerciables.
+sidebarTitle: Implemente un contrato Soulbound Token
+---
+
+Descubra cómo configurar e implementar contratos Soulbound Token en Sequence Builder. Los Soulbound Tokens son ideales para crear activos de juego únicos y no transferibles, como Battlepasses, membresías y objetos exclusivos que permanecen permanentemente con el jugador.
+
+## Descripción general de los Soulbound Tokens
+Los Soulbound Tokens (SBTs) son activos on-chain no transferibles y no vendibles, diseñados para ofrecer valor exclusivo y duradero en entornos Web3. Como no pueden transferirse ni intercambiarse, los SBTs son ideales para representar objetos digitales permanentes, logros o membresías. Algunos casos de uso comunes son:
+- **Pases de juego y membresías**: Utilice Soulbound Tokens para Battlepasses, membresías o programas de lealtad que permanezcan de forma permanente en el wallet del usuario, asegurando acceso exclusivo para el titular.
+- **Insignias de logros**: Recompense a los jugadores con insignias únicas que demuestren su progreso y logros; son visibles para todos pero no se pueden intercambiar.
+- **Entradas para eventos y certificaciones**: Ofrezca entradas seguras y no transferibles para eventos exclusivos dentro del juego o certificaciones educativas por habilidades obtenidas en el entorno del juego.
+- **Sistemas de identidad y reputación**: Establezca tokens basados en identidad o reputación que representen confianza o credibilidad, fomentando el juego justo y la participación de los usuarios.
+
+Los Soulbound Tokens son especialmente útiles para desarrolladores de juegos y comunidades que buscan ofrecer valor duradero sin necesidad de especulación comercial.
+
+<Warning>
+  Requisito previo: Crear un Proyecto
+
+  Esta guía asume que usted ya [se registró en Builder y creó un Proyecto](/solutions/builder/getting-started).
+</Warning>
+
+## Paso 1: Navegue a contratos
+Comience seleccionando su `project` en la esquina superior izquierda para el cual desea crear el coleccionable, luego vaya a la sección `Deploy`, seleccione `Contracts` y luego haga clic en el botón `Contracts` para agregar un nuevo contrato.
+
+## Paso 2: Elija el tipo de coleccionable
+Seleccione Web3 Game Item Collection (ERC1155) o NFT Collection (ERC721) para su Soulbound Token. En esta guía, usaremos Web3 Game Item Collection (ERC1155), ideal para crear Soulbound Tokens no transferibles.
+
+## Paso 3: Especifique los detalles del contrato
+Proporcione los detalles del contrato especificando un `Contract Name` y un `Owner`. También puede configurar regalías. Asegúrese de que la dirección del Owner coincida con el Sequence Wallet en la esquina superior derecha y que este wallet tenga fondos suficientes en mainnet. Para transacciones en testnet, nosotros las patrocinamos.
+
+<Frame>
+  ![desplegar game item](/images/collectibles/deploy_game_item.png)
+</Frame>
+
+<Warning>
+  Nota:
+  Si cambia el `name` después, se actualizará en todo el stack de Sequence, pero los exploradores populares no volverán a indexar la información. Su entrada inicial permanecerá en esos sistemas.
+</Warning>
+
+## Paso 4: Despliegue su contrato
+Despliegue su contrato a través de la ventana emergente en [http://sequence.app/sign-transaction](http://sequence.app/sign-transaction) y confirme firmando el mensaje.
+
+<Frame>
+  <img src="/images/collectibles/sign_deploy_transaction.png" width="200" alt="Despliegue su contrato firmando el mensaje en la ventana emergente desde la Sequence Wallet" />
+</Frame>
+
+## Paso 5: Mintee tokens a la dirección de su wallet
+Vaya a la tarjeta `mint` en la sección `Write Contract` e ingrese el `to`, que es la dirección del wallet al que desea enviar el token, el `tokenId` (normalmente comenzando en 0), la `amount` de tokens, y finalmente en la sección `data` puede ingresar simplemente `0x00`, que usualmente representa datos adicionales sin formato específico.
+
+<Frame>
+  ![mintear tokens](/images/collectibles/mint_game_item.png)
+</Frame>
+
+## Paso 6: Confirme su coleccionable minteado
+¡Y listo!
+
+Puede ver las transacciones enviadas a la blockchain para la dirección de su wallet en la navegación de la pestaña `Transactions`
+
+<Frame>
+  ![ver transacciones de moneda](/images/collectibles/transactions_game_items.png)
+</Frame>
