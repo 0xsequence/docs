@@ -23,7 +23,6 @@ const BEARER_AUTH = {
 const PUBLIC_API_KEY = "AQAAAAAAAEGvyZiWA9FMslYeG_yayXaHnSI";
 
 // Bearer token for secret endpoints
-const SECRET_BEARER_TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhY2NvdW50IjoiMHhiZWU3NGU3ZmZkNzdkMThhZDJhOTg2ODEyZGE2MTc5ODk0MDY4ODZjIiwiaWF0IjoxNzQxNjg3NDg4LCJwcm9qZWN0IjoxNjgxNX0.LvTwKf0T6IBK9HuRFboXCNh2YY9d6EwDoQAlGYC80KQ";
 
 /**
  * Update the security schemas in a JSON file based on the tags of each individual path.
