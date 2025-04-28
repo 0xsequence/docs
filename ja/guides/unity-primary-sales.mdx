@@ -1,0 +1,130 @@
+---
+title: UnityでオンチェーンアイテムのPrimary Saleを行う方法
+description: このガイドでは、SequenceのUnity SDKを使ったPrimary Saleの作成方法を説明します。
+sidebarTitle: UnityでオンチェーンアイテムのPrimary Saleを行う方法
+---
+
+ゲーム内ショップでアイテムを直接プレイヤーに販売することで、ゲームの成長を加速しましょう。このガイドでは、ERC1155 コントラクトのゲームアイテムを利用したインゲームショップで、任意のカスタム通貨や既存通貨を使って Primary Sale コントラクトをデプロイする手順を解説します。Sequence プラットフォームの以下の技術を使用します。
+- [Primary Sales Contract](/solutions/collectibles/contracts/deploy-primary-sales-contract/)：WebショップやNFTドロップなど、プライマリセールを開始するためのコントラクトの設定・デプロイ方法。
+- [Sequence Indexer](/solutions/builder/indexer)：Sequence Indexerを活用してNFTメタデータやユーザーのウォレット資産を取得。
+
+## 1. Sequence Builder で独自のトークン・セールコントラクトをデプロイ
+まず、販売したいゲームアイテムを格納する ERC1155 コントラクトと、Primary Sales コントラクトが必要です。手順については[こちらのガイド](/solutions/collectibles/contracts/deploy-primary-sales-contract)をご覧ください。
+
+## 2. Sequence の Unity SDK で Primary Sales デモを利用
+まず、[Sequence の Unity SDK](https://github.com/0xsequence/sequence-unity/releases) をプロジェクトにインポートします。その後、`Sequence Embedded Wallet SDK/Sequence/Samples/DemoScene` 内の `Demo.unity` シーンに移動してください。このシーンには、`PrimarySalePage` オブジェクトが参考として配置されています。
+
+## 3. プロジェクトで販売設定を行う
+`PrimarySalePage` オブジェクトを使って販売情報を入力し、設定を行います。設定セクションには以下のオプションがあります。
+- チェーン：コントラクトをデプロイしたチェーンを選択します。
+- トークン & セールコントラクトアドレス：Sequence Builder で発行されたコントラクトアドレスを入力します。
+- 販売アイテム：販売するトークンIDをすべてリストアップします。
+
+## 4. SDK と連携するカスタムコードの実装
+販売の状態を管理するカスタムクラスを作成しましょう。このクラスで必要なデータを集約し、ユーザーに効果的に情報を表示できるようにします。PrimarySalePage.cs デモでは、設定セクションからデータを取得しています。
+
+```csharp
+class ERC1155SaleState;
+
+public ERC1155SaleState(IWallet wallet, string tokenContractAddress, string saleContractAddress, Chain chain, int[] itemsForSale)
+{
+    _tokenContractAddress = tokenContractAddress;
+    _saleContract = new ERC1155Sale(saleContractAddress);
+    _client = new SequenceEthClient(chain);
+    _wallet = wallet;
+    _chain = chain;
+    _itemsForSale = itemsForSale;
+}
+```
+
+## 5. Primary Sale の詳細情報を取得
+次に、`ERC1155Sale.cs` を参照して、コントラクトから販売情報や支払いトークンを取得します。この情報を使って、例えばユーザーが指定された支払いトークンの残高を十分に持っているかローカルで確認できます。
+
+```csharp
+public async Task<bool> UpdateSaleDetailsAsync()
+{
+    string paymentToken = await _saleContract.GetPaymentTokenAsync(_client);
+
+    ERC1155Sale.SaleDetails globalSaleDetails = await _saleContract.GetGlobalSaleDetailsAsync(_client);
+    BigInteger cost = globalSaleDetails.Cost;
+    BigInteger supplyCap = globalSaleDetails.SupplyCap;
+    int startTime = globalSaleDetails.StartTime;
+    int endTime = globalSaleDetails.EndTime;
+}
+```
+
+## 6. トークンメタデータを取得し、アイテムを表示
+指定したトークンコントラクトアドレスのトークン供給情報を取得するため、Indexer API を利用します。必ず ERC1155 コントラクトのアドレスのみを使用してください。セールコントラクトのアドレスは使用しないでください。
+
+```csharp
+public async Task UpdateTokenSuppliesAsync()
+{
+    Dictionary<BigInteger, TokenSupply> tokenSupplies = new Dictionary<BigInteger, TokenSupply>();
+    GetTokenSuppliesArgs supplyArgs = new GetTokenSuppliesArgs(_tokenContractAddress, true);
+    GetTokenSuppliesReturn suppliesReturn = await Indexer.GetTokenSupplies((int) _chain, supplyArgs);
+
+    foreach (int tokenId in _itemsForSale)
+    {
+        TokenSupply supply = Array.Find(suppliesReturn.tokenIDs, t => t.tokenID == tokenId);
+        if (supply == null)
+            continue;
+
+        tokenSupplies.Add(supply.tokenID, supply);
+    }
+}
+```
+
+例えば、上記のトークン供給情報から `supply.tokenMetadata.image` 変数を利用して、ユーザーにアイテムを表示できます。
+
+```csharp
+[SerializeField] private Image _image;
+
+public async void RenderTokenImage(TokenSupply supply)
+{
+    _image.sprite = await AssetHandler.GetSpriteAsync(supply.tokenMetadata.image);
+}
+```
+
+<Warning>
+  リモートURLから画像をダウンロードするために、独自の `AssetHandler` クラスを実装してください。
+</Warning>
+
+## 7. ストアからアイテムを購入
+これにより、セールコントラクトの mint 関数が呼び出されます。ユーザーのウォレットアドレスを `to` パラメータに指定することで、そのユーザーにアイテムがミントされます。`ERC1155Sale.cs` クラスを使って `CallContractFunction` を作成し、ユーザーのウォレットからセールコントラクトへトランザクションを送信できます。
+
+```csharp
+class ERC1155SaleState;
+
+public async Task<bool> PurchaseAsync(BigInteger tokenId, int amount)
+{
+    string to = _wallet.GetWalletAddress();
+    byte[] defaultProof = Array.Empty<byte>();
+
+    CallContractFunction contractCall = _saleContract.Mint(to, new[] {tokenId},
+    new[] {new BigInteger(amount)}, null, PaymentToken, new BigInteger(1), defaultProof);
+
+    Transaction[] transactions = new Transaction[] { new RawTransaction(contractCall) };
+    TransactionReturn result = await _wallet.SendTransaction(_chain, transactions);
+    return result is SuccessfulTransactionReturn;
+}
+```
+
+ゲームUIでユーザーが購入ボタンをクリックすると、販売状態クラスの PurchaseAsync 関数を呼び出して結果を待ちます。購入が成功した場合は通知を表示し、UIを更新します。失敗した場合は、ユーザーがウォレットに資金を追加できるようQRコードを表示します。
+
+```csharp
+class GameWindowUI;
+
+private ERC1155SaleState _saleState;
+
+public async void OnPurchaseClicked(BigInteger tokenId, int amount)
+{
+    bool success = await _saleState.PurchaseAsync(tokenId, amount);
+    if (!success) {
+        OpenQrCodeView();
+        return;
+    }
+
+    ShowNotification("Purchase succeeded.");
+    RenderState();
+}
+```

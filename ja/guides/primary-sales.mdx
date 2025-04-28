@@ -1,0 +1,126 @@
+---
+title: Webショップでゲームアイテムを販売する
+description: このガイドでは、SequenceのPrimary Salesの作成方法を解説します。セールスコントラクトの作成、NFTコントラクトの作成、コレクション作成、ウォレット認証、購入・ミントまでの手順を含みます。
+sidebarTitle: WebショップでERC-1155ゲームアイテムを販売する
+---
+
+ゲーム内アイテムをプレイヤーに直接販売して、ゲームの成長を加速させましょう。このガイドでは、ERC1155コントラクトのゲームアイテムを利用したウェブショップで、任意のカスタム通貨や既存通貨を使ってPrimary Saleコントラクトをデプロイする手順を解説します。Sequenceプラットフォームの以下の技術を使用します：
+1. [Primary Sales Contract](/solutions/collectibles/contracts/deploy-primary-sales-contract/)：WebショップやNFTドロップなど、プライマリセールを開始するためのコントラクトの設定・デプロイ方法。
+2. [Embedded Wallet](/solutions/wallets/embedded-wallet/overview)：Web SDKとSequence Embedded Walletを使ったユーザー認証。
+3. [Sequence Indexer](/solutions/builder/indexer)：Sequence Indexerを活用してNFTメタデータやユーザーのウォレット資産を取得。
+4. [Sequence Metadata](/solutions/builder/collections)：Sequence BuilderのUIやAPIを使ったコレクションやトークンのメタデータ管理・更新。
+
+## ゲームアイテム用Primary Salesのボイラープレートをクローンする
+
+<Tabs>
+  <Tab title="Sequence CLI">
+    #### [Sequence CLI](https://github.com/0xsequence/sequence-cli/)を使って、Primary Salesリポジトリを簡単にクローンできます。
+
+    ```bash
+    npx sequence-cli boilerplates create-primary-drop-sale-starter
+    ```
+  </Tab>
+
+  <Tab title="Github">
+    #### GithubからPrimary Salesリポジトリをクローンできます。
+
+    ```shell
+    git clone https://github.com/0xsequence-demos/primary-sale-1155-boilerplate.git
+    ```
+
+    <br />
+
+    その後、インストールして実行してください：
+
+    <br />
+
+    ```shell
+    pnpm install && pnpm dev
+    ```
+
+    <br />
+
+    依存関係をインストールすると、`.env.example` が自動的に `.env` にコピーされ、事前に用意されたキーでテストできるようになります。
+
+    <br />
+
+    準備ができたら、`.env` の内容をあなたのプロジェクト情報に置き換えてください。
+  </Tab>
+
+  <Tab title="Githubテンプレート">
+    #### GithubのPrimary Salesボイラープレートを利用できます。
+
+    [https://github.com/0xsequence-demos/primary-sale-1155-boilerplate](https://github.com/0xsequence-demos/primary-sale-1155-boilerplate) にアクセスし、右上の「Use this Template」をクリックしてください。
+
+    <br />
+
+    新しく作成したリポジトリをクローンします。
+
+    <br />
+
+    その後、インストールして実行してください：
+
+    <br />
+
+    ```shell
+    pnpm install && pnpm dev
+    ```
+
+    <br />
+
+    依存関係をインストールすると、`.env.example` が自動的に `.env` にコピーされ、事前に用意されたキーでテストできるようになります。
+
+    <br />
+
+    準備ができたら、`.env` の内容をあなたのプロジェクト情報に置き換えてください。
+  </Tab>
+</Tabs>
+
+## リポジトリで独自のPrimary Salesコントラクトを設定する
+設定するには、以下の手順に従ってください。
+
+<Steps>
+  <Step title="Sequence BuilderでPrimary Salesコントラクトをデプロイする。">
+    まず、販売したいゲームアイテムを格納するERC1155コントラクトとPrimary Sales Contractが必要です。詳しくは[こちらのガイド](/solutions/collectibles/contracts/deploy-primary-sales-contract)をご覧ください。
+  </Step>
+
+  <Step title="プロジェクトのセールス設定を行う。">
+    セールスコントラクトをデプロイしたら、ボイラープレートのセールス設定を更新します。`src/salesConfigs.ts` を開き、salesConfigs変数にプロジェクトで利用する各コントラクトのセール情報を、対応するネットワークごとに配列で追加してください。例：
+
+    ```ts
+    export const salesConfigs: SaleConfiguration[] = [
+      {
+        nftTokenAddress: "0x888a322db4b8033bac3ff84412738c096f87f9d0",
+        salesContractAddress: "0x0327b2f274e04d292e74a06809bcd687c63a4ba4",
+        chainId: 80002, //polygonAmoy
+        // Modify here to show different items
+        itemsForSale: ["0", "1"],
+      },
+      {
+        nftTokenAddress: "0xd4bb59d0ba1f7b2beea4c6d9b9f151ee1da02665",
+        salesContractAddress: "0x326d2fbe4808dd2a3e205aecc5e25a6322ad0a81",
+        chainId: 421614, //arbitrumSepolia,
+        // Modify here to show different items
+        itemsForSale: ["0"],
+      },
+    ];
+    ```
+
+    <Note>
+      現在Sequenceでサポートされている全チェーンは<a href="https://status.sequence.info" target="_blank" rel="noopener noreferrer" style={{ fontWeight: 700 }}>こちら</a>で確認できます。
+    </Note>
+  </Step>
+
+  <Step title="プロジェクトのデフォルトchainIdを設定する。">
+    デフォルトのchainIdを設定するには、`src/salesConfigs.ts` の defaultChainId 変数を、プロジェクトで最初に表示したいchainIdに変更してください。これはsalesConfigs変数に含まれているchainIdと一致している必要があります。例：
+
+    ```ts
+    // In this case, the chosen `defaultChainId` is 80002 (amoy), which is present in the previously declared `salesConfigs` variable.
+    export const defaultChainId = 80002;
+    ```
+
+    ### 完了です！
+
+    これで、Primary Saleコントラクトが正しく表示・動作するようになります。購入する際は、販売通貨として設定したトークンをウォレットに用意し、数量を増やすか指定して「購入」ボタンをクリックしてください。
+  </Step>
+</Steps>

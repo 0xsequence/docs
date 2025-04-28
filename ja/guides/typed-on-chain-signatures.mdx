@@ -1,0 +1,321 @@
+---
+title: オンチェーンでの型付きデータと署名メッセージの検証
+description: 署名者からのデータの完全性を保証するため、オンチェーンおよび未デプロイのウォレットコントラクトでメッセージの署名検証を行う方法
+sidebarTitle: オンチェーン型付きデータと署名検証の構築
+---
+
+所要時間：10～20分
+
+このガイドでは、EVMベースのコントラクト用に提供されたソースコードの使い方を順を追って解説し、Universal Signature Validator（[ERC-6492](https://ercs.ethereum.org/ERCS/erc-6492)）を組み込んだカスタムオンチェーンメッセージバリデータコントラクトの仕組みや、型付きデータによるアプリ内署名検証の方法を説明します。
+
+これは6つのステップで実現できます：
+1. [Builderプロジェクトの作成とアクセスキーの取得](/guides/typed-on-chain-signatures#1-create-a-builder-project-and-obtain-an-access-key)
+2. [React Viteアプリケーションの初期化](/guides/typed-on-chain-signatures#2-initialize-react-vite-application)
+3. [Sequence Walletを使ったユーザーサインイン](/guides/typed-on-chain-signatures#3-use-sequence-wallet-for-user-sign-in)
+4. [EIP712型付きデータでEIP6492署名を生成](/guides/typed-on-chain-signatures#4-use-eip712-typed-data-to-generate-eip6492-signatures)
+5. [EIP712検証とEIP1271バリデーション用コントラクトのデプロイ](/guides/typed-on-chain-signatures#5-deploy-contract-for-eip712-verification-and-eip1271-validation)
+6. [検証・バリデーションコントラクトからのレスポンスを表示](/guides/typed-on-chain-signatures#6-render-response-from-verifying-and-validating-contract)
+
+このアプリケーションの全体的な流れは、以下のシーケンス図で確認できます：
+
+<Frame>
+  ![eip712 eip1271署名の検証・バリデーションのシーケンスフロー](/images/guides/eip712-eip1271-signatures/eip712-eip1271-signatures.png)
+</Frame>
+
+<Note>
+  [デモの全コードはこちら](https://github.com/0xsequence-demos/demo-EIP712-EIP1271-signatures)で確認できます。また、[デモはこちら](https://demo-eip712-eip1271-signatures.pages.dev/)からご利用いただけます。
+</Note>
+
+## 1. Builderプロジェクトの作成とアクセスキーの取得
+まず、[こちらのガイド](/solutions/builder/getting-started)に従ってSequence Builderでプロジェクトを作成し、プロジェクトのアクセスキーを取得してください。
+
+## 2. React Viteアプリケーションの初期化
+次に、署名生成やブロックチェーンからの検証レスポンス取得に必要なコードを格納する新しいプロジェクトを初期化します：
+
+```shell
+pnpm create vite
+```
+
+これで空のプロジェクトが作成され、要素やロジックを追加できるようになります。
+
+## 3. Sequence Walletを使ったユーザーサインイン
+プロジェクトの動作に必要なパッケージをインストールします：
+
+```shell
+pnpm install 0xsequence ethers
+```
+
+その後、[ステップ1](/guides/typed-on-chain-signatures#1-create-a-builder-project--obtain-an-access-key)で取得したプロジェクトアクセスキーと選択したネットワークで、ユーザーがサインインできるようにします。
+
+```typescript
+
+import { sequence } from '0xsequence'
+
+function App() {
+    sequence.initWallet(PROJECT_ACCESS_KEY, {
+        defaultNetwork: 'sepolia',
+    });
+
+    const signIn = async () => {
+        const wallet = sequence.getWallet()
+        const details = await wallet.connect({app: 'sequence signature validation demo'})
+
+        if(details){
+            console.log('is signed in')
+            console.log(details)
+        }
+    }
+
+    return (
+        ...
+        <button onClick={() => signIn()}>sign in</button>
+        ...
+    )
+}
+```
+
+## 4. EIP712型付きデータでEIP6492署名を生成
+次に、typescriptでカスタム型付きデータを定義します。Sequenceのユーティリティライブラリを使って`TypedData`型を構築し、`name`、`wallet`、`message`パラメータを持つメッセージ構造を検証します：
+
+この例の`VERIFYING_CONTRACT_ADDRESS`は`sepolia`にデプロイしたスマートコントラクトですが、次のステップでこのコントラクトの内容を紹介し、どのネットワークでもデプロイできるように説明します：
+
+```typescript
+import { sequence } from '0xsequence'
+
+interface Person {
+  name: string;
+  wallet: string;
+  message: string;
+}
+
+const VERIFYING_CONTRACT_ADDRESS = '0xB81efF8d6700b83B24AA69ABB18Ca8f9F7A356c5'
+const CHAIN_ID = 11155111
+
+const submitSignature = () => {
+    const wallet = sequence.getWallet()
+
+    const message = 'hey' // message can be dynamic
+    const person: Person = {
+        name: "user", // name can be dynamic
+        wallet: wallet.getAddress(),
+        message: message,
+    };
+
+    const chainId = CHAIN_ID
+    const typedData: sequence.utils.TypedData = {
+        domain: {
+            // Domain settings must match verifying contract
+            name: "Sequence Signature Validation Demo",
+            version: "1",
+            chainId,
+            verifyingContract: VERIFYING_CONTRACT_ADDRESS,
+        },
+        types: {
+            Person: [
+                { name: "name", type: "string" },
+                { name: "wallet", type: "address" },
+                { name: "message", type: "string" },
+            ],
+        },
+        message: person,
+        primaryType: "Person",
+    };
+    ...
+}
+
+```
+
+その後、参照した各プロパティを使って型付きメッセージオブジェクトに署名します：
+
+```typescript
+const wallet = await sequence.getWallet()
+const signer = wallet.getSigner(CHAIN_ID);
+
+const signature = await signer.signTypedData(
+    typedData.domain,
+    typedData.types,
+    typedData.message,
+    {
+        chainId,
+        eip6492: true, // enabling signatures for non-deployed wallet contracts
+    }
+);
+
+console.log("signature", signature);
+```
+
+関数をボタンに紐付け、ユーザーがクリックした後に署名が生成されることを確認してください：
+
+```typescript
+<button onClick={() => submitSignature()}>verify signature</button>
+```
+
+## 5. EIP712検証とEIP1271バリデーション用コントラクトのデプロイ
+ここでは、[Remix](https://remix.ethereum.org/) や [Foundry](https://book.getfoundry.sh/reference/forge/forge) などのツール、または [Sequence Builder](https://sequence.build) を使ってコントラクトをデプロイするためのソースコードを提供します。
+
+<Steps>
+  <Step title="Universal Signature Validator（ユニバーサル署名バリデータ）">
+    Universal Signature Validator は、特定のネットワークに一度デプロイすれば、多くのアプリケーションで共有できるため、再利用性と拡張性に優れています。これは、[EIP6492](https://eips.ethereum.org/EIPS/eip-6492) 対応ウォレット向けのオフチェーン・オンチェーン両方のスマートコントラクトウォレットで利用できます。
+
+    [こちらにソースコードがあります](https://github.com/0xsequence-demos/EIP712-EIP1271-signatures-demo/blob/master/contracts/src/UniversalSignatureValidator.sol)。このコードを利用してデプロイしてください。
+  </Step>
+
+  <Step title="カスタムコントラクトバリファイア">
+    次に紹介するコントラクトは、用途に合わせてカスタマイズできるよう、さまざまな関数について詳しく説明します。まずは、Universal Signature Validator をコンストラクタに渡すという最初のステップで、以下の基本事項から始めましょう。
+
+    ```javascript
+    import {IERC1271} from "./interfaces/IERC1271.sol";
+    import {IERC6492} from "./interfaces/IERC6492.sol";
+
+    import {ECDSA} from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
+    import {EIP712} from "@openzeppelin/contracts/utils/cryptography/EIP712.sol";
+
+    struct Person { // can be customized
+        string name;
+        address wallet;
+        string message;
+    }
+
+    contract EIP712Verifier is EIP712 {
+        using ECDSA for bytes32;
+
+        IERC6492 public immutable ERC6492_SIGNATURE_VALIDATOR; // the universal signature validator
+
+        bytes32 private constant _ERC6492_DETECTION_SUFFIX = 0x6492649264926492649264926492649264926492649264926492649264926492;
+
+        // this line of code must be customized to the struct you're verifying
+        bytes32 private constant _PERSON_TYPEHASH = keccak256(bytes("Person(string name,address wallet,string message)"));
+
+        constructor(address erc6492SignatureValidator) {
+            ERC6492_SIGNATURE_VALIDATOR = IERC6492(erc6492SignatureValidator);
+        }
+        ...
+    }
+
+    ```
+  </Step>
+
+  <Step title="署名の検証">
+    次に、署名検証用の関数を用意します。この関数はメッセージハッシュのダイジェストを生成し、署名者を検証します。
+
+    ```javascript
+    /// @dev Verifies the signature of a person.
+    function verifySignature(address signer, Person memory person, bytes calldata signature)
+        external
+        returns (bool success)
+    {
+        bytes32 digest = personDigest(person);
+        return ERC6492_SIGNATURE_VALIDATOR.isValidSig(signer, digest, signature);
+    }
+    ```
+
+    #### カスタム Person ダイジェスト
+
+    以下の関数では、渡されたパラメータを使って struct ハッシュを再生成します。必要に応じて、パラメータの種類や数を増減できます。
+
+    ダイジェストの構築方法については、[EIP712仕様](https://github.com/ethereum/EIPs/blob/master/EIPS/eip-712.md) をご参照ください。
+
+    ```javascript
+    /// @dev Returns the EIP712 hash of a person.
+    function personDigest(Person memory person) public view returns (bytes32 digest) {
+        bytes32 structHash = keccak256(
+            abi.encode(_PERSON_TYPEHASH, keccak256(bytes(person.name)), person.wallet, keccak256(bytes(person.message)))
+        );
+        digest = EIP712._hashTypedDataV4(structHash);
+    }
+    ```
+
+    #### 署名者の検証
+
+    次に、`signer` アドレス、`digest`、`signature` を検証します。EIP6492 署名が渡された場合は [universal signature validator](https://eips.ethereum.org/EIPS/eip-6492) を利用し、それ以外は [EIP1271](https://eips.ethereum.org/EIPS/eip-1271) の署名検証を直接行います。
+
+    ```javascript
+    /// @dev Validates the ERC1271 signature of a signer.
+    function validateSigner(address signer, bytes32 digest, bytes calldata signature) internal returns (bool success) {
+        if (signature.length >= 32) {
+            bool isCounterfactual =
+                bytes32(signature[signature.length - 32:signature.length]) == _ERC6492_DETECTION_SUFFIX;
+            if (isCounterfactual) {
+                return ERC6492_SIGNATURE_VALIDATOR.isValidSig(signer, digest, signature);
+            }
+        }
+
+        try IERC1271(signer).isValidSignature(digest, signature) returns (bytes4 magicValue) {
+            return magicValue == IERC1271.isValidSignature.selector;
+        } catch {}
+        return false;
+    }
+    ```
+  </Step>
+</Steps>
+
+これで両方のコントラクトをデプロイする準備ができました。ネットワークを選択してください。
+
+## 6. 検証コントラクトからのレスポンスを表示
+署名を渡し、`ethers` を使ってデプロイ済みコントラクトを呼び出します。この際、`PROJECT_ACCESS_KEY` を利用します。
+
+<Steps>
+  <Step title="プロバイダの作成">
+    プロジェクトアクセスキーを使ってプロバイダを作成します。
+
+    ```typescript
+    import { ethers } from 'ethers'
+
+    const CHAIN_HANDLE = 'sepolia'
+
+    const provider = new ethers.JsonRpcProvider(
+        `https://nodes.sequence.app/${CHAIN_HANDLE}/${PROJECT_ACCESS_KEY}`
+    );
+    ```
+  </Step>
+
+  <Step title="Ethers コントラクトの初期化">
+    [ステップ5](/guides/typed-on-chain-signatures#5-deploy-contract-for-eip712-verification-and-eip1271-validation) で生成された ABI（または [Git のソースコード](https://github.com/0xsequence-demos/EIP712-EIP1271-signatures-demo/blob/master/src/abi.ts) からコピー）をインポートし、プロバイダと検証コントラクトアドレスを指定します。
+
+    ```typescript
+    import { ABI } from "./abi";
+
+    const contract = new ethers.Contract(
+        VERIFYING_CONTRACT_ADDRESS,
+        ABI,
+        provider
+    );
+    ```
+  </Step>
+
+  <Step title="署名検証関数をスタティックコール">
+    関数をスタティックコールすることで、トランザクションをチェーンに送信せずにシミュレーションできます。これにより、検証が成功したかどうかの結果が返されます。
+
+    ```typescript
+    const address = await wallet.getAddress()
+
+    const person: Person = {
+        name: "user",
+        wallet: address,
+        message: message,
+    }
+
+    const signature = await signer.signTypedData(
+        typedData.domain,
+        typedData.types,
+        typedData.message,
+        {
+            chainId,
+            eip6492: true,
+        }
+    );
+
+    const result = await contract.verifySignature.staticCall(
+        address,
+        person,
+        signature
+    );
+
+    console.log(`Signature is ${result ? "valid" : "invalid"}`);
+    return result;
+    ```
+  </Step>
+</Steps>
+
+## まとめ
+これで、ユーザーが正しい情報に署名していることを保証するさまざまなユースケース（例：ERC20 の使用許可、オフチェーンでの入札、署名済み QR コードによるミントなど）へとアプリケーションを拡張できます。
