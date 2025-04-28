@@ -1,0 +1,47 @@
+---
+title: クイックスタート
+description: Sequence インフラストラクチャスタックを活用した web3 ゲーム向け Embedded Wallet のテンプレートです。
+---
+
+## デモを試す
+
+<Note>
+  [デモ](https://0xsequence.github.io/demo-waas-auth/) で Embedded Wallet のシームレスなUXを体験できます。
+</Note>
+
+## テンプレート
+
+<Note>
+  [テンプレート](https://github.com/0xsequence/demo-waas-auth) を使って、Embedded Wallet の導入を始めましょう。
+</Note>
+
+## はじめに
+
+### SDK のインストール
+Embedded Wallet 認証システム用に TypeScript および Unity SDK をご用意しています。TypeScript SDK は以下のコマンドでインストールできます。
+
+```bash
+pnpm install @0xsequence/waas
+```
+
+Unity Embedded Wallet SDK の詳細については、[Unity SDK ドキュメント](/sdk/unity/overview) をご参照ください。
+
+### プロジェクトのセットアップ
+Sequence Embedded Wallet は現在クローズドベータで提供中です。Embedded Wallet SDKs を利用するには、Sequence チームにお問い合わせいただき、API 認証情報を取得する必要があります。取得後、次の２つのキーが提供されます。
+- プロジェクトアクセスキー
+- Embedded Wallet 設定キー
+
+### ライブラリのセットアップ
+Sequence Embedded Wallet SDKs を利用するには、`waas` クラスの新しいインスタンスを作成してください。
+
+```typescript
+import { SequenceWaaS } from '@0xsequence/waas'
+
+const waas = new SequenceWaaS({
+  projectAccessKey: `${process.env.PROJECT_ACCESS_KEY}`,
+  waasConfigKey: `${process.env.WAAS_CONFIG_KEY}`,
+  network: 'mumbai'
+}, defaults.TEST)
+```
+
+このライブラリは動作しますが、**ユーザーとして認証される**まではウォレットとのやり取りはできませんのでご注意ください。

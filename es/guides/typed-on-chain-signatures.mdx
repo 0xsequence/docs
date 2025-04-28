@@ -1,0 +1,321 @@
+---
+title: Datos tipados verificados y mensajes de firma validados en cadena
+description: Cómo realizar la verificación de firmas de mensajes en cadena y para contratos de billetera no desplegados, para asegurar la integridad de los datos en blockchain por parte de los firmantes
+sidebarTitle: Construir validación de datos tipados y firmas en cadena
+---
+
+Tiempo para completar: 10-20 minutos
+
+En esta guía te mostraremos cómo usar el código fuente proporcionado para un contrato basado en EVM y explicaremos el funcionamiento interno de un contrato verificador de mensajes personalizado en cadena que compone el Universal Signature Validator ([ERC-6492](https://ercs.ethereum.org/ERCS/erc-6492)), y cómo realizar la verificación de firmas en la aplicación con datos tipados.
+
+Esto se puede lograr en 6 pasos:
+1. [Cree un proyecto en Builder y obtenga una clave de acceso](/guides/typed-on-chain-signatures#1-create-a-builder-project-and-obtain-an-access-key)
+2. [Inicialice una aplicación React Vite](/guides/typed-on-chain-signatures#2-initialize-react-vite-application)
+3. [Use Sequence Wallet para el inicio de sesión del usuario](/guides/typed-on-chain-signatures#3-use-sequence-wallet-for-user-sign-in)
+4. [Utilice datos tipados EIP712 para generar firmas EIP6492](/guides/typed-on-chain-signatures#4-use-eip712-typed-data-to-generate-eip6492-signatures)
+5. [Despliegue el contrato para verificación EIP712 y validación EIP1271](/guides/typed-on-chain-signatures#5-deploy-contract-for-eip712-verification-and-eip1271-validation)
+6. [Muestre la respuesta del contrato de verificación y validación](/guides/typed-on-chain-signatures#6-render-response-from-verifying-and-validating-contract)
+
+El flujo general de esta aplicación se puede ver en el siguiente diagrama de secuencia:
+
+<Frame>
+  ![flujo de secuencia para verificación y validación de firmas eip712 eip1271](/images/guides/eip712-eip1271-signatures/eip712-eip1271-signatures.png)
+</Frame>
+
+<Note>
+  Consulte el [código completo del demo](https://github.com/0xsequence-demos/demo-EIP712-EIP1271-signatures) para más información y un ejemplo de [demo aquí](https://demo-eip712-eip1271-signatures.pages.dev/).
+</Note>
+
+## 1. Cree un proyecto en Builder y obtenga una clave de acceso
+Primero, siga [esta guía](/solutions/builder/getting-started) para crear un proyecto en Sequence Builder y obtener una clave de acceso para el proyecto.
+
+## 2. Inicialice una aplicación React Vite
+A continuación, comience por inicializar un nuevo proyecto que contendrá todo el código necesario para generar firmas y respuestas de validación desde la blockchain:
+
+```shell
+pnpm create vite
+```
+
+Esto debería crear un proyecto en blanco al que puede empezar a agregar elementos y la lógica.
+
+## 3. Use Sequence Wallet para el inicio de sesión del usuario
+Instale los paquetes necesarios para que el proyecto funcione:
+
+```shell
+pnpm install 0xsequence ethers
+```
+
+Luego, habilite que un usuario inicie sesión en la red elegida y con la clave de acceso del proyecto obtenida en el [paso 1](/guides/typed-on-chain-signatures#1-create-a-builder-project--obtain-an-access-key).
+
+```typescript
+
+import { sequence } from '0xsequence'
+
+function App() {
+    sequence.initWallet(PROJECT_ACCESS_KEY, {
+        defaultNetwork: 'sepolia',
+    });
+
+    const signIn = async () => {
+        const wallet = sequence.getWallet()
+        const details = await wallet.connect({app: 'sequence signature validation demo'})
+
+        if(details){
+            console.log('is signed in')
+            console.log(details)
+        }
+    }
+
+    return (
+        ...
+        <button onClick={() => signIn()}>sign in</button>
+        ...
+    )
+}
+```
+
+## 4. Utilice datos tipados EIP712 para generar firmas EIP6492
+Ahora, definiremos datos tipados personalizados en TypeScript y, usando la biblioteca de utilidades de Sequence, construiremos un tipo `TypedData`, donde verificaremos una estructura de mensaje con los parámetros `name`, `wallet` y `message`:
+
+En este ejemplo, `VERIFYING_CONTRACT_ADDRESS` es el contrato inteligente que desplegamos en `sepolia`, pero en el siguiente paso te mostraremos qué hace este contrato para que puedas desplegarlo tú mismo en cualquier red:
+
+```typescript
+import { sequence } from '0xsequence'
+
+interface Person {
+  name: string;
+  wallet: string;
+  message: string;
+}
+
+const VERIFYING_CONTRACT_ADDRESS = '0xB81efF8d6700b83B24AA69ABB18Ca8f9F7A356c5'
+const CHAIN_ID = 11155111
+
+const submitSignature = () => {
+    const wallet = sequence.getWallet()
+
+    const message = 'hey' // message can be dynamic
+    const person: Person = {
+        name: "user", // name can be dynamic
+        wallet: wallet.getAddress(),
+        message: message,
+    };
+
+    const chainId = CHAIN_ID
+    const typedData: sequence.utils.TypedData = {
+        domain: {
+            // Domain settings must match verifying contract
+            name: "Sequence Signature Validation Demo",
+            version: "1",
+            chainId,
+            verifyingContract: VERIFYING_CONTRACT_ADDRESS,
+        },
+        types: {
+            Person: [
+                { name: "name", type: "string" },
+                { name: "wallet", type: "address" },
+                { name: "message", type: "string" },
+            ],
+        },
+        message: person,
+        primaryType: "Person",
+    };
+    ...
+}
+
+```
+
+Luego firmaremos el objeto de tipo mensaje con las distintas propiedades referenciadas:
+
+```typescript
+const wallet = await sequence.getWallet()
+const signer = wallet.getSigner(CHAIN_ID);
+
+const signature = await signer.signTypedData(
+    typedData.domain,
+    typedData.types,
+    typedData.message,
+    {
+        chainId,
+        eip6492: true, // enabling signatures for non-deployed wallet contracts
+    }
+);
+
+console.log("signature", signature);
+```
+
+¡Perfecto! Asocie la función a un botón y vea cómo se genera la firma después de que el usuario haga clic en el botón:
+
+```typescript
+<button onClick={() => submitSignature()}>verify signature</button>
+```
+
+## 5. Despliegue el contrato para verificación EIP712 y validación EIP1271
+Ahora te proporcionaremos el código fuente que puedes usar en herramientas como [Remix](https://remix.ethereum.org/) para desplegar un contrato, o incluso en [Foundry](https://book.getfoundry.sh/reference/forge/forge) para construir y desplegar con el [Sequence Builder](https://sequence.build)
+
+<Steps>
+  <Step title="Validador Universal de Firmas">
+    El Validador Universal de Firmas puede, en teoría, desplegarse una sola vez para una red específica y ser compartido entre muchas aplicaciones, lo que lo hace modular y reutilizable. Su uso es tanto para billeteras inteligentes fuera de la cadena como en la cadena, habilitadas para [EIP6492](https://eips.ethereum.org/EIPS/eip-6492).
+
+    Puede encontrar [el código fuente aquí](https://github.com/0xsequence-demos/EIP712-EIP1271-signatures-demo/blob/master/contracts/src/UniversalSignatureValidator.sol) para desplegarlo.
+  </Step>
+
+  <Step title="Verificador de Contrato Personalizado">
+    El siguiente contrato lo explicaremos en mayor profundidad junto con sus distintas funciones, ya que este contrato puede personalizarse según la aplicación específica. Comienza con lo básico, pasando el Validador Universal de Firmas al constructor en el primer paso:
+
+    ```javascript
+    import {IERC1271} from "./interfaces/IERC1271.sol";
+    import {IERC6492} from "./interfaces/IERC6492.sol";
+
+    import {ECDSA} from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
+    import {EIP712} from "@openzeppelin/contracts/utils/cryptography/EIP712.sol";
+
+    struct Person { // can be customized
+        string name;
+        address wallet;
+        string message;
+    }
+
+    contract EIP712Verifier is EIP712 {
+        using ECDSA for bytes32;
+
+        IERC6492 public immutable ERC6492_SIGNATURE_VALIDATOR; // the universal signature validator
+
+        bytes32 private constant _ERC6492_DETECTION_SUFFIX = 0x6492649264926492649264926492649264926492649264926492649264926492;
+
+        // this line of code must be customized to the struct you're verifying
+        bytes32 private constant _PERSON_TYPEHASH = keccak256(bytes("Person(string name,address wallet,string message)"));
+
+        constructor(address erc6492SignatureValidator) {
+            ERC6492_SIGNATURE_VALIDATOR = IERC6492(erc6492SignatureValidator);
+        }
+        ...
+    }
+
+    ```
+  </Step>
+
+  <Step title="Verificar Firma">
+    A continuación, tenemos la función para verificar la firma, que realiza ambas acciones: crea el hash del mensaje y valida al firmante:
+
+    ```javascript
+    /// @dev Verifies the signature of a person.
+    function verifySignature(address signer, Person memory person, bytes calldata signature)
+        external
+        returns (bool success)
+    {
+        bytes32 digest = personDigest(person);
+        return ERC6492_SIGNATURE_VALIDATOR.isValidSig(signer, digest, signature);
+    }
+    ```
+
+    #### Digest Personalizado de Persona
+
+    En la siguiente función, recreamos el hash de la estructura con los parámetros proporcionados; esto se puede ampliar para incluir más o menos parámetros de diferentes tipos.
+
+    Para más información sobre cómo construir el digest, consulte la [especificación EIP712](https://github.com/ethereum/EIPs/blob/master/EIPS/eip-712.md).
+
+    ```javascript
+    /// @dev Returns the EIP712 hash of a person.
+    function personDigest(Person memory person) public view returns (bytes32 digest) {
+        bytes32 structHash = keccak256(
+            abi.encode(_PERSON_TYPEHASH, keccak256(bytes(person.name)), person.wallet, keccak256(bytes(person.message)))
+        );
+        digest = EIP712._hashTypedDataV4(structHash);
+    }
+    ```
+
+    #### Validar Firmante
+
+    Luego, validamos la dirección del `signer`, el `digest` y la `signature`. Si se ha proporcionado una firma EIP6492, usamos el [validador universal de firmas](https://eips.ethereum.org/EIPS/eip-6492); de lo contrario, verificamos directamente la validación de la firma [EIP1271](https://eips.ethereum.org/EIPS/eip-1271):
+
+    ```javascript
+    /// @dev Validates the ERC1271 signature of a signer.
+    function validateSigner(address signer, bytes32 digest, bytes calldata signature) internal returns (bool success) {
+        if (signature.length >= 32) {
+            bool isCounterfactual =
+                bytes32(signature[signature.length - 32:signature.length]) == _ERC6492_DETECTION_SUFFIX;
+            if (isCounterfactual) {
+                return ERC6492_SIGNATURE_VALIDATOR.isValidSig(signer, digest, signature);
+            }
+        }
+
+        try IERC1271(signer).isValidSignature(digest, signature) returns (bytes4 magicValue) {
+            return magicValue == IERC1271.isValidSignature.selector;
+        } catch {}
+        return false;
+    }
+    ```
+  </Step>
+</Steps>
+
+Ya puedes desplegar ambos contratos; asegúrate de elegir tu red.
+
+## 6. Renderizar Respuesta de Verificación y Validación del Contrato
+Pasamos las firmas y llamamos al contrato desplegado usando `ethers` con el `PROJECT_ACCESS_KEY` proporcionado en los siguientes pasos:
+
+<Steps>
+  <Step title="Crear un Proveedor">
+    Crea un proveedor usando la clave de acceso del proyecto:
+
+    ```typescript
+    import { ethers } from 'ethers'
+
+    const CHAIN_HANDLE = 'sepolia'
+
+    const provider = new ethers.JsonRpcProvider(
+        `https://nodes.sequence.app/${CHAIN_HANDLE}/${PROJECT_ACCESS_KEY}`
+    );
+    ```
+  </Step>
+
+  <Step title="Inicializa un Contrato de Ethers">
+    Importa el ABI generado en el [paso 5](/guides/typed-on-chain-signatures#5-deploy-contract-for-eip712-verification-and-eip1271-validation) (o cópialo [del código fuente en git](https://github.com/0xsequence-demos/EIP712-EIP1271-signatures-demo/blob/master/src/abi.ts)), incluye el proveedor e ingresa la dirección del contrato verificador:
+
+    ```typescript
+    import { ABI } from "./abi";
+
+    const contract = new ethers.Contract(
+        VERIFYING_CONTRACT_ADDRESS,
+        ABI,
+        provider
+    );
+    ```
+  </Step>
+
+  <Step title="Llamada estática a la función de verificar firma">
+    Al realizar una llamada estática a la función, simulamos la transacción sin enviarla a la cadena. Esto devuelve un resultado que indica si la validación fue verdadera o falsa:
+
+    ```typescript
+    const address = await wallet.getAddress()
+
+    const person: Person = {
+        name: "user",
+        wallet: address,
+        message: message,
+    }
+
+    const signature = await signer.signTypedData(
+        typedData.domain,
+        typedData.types,
+        typedData.message,
+        {
+            chainId,
+            eip6492: true,
+        }
+    );
+
+    const result = await contract.verifySignature.staticCall(
+        address,
+        person,
+        signature
+    );
+
+    console.log(`Signature is ${result ? "valid" : "invalid"}`);
+    return result;
+    ```
+  </Step>
+</Steps>
+
+## Conclusión
+Ahora que tenemos estructuras de mensajes que se envían a la blockchain y se verifican con sus entradas, podemos ampliar la aplicación a muchos casos de uso para asegurar que los usuarios firmen la información correcta (por ejemplo, permitir el gasto de tokens ERC20, realizar ofertas fuera de la cadena, códigos QR que contienen minteo aprobado mediante firma, etc.).

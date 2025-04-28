@@ -1,0 +1,81 @@
+---
+title: SequenceのUnreal Engine SDKを使ったWeb3ゲーム機能の構築と統合
+description: Sequence Wallet の統合、プレイヤーのアセット取得、メッセージ署名、トランザクション送信など、Sequence の Unreal SDK を使って実現できます。
+sidebarTitle: Unreal EngineでWeb3ゲームを構築する
+---
+
+# Cropout入門 - Unreal Engineゲームガイド
+CropoutはUnreal Engineで作られたトップダウン型のカジュアルRTSゲームです。このガイドでは、SequenceのUnreal SDKを使ってEmbedded Wallet機能を統合する方法を解説します。
+
+この統合により、プレイヤーはスマートコントラクトウォレット、ゲーム内アセットの所有、トランザクション管理などの機能を、煩わしいポップアップやガス代の心配なく利用できます。
+
+[このガイド用のボイラープレートをご確認ください。](https://github.com/0xsequence/sequence-unreal)
+[Embedded Walletsについて詳しくはこちら。](/solutions/wallets/overview#what-are-the-differences-between-these-options)
+
+## 1. セットアップ
+
+### ゲームサンプルをダウンロードする
+Unreal Engineがインストールされている場合は、[UnrealのCropoutページ](https://www.unrealengine.com/en-US/blog/cropout-casual-rts-game-sample-project)に直接アクセスしてください。
+
+まだの場合は、まずEpic Games Launcherをインストールしてください：
+1.  [Epic Gamesの公式サイト](https://www.unrealengine.com/en-US/download)からランチャーをダウンロードしてインストールします。
+
+2.  ログイン：Epic Gamesアカウントでサインインするか、新規作成することもできます。
+
+3.  プロジェクトを探す：Unreal Engineタブの「Learn」セクションで「Cropout Sample Project」と検索します。
+
+4.  「Add to Library」をクリックし、「Install」でプロジェクトファイルをダウンロードします。
+
+## Sequence Unreal Engine SDKをダウンロードする
+まず、Sequence SDKの[最新バージョン](https://github.com/0xsequence/sequence-unreal/releases)をダウンロードし、`SequencePlugin`フォルダをUnrealプロジェクトの`Plugin`フォルダに配置します。
+
+または、[Epic Games MarketplaceからSDKを入手することもできます。](/sdk/unreal/installation#using-epic-games-marketplace)
+
+### プロジェクトの設定
+
+1.  [Sequence Builderコンソールにサインインしてください。](/solutions/builder/getting-started)
+
+2.  [Builderコンソールでゲーム用プロジェクトを作成します。](/support/builder/project-management)
+
+3.  [BuilderコンソールでEmbedded Walletをセットアップします。](/solutions/builder/embedded-wallet#embedded-wallet-in-builder)
+
+4.  `SequenceConfig.ini`ファイルに、[Builder Console](/solutions/builder/getting-started#claim-an-api-access-key)の`Settings > API Access Keys`で取得した`WaaS Config Key`とBuilder API Keyを追加してください。
+
+5.  また、Builderの`Onboard > Embedded Wallet > Configuration`で設定する必要がある、必要なOauthクライアントIDも忘れずに追加してください。
+
+### 組み込みUIでログインする
+Main Menuレベルのブループリントで`Sequence Connector`アクターを生成し、ログインパネルを表示して初期化します。
+
+開発時は組み込みUIの利用を推奨します。詳しくは[こちらの詳細な解説](/sdk/unreal/user_interfaces/)をご覧ください。
+さらにカスタマイズしたい場合は、[独自UIの作成方法](/sdk/unreal/authentication/)もご参照ください。
+
+## 2. ネットワークIDとチェーンの設定
+Sequence SDKとのやり取りを始めるには、\_Sequence Connector\_ブループリントを開き、\_Event Graph > Begin Play\_の`Auth Success`イベントを見つけて、SequenceWalletBPサブシステムの`Api Update Network Id`を呼び出し、ウォレットをプロジェクトで選択したチェーンに設定します。
+同じイベント内で、Sequence Indexerサブシステムの`Set Chain`も呼び出し、アセットを正しく取得できるようにします。
+
+## 3. ウォレットアドレスの取得
+ウォレットアドレスを表示するには、まずSequenceWalletBPでユーザーのウォレット参照を再取得し、選択したネットワークの`Api GetWallet Address`を使ってウォレットアドレスを取得・表示します。UI\_Layer\_Menuでユーザーアドレスを表示します。
+
+## 4. NFTの設定
+今回は、Resource BundleパックやFarming Boosts用にERC-1155コントラクトから始めます。NFTを作成するには、[Builder Console > Deploy > Contracts](/solutions/builder/contracts/)で`Web3 Game Item`を選択してください。
+
+アイテムを作成したら、それぞれの販売用コントラクトを新たにデプロイし、`Web 3 Game Item(Sale)`を選択します。
+
+Web 3 Gameアイテムには、対応する報酬とSaleコントラクトアドレスを、それぞれプロパティとして追加します。
+
+### NFTの取得
+新しく作成したNFTを取得するには、IndexerサブシステムでGet Token Supplyを呼び出し、指定したコントラクトアドレスの情報とメタデータを取得します。これは`CUI_Purchase`ブループリントで確認できます。
+
+### NFTの購入
+プレイヤーがNFTを購入できるようにするには、SequenceSDKサブシステムで`PrimaryPurchase`トランザクションを作成・送信します。目的の`Web 3 Game Item(Sale)`に対して、コントラクトの「Sale」プロパティを参照します。
+
+### プレイヤーのNFTを取得する
+プレイヤーのNFTを取得するには、まずIndexerサブシステムで`Get Token Balances`を呼び出し、指定ウォレットアドレスの全コントラクト残高を取得します。返却後、今度は各コントラクトごとに再度`Get Token Balances`を呼び出し、そのコントラクトの残高と情報・メタデータを取得します。これらの処理は`CUI_Vault`ブループリントで確認できます。
+
+### プレイヤーのNFTをバーンする
+NFTを使用したプレイヤーに報酬を与えるには、SequenceSDKサブシステムで目的の`Web 3 Game Item`の`Burn`トランザクションを作成・送信し、トランザクションのステータスとコントラクトアドレスを取得してバーン成功を確認します。成功時はコントラクトのプロパティを使ってプレイヤーに報酬を付与します。これは`CUI_VaultItem`ブループリントで確認できます。
+
+より詳しい説明は[Read From Blockchain](/sdk/unreal/read-from-blockchain/)および[Write to Blockchain](/sdk/unreal/write-to-blockchain/)セクションをご覧ください。
+
+## 5. プレイヤーのサインアウト
+プレイヤーのサインアウトとセッション終了には、Sequence Sessionsサブシステムの`Clear Session`を呼び出します。これにより保存された認証情報が削除され、次回アクセス時に再度ログインが必要になります。このメソッドはUI\_Layer\_Menuで呼び出します。

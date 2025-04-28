@@ -1,0 +1,161 @@
+---
+title: Crea ventas de lanzamientos NFT con Sequence
+description: Esta guía cubre la creación de una venta primaria 721 de Sequence. Incluye los pasos para crear un contrato de venta, un contrato NFT, una colección, crear tokens no revelados, revelar tokens, autenticar billeteras y comprar y acuñar.
+sidebarTitle: Crea ventas de lanzamientos NFT
+---
+
+Acelera el crecimiento de tu juego y agrega emoción vendiendo tokens no revelados a tus jugadores, ofreciéndoles increíbles recompensas cuando termine el periodo de venta, ya que todos los tokens no revelados mostrarán sus verdaderas características que encantarán a tus usuarios. En esta guía, te mostraremos cómo desplegar un contrato de venta primaria usando cualquier moneda personalizada o existente para una venta tipo lanzamiento que utiliza artículos de juego de un contrato ERC721. Usaremos las siguientes tecnologías de la plataforma Sequence:
+1. [Contrato de venta primaria](/solutions/collectibles/contracts/deploy-primary-sales-contract/): Cómo configurar y desplegar contratos para lanzar una venta primaria — ideal para una tienda web, lanzamiento NFT y más.
+2. [Embedded Wallet](/solutions/wallets/embedded-wallet/overview): Usa el Web SDK y Sequence Embedded Wallet para autenticar a un usuario.
+3. [Sequence Indexer](/solutions/builder/indexer): Aprovecha Sequence Indexer para consultar metadatos de NFT y activos de la billetera del usuario.
+4. [Sequence Metadata](/solutions/builder/collections): Actualiza y gestiona los metadatos de una colección o token mediante la interfaz y API de Sequence Builder.
+
+## Clona el boilerplate de venta primaria para artículos de juego
+
+<Tabs>
+  <Tab title="Sequence CLI">
+    #### Puedes clonar fácilmente el repositorio de venta primaria usando el [Sequence CLI](https://github.com/0xsequence/sequence-cli/)
+
+    ```bash
+    npx sequence-cli boilerplates create-primary-drop-sales-erc721-starter
+    ```
+  </Tab>
+
+  <Tab title="Github">
+    #### Puedes clonar el repositorio de venta primaria desde Github
+
+    ```shell
+    git clone https://github.com/0xsequence-demos/primary-drop-sale-721-boilerplate.git
+    ```
+
+    <br />
+
+    Luego instale y ejecute:
+
+    <br />
+
+    ```shell
+    pnpm install && pnpm dev
+    ```
+
+    <br />
+
+    Después de instalar las dependencias, `.env.example` se copiará automáticamente a `.env`, para que puedas probar el funcionamiento con claves preconfiguradas.
+
+    <br />
+
+    Cuando estés listo, reemplaza el contenido de `.env` con la información de tu proyecto.
+  </Tab>
+
+  <Tab title="Plantilla de Github">
+    #### Puedes usar la plantilla del repositorio de Primary Sales desde Github
+
+    Vaya a [https://github.com/0xsequence-demos/primary-drop-sale-721-boilerplate](https://github.com/0xsequence-demos/primary-drop-sale-721-boilerplate) y haga clic en "Use this Template" en la esquina superior derecha.
+
+    <br />
+
+    Clona tu nuevo repositorio.
+
+    <br />
+
+    Luego instale y ejecute:
+
+    <br />
+
+    ```shell
+    pnpm install && pnpm dev
+    ```
+
+    <br />
+
+    Después de instalar las dependencias, `.env.example` se copiará automáticamente a `.env`, para que puedas probar el funcionamiento con claves preconfiguradas.
+
+    <br />
+
+    Cuando estés listo, reemplaza el contenido de `.env` con la información de tu proyecto.
+  </Tab>
+</Tabs>
+
+## Cómo usar este repositorio
+¿Qué puedes hacer con esto? La idea es vender NFTs con metadatos ocultos—¡emocionante, verdad? Ofrece a los usuarios tokens con distintas propiedades y rarezas. ¿Espadas? ¿Escudos? ¿Cuadros? ¿Pases de batalla aleatorios? ¿Quizás hasta un boleto dorado? ¡Imagina la emoción! Da a tus usuarios un misterio y una recompensa cuando finalmente reveles su token.
+
+### Creación de tokens no revelados
+En este paso se explica cómo crear tokens no revelados para tu colección NFT usando un script. Sigue los pasos cuidadosamente para asegurarte de que tu colección esté bien configurada y asegúrate de copiar el ID de la URL en la vista de detalles de la colección.
+
+Para crear los tokens no revelados, asegúrate de establecer tu `collectionId` y el número de tokens que deseas crear dentro del archivo `scripts/utils/getBodyAndKeys.ts`, que ya contiene un ejemplo.
+
+<Warning>
+  Asegúrate de configurar tu `JWT_SECRET_KEY`, `VITE_PROJECT_ACCESS_KEY` y `VITE_PROJECT_ID` en tu archivo `.env`.
+</Warning>
+
+#### Script:
+
+```bash
+pnpm create-unrevealed-tokens
+```
+
+### Flujo de conexión del proyecto y configuración del contrato de ventas ERC721
+A partir de aquí, debes completar todo el flujo de conexión de tu proyecto y configurar el contrato de ventas ERC721, que estará vinculado a la colección que contiene los tokens no revelados.
+
+#### Consideraciones importantes:
+
+- El contrato de ventas primarias debe tener el mismo stock que la cantidad de tokens no revelados que creaste mediante el endpoint.
+- Por ejemplo, si generaste 300 tokens no revelados, debes configurar 300 unidades de stock en el contrato de ventas para que coincidan el contrato y los tokens no revelados.
+- Vincula la colección con tokens no revelados al contrato.
+- Asegúrate de que el suministro total o stock en tu contrato de ventas ERC721 coincida con la cantidad de tokens no revelados. Esto evita inconsistencias entre lo que el contrato ofrece a la venta y los tokens no revelados disponibles.
+
+### Configura tus propios contratos de Primary Sales en el repositorio
+Ofrecemos algunos contratos y variables de ejemplo para que puedas comenzar. Sin embargo, probablemente querrás usar tus propios contratos. Para configurarlo, simplemente sigue estos pasos:
+
+<Steps>
+  <Step title="Despliega un contrato de Primary Sales en Sequence Builder.">
+    Primero necesitamos un contrato de Primary Sales junto con un contrato ERC721 que contendrá los ítems de juego que queremos vender. Para hacerlo, sigue la [guía](/solutions/collectibles/contracts/deploy-primary-sales-contract) aquí.
+  </Step>
+
+  <Step title="Configura las opciones de venta para el proyecto.">
+    Una vez desplegado el contrato de ventas, simplemente actualiza la configuración de ventas en el boilerplate. Ve a `src/salesConfigs.ts` y modifica la variable salesConfigs agregando cada venta de contrato en un arreglo con las redes que quieras soportar para tu proyecto. Ejemplo:
+
+    ```ts
+    export const salesConfigs: SaleConfiguration[] = [
+      {
+        nftTokenAddress: "0x70a2177079877e4aae639d1abb29ffa537b94970",
+        salesContractAddress: "0xa55574c5ed4cd1dbc5feba47a204fdfb483edadd",
+        chainId: 80002, //polygonAmoy
+      }
+    ];
+    ```
+
+    <Note>
+      Puede ver todas las cadenas actualmente soportadas por Sequence <a href="https://status.sequence.info" target="_blank" rel="noopener noreferrer" style={{ fontWeight: 700 }}>aquí</a>.
+    </Note>
+  </Step>
+
+  <Step title="Establece un chainId predeterminado para el proyecto.">
+    Para establecer el chainId predeterminado, ve a `src/salesConfigs.ts` y modifica la variable defaultChainId con el chainId que deseas mostrar por defecto en el proyecto. Debe coincidir con un chainId presente en tu variable salesConfigs. Por ejemplo:
+
+    ```ts
+    // In this case, the chosen `defaultChainId` is 80002 (amoy), which is present in the previously declared `salesConfigs` variable.
+    export const defaultChainId = 80002;
+    ```
+  </Step>
+
+  <Step title="¡Listo!">
+    Su venta primaria tipo drop debería aparecer y funcionar correctamente a partir de este punto. Para realizar una compra, asegúrese de tener en su billetera el token correspondiente que configuró como moneda para la venta, seleccione la cantidad deseada y haga clic en comprar.
+  </Step>
+</Steps>
+
+### Revelar tokens
+¡Oye, qué emocionante! Sus usuarios están ansiosos por descubrir qué les ha tocado—alégrelos al revelar los atributos reales de sus NFTs. ¡Buena suerte a todos! Este script revelará todos los tokens no revelados y asignará sus valores reales a los NFTs, que se generan aleatoriamente. Siéntase libre de personalizar este script para crear los metadatos exactamente como desee.
+
+Para revelar los tokens no revelados, asegúrese de establecer su `collectionId` dentro del archivo `scripts/utils/getBodyAndKeys.ts`, que ya contiene un ejemplo.
+
+<Warning>
+  Asegúrese de configurar su `JWT_SECRET_KEY`, `VITE_PROJECT_ACCESS_KEY` y `VITE_PROJECT_ID` en su archivo `.env`.
+  Antes de este paso, debe deshabilitar sus ventas primarias, ya sea estableciendo una fecha de expiración o esperando a que se agote el stock del contrato (esto es obligatorio).
+</Warning>
+
+#### Script:
+
+```bash
+pnpm reveal-tokens
+```
