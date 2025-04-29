@@ -1,6 +1,6 @@
 ---
 
-title: "Managing User Sessions"
+title: "Manage Sessions"
 description: Documentation for Unreal SDK API to manage sessions for the Sequence infrastructure stack for web3 gaming.
 ---
 
@@ -27,6 +27,29 @@ Read our [Backend Verification Guide](/sdk/headless-wallet/verification) for mor
         {
             const USequenceWallet* Wallet = WalletOptional.GetValue();
             Wallet->GetIdToken(Nonce, OnSuccess, OnFailure);
+        }
+        ```
+    </Tab>
+</Tabs>
+
+## Check Existing Session
+
+Check if your client has an existing session stored.
+
+<Tabs>
+    <Tab title="Blueprint">
+        <Frame>
+            <img src="/images/unreal/check_existing_session.png" />
+        </Frame>
+    </Tab>
+
+    <Tab title="C++">
+        ```cpp
+        const TOptional<USequenceWallet*> WalletOptional = USequenceWallet::Get();
+        if (WalletOptional.IsSet() && WalletOptional.GetValue())
+        {
+            USequenceWallet * Api = WalletOptional.GetValue();
+            Api->SignOut();
         }
         ```
     </Tab>
@@ -84,4 +107,35 @@ List the active sessions.
         }
         ```
   </Tab>
+</Tabs>
+
+## List Accounts
+
+List your accounts.
+
+<Tabs>
+    <Tab title="Blueprint">
+        <Frame>
+            <img src="/images/unreal/list_accounts.png" />
+        </Frame>
+    </Tab>
+
+    <Tab title="C++">
+        ```cpp
+        const TSuccessCallback<TArray<FSession>> OnSuccess = [=](TArray<FSession> Response)
+        {
+            //Response is a list of Sessions
+        };
+        const FFailureCallback OnFailure = [=](const FSequenceError& Error)
+        {
+            UE_LOG(LogTemp,Display,TEXT("Error Message: %s"),*Error.Message);
+        };
+        const TOptional<USequenceWallet*> WalletOptional = USequenceWallet::Get();
+        if (WalletOptional.IsSet() && WalletOptional.GetValue())
+        {
+            USequenceWallet * Api = WalletOptional.GetValue();
+            Api->ListSessions(OnSuccess,OnFailure);
+        }
+        ```
+    </Tab>
 </Tabs>

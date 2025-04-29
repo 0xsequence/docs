@@ -7,7 +7,7 @@ description: Documentation for Unreal SDK API to manage sessions for the Sequenc
 Visit our [Platform Requirements](/sdk/unreal/platforms) page for detailed information on setting up and ensuring
 that the authentication methods you choose are properly configured in your Builder project.
 
-## Sign In with Email OTP
+## Start Email Login
 
 Sign in users with any email, and they will receive a one-time password in their inbox.
 Listen for the Email Requires Code event.
@@ -15,7 +15,31 @@ Listen for the Email Requires Code event.
 <Tabs>
     <Tab title="Blueprint">
         <Frame>
-            <img src="/images/unreal/email_otp.png" />
+            <img src="/images/unreal/start_email_login.png" />
+        </Frame>
+    </Tab>
+    <Tab title="C++">
+        ```cpp
+        const TFunction<void()> OnSuccess = [this] { };
+        const FFailureCallback OnFailure = [this](const FSequenceError& Error) { };
+
+        SequenceSessions* Sessions = NewObject<SequenceSessions>();
+        Sessions->StartEmailLogin(Email, OnSuccess, OnFailure);
+
+        Sessions->ConfirmEmailLoginWithCode(Code, OnApiSuccess, OnApiFailure, OnApiFederationRequired);
+        ```
+    </Tab>
+</Tabs>
+
+## Confirm Email Login with Code
+
+Sign in users with any email, and they will receive a one-time password in their inbox.
+Listen for the Email Requires Code event.
+
+<Tabs>
+    <Tab title="Blueprint">
+        <Frame>
+            <img src="/images/unreal/confirm_email_login.png" />
         </Frame>
     </Tab>
     <Tab title="C++">
@@ -38,7 +62,7 @@ You can sign in users as guests. However, note that they will lose access to the
 <Tabs>
     <Tab title="Blueprint">
         <Frame>
-            <img src="/images/unreal/guest_session.png" />
+            <img src="/images/unreal/start_guest_session.png" />
         </Frame>
     </Tab>
 </Tabs>
@@ -59,7 +83,7 @@ to know when the sign in request was successful. Listen for `Session Creation Fa
 <Tabs>
     <Tab title="Blueprint">
         <Frame>
-            <img src="/images/unreal/google_idtoken.png" />
+            <img src="/images/unreal/get_google_token.png" />
         </Frame>
   </Tab>
 </Tabs>
@@ -69,7 +93,7 @@ to know when the sign in request was successful. Listen for `Session Creation Fa
 <Tabs>
     <Tab title="Blueprint">
         <Frame>
-            <img src="/images/unreal/apple_idtoken.png" />
+            <img src="/images/unreal/get_apple_token.png" />
         </Frame>
   </Tab>
 </Tabs>
@@ -81,7 +105,7 @@ Sign In with a valid Google Id Token. You get this from the [Get Google Id Token
 <Tabs>
     <Tab title="Blueprint">
         <Frame>
-            <img src="/images/unreal/unreal_signin_google.png" />
+            <img src="/images/unreal/signin_google.png" />
         </Frame>
     </Tab>
 </Tabs>
@@ -93,7 +117,7 @@ Sign In with a valid Apple Id Token. You get this from the [Get Apple Id Token](
 <Tabs>
     <Tab title="Blueprint">
         <Frame>
-            <img src="/images/unreal/unreal_signin_apple.png" />
+            <img src="/images/unreal/signin_apple.png" />
         </Frame>
     </Tab>
 </Tabs>
@@ -105,7 +129,7 @@ Sign In with a valid Epic Games Id Token. Checkout the [EOS Plugin for Unreal](h
 <Tabs>
     <Tab title="Blueprint">
         <Frame>
-            <img src="/images/unreal/unreal_signin_epic.png" />
+            <img src="/images/unreal/signin_epic.png" />
         </Frame>
     </Tab>
 </Tabs>
@@ -117,7 +141,7 @@ Use this method to start a session using a valid Id token from Google, Apple or 
 <Tabs>
     <Tab title="Blueprint">
         <Frame>
-            <img src="/images/unreal/token_session.png" />
+            <img src="/images/unreal/signin_oidc.png" />
         </Frame>
     </Tab>
 </Tabs>
@@ -127,7 +151,7 @@ Use this method to start a session using a valid Id token from Google, Apple or 
 You will need to include your PlayFab Title ID in the `SequenceConfig.ini` file
 during [Configuration](/sdk/unreal/configuration) and [configure PlayFab in the Builder](/solutions/builder/embedded-wallet/playfab-configuration).
 
-### Register a new PlayFab user
+### PlayFab Registration
 
 <Tabs>
     <Tab title="Blueprint">
@@ -137,7 +161,7 @@ during [Configuration](/sdk/unreal/configuration) and [configure PlayFab in the 
   </Tab>
 </Tabs>
 
-### Login with existing PlayFab user
+### PlayFab Login
 
 <Tabs>
     <Tab title="Blueprint">
@@ -147,7 +171,18 @@ during [Configuration](/sdk/unreal/configuration) and [configure PlayFab in the 
   </Tab>
 </Tabs>
 
-### Custom PlayFab integration
+### PlayFab Authenticate with Session Ticket
 
-If you have your own PlayFab integration, you are welcome to use it. Once you've received your SessionTicket
-from PlayFab, please pass it along for authentication with Sequence APIs using `PlayfabAuthenticateWithSessionTicket` method on your `USequenceAthenticator` object.
+<Tabs>
+    <Tab title="Blueprint">
+        <Frame>
+            <img src="/images/unreal/playfab_session_ticket.png" />
+        </Frame>
+    </Tab>
+</Tabs>
+
+## Account Federation
+
+To link another account to your wallet, simply re-use the same authentication methods.
+The SDK will check if [there's an existing session stored](/sdk/unreal/manage_sessions#check-existing-session) and will
+automatically attempt to link that account.
