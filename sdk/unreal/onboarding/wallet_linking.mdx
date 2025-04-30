@@ -6,9 +6,7 @@ description: Documentation for Unreal SDK API to manage sessions for the Sequenc
 
 ## Get Linked Wallets
 
-A common use case is to verify the user identity on your backend after the user has finished the login process in your app client.
-Get a Sequence Id Token from your users to send it to your backend for verification using any JWKS library.
-Read our [Backend Verification Guide](/sdk/headless-wallet/verification) for more information.
+Get Linked Wallets.
 
 <Tabs>
     <Tab title="Blueprint">
@@ -19,22 +17,18 @@ Read our [Backend Verification Guide](/sdk/headless-wallet/verification) for mor
 
     <Tab title="C++">
         ```cpp
-        const TFunction<void (FSeqIdTokenResponse_Data)> OnSuccess = [this](const FSeqIdTokenResponse_Data& Data) { };
-        const TFunction<void (FSequenceError)> OnFailure = [this](const FSequenceError& Err){ };
+        const TFunction<void (FSeqLinkedWalletsResponse)> OnApiSuccess = [OnSuccess](const FSeqLinkedWalletsResponse& LinkedWallets) { };
+        const TFunction<void (FSequenceError)> OnApiFailure = [OnFailure](const FSequenceError& Err) { };
 
-        const TOptional<USequenceWallet*> WalletOptional = USequenceWallet::Get();
-        if (WalletOptional.IsSet() && WalletOptional.GetValue())
-        {
-            const USequenceWallet* Wallet = WalletOptional.GetValue();
-            Wallet->GetIdToken(Nonce, OnSuccess, OnFailure);
-        }
+        USequenceWallet* Wallet = NewObject<USequenceWallet>();
+        Wallet->GetLinkedWallets(OnApiSuccess, OnApiFailure);
         ```
     </Tab>
 </Tabs>
 
 ## Remove Linked Wallet
 
-Clear the credentials cache and sign out the current user.
+Remove Linked Wallet.
 
 <Tabs>
     <Tab title="Blueprint">
@@ -45,12 +39,11 @@ Clear the credentials cache and sign out the current user.
 
     <Tab title="C++">
         ```cpp
-        const TOptional<USequenceWallet*> WalletOptional = USequenceWallet::Get();
-        if (WalletOptional.IsSet() && WalletOptional.GetValue())
-        {
-            USequenceWallet * Api = WalletOptional.GetValue();
-            Api->SignOut();
-        }
+        const TFunction<void()> OnApiSuccess = [OnSuccess]() { };
+        const TFunction<void (FSequenceError)> OnApiFailure = [OnFailure](const FSequenceError& Err) { };
+
+        USequenceWallet* Wallet = NewObject<USequenceWallet>();
+        Wallet->RemoveLinkedWallet(LinkedWalletAddress, OnApiSuccess, OnApiFailure);
         ```
-     </Tab>
+    </Tab>
 </Tabs>

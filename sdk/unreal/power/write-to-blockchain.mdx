@@ -17,21 +17,11 @@ Sign a given message as a hex string. For example, you can use this signature to
 
      <Tab title="C++">
         ```cpp
-        const TSuccessCallback<FSeqSignMessageResponse_Response> OnResponse = [this] (const FSeqSignMessageResponse_Response& Response)
-        {
-            //Response is the signed message
-        };
-        const FFailureCallback OnFailure = [this](const FSequenceError& Error)
-        {
-            UE_LOG(LogTemp,Display,TEXT("Error Message: %s"),*Error.Message);
-        };
-        const TOptional<USequenceWallet*> WalletOptional = USequenceWallet::Get();
-        if (WalletOptional.IsSet() && WalletOptional.GetValue())
-        {
-            USequenceWallet* Wallet = WalletOptional.GetValue();
-            const FString Message = "Hi";
-            Wallet->SignMessage(Message, OnResponse, OnFailure);
-        }
+         const TFunction<void(FSeqSignMessageResponse_Response)> OnApiSuccess = [OnSuccess](const FSeqSignMessageResponse_Response& SignedMessage) { };
+         const TFunction<void(FSequenceError)> OnApiFailure = [OnFailure](const FSequenceError& Err) { };
+
+         USequenceWallet* Wallet = NewObject<USequenceWallet>();
+         Wallet->SignMessage(Message, OnApiSuccess, OnApiFailure);
         ```
   </Tab>
 </Tabs>
@@ -42,20 +32,18 @@ Send native token balances to other users, such as sending ETH on the Ethereum M
 
 <Tabs>
     <Tab title="Blueprint">
-        <Frame>
-    <img src="/images/unreal/native_tokens_transaction.png" />
-</Frame>
+       <Frame>
+            <img src="/images/unreal/native_tokens_transaction.png" />
+       </Frame>
     </Tab>
 
      <Tab title="C++">
         ```cpp
-        FRawTransaction T;
-        T.data = "0x0";
-        T.to = ToAddress;
-        T.value = "1";
+         const TFunction<void(FSeqTransactionResponse_Data)> OnApiSuccess = [OnSuccess](const FSeqTransactionResponse_Data& Response) { };
+         const TFunction<void(FSequenceError)> OnApiFailure = [OnFailure](const FSequenceError& Err) { };
 
-        // Append the Raw Transaction
-        Txn.Push(TUnion<FRawTransaction, FERC20Transaction, FERC721Transaction, FERC1155Transaction, FDelayedTransaction>(T));
+         USequenceWallet* Wallet = NewObject<USequenceWallet>();
+         Wallet->SendNativeToken(RecipientAddress, Amount, OnApiSuccess, OnApiFailure);
         ```
   </Tab>
 </Tabs>
@@ -73,6 +61,8 @@ Send your custom ERC20 tokens from Builder to users, or transfer existing tokens
 
      <Tab title="C++">
         ```cpp
+        UTransactions* Txn = NewObject<UTransactions>();
+
         // Create the ERC20 transaction
         FERC20Transaction T20;
         T20.to = "0x0E0f9d1c4BeF9f0B8a2D9D4c09529F260C7758A2";
@@ -81,6 +71,12 @@ Send your custom ERC20 tokens from Builder to users, or transfer existing tokens
 
         // Append the ERC20 transaction to the Txn object
         Txn.Push(TUnion<FRawTransaction, FERC20Transaction, FERC721Transaction, FERC1155Transaction, FDelayedTransaction>(T20));
+
+        const TFunction<void(FSeqTransactionResponse_Data)> OnApiSuccess = [OnSuccess](const FSeqTransactionResponse_Data& Response) { };
+        const TFunction<void(FSequenceError)> OnApiFailure = [OnFailure](const FSequenceError& Err) { };
+
+        USequenceWallet* Wallet = NewObject<USequenceWallet>();
+        Wallet->SendTransaction(Transactions->GetTransactions(), OnApiSuccess, OnApiFailure);
         ```
   </Tab>
 </Tabs>
@@ -98,15 +94,23 @@ Enable your users to send NFTs to others.
 
      <Tab title="C++">
         ```cpp
-        // Create the ERC721 transaction
-        FERC721Transaction T721;
-        T721.safe = true;
-        T721.id = "54530968763798660137294927684252503703134533114052628080002308208148824588621";
-        T721.to = "0x0E0f9d1c4BeF9f0B8a2D9D4c09529F260C7758A2";
-        T721.tokenAddress = "0xa9a6A3626993D487d2Dbda3173cf58cA1a9D9e9f";
+         UTransactions* Txn = NewObject<UTransactions>();
 
-        // Append the ERC721 transaction to the Txn object
-        Txn.Push(TUnion<FRawTransaction, FERC20Transaction, FERC721Transaction, FERC1155Transaction, FDelayedTransaction>(T721));
+         // Create the ERC721 transaction
+         FERC721Transaction T721;
+         T721.safe = true;
+         T721.id = "54530968763798660137294927684252503703134533114052628080002308208148824588621";
+         T721.to = "0x0E0f9d1c4BeF9f0B8a2D9D4c09529F260C7758A2";
+         T721.tokenAddress = "0xa9a6A3626993D487d2Dbda3173cf58cA1a9D9e9f";
+
+         // Append the ERC721 transaction to the Txn object
+         Txn.Push(TUnion<FRawTransaction, FERC20Transaction, FERC721Transaction, FERC1155Transaction, FDelayedTransaction>(T721));
+
+         const TFunction<void(FSeqTransactionResponse_Data)> OnApiSuccess = [OnSuccess](const FSeqTransactionResponse_Data& Response) { };
+         const TFunction<void(FSequenceError)> OnApiFailure = [OnFailure](const FSequenceError& Err) { };
+
+         USequenceWallet* Wallet = NewObject<USequenceWallet>();
+         Wallet->SendTransaction(Transactions->GetTransactions(), OnApiSuccess, OnApiFailure);
         ```
   </Tab>
 </Tabs>
@@ -124,18 +128,26 @@ Enable your users to send Collectibles to others.
 
      <Tab title="C++">
         ```cpp
-        // Create the ERC1155 transaction
-        FERC1155Transaction T1155;
-        T1155.to = "0x0E0f9d1c4BeF9f0B8a2D9D4c09529F260C7758A2";
-        T1155.tokenAddress = "0x631998e91476DA5B870D741192fc5Cbc55F5a52E";
+         UTransactions* Txn = NewObject<UTransactions>();
 
-        FERC1155TxnValue Val;
-        Val.amount = "1";
-        Val.id = "66635";
-        T1155.vals.Add(Val);
+         // Create the ERC1155 transaction
+         FERC1155Transaction T1155;
+         T1155.to = "0x0E0f9d1c4BeF9f0B8a2D9D4c09529F260C7758A2";
+         T1155.tokenAddress = "0x631998e91476DA5B870D741192fc5Cbc55F5a52E";
 
-        // Append the ERC1155 transaction to the Txn object
-        Txn.Push(TUnion<FRawTransaction, FERC20Transaction, FERC721Transaction, FERC1155Transaction, FDelayedTransaction>(T1155));
+         FERC1155TxnValue Val;
+         Val.amount = "1";
+         Val.id = "66635";
+         T1155.vals.Add(Val);
+
+         // Append the ERC1155 transaction to the Txn object
+         Txn.Push(TUnion<FRawTransaction, FERC20Transaction, FERC721Transaction, FERC1155Transaction, FDelayedTransaction>(T1155));
+
+         const TFunction<void(FSeqTransactionResponse_Data)> OnApiSuccess = [OnSuccess](const FSeqTransactionResponse_Data& Response) { };
+         const TFunction<void(FSequenceError)> OnApiFailure = [OnFailure](const FSequenceError& Err) { };
+
+         USequenceWallet* Wallet = NewObject<USequenceWallet>();
+         Wallet->SendTransaction(Transactions->GetTransactions(), OnApiSuccess, OnApiFailure);
         ```
   </Tab>
 </Tabs>

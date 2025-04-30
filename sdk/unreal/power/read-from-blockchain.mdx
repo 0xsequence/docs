@@ -14,21 +14,13 @@ Use the Indexer API to retrieve the Ether balance for a specified wallet address
             <img src="/images/unreal/get_native_token_balance.png" />
         </Frame>
     </Tab>
-
     <Tab title="C++">
-        ```cpp twoslash
-        // Define success and failure callbacks
-        const TSuccessCallback<FEtherBalance> GenericSuccess = [=](const FEtherBalance& etherBalance) { };
-        const FFailureCallback GenericFailure = [=](const FSequenceError& Error) { };
+        ```cpp
+        const TSuccessCallback<FSeqEtherBalance> OnApiSuccess = [this, OnSuccess](const FSeqEtherBalance& EtherBalance) { };
+        const FFailureCallback OnApiFailure = [this, OnFailure](const FSequenceError& Error) { };
 
-        // Get a reference of the user's current wallet session.
-        const TOptional<USequenceWallet*> WalletOptional = USequenceWallet::Get();
-        if (WalletOptional.IsSet() && WalletOptional.GetValue())
-        {
-            // Example Indexer call
-            USequenceWallet * Wallet = WalletOptional.GetValue();
-            Wallet->GetEtherBalance(Wallet->GetWalletAddress(), GenericSuccess, GenericFailure);
-        }
+        USequenceIndexer* Indexer = NewObject<USequenceIndexer>();
+        Indexer->GetNativeTokenBalance(SequenceSdk::GetChainId(), WalletAddress, OnApiSuccess, OnApiFailure);
         ```
   </Tab>
 </Tabs>
@@ -58,29 +50,20 @@ owned by the user.
             <img src="/images/unreal/get_token_balances.png" />
         </Frame>
     </Tab>
-
     <Tab title="C++">
         ```cpp
-        const TSuccessCallback<FGetTokenBalancesReturn> GenericSuccess = [=](const FGetTokenBalancesReturn& tokenBalances)
-        {
-            //Response in FGetTokenBalancesReturn
-        };
-        const FFailureCallback GenericFailure = [=](const FSequenceError& Error)
-        {
-            //GetTokenBalances Failure
-        };
+        const TSuccessCallback<FSeqGetTokenBalancesReturn> OnApiSuccess = [this, OnSuccess](const FSeqGetTokenBalancesReturn& Balances) { };
+        const FFailureCallback OnApiFailure = [this, OnFailure](const FSequenceError& Error) { };
 
-        const TOptional<USequenceWallet*> WalletOptional = USequenceWallet::Get();
-        if (WalletOptional.IsSet() && WalletOptional.GetValue())
-        {
-            USequenceWallet * Wallet = WalletOptional.GetValue();
-            FGetTokenBalancesArgs args;
-            args.accountAddress = Wallet->GetWalletAddress();
-            args.includeMetaData = true;
-            Wallet->GetTokenBalances(args, GenericSuccess, GenericFailure);
-        }
+        FSeqGetTokenBalancesArgs Args;
+        Args.accountAddress = WalletAddress;
+        Args.contractAddress = ContractAddress;
+        Args.includeMetaData = IncludeMetadata;
+
+        USequenceIndexer* Indexer = NewObject<USequenceIndexer>();
+        Indexer->GetTokenBalances(SequenceSdk::GetChainId(), Args, OnApiSuccess, OnApiFailure);
         ```
-  </Tab>
+    </Tab>
 </Tabs>
 
 <Accordion title="Parameters">
@@ -118,24 +101,15 @@ Retrieve the token supplies for an ERC20, ERC721, or ERC1155 token.
 
     <Tab title="C++">
         ```cpp
-        const TSuccessCallback<FGetTokenSuppliesReturn> GenericSuccess = [=](const FGetTokenSuppliesReturn& tokenSupplies)
-        {
-            //Response is in FGetTokenSuppliesReturn
-        };
-        const FFailureCallback GenericFailure = [=](const FSequenceError& Error)
-        {
-            //GetTokenSupplies Failure
-        };
+        const TSuccessCallback<FSeqGetTokenSuppliesReturn> OnApiSuccess = [this, OnSuccess](const FSeqGetTokenSuppliesReturn& Supplies) { };
+        const FFailureCallback OnApiFailure = [this, OnFailure](const FSequenceError& Error) { };
 
-        const TOptional<USequenceWallet*> WalletOptional = USequenceWallet::Get();
-        if (WalletOptional.IsSet() && WalletOptional.GetValue())
-        {
-            USequenceWallet * Wallet = WalletOptional.GetValue();
-            FGetTokenSuppliesArgs args;
-            args.contractAddress = "0x01";//Testing Contract Address in hex with leading 0x
-            args.includeMetaData = true;
-            Wallet->GetTokenSupplies(args, GenericSuccess, GenericFailure);
-        }
+        FSeqGetTokenSuppliesArgs Args;
+        Args.contractAddress = ContractAddress;
+        Args.includeMetaData = IncludeMetadata;
+
+        USequenceIndexer* Indexer = NewObject<USequenceIndexer>();
+        Indexer->GetTokenSupplies(SequenceSdk::GetChainId(), Args, OnApiSuccess, OnApiFailure);
         ```
   </Tab>
 </Tabs>
@@ -171,26 +145,15 @@ Retrieve a collection of token supplies for ERC20, ERC721, or ERC1155 tokens.
 
     <Tab title="C++">
         ```cpp
-        const TSuccessCallback<FGetTokenSuppliesMapReturn> GenericSuccess = [=](const FGetTokenSuppliesMapReturn& tokenSuppliesMap)
-        {
-            //Response is in FGetTokenSuppliesMapReturn
-        };
-        const FFailureCallback GenericFailure = [=](const FSequenceError& Error)
-        {
-            //GetTokenSuppliesMap Failure
-        };
-        const TOptional<USequenceWallet*> WalletOptional = USequenceWallet::Get();
-        if (WalletOptional.IsSet() && WalletOptional.GetValue())
-        {
-            USequenceWallet * Wallet = WalletOptional.GetValue();
-            TMap<FString, FTokenList> tokenMap;
-            const TPair<FString,FTokenList> item;
-            tokenMap.Add(item);
-            FGetTokenSuppliesMapArgs args;
-            args.includeMetaData = true;
-            args.tokenMap = tokenMap;
-            Wallet->GetTokenSuppliesMap(args, GenericSuccess, GenericFailure);
-        }
+        const TSuccessCallback<FSeqGetTokenSuppliesMapReturn> OnApiSuccess = [this, OnSuccess](const FSeqGetTokenSuppliesMapReturn& SuppliesMap) { };
+        const FFailureCallback OnApiFailure = [this, OnFailure](const FSequenceError& Error) { };
+
+        FSeqGetTokenSuppliesMapArgs Args;
+        Args.tokenMap = TokenMap;
+        Args.includeMetaData = IncludeMetadata;
+
+        USequenceIndexer* Indexer = NewObject<USequenceIndexer>();
+        Indexer->GetTokenSupplies(SequenceSdk::GetChainId(), Args, OnApiSuccess, OnApiFailure);
         ```
   </Tab>
 </Tabs>
@@ -227,26 +190,16 @@ For example, here we get all transactions for the current user.
 
     <Tab title="C++">
         ```cpp
-        const TSuccessCallback<FGetTransactionHistoryReturn> GenericSuccess = [=](const FGetTransactionHistoryReturn& transactionHistory)
-        {
-            //Response is in FGetTransactionHistoryReturn
-        };
-        const FFailureCallback GenericFailure = [=](const FSequenceError& Error)
-        {
-            //GetTransactionHistory Failure
-        };
+        const TSuccessCallback<FSeqGetTransactionHistoryReturn> OnApiSuccess = [this, OnSuccess](const FSeqGetTransactionHistoryReturn& TransactionHistory) { };
+        const FFailureCallback OnApiFailure = [this, OnFailure](const FSequenceError& Error) { };
 
-        const TOptional<USequenceWallet*> WalletOptional = USequenceWallet::Get();
-        if (WalletOptional.IsSet() && WalletOptional.GetValue())
-        {
-            USequenceWallet * Wallet = WalletOptional.GetValue();
-            FGetTransactionHistoryArgs args;
-            args.filter.accountAddress = Wallet->GetWalletAddress();
-            args.includeMetaData = true;
-            args.page.page = 0;
-            args.page.more = true;
-            Wallet->GetTransactionHistory(args, GenericSuccess, GenericFailure);
-        }
+        FSeqGetTransactionHistoryArgs Args;
+        Args.filter = Filter;
+        Args.page = Page;
+        Args.includeMetaData = IncludeMetadata;
+
+        USequenceIndexer* Indexer = NewObject<USequenceIndexer>();
+        Indexer->GetTransactionHistory(SequenceSdk::GetChainId(), Args, OnApiSuccess, OnApiFailure);
         ```
   </Tab>
 </Tabs>
@@ -287,7 +240,11 @@ For example, call this function to get the latest block number.
 
     <Tab title="C++">
         ```cpp
+        const TSuccessCallback<FSeqRuntimeStatus> OnApiSuccess = [this, OnSuccess](const FSeqRuntimeStatus& Status) { };
+        const FFailureCallback OnApiFailure = [this, OnFailure](const FSequenceError& Error) { };
 
+        USequenceIndexer* Indexer = NewObject<USequenceIndexer>();
+        Indexer->RuntimeStatus(SequenceSdk::GetChainId(), OnApiSuccess, OnApiFailure);
         ```
     </Tab>
 </Tabs>
@@ -316,7 +273,11 @@ Retrieve the version of the current chain.
 
     <Tab title="C++">
         ```cpp
+        const TSuccessCallback<FSeqVersion> OnApiSuccess = [this, OnSuccess](const FSeqVersion& Status) { };
+        const FFailureCallback OnApiFailure = [this, OnFailure](const FSequenceError& Error) { };
 
+        USequenceIndexer* Indexer = NewObject<USequenceIndexer>();
+        Indexer->Version(SequenceSdk::GetChainId(), OnApiSuccess, OnApiFailure);
         ```
     </Tab>
 </Tabs>
@@ -357,7 +318,11 @@ Ping the indexer to check if our endpoint is alive and ready.
 
     <Tab title="C++">
         ```cpp
+        const TSuccessCallback<bool> OnApiSuccess = [this, OnSuccess](const bool Status) { };
+        const FFailureCallback OnApiFailure = [this, OnFailure](const FSequenceError& Error) { };
 
+        USequenceIndexer* Indexer = NewObject<USequenceIndexer>();
+        Indexer->Ping(SequenceSdk::GetChainId(), OnApiSuccess, OnApiFailure);
         ```
     </Tab>
 </Tabs>

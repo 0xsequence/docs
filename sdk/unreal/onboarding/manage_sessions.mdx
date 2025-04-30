@@ -19,15 +19,11 @@ Read our [Backend Verification Guide](/sdk/headless-wallet/verification) for mor
 
     <Tab title="C++">
         ```cpp
-        const TFunction<void (FSeqIdTokenResponse_Data)> OnSuccess = [this](const FSeqIdTokenResponse_Data& Data) { };
-        const TFunction<void (FSequenceError)> OnFailure = [this](const FSequenceError& Err){ };
+        const TFunction<void (FSeqIdTokenResponse_Data)> OnApiSuccess = [OnSuccess](const FSeqIdTokenResponse_Data& Data) { };
+        const TFunction<void (FSequenceError)> OnApiFailure = [OnFailure](const FSequenceError& Err) { };
 
-        const TOptional<USequenceWallet*> WalletOptional = USequenceWallet::Get();
-        if (WalletOptional.IsSet() && WalletOptional.GetValue())
-        {
-            const USequenceWallet* Wallet = WalletOptional.GetValue();
-            Wallet->GetIdToken(Nonce, OnSuccess, OnFailure);
-        }
+        USequenceWallet* Wallet = NewObject<USequenceWallet>();
+        Wallet->GetIdToken(Nonce, OnApiSuccess, OnApiFailure);
         ```
     </Tab>
 </Tabs>
@@ -45,12 +41,8 @@ Check if your client has an existing session stored.
 
     <Tab title="C++">
         ```cpp
-        const TOptional<USequenceWallet*> WalletOptional = USequenceWallet::Get();
-        if (WalletOptional.IsSet() && WalletOptional.GetValue())
-        {
-            USequenceWallet * Api = WalletOptional.GetValue();
-            Api->SignOut();
-        }
+        USequenceSessions* Sessions = NewObject<USequenceSessions>();
+        const bool Exists = Sessions->CheckExistingSession();
         ```
     </Tab>
 </Tabs>
@@ -68,12 +60,8 @@ Clear the credentials cache and sign out the current user.
 
     <Tab title="C++">
         ```cpp
-        const TOptional<USequenceWallet*> WalletOptional = USequenceWallet::Get();
-        if (WalletOptional.IsSet() && WalletOptional.GetValue())
-        {
-            USequenceWallet * Api = WalletOptional.GetValue();
-            Api->SignOut();
-        }
+        USequenceWallet* Wallet = NewObject<USequenceWallet>();
+        Wallet->SignOut();
         ```
      </Tab>
 </Tabs>
@@ -91,20 +79,11 @@ List the active sessions.
 
     <Tab title="C++">
         ```cpp
-        const TSuccessCallback<TArray<FSession>> OnSuccess = [=](TArray<FSession> Response)
-        {
-            //Response is a list of Sessions
-        };
-        const FFailureCallback OnFailure = [=](const FSequenceError& Error)
-        {
-            UE_LOG(LogTemp,Display,TEXT("Error Message: %s"),*Error.Message);
-        };
-        const TOptional<USequenceWallet*> WalletOptional = USequenceWallet::Get();
-        if (WalletOptional.IsSet() && WalletOptional.GetValue())
-        {
-            USequenceWallet * Api = WalletOptional.GetValue();
-            Api->ListSessions(OnSuccess,OnFailure);
-        }
+        const TFunction<void (TArray<FSeqListSessions_Session>)> OnApiSuccess = [OnSuccess](const TArray<FSeqListSessions_Session>& Sessions) { };
+        const TFunction<void (FSequenceError)> OnApiFailure = [OnFailure](const FSequenceError& Err) { };
+
+        USequenceWallet* Wallet = NewObject<USequenceWallet>();
+        Wallet->GetIdToken(Nonce, OnApiSuccess, OnApiFailure);
         ```
   </Tab>
 </Tabs>
@@ -122,20 +101,11 @@ List your accounts.
 
     <Tab title="C++">
         ```cpp
-        const TSuccessCallback<TArray<FSession>> OnSuccess = [=](TArray<FSession> Response)
-        {
-            //Response is a list of Sessions
-        };
-        const FFailureCallback OnFailure = [=](const FSequenceError& Error)
-        {
-            UE_LOG(LogTemp,Display,TEXT("Error Message: %s"),*Error.Message);
-        };
-        const TOptional<USequenceWallet*> WalletOptional = USequenceWallet::Get();
-        if (WalletOptional.IsSet() && WalletOptional.GetValue())
-        {
-            USequenceWallet * Api = WalletOptional.GetValue();
-            Api->ListSessions(OnSuccess,OnFailure);
-        }
+        const TFunction<void (FSeqListAccountsResponse_Data)> OnApiSuccess = [OnSuccess](const FSeqListAccountsResponse_Data& Sessions) { };
+        const TFunction<void (FSequenceError)> OnApiFailure = [OnFailure](const FSequenceError& Err) { };
+
+        USequenceWallet* Wallet = NewObject<USequenceWallet>();
+        Wallet->GetIdToken(Nonce, OnApiSuccess, OnApiFailure);
         ```
     </Tab>
 </Tabs>

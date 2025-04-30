@@ -1,5 +1,4 @@
 ---
-
 title: "Authenticating Users"
 description: Documentation for Unreal SDK API to manage sessions for the Sequence infrastructure stack for web3 gaming.
 ---
@@ -20,13 +19,11 @@ Listen for the Email Requires Code event.
     </Tab>
     <Tab title="C++">
         ```cpp
-        const TFunction<void()> OnSuccess = [this] { };
-        const FFailureCallback OnFailure = [this](const FSequenceError& Error) { };
+        const TFunction<void()> OnApiSuccess = [] { };
+        const FFailureCallback OnApiFailure = [](const FSequenceError& Error) { };
 
-        SequenceSessions* Sessions = NewObject<SequenceSessions>();
-        Sessions->StartEmailLogin(Email, OnSuccess, OnFailure);
-
-        Sessions->ConfirmEmailLoginWithCode(Code, OnApiSuccess, OnApiFailure, OnApiFederationRequired);
+        USequenceSessions* Sessions = NewObject<USequenceSessions>();
+        Sessions->StartEmailLogin(Email, OnApiSuccess, OnApiFailure);
         ```
     </Tab>
 </Tabs>
@@ -44,12 +41,13 @@ Listen for the Email Requires Code event.
     </Tab>
     <Tab title="C++">
         ```cpp
-        const TFunction<void()> OnSuccess = [this] { };
-        const FFailureCallback OnFailure = [this](const FSequenceError& Error) { };
+        const FString Code = "123456";
 
-        SequenceSessions* Sessions = NewObject<SequenceSessions>();
-        Sessions->StartEmailLogin(Email, OnSuccess, OnFailure);
+        const TFunction<void()> OnApiSuccess = [] { };
+        const FFailureCallback OnApiFailure = [](const FSequenceError& Error) { };
+        const TFunction<void(FFederationSupportData)> OnApiFederationRequired = [this](const FFederationSupportData& FederationData) { };
 
+        USequenceSessions* Sessions = NewObject<USequenceSessions>();
         Sessions->ConfirmEmailLoginWithCode(Code, OnApiSuccess, OnApiFailure, OnApiFederationRequired);
         ```
     </Tab>
@@ -64,6 +62,15 @@ You can sign in users as guests. However, note that they will lose access to the
         <Frame>
             <img src="/images/unreal/start_guest_session.png" />
         </Frame>
+    </Tab>
+    <Tab title="C++">
+        ```cpp
+        const TFunction<void()> OnApiSuccess = [] { };
+        const FFailureCallback OnApiFailure = [](const FSequenceError& Error) { };
+
+        USequenceSessions* Sessions = NewObject<USequenceSessions>();
+        Sessions->StartGuestSession(OnApiSuccess, OnApiFailure);
+        ```
     </Tab>
 </Tabs>
 
@@ -86,6 +93,15 @@ to know when the sign in request was successful. Listen for `Session Creation Fa
             <img src="/images/unreal/get_google_token.png" />
         </Frame>
   </Tab>
+    <Tab title="C++">
+        ```cpp
+        USequenceSessions* Sessions = NewObject<USequenceSessions>();
+        if (Sessions->IsBrowserRequired)
+            const FString Url = this->Sessions->GetGoogleSignInUrl();
+        else
+            Sessions->GetGoogleTokenId(this);
+        ```
+    </Tab>
 </Tabs>
 
 ### Get Apple Id Token
@@ -93,9 +109,18 @@ to know when the sign in request was successful. Listen for `Session Creation Fa
 <Tabs>
     <Tab title="Blueprint">
         <Frame>
-            <img src="/images/unreal/get_apple_token.png" />
+            <img src="/images/unreal/get_apple_token.pngS" />
         </Frame>
   </Tab>
+    <Tab title="C++">
+        ```cpp
+        USequenceSessions* Sessions = NewObject<USequenceSessions>();
+        if (Sessions->IsBrowserRequired)
+            const FString Url = this->Sessions->GetAppleSignInUrl();
+        else
+            Sessions->GetAppleTokenId(this);
+        ```
+    </Tab>
 </Tabs>
 
 ### Sign In with Google
@@ -107,6 +132,18 @@ Sign In with a valid Google Id Token. You get this from the [Get Google Id Token
         <Frame>
             <img src="/images/unreal/signin_google.png" />
         </Frame>
+    </Tab>
+    <Tab title="C++">
+        ```cpp
+        const FString IdToken = "ey1234";
+
+        const TFunction<void()> OnApiSuccess = []() { };
+        const FFailureCallback OnApiFailure = [](const FSequenceError& Error) { };
+        const TFunction<void(FFederationSupportData)> OnApiFederationRequired = [](const FFederationSupportData& FederationData) { };
+
+        USequenceSessions* Sessions = NewObject<USequenceSessions>();
+        Sessions->StartOidcSession(IdToken, OnApiSuccess, OnApiFailure, OnApiFederationRequired);
+        ```
     </Tab>
 </Tabs>
 
@@ -120,6 +157,18 @@ Sign In with a valid Apple Id Token. You get this from the [Get Apple Id Token](
             <img src="/images/unreal/signin_apple.png" />
         </Frame>
     </Tab>
+    <Tab title="C++">
+        ```cpp
+        const FString IdToken = "ey1234";
+
+        const TFunction<void()> OnApiSuccess = []() { };
+        const FFailureCallback OnApiFailure = [](const FSequenceError& Error) { };
+        const TFunction<void(FFederationSupportData)> OnApiFederationRequired = [](const FFederationSupportData& FederationData) { };
+
+        USequenceSessions* Sessions = NewObject<USequenceSessions>();
+        Sessions->StartOidcSession(IdToken, OnApiSuccess, OnApiFailure, OnApiFederationRequired);
+        ```
+    </Tab>
 </Tabs>
 
 ### Sign In with Epic
@@ -132,6 +181,18 @@ Sign In with a valid Epic Games Id Token. Checkout the [EOS Plugin for Unreal](h
             <img src="/images/unreal/signin_epic.png" />
         </Frame>
     </Tab>
+    <Tab title="C++">
+        ```cpp
+        const FString IdToken = "ey1234";
+
+        const TFunction<void()> OnApiSuccess = []() { };
+        const FFailureCallback OnApiFailure = [](const FSequenceError& Error) { };
+        const TFunction<void(FFederationSupportData)> OnApiFederationRequired = [](const FFederationSupportData& FederationData) { };
+
+        USequenceSessions* Sessions = NewObject<USequenceSessions>();
+        Sessions->StartOidcSession(IdToken, OnApiSuccess, OnApiFailure, OnApiFederationRequired);
+        ```
+    </Tab>
 </Tabs>
 
 ### Start Session with OIDC Id Token
@@ -143,6 +204,18 @@ Use this method to start a session using a valid Id token from Google, Apple or 
         <Frame>
             <img src="/images/unreal/signin_oidc.png" />
         </Frame>
+    </Tab>
+    <Tab title="C++">
+        ```cpp
+        const FString IdToken = "ey1234";
+
+        const TFunction<void()> OnApiSuccess = []() { };
+        const FFailureCallback OnApiFailure = [](const FSequenceError& Error) { };
+        const TFunction<void(FFederationSupportData)> OnApiFederationRequired = [](const FFederationSupportData& FederationData) { };
+
+        USequenceSessions* Sessions = NewObject<USequenceSessions>();
+        Sessions->StartOidcSession(IdToken, OnApiSuccess, OnApiFailure, OnApiFederationRequired);
+        ```
     </Tab>
 </Tabs>
 
@@ -159,6 +232,16 @@ during [Configuration](/sdk/unreal/configuration) and [configure PlayFab in the 
             <img src="/images/unreal/playfab_registration.png" />
         </Frame>
   </Tab>
+    <Tab>
+        ```cpp
+        const TFunction<void()> OnApiSuccess = [this, OnSuccess]() { };
+        const FFailureCallback OnApiFailure = [this, OnFailure](const FSequenceError& Error) { };
+        const TFunction<void (FFederationSupportData)> OnApiFederationRequired = [this](const FFederationSupportData& FederationData) { };
+
+        USequenceSessions* Sessions = NewObject<USequenceSessions>();
+        Sessions->PlayFabRegistration(UsernameIn, EmailIn, PasswordIn, OnApiSuccess, OnApiFailure, OnApiFederationRequired);
+        ```
+    </Tab>
 </Tabs>
 
 ### PlayFab Login
@@ -169,6 +252,16 @@ during [Configuration](/sdk/unreal/configuration) and [configure PlayFab in the 
             <img src="/images/unreal/playfab_login.png" />
         </Frame>
   </Tab>
+    <Tab>
+        ```cpp
+        const TFunction<void()> OnApiSuccess = [this, OnSuccess]() { };
+        const FFailureCallback OnApiFailure = [this, OnFailure](const FSequenceError& Error) { };
+        const TFunction<void (FFederationSupportData)> OnApiFederationRequired = [this](const FFederationSupportData& FederationData) { };
+
+        USequenceSessions* Sessions = NewObject<USequenceSessions>();
+        Sessions->PlayFabLogin(UsernameIn, PasswordIn, OnApiSuccess, OnApiFailure, OnApiFederationRequired);
+        ```
+    </Tab>
 </Tabs>
 
 ### PlayFab Authenticate with Session Ticket
@@ -178,6 +271,16 @@ during [Configuration](/sdk/unreal/configuration) and [configure PlayFab in the 
         <Frame>
             <img src="/images/unreal/playfab_session_ticket.png" />
         </Frame>
+    </Tab>
+    <Tab>
+        ```cpp
+        const TFunction<void()> OnApiSuccess = [this, OnSuccess]() { };
+        const FFailureCallback OnApiFailure = [this, OnFailure](const FSequenceError& Error) { };
+        const TFunction<void (FFederationSupportData)> OnApiFederationRequired = [this](const FFederationSupportData& FederationData) { };
+
+        USequenceSessions* Sessions = NewObject<USequenceSessions>();
+        Sessions->PlayFabAuthenticateWithSessionTicket(SessionTicket, OnApiSuccess, OnApiFailure, OnApiFederationRequired);
+        ```
     </Tab>
 </Tabs>
 
