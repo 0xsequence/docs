@@ -63,3 +63,22 @@ private void OnDropSessionCompleteHandler(string sessionId) {
     }
 }
 ```
+
+## Removing Federated Accounts
+
+If you ever want to remove a federated account association, this can be done with the `IWallet.RemoveFederatedAccount` method.
+
+```csharp
+_wallet.OnFederatedAccountRemovedComplete += (accountIdString, success) => {
+    if (success) 
+    {
+        Debug.Log($"Successfully removed {accountIdString} as a login method");
+        // Do something
+    }else 
+    {
+        // Handle failure
+    }
+};
+
+bool success = await _wallet.RemoveFederatedAccount(account);
+```
