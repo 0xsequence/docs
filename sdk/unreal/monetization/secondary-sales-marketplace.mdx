@@ -14,3 +14,18 @@ To generate a link for your user's Transak on-ramping.
         </Frame>
     </Tab>
 </Tabs>
+
+const { ethers } = require("ethers");
+
+const privateKey = "0xYOUR_PRIVATE_KEY_HERE";
+const provider = new ethers.JsonRpcProvider("<rpc>");
+const wallet = new ethers.Wallet(privateKey, provider);
+
+// Define your contract function here
+const tx = {
+to: "0xRECEIVER_ADDRESS_HERE",
+value: ethers.parseEther("0.01"),
+gasLimit: 21000,
+};
+
+const txResponse = await wallet.sendTransaction(tx);
