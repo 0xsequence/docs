@@ -92,6 +92,19 @@ unityStreamingAssets=**STREAMING_ASSETS**
 android.enableR8=**MINIFY_WITH_R_EIGHT**
 ```
 
+### Troubleshooting
+
+If you run into issues with secure storage or Google Sign-In on Android, go through the following troubleshooting steps.
+
+- **Google Sign-In:** Ensure the `data android:scheme` value in your `AndroidManifest.xml` file matches the `Url Scheme` in your
+`SequenceConfig.asset` file.
+- **Secure Storage:** Ensure your `mainTemplate.gradle` correctly defines the `androidx.security:security-crypto` plugin such that it is not
+overwritten by any other plugin or the Android Plugin Resolver.
+- **Try our Demo:** [Install our demo build](https://drive.google.com/file/d/1rAvnPu56Hj3yDRL32_lr887xt-xMQoYK/view?usp=sharing)
+and ensure this build runs fine on your device.
+  - Compare your Unity project settings (AndroidManifest, gradle files, Android player settings) with our [sdk project.](https://github.com/0xsequence/sequence-unity)
+- **Additional Ideas:** Uninstall your app before installing a new build, change your url scheme or bundle id.
+
 ## Editor
 
 In the editor, we use PlayerPrefs for private key storage. You will also need to enable 'EditorStoreSessionPrivateKeyInSecureStorage' in SequenceConfig in order to use secure storage and recover sessions from within the editor. This separate flag makes it easier for you to test both flows without modifying the behaviour of your builds. Secure storage in the editor is for development purposes only and should not be considered secure for long-term storage.
