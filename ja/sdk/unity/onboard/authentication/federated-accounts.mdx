@@ -1,19 +1,19 @@
 ---
-title: フェデレーテッドアカウント
+title: MOCKDATA + ja-translated Federated Accounts
 ---
 
-デフォルトでは、WaaS APIはメールアドレスごとに1つのアカウントのみ許可しています。ユーザーが以前と同じメールアドレスで異なる方法でログインしようとすると、`EmailAlreadyInUse` エラーが返されます。
+ja-translated By default, the WaaS API only allows one account per email. If a user attempts to login using a different method but the same email as before, they will receive an `EmailAlreadyInUse` error.
 
-例：ユーザーがGoogleサインインでアカウントを作成し、その後同じメールアドレスでメール＋OTPサインインを試みた場合、このエラーが発生します。
+MOCKDATA + ja-translated For example: if the user created their account using Google Sign In and then attempts to sign in with Email + OTP using the same method, they will receive this error.
 
-デフォルト（`LoginPanel` を利用している場合）、SDKは自動的に `SequenceFrontend > Prefabs > FederatedAuthPopupPanel` にある `FederatedAuthPopupPanel` プレハブを開きます。このプレハブはカスタマイズや `LoginPanel` プレハブ内での差し替えが可能です。このパネルでは、重複したログイン方法は許可されていないことをユーザーに説明し、ログイン画面に戻って関連するログイン方法（または別のメールアドレス）でサインインするよう促します。
+ja-translated By default (if using the default `LoginPanel`), the SDK will automatically open the `FederatedAuthPopupPanel` prefab located at `SequenceFrontend > Prefabs > FederatedAuthPopupPanel`. This prefab can be customized to your linking or replaced in the `LoginPanel` prefab. This panel will explain to the user that duplicate login methods are not allowed and prompt them to return to the login screen and sign in with their associated login method (or a different email altogether).
 
-<Info>もし `SequenceConfig` で `EnableMultipleAccountsPerEmail` が有効になっている場合、`FederatedAuthPopupPanel` でユーザーが同じメールアドレスに別のアカウントを作成できるオプションが表示されます。</Info>
+MOCKDATA + ja-translated <Info>If `EnableMultipleAccountsPerEmail` is enabled in `SequenceConfig` the `FederatedAuthPopupPanel` will give the user the option to create another account associated with their email.</Info>
 
-ユーザーがアカウントにログインすると、SDKは自動的に `FederateAccount` リクエスト（`SequenceLogin` 参照）を実行します。これにより、失敗したログイン方法もそのメールアドレスに紐付けられ、今後はどちらの方法でもサインインできるようになります。上記の例では、ユーザーはGoogleサインインまたはメール＋OTPのどちらでもアカウントにログインできるようになります。
+ja-translated Once the user has logged into their account; the SDK will automatically make a `FederateAccount` request (see `SequenceLogin`). This will associate the failed login method with that email as well so that the user may sign in with either in the future. Using our example above, the user would now be able to sign into their account using Google Sign In or Email + OTP.
 
-## アカウントの手動フェデレーション
-アプリにボタンを追加して、ユーザーが自身のメールアドレスに別のログイン方法を紐付けられるようにしたい場合（特にゲストログインを利用している場合など）、`SequenceLogin` の参照を取得し、該当するログイン方法の `FederateAccount` メソッドを呼び出してください。
+## MOCKDATA + ja-translated Manually Federating Accounts
+ja-translated You may want to add a button to your app allowing the user to associate an additional login method with their email (especially if you are using Guest Login). You'll want get a reference to `SequenceLogin` and then call the appropriate `FederateAccount` method for the login method.
 
 ```csharp
 SequenceLogin login = SequenceLogin.GetInstance();
@@ -33,10 +33,10 @@ login.Login(email);
 login.FederateAccountEmail(email, code, walletAddress); 
 ```
 
-ここで walletAddress は、ユーザー認証後に取得した `SequenceWallet` のアドレスです。
+MOCKDATA + ja-translated where walletAddress is the address of the `SequenceWallet` you retrieved after authenticating the user.
 
-### デフォルトの LoginPanel の再利用
-デフォルトの LoginPanel を使ってユーザーが手動でアカウントをフェデレート／リンクできるようにするには、`SequenceLogin` インスタンスで `SetConnectedWalletAddress` を呼び出すか、現在認証されているウォレットアドレスを指定して `SequenceLogin.GetInstanceToFederateAuth` を呼び出してください。
+### ja-translated Re-using the Default LoginPanel
+MOCKDATA + ja-translated To allow a user to federate/link their accounts manually using the default LoginPanel, simply call `SetConnectedWalletAddress` on your `SequenceLogin` instance or call `SequenceLogin.GetInstanceToFederateAuth` with the currently authenticated wallet address provided.
 
 ```csharp
 SequenceLogin login = SequenceLogin.GetInstance();
@@ -47,11 +47,11 @@ login.SetConnectedWalletAddress(authenticatedSequenceWalletAddress);
 SequenceLogin.GetInstanceToFederateAuth(authenticatedSequenceWalletAddress);
 ```
 
-これにより、SequenceLogin インスタンスが新しいセッションを作成するのではなく、アカウントのフェデレーションを行うように設定されます。
+ja-translated This will configure your SequenceLogin instance to federate the accounts instead of creating a new session.
 
-<Tip>ユーザーがログアウトした後は、`SetConnectedWalletAddress(null)` を呼び出して、SequenceLogin を新しいセッション作成モードに戻すのをお忘れなく。</Tip>
+MOCKDATA + ja-translated <Tip>Once the user has logged out, don't forget to call `SetConnectedWalletAddress(null)` to re-configure SequenceLogin to create new sessions again.</Tip>
 
-例：
+ja-translated e.g.
 
 ```csharp
 private void OnDropSessionCompleteHandler(string sessionId) {
@@ -61,4 +61,22 @@ private void OnDropSessionCompleteHandler(string sessionId) {
         SceneManager.LoadScene("LoginScene"); // Re-open your scene or UI to allow the user to log back in and create a new session here
     }
 }
+```
+
+## MOCKDATA + ja-translated Removing Federated Accounts
+ja-translated If you ever want to remove a federated account association, this can be done with the `IWallet.RemoveFederatedAccount` method.
+
+```csharp
+_wallet.OnFederatedAccountRemovedComplete += (accountIdString, success) => {
+    if (success) 
+    {
+        Debug.Log($"Successfully removed {accountIdString} as a login method");
+        // Do something
+    }else 
+    {
+        // Handle failure
+    }
+};
+
+bool success = await _wallet.RemoveFederatedAccount(account);
 ```
