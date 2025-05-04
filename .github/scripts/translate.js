@@ -2,9 +2,9 @@ const { execSync } = require('child_process');
 const fs = require('fs').promises;
 const path = require('path');
 
-// ============================================================
-// 🔧 REQUIRED CONFIGURATION – USERS MUST MODIFY THESE VALUES
-// ============================================================
+// ==================================================================================================
+// 🔧 REQUIRED CONFIGURATION – USERS MUST MODIFY THESE VALUES TO CONFIGURE THEIR TRANSLATION PATHS 🔧
+// ==================================================================================================
 
 // Path to your original language files (e.g., English source content)
 const ORIGIN_LANGUAGE_DIR = path.resolve('.'); 
@@ -63,6 +63,24 @@ const EXCLUDED_FILES = ['package.json', 'package-lock.json', 'node_modules'];
                 return false;
             }
 
+            // Get the configuration to check origin language
+            const config = await frenglish.getDefaultConfiguration();
+            const languageCodes = await frenglish.getSupportedLanguages();
+            const originLanguage = config.originLanguage.toLowerCase();
+
+            // Check if the file is in a translated language directory
+            const pathParts = filePath.split(path.sep);
+            const languageDirIndex = pathParts.findIndex(part => 
+                part.toLowerCase() === originLanguage || 
+                languageCodes.some(lang => lang.toLowerCase() === part.toLowerCase())
+            );
+
+            // If the file is in a language directory and it's not the origin language, exclude it
+            if (languageDirIndex !== -1 && pathParts[languageDirIndex].toLowerCase() !== originLanguage) {
+                console.log(`File ${filePath} is in a translated language directory. Excluding.`);
+                return false;
+            }
+
             // Check extension against Frenglish supported types
             const supportedFileTypes = await frenglish.getSupportedFileTypes();
             const validFileTypes = supportedFileTypes.filter(type => type && type.length > 0);
@@ -79,16 +97,69 @@ const EXCLUDED_FILES = ['package.json', 'package-lock.json', 'node_modules'];
 
     async function getChangedFiles() {
         try {
-            const defaultBranch = await getDefaultBranch();
-            console.log('Default branch:', defaultBranch);
             const currentBranch = process.env.GITHUB_HEAD_REF || process.env.GITHUB_REF?.replace('refs/heads/', '');
             console.log('Current branch:', currentBranch);
-            execSync(`git fetch origin ${defaultBranch}:refs/remotes/origin/${defaultBranch}`);
+
+            // First fetch all remote branches
+            execSync('git fetch --prune origin');
+            
+            // Get the parent branch using git rev-parse
+            let parentBranch;
+            try {
+                // Get all remote branches
+                const remoteBranches = execSync('git branch -r').toString()
+                    .split('\n')
+                    .map(b => b.trim())
+                    .filter(b => b && !b.includes(currentBranch))
+                    .map(b => b.replace('origin/', ''));
+
+                console.log('Available remote branches:', remoteBranches);
+
+                // Try to find the parent branch by looking at the merge base with each remote branch
+                for (const branch of remoteBranches) {
+                    try {
+                        const mergeBase = execSync(`git merge-base HEAD origin/${branch}`).toString().trim();
+                        if (mergeBase) {
+                            parentBranch = branch;
+                            break;
+                        }
+                    } catch (e) {
+                        // Skip this branch if merge-base fails
+                        continue;
+                    }
+                }
+
+                if (!parentBranch) {
+                    // If we still can't find a parent, try to get it from the pull request
+                    if (process.env.GITHUB_BASE_REF) {
+                        parentBranch = process.env.GITHUB_BASE_REF;
+                    } else {
+                        // Last resort: try to get the default branch
+                        const defaultBranch = await getDefaultBranch();
+                        parentBranch = defaultBranch;
+                    }
+                }
+            } catch (error) {
+                console.log('Could not determine parent branch, trying GITHUB_BASE_REF:', error.message);
+                // Try to get the base ref from GitHub environment
+                if (process.env.GITHUB_BASE_REF) {
+                    parentBranch = process.env.GITHUB_BASE_REF;
+                } else {
+                    // Last resort: try to get the default branch
+                    const defaultBranch = await getDefaultBranch();
+                    parentBranch = defaultBranch;
+                }
+            }
+            
+            console.log('Parent branch:', parentBranch);
+
+            // Fetch both branches
+            execSync(`git fetch origin ${parentBranch}:refs/remotes/origin/${parentBranch}`);
             execSync(`git fetch origin ${currentBranch}:refs/remotes/origin/${currentBranch}`);
-            console.log(`Getting changed files between ${defaultBranch} and ${currentBranch}...`);
-            const output = execSync(`git diff --diff-filter=ACM --name-only origin/${defaultBranch}...origin/${currentBranch}`).toString().trim();
+            
+            console.log(`Getting changed files between ${parentBranch} and ${currentBranch}...`);
+            const output = execSync(`git diff --diff-filter=ACM --name-only origin/${parentBranch}...origin/${currentBranch}`).toString().trim();
             const changedFiles = output.split('\n');
-            console.log('All changed files:', changedFiles);
             const supportedFiles = [];
             for (const file of changedFiles) {
                 const isSupported = await isSupportedFile(file);
@@ -96,7 +167,7 @@ const EXCLUDED_FILES = ['package.json', 'package-lock.json', 'node_modules'];
                     supportedFiles.push(file);
                 }
             }
-            console.log('Supported changed files:', supportedFiles);
+            console.log('Files sent for translation:', supportedFiles);
             return supportedFiles;
         } catch (error) {
             console.log('Error getting changed files:', error.message);
@@ -196,6 +267,6 @@ const EXCLUDED_FILES = ['package.json', 'package-lock.json', 'node_modules'];
         }
     }
 
-    // Run the translation process
+    // Run the modified translation process
     translateAndWriteFiles();
 })();

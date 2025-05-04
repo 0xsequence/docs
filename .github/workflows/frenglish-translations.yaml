@@ -1,222 +1,222 @@
-# # ------------------------------------------------------------------------------
-# # Frenglish Translation GitHub Action
-# #
-# # Core Workflow:
-# # - Triggered on branch push, skipping merge commits.
-# # - Fetches translation configuration (source/target languages).
-# # - Detects renamed/deleted source files and mirrors these changes in target language directories.
-# # - Runs scripts to translate and format files.
-# # - Stages, commits, and pushes updates only if changes exist.
-# # ------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
+# Frenglish Translation GitHub Action
+#
+# Core Workflow:
+# - Triggered on branch push, skipping merge commits.
+# - Fetches translation configuration (source/target languages).
+# - Detects renamed/deleted source files and mirrors these changes in target language directories.
+# - Runs scripts to translate and format files.
+# - Stages, commits, and pushes updates only if changes exist.
+# ------------------------------------------------------------------------------
 
-# name: Frenglish Translation
-# on:
-#   push:
-#     branches:
-#       - '**' # Trigger on push to any branch
-# permissions: # <-- Control what the automatic GITHUB_TOKEN can do
-#   contents: read
+name: Frenglish Translation
+on:
+  push:
+    branches:
+      - '**' # Trigger on push to any branch
+permissions: # <-- Control what the automatic GITHUB_TOKEN can do
+  contents: read
 
-# jobs:
-#   translate_and_format:
-#     # Run on push events, but skip if the commit message indicates it's a merge commit
-#     if: github.event_name == 'push' && !contains(github.event.head_commit.message, 'Merge pull request')
-#     runs-on: ubuntu-latest
-#     permissions:
-#       contents: write
-#       pull-requests: write
-#     steps:
-#       - name: Checkout code
-#         uses: actions/checkout@v4
-#         with:
-#           token: ${{ secrets.GITHUB_TOKEN }}
-#           fetch-depth: 0 # Fetch all history for git diff to work reliably
+jobs:
+  translate_and_format:
+    # Run on push events, but skip if the commit message indicates it's a merge commit
+    if: github.event_name == 'push' && !contains(github.event.head_commit.message, 'Merge pull request')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0 # Fetch all history for git diff to work reliably
 
-#       - name: Setup Node.js
-#         uses: actions/setup-node@v3
-#         with:
-#           node-version: '18' # Or your preferred Node.js version >= 16
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18' # Or your preferred Node.js version >= 16
 
-#       - name: Install dependencies
-#         run: |
-#           # Ensure you have a package.json and package-lock.json
-#           # Add @frenglish/sdk to your package.json: npm install @frenglish/sdk --save
-#           npm install
+      - name: Install dependencies
+        run: |
+          # Ensure you have a package.json and package-lock.json
+          # Add @frenglish/sdk to your package.json: npm install @frenglish/sdk --save
+          npm install
 
-#       - name: Setup Git User
-#         run: |
-#           git config --global user.email "github-actions[bot]@users.noreply.github.com"
-#           git config --global user.name "github-actions[bot]"
+      - name: Setup Git User
+        run: |
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git config --global user.name "github-actions[bot]"
 
-#       - name: Get Language Configuration
-#         id: get_lang_config
-#         run: node .github/scripts/fetch-frenglish-configuration.js
-#         env:
-#           FRENGLISH_API_KEY: ${{ secrets.FRENGLISH_API_KEY }}
-#           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Get Language Configuration
+        id: get_lang_config
+        run: node .github/scripts/fetch-frenglish-configuration.js
+        env:
+          FRENGLISH_API_KEY: ${{ secrets.FRENGLISH_API_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-#       # --- Step to Handle Renamed/Deleted Files ---
-#       - name: Handle Renamed and Deleted Source Files
-#         id: handle_changes
-#         run: |
-#           set -e # Exit immediately if a command exits with a non-zero status.
+      # --- Step to Handle Renamed/Deleted Files ---
+      - name: Handle Renamed and Deleted Source Files
+        id: handle_changes
+        run: |
+          set -e # Exit immediately if a command exits with a non-zero status.
 
-#           # Get target languages and commit SHAs
-#           # SOURCE_DIR_RAW from get_lang_config is now IGNORED for path determination
-#           TARGET_DIRS_STRING="${{ steps.get_lang_config.outputs.target_langs }}"
-#           BEFORE_SHA="${{ github.event.before }}"
-#           CURRENT_SHA="${{ github.sha }}"
+          # Get target languages and commit SHAs
+          # SOURCE_DIR_RAW from get_lang_config is now IGNORED for path determination
+          TARGET_DIRS_STRING="${{ steps.get_lang_config.outputs.target_langs }}"
+          BEFORE_SHA="${{ github.event.before }}"
+          CURRENT_SHA="${{ github.sha }}"
 
-#           # --- Define the source path CONSISTENTLY with translate.js ---
-#           # ORIGIN_LANGUAGE_DIR in translate.js is path.resolve('.'), so we use '.' here.
-#           EFFECTIVE_SOURCE_PATH="."
-#           echo "Source file location for rename/delete check: Root Directory (.)"
+          # --- Define the source path CONSISTENTLY with translate.js ---
+          # ORIGIN_LANGUAGE_DIR in translate.js is path.resolve('.'), so we use '.' here.
+          EFFECTIVE_SOURCE_PATH="."
+          echo "Source file location for rename/delete check: Root Directory (.)"
 
-#           # --- Validate Target Languages ---
-#           if [ -z "$TARGET_DIRS_STRING" ]; then
-#               echo "::warning::No target languages determined. Rename/delete actions for target directories will be skipped."
-#               echo "processed_changes=false" >> $GITHUB_OUTPUT
-#               exit 0
-#           fi
-#           read -r -a TARGET_DIRS <<< "$TARGET_DIRS_STRING"
-#            if [ ${#TARGET_DIRS[@]} -eq 0 ]; then
-#               echo "::warning::No target languages parsed. Rename/delete actions for target directories will be skipped."
-#               echo "processed_changes=false" >> $GITHUB_OUTPUT
-#               exit 0
-#            fi
+          # --- Validate Target Languages ---
+          if [ -z "$TARGET_DIRS_STRING" ]; then
+              echo "::warning::No target languages determined. Rename/delete actions for target directories will be skipped."
+              echo "processed_changes=false" >> $GITHUB_OUTPUT
+              exit 0
+          fi
+          read -r -a TARGET_DIRS <<< "$TARGET_DIRS_STRING"
+           if [ ${#TARGET_DIRS[@]} -eq 0 ]; then
+              echo "::warning::No target languages parsed. Rename/delete actions for target directories will be skipped."
+              echo "processed_changes=false" >> $GITHUB_OUTPUT
+              exit 0
+           fi
 
-#           # --- List of top-level files/dirs to EXCLUDE from rename/delete handling ---
-#           # Add any other known non-locale files/folders residing in your root directory
-#           # Use trailing slash for directories to avoid matching files starting with the same name
-#           EXCLUDED_PATTERNS=(
-#             'package.json'
-#             'package-lock.json'
-#             'node_modules/'
-#             '.github/'
-#             '.git/'
-#             '.gitignore'
-#             'README.md'
-#             # Add other files/dirs like 'vite.config.js', 'tsconfig.json', etc. if they exist in root
-#           )
-#           echo "Excluding patterns: ${EXCLUDED_PATTERNS[*]}"
+          # --- List of top-level files/dirs to EXCLUDE from rename/delete handling ---
+          # Add any other known non-locale files/folders residing in your root directory
+          # Use trailing slash for directories to avoid matching files starting with the same name
+          EXCLUDED_PATTERNS=(
+            'package.json'
+            'package-lock.json'
+            'node_modules/'
+            '.github/'
+            '.git/'
+            '.gitignore'
+            'README.md'
+            # Add other files/dirs like 'vite.config.js', 'tsconfig.json', etc. if they exist in root
+          )
+          echo "Excluding patterns: ${EXCLUDED_PATTERNS[*]}"
 
 
-#           # --- Check for Renamed/Deleted Files in the Root Directory ---
-#           echo "Checking for renamed/deleted files in '$EFFECTIVE_SOURCE_PATH' between $BEFORE_SHA and $CURRENT_SHA..."
-#           processed_any_change=false
+          # --- Check for Renamed/Deleted Files in the Root Directory ---
+          echo "Checking for renamed/deleted files in '$EFFECTIVE_SOURCE_PATH' between $BEFORE_SHA and $CURRENT_SHA..."
+          processed_any_change=false
 
-#           # Use NUL delimiters, check within the root directory (.)
-#           git diff --name-status --find-renames -z $BEFORE_SHA $CURRENT_SHA -- "$EFFECTIVE_SOURCE_PATH" | while IFS= read -r -d $'\0' status && IFS= read -r -d $'\0' old_path && IFS= read -r -d $'\0' new_path; do
-#             # Handle cases where new_path might not be present (for deletions)
-#             if [ -z "$new_path" ]; then
-#               new_path=$old_path
-#             fi
+          # Use NUL delimiters, check within the root directory (.)
+          git diff --name-status --find-renames -z $BEFORE_SHA $CURRENT_SHA -- "$EFFECTIVE_SOURCE_PATH" | while IFS= read -r -d $'\0' status && IFS= read -r -d $'\0' old_path && IFS= read -r -d $'\0' new_path; do
+            # Handle cases where new_path might not be present (for deletions)
+            if [ -z "$new_path" ]; then
+              new_path=$old_path
+            fi
 
-#             # --- Calculate relative paths (already relative to root) ---
-#             relative_old_path="$old_path"
-#             relative_new_path="$new_path"
+            # --- Calculate relative paths (already relative to root) ---
+            relative_old_path="$old_path"
+            relative_new_path="$new_path"
 
-#             # --- Filter out EXCLUDED top-level files/directories ---
-#             is_excluded=false
-#             for pattern in "${EXCLUDED_PATTERNS[@]}"; do
-#                # Check if old_path starts with or exactly matches the pattern
-#                if [[ "$old_path" == "$pattern"* ]]; then
-#                  is_excluded=true
-#                  echo "Skipping excluded file/path based on pattern '$pattern': $old_path"
-#                  break # Exit inner loop once matched
-#                fi
-#             done
-#             if [ "$is_excluded" = true ]; then
-#               continue # Skip to the next file in the diff
-#             fi
-#             # --- End of exclusion filter ---
+            # --- Filter out EXCLUDED top-level files/directories ---
+            is_excluded=false
+            for pattern in "${EXCLUDED_PATTERNS[@]}"; do
+               # Check if old_path starts with or exactly matches the pattern
+               if [[ "$old_path" == "$pattern"* ]]; then
+                 is_excluded=true
+                 echo "Skipping excluded file/path based on pattern '$pattern': $old_path"
+                 break # Exit inner loop once matched
+               fi
+            done
+            if [ "$is_excluded" = true ]; then
+              continue # Skip to the next file in the diff
+            fi
+            # --- End of exclusion filter ---
 
-#             # Proceed only if the file wasn't excluded
-#             echo "Detected potentially relevant change: Status=$status, Old Path=$old_path, New Path=$new_path"
+            # Proceed only if the file wasn't excluded
+            echo "Detected potentially relevant change: Status=$status, Old Path=$old_path, New Path=$new_path"
 
-#             for TARGET_DIR in "${TARGET_DIRS[@]}"; do # Iterate over array elements correctly
-#               # Ensure target *directory* exists (e.g., 'ja', 'es')
-#               if [ ! -d "$TARGET_DIR" ]; then
-#                 echo "::warning::Target directory '$TARGET_DIR' not found. Skipping for this language."
-#                 continue
-#               fi
+            for TARGET_DIR in "${TARGET_DIRS[@]}"; do # Iterate over array elements correctly
+              # Ensure target *directory* exists (e.g., 'ja', 'es')
+              if [ ! -d "$TARGET_DIR" ]; then
+                echo "::warning::Target directory '$TARGET_DIR' not found. Skipping for this language."
+                continue
+              fi
 
-#               # Construct target paths using the relative path from root
-#               target_old_path="$TARGET_DIR/$relative_old_path"
+              # Construct target paths using the relative path from root
+              target_old_path="$TARGET_DIR/$relative_old_path"
 
-#               if [[ "$status" == D* ]]; then
-#                 # Delete corresponding file in target dir IF it exists
-#                 if [ -f "$target_old_path" ]; then
-#                   echo "Deleting corresponding file: $target_old_path"
-#                   git rm "$target_old_path"
-#                   processed_any_change=true
-#                 else
-#                   # It's okay if the target file doesn't exist, don't warn loudly.
-#                    echo "Corresponding file for deletion not found (or already deleted): $target_old_path"
-#                 fi
-#               elif [[ "$status" == R* ]]; then
-#                 # Rename corresponding file in target dir IF it exists
-#                 target_new_path="$TARGET_DIR/$relative_new_path"
-#                 target_new_path_dir=$(dirname "$target_new_path")
+              if [[ "$status" == D* ]]; then
+                # Delete corresponding file in target dir IF it exists
+                if [ -f "$target_old_path" ]; then
+                  echo "Deleting corresponding file: $target_old_path"
+                  git rm "$target_old_path"
+                  processed_any_change=true
+                else
+                  # It's okay if the target file doesn't exist, don't warn loudly.
+                   echo "Corresponding file for deletion not found (or already deleted): $target_old_path"
+                fi
+              elif [[ "$status" == R* ]]; then
+                # Rename corresponding file in target dir IF it exists
+                target_new_path="$TARGET_DIR/$relative_new_path"
+                target_new_path_dir=$(dirname "$target_new_path")
 
-#                 if [ -f "$target_old_path" ]; then
-#                   # Create parent directory for target if needed
-#                   if [ ! -d "$target_new_path_dir" ]; then
-#                       echo "Creating directory for renamed file: $target_new_path_dir"
-#                       mkdir -p "$target_new_path_dir"
-#                   fi
-#                   echo "Renaming corresponding file: $target_old_path -> $target_new_path"
-#                   git mv "$target_old_path" "$target_new_path"
-#                   processed_any_change=true
-#                 else
-#                    # It's okay if the target file doesn't exist, don't warn loudly.
-#                    echo "Corresponding file for rename not found: $target_old_path"
-#                 fi
-#               fi # End status check (D or R)
-#             done # end loop target dirs
-#           done # end loop git diff
+                if [ -f "$target_old_path" ]; then
+                  # Create parent directory for target if needed
+                  if [ ! -d "$target_new_path_dir" ]; then
+                      echo "Creating directory for renamed file: $target_new_path_dir"
+                      mkdir -p "$target_new_path_dir"
+                  fi
+                  echo "Renaming corresponding file: $target_old_path -> $target_new_path"
+                  git mv "$target_old_path" "$target_new_path"
+                  processed_any_change=true
+                else
+                   # It's okay if the target file doesn't exist, don't warn loudly.
+                   echo "Corresponding file for rename not found: $target_old_path"
+                fi
+              fi # End status check (D or R)
+            done # end loop target dirs
+          done # end loop git diff
 
-#           # Output based on the flag
-#           echo "processed_changes=$processed_any_change" >> $GITHUB_OUTPUT
-#         env:
-#           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Output based on the flag
+          echo "processed_changes=$processed_any_change" >> $GITHUB_OUTPUT
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-#       - name: Run translation script (Writes/Updates files)
-#         env:
-#           FRENGLISH_API_KEY: ${{ secrets.FRENGLISH_API_KEY }}
-#           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-#         run: node .github/scripts/translate.js
+      - name: Run translation script (Writes/Updates files)
+        env:
+          FRENGLISH_API_KEY: ${{ secrets.FRENGLISH_API_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: node .github/scripts/translate.js
 
-#       - name: Run formatting script
-#         run: node .github/scripts/format-locales.js
+      - name: Run formatting script
+        run: node .github/scripts/format-locales.js
 
-#       - name: Stage ALL changes (new, modified, deleted, renamed)
-#         run: |
-#           echo "Staging all tracked changes (adds, modifications, deletes, renames)..."
-#           git add . # This stages all changes in the working directory
+      - name: Stage ALL changes (new, modified, deleted, renamed)
+        run: |
+          echo "Staging all tracked changes (adds, modifications, deletes, renames)..."
+          git add . # This stages all changes in the working directory
 
-#       - name: Commit changes
-#         id: commit
-#         run: |
-#           # Check index status after all operations (add, rm, mv)
-#           # Use --cached to check staged changes specifically
-#           if git diff --cached --quiet; then
-#              echo "No changes staged for commit."
-#              echo "changes_committed=false" >> $GITHUB_OUTPUT
-#           else
-#             echo "Committing translation updates, formatting, renames, and deletions..."
-#             # Use the dynamically fetched source language in the commit message
-#             COMMIT_SOURCE_LANG="${{ steps.get_lang_config.outputs.source_lang }}" # Capture output first
-#             git commit -m "chore(i18n): update translations [${COMMIT_SOURCE_LANG:-unknown}]" \
-#                        -m "Sync file structure, format locales. Branch: ${{ github.ref_name }}"
-#             echo "changes_committed=true" >> $GITHUB_OUTPUT
-#             git show --stat # Show commit details
-#           fi
+      - name: Commit changes
+        id: commit
+        run: |
+          # Check index status after all operations (add, rm, mv)
+          # Use --cached to check staged changes specifically
+          if git diff --cached --quiet; then
+             echo "No changes staged for commit."
+             echo "changes_committed=false" >> $GITHUB_OUTPUT
+          else
+            echo "Committing translation updates, formatting, renames, and deletions..."
+            # Use the dynamically fetched source language in the commit message
+            COMMIT_SOURCE_LANG="${{ steps.get_lang_config.outputs.source_lang }}" # Capture output first
+            git commit -m "chore(i18n): update translations [${COMMIT_SOURCE_LANG:-unknown}]" \
+                       -m "Sync file structure, format locales. Branch: ${{ github.ref_name }}"
+            echo "changes_committed=true" >> $GITHUB_OUTPUT
+            git show --stat # Show commit details
+          fi
 
-#       - name: Push changes
-#         # Only run if the commit step actually committed something
-#         if: steps.commit.outputs.changes_committed == 'true'
-#         run: |
-#           echo "Pushing changes to origin/${{ github.ref_name }}..."
-#           # Use --atomic for safety if supported, otherwise standard push
-#           git push origin HEAD:${{ github.ref_name }}
+      - name: Push changes
+        # Only run if the commit step actually committed something
+        if: steps.commit.outputs.changes_committed == 'true'
+        run: |
+          echo "Pushing changes to origin/${{ github.ref_name }}..."
+          # Use --atomic for safety if supported, otherwise standard push
+          git push origin HEAD:${{ github.ref_name }}
