@@ -1,0 +1,41 @@
+---
+title: はじめに
+---
+
+一次販売では、スマートコントラクトを利用してユーザーにERC721/1155をミントします。
+
+基本的には、[Sequence Builderから簡単にデプロイできる監査済みの一次販売コントラクト](/solutions/collectibles/contracts/deploy-primary-sales-contract)のご利用をおすすめします。
+
+## Unityでの一次販売
+UnityでSequenceの販売コントラクトを利用する場合、ERC721販売には`ERC721Sale`クラス、ERC1155販売には`ERC1155Sale`クラスの利用を推奨します。独自の一次販売コントラクト（独自ABI）を利用する場合は、（`ERC721Sale`や`ERC1155Sale`のように）C#のコントラクトラッパーを作成すると、より簡単でミスの少ないワークフローになります。本ドキュメントでは、弊社の一次販売コントラクトの利用に焦点を当てます。
+
+どちらのクラスも簡単に構築できます：
+
+```
+ERC1155Sale sale1155 = new ERC1155Sale(contractAddress);
+ERC721Sale sale721 = new ERC721Sale(otherContractAddress);
+```
+
+[Sequence Builderで一次販売コントラクトを設定](/solutions/collectibles/contracts/deploy-primary-sales-contract)した後、その詳細をUnityで取得することもできます。
+
+```
+IEthClient client = new SequenceEthClient(chain);
+SaleDetails globalSaleDetails = await sale1155.GetGlobalSaleDetailsAsync(client);
+SaleDetails tokenSaleDetails = await sale1155.TokenSaleDetailsAsync(client);
+SaleDetails nftSaleDetails = await sale721.GetSaleDetailsAsync(client);
+```
+
+最後に、チェックアウトのためには、販売コントラクトに価格通貨の支出権限を付与し、販売コントラクトのミント関数を呼び出します（ネイティブトークンで価格設定している場合は、トランザクションの'value'として支払いを行います）。
+
+```
+List<Transaction> transactions = new List<Transaction>();
+ransactions.Add(new RawTransaction(paymentToken.Approve(sale1155.Contract.GetAddress(), tokenSaleDetails.Cost * _amount)));
+transactions.Add(new RawTransaction(sale1155.Mint(_wallet.GetWalletAddress(),
+    new BigInteger[] { BigInteger.Parse(_tokenId) },
+    new BigInteger[] { BigInteger.Parse(_amount.ToString()) }, null, paymentToken,
+    tokenSaleDetails.Cost * _amount)));
+
+_wallet.SendTransaction(chain, tranactions.ToArray());
+```
+
+<Tip>これらの取引をスポンサーしたい場合は、一次販売コントラクトと価格通貨コントラクトのアドレスを[Gas Tank](/solutions/builder/gas-tank)に追加するのをお忘れなく！</Tip>

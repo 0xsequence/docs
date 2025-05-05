@@ -1,0 +1,306 @@
+---
+title: Fetch balances on all networks
+description: This content provides instructions on fetching token data details from specific contracts across all different networks.
+---
+
+# Token balances APIs
+In the following examples, we're going to use the `GetTokenBalancesSummary` and
+`GetTokenBalancesDetails` methods from Sequence Indexer Gateway.
+
+## `GetTokenBalancesSummary`
+
+- Request: POST /rpc/IndexerGateway/GetTokenBalancesSummary
+- Content-Type: application/json
+- Body (in JSON):
+  - `chainIds` (\[]int - optional) -- return results only for the chains that match the given ID.
+  - `networks` (\[]string - optional) -- return results only for the chains that match the given names.
+  - `filter` (object - optional) -- query filters.
+    - `accountAddresses` (\[]string)
+    - `contractStatus` (VERIFIED | UNVERIFIED | ALL)
+    - `contractWhitelist` (\[]string)
+    - `contractBlacklist` (\[]string)
+    - `omitNativeBalances` (bool)
+  - `omitMetadata` (boolean - optional - default: false)
+
+## `GetTokenBalancesDetails`
+
+- Request: POST /rpc/IndexerGateway/GetTokenBalancesDetails
+- Content-Type: application/json
+- Body (in JSON):
+  - `chainIds` (\[]int - optional) -- return results only for the chains that match the given ID.
+  - `networks` (\[]string - optional) -- return results only for the chains that match the given names.
+  - `filter` (object - optional) -- query filters.
+    - `accountAddresses` (\[]string)
+    - `contractStatus` (VERIFIED | UNVERIFIED | ALL)
+    - `contractWhitelist` (\[]string)
+    - `contractBlacklist` (\[]string)
+    - `omitNativeBalances` (bool)
+  - `omitMetadata` (boolean - optional - default: false)
+
+### Get the summary of balances of verified tokens on specific networks
+Example: Get the summary of all verified token balances for a specific account
+on `mainnet` and `polygon`
+
+<CodeGroup>
+  ```shell [Curl]
+  curl -X POST \
+    -H "Content-Type: application/json" \
+    -H "X-Access-Key: AQAAAAAAAF_JvPALhBthL7VGn6jV0YDqaFY" \
+    https://indexer.sequence.app/rpc/IndexerGateway/GetTokenBalancesSummary \
+    -d '{
+      "networks": [
+          "polygon",
+          "mainnet"
+      ],
+      "filter": {
+          "accountAddresses": [
+              "0x8e3E38fe7367dd3b52D1e281E4e8400447C8d8B9"
+          ]
+      }
+    }'
+  ```
+
+  ```ts [Typescript]
+  import { SequenceIndexerGateway } from '@0xsequence/indexer'
+
+  const INDEXER_TOKEN = 'AQAAAAAAAF_JvPALhBthL7VGn6jV0YDqaFY';
+  const ACCOUNT_ADDRESS = '0x8e3E38fe7367dd3b52D1e281E4e8400447C8d8B9';
+
+  const indexerGateway = new SequenceIndexerGateway(
+    'https://indexer.sequence.app',
+    INDEXER_TOKEN
+  )
+
+  const res = await indexerGateway.getTokenBalancesSummary({
+    networks: ["polygon", "mainnet"],
+    filter: {
+      accountAddresses: [ACCOUNT_ADDRESS]
+    }
+  })
+
+  res.nativeBalances.forEach(({ chainId, results }) => {
+    console.log(`chainId: ${chainId} (native balances)`);
+    results.forEach(({ balance }) => {
+      console.log(`\tbalance: ${balance}`);
+    });
+  });
+
+  res.balances.forEach(({ chainId, results }) => {
+    console.log(`chainId: ${chainId} (token balances)`);
+    results.forEach(({ contractAddress, balance }) => {
+      console.log(`\tcontractAddress: ${contractAddress}, balance: ${balance}`);
+    });
+  });
+  ```
+
+  ```go [Go]
+  package main
+
+  import (
+  	"context"
+  	"fmt"
+  	"log"
+  	"net/http"
+
+  	"github.com/0xsequence/go-sequence/indexer"
+  	"github.com/0xsequence/go-sequence/lib/prototyp"
+  )
+
+  const indexerToken = "AQAAAAAAAF_JvPALhBthL7VGn6jV0YDqaFY"
+
+  func main() {
+  	ctx := context.TODO()
+
+  	seqIndexerGW := indexer.NewIndexerGatewayClient(
+  		"https://indexer.sequence.app",
+  		http.DefaultClient,
+  	)
+
+  	authCtx, err := indexer.WithHTTPRequestHeaders(ctx, http.Header{
+  		"X-Access-Key": []string{indexerToken},
+  	})
+  	if err != nil {
+  		log.Fatal(err)
+  	}
+
+  	accountAddress := "0x8e3E38fe7367dd3b52D1e281E4e8400447C8d8B9"
+
+  	_, nativeBalances, balances, err := seqIndexerGW.GetTokenBalancesSummary(
+  		authCtx,
+  		nil, // No chainId filter
+  		networks,
+      []string{"polygon", "mainnet"},
+  		&indexer.TokenBalancesFilter{
+  			AccountAddresses: []prototyp.Hash{
+  				prototyp.HashFromString(accountAddress),
+  			},
+  		},
+  		nil, // Default omitMetadata
+  		nil, // Default page
+  	)
+  	if err != nil {
+  		log.Fatal(err)
+  	}
+
+  	// Native Balances
+  	for _, nativeBalance := range nativeBalances {
+  		fmt.Printf("chainId: %d (native balances)\n", nativeBalance.ChainId)
+  		for _, result := range nativeBalance.Results {
+  			fmt.Printf("\tbalance: %s\n", result.Balance)
+  		}
+  	}
+
+  	// Token Balances
+  	for _, balance := range balances {
+  		fmt.Printf("chainId: %d (token balances)\n", balance.ChainID)
+  		for _, result := range balance.Results {
+  			fmt.Printf("\tcontractAddress: %s, balance: %s\n",
+  				result.ContractAddress, result.Balance)
+  		}
+  	}
+  }
+  ```
+</CodeGroup>
+
+### Get balance details of specific contracts on all networks
+Example: Get the balance details of the USDC contracts on Arbitrum, Polygon and
+Mainne
+
+<CodeGroup>
+  ```shell [Curl]
+  curl -X POST \
+    -H "Content-Type: application/json" \
+    -H "X-Access-Key: AQAAAAAAAF_JvPALhBthL7VGn6jV0YDqaFY" \
+    https://indexer.sequence.app/rpc/IndexerGateway/GetTokenBalancesDetails \
+    -d '{
+      "networks": [
+          "arbitrum",
+          "polygon",
+          "mainnet"
+      ],
+      "filter": {
+          "accountAddresses": [
+              "0x8e3E38fe7367dd3b52D1e281E4e8400447C8d8B9"
+          ],
+          "contractWhitelist": [
+              "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+              "0x3c499c542cef5e3811e1192ce70d8cc03d5c3359",
+              "0xaf88d065e77c8cc2239327c5edb3a432268e5831"
+          ]
+      }
+    }'
+  ```
+
+  ```ts [Typescript]
+  import { SequenceIndexerGateway } from '@0xsequence/indexer'
+
+  const INDEXER_TOKEN = 'AQAAAAAAAF_JvPALhBthL7VGn6jV0YDqaFY';
+  const ACCOUNT_ADDRESS = '0x8e3E38fe7367dd3b52D1e281E4e8400447C8d8B9';
+
+  const indexerGateway = new SequenceIndexerGateway(
+    'https://indexer.sequence.app',
+    INDEXER_TOKEN
+  )
+
+  const res = await indexerGateway.getTokenBalancesDetails({
+    networks: ['arbitrum', 'polygon', 'mainnet'],
+    filter: {
+      accountAddresses: [ACCOUNT_ADDRESS],
+      contractWhitelist: [
+        '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48', // USDC on Ethereum
+        '0x3c499c542cef5e3811e1192ce70d8cc03d5c3359', // USDC on Polygon
+        '0xaf88d065e77c8cc2239327c5edb3a432268e5831'  // USDC on Arbitrum
+      ]
+    }
+  });
+
+  // Native Balances
+  res.nativeBalances.forEach(({ chainId, results }) => {
+    console.log(`chainId: ${chainId} (native balances)`);
+    results.forEach(({ balance }) => {
+      console.log(`\tbalance: ${balance}`);
+    });
+  });
+
+  // Token Balances
+  res.balances.forEach(({ chainId, results }) => {
+    console.log(`chainId: ${chainId} (token balances)`);
+    results.forEach(({ contractAddress, balance }) => {
+      console.log(`\tcontractAddress: ${contractAddress}, balance: ${balance}`);
+    });
+  });
+  ```
+
+  ```go [Go]
+  package main
+
+  import (
+  	"context"
+  	"fmt"
+  	"log"
+  	"net/http"
+
+  	"github.com/0xsequence/go-sequence/indexer"
+  	"github.com/0xsequence/go-sequence/lib/prototyp"
+  )
+
+  const indexerToken = "AQAAAAAAAF_JvPALhBthL7VGn6jV0YDqaFY"
+
+  func main() {
+  	ctx := context.TODO()
+
+  	seqIndexerGW := indexer.NewIndexerGatewayClient(
+  		"https://indexer.sequence.app",
+  		http.DefaultClient,
+  	)
+
+  	authCtx, err := indexer.WithHTTPRequestHeaders(ctx, http.Header{
+  		"X-Access-Key": []string{indexerToken},
+  	})
+  	if err != nil {
+  		log.Fatal(err)
+  	}
+
+  	accountAddress := "0x8e3E38fe7367dd3b52D1e281E4e8400447C8d8B9"
+  	contractWhitelist := []prototyp.Hash{
+  		prototyp.HashFromString("0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48"),
+  		prototyp.HashFromString("0x3c499c542cef5e3811e1192ce70d8cc03d5c3359"),
+  		prototyp.HashFromString("0xaf88d065e77c8cc2239327c5edb3a432268e5831"),
+  	}
+
+  	_, nativeBalances, balances, err := seqIndexerGW.GetTokenBalancesDetails(
+  		authCtx,
+  		nil, // No chainId filter
+  		[]string{"arbitrum", "polygon", "mainnet"},
+  		&indexer.TokenBalancesFilter{
+  			AccountAddresses: []prototyp.Hash{
+  				prototyp.HashFromString(accountAddress),
+  			},
+  			ContractWhitelist: contractWhitelist,
+  		},
+  		nil, // Default omitMetadata
+  		nil, // Default page
+  	)
+  	if err != nil {
+  		log.Fatal(err)
+  	}
+
+  	// Native Balances
+  	for _, nativeBalance := range nativeBalances {
+  		fmt.Printf("chainId: %d (native balances)\n", nativeBalance.ChainId)
+  		for _, result := range nativeBalance.Results {
+  			fmt.Printf("\tbalance: %s\n", result.Balance)
+  		}
+  	}
+
+  	// Token Balances
+  	for _, balance := range balances {
+  		fmt.Printf("chainId: %d (token balances)\n", balance.ChainID)
+  		for _, result := range balance.Results {
+  			fmt.Printf("\tcontractAddress: %s, balance: %s\n",
+  				result.ContractAddress, result.Balance)
+  		}
+  	}
+  }
+  ```
+</CodeGroup>

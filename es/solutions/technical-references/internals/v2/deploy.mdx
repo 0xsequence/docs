@@ -1,0 +1,51 @@
+---
+title: Proceso de despliegue V2
+description: Este contenido proporciona una guía detallada para desplegar el Sequence Wallet Context en una nueva red.
+sidebarTitle: Desplegar
+---
+
+Se requieren los siguientes pasos para desplegar el [Sequence Wallet Context](/solutions/technical-references/internals/v1/wallet-context) en una nueva red.
+
+<Note>
+  Aviso <br />
+  Para la mayoría de las redes populares este proceso **no es** necesario, ya que los contratos de wallet
+  ya están desplegados.
+  Para ver si ya existe una configuración para una cadena específica, visite [Networks](https://status.sequence.info).
+</Note>
+
+### 1 - Desplegar Singleton Factory
+El Singleton Factory es un contrato que permite desplegar una sola instancia de contrato por dirección. A diferencia del
+[Universal Deployer](#universal-deployer), el Singleton Factory requiere un salt para gestionar las instancias de despliegue. Puede encontrar más información sobre el
+Singleton Factory en la [especificación EIP-2470](https://eips.ethereum.org/EIPS/eip-2470).
+
+Debe pre-fondear la cuenta del deployer del Singleton Factory con los fondos necesarios para desplegar el contrato.
+
+```
+Address: 0xBb6e024b9cFFACB947A71991E386681B1Cd1477D
+Funds: 0.0247
+```
+
+**No envíe fondos adicionales a la dirección, ya que no se pueden reembolsar.**
+
+Una vez que la dirección tenga fondos, puede desplegar el Singleton Factory ejecutando la siguiente transacción pre-firmada:
+
+```
+0xf9016c8085174876e8008303c4d88080b90154608060405234801561001057600080fd5b50610134806100206000396000f3fe6080604052348015600f57600080fd5b506004361060285760003560e01c80634af63f0214602d575b600080fd5b60cf60048036036040811015604157600080fd5b810190602081018135640100000000811115605b57600080fd5b820183602082011115606c57600080fd5b80359060200191846001830284011164010000000083111715608d57600080fd5b91908080601f016020809104026020016040519081016040528093929190818152602001838380828437600092019190915250929550509135925060eb915050565b604080516001600160a01b039092168252519081900360200190f35b6000818351602085016000f5939250505056fea26469706673582212206b44f8a82cb6b156bfcc3dc6aadd6df4eefd204bc928a4397fd15dacf6d5320564736f6c634300060200331b83247000822470
+```
+
+Después de que la transacción sea confirmada, debería ver la dirección del Singleton Factory:
+
+```
+Singleton Deployer: 0xce0042B868300000d44A59004Da54A005ffdcf9f
+```
+
+### 2 - Desplegar Wallet Context
+Despliegue cada uno de los contratos en el [Sequence Wallet Context](/solutions/technical-references/internals/v1/wallet-context) usando el Singleton Factory.
+
+Puede encontrar un script en el [repositorio de Sequence Wallet Contracts](https://github.com/0xsequence/wallet-contracts/).
+
+Clone el repositorio, configure las variables de entorno y ejecute el script con:
+
+```
+yarn deploy <network>
+```

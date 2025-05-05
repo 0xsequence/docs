@@ -1,0 +1,77 @@
+---
+title: Verificación de enclave
+description: La seguridad del enclave WaaS depende de la verificación de integridad del código usando enclaves verificados.
+sidebarTitle: Verificación de enclave
+---
+
+La seguridad del enclave WaaS se basa en la verificación de integridad del código.
+
+Tiene dos opciones de verificación para un enclave en ejecución, según su tolerancia al riesgo y recursos técnicos.
+
+## Método de verificación simple
+
+### Requisitos
+El proceso de verificación solo funciona en sistemas Linux o macOS. Debe tener instaladas y configuradas localmente las versiones actualizadas de estas herramientas:
+- [Docker](https://www.docker.com/)
+- git
+- make
+
+### Determine el PCR0
+Visite esta página en su navegador o usando curl: [https://waas.sequence.app/status](https://waas.sequence.app/status).
+
+Tome nota de los valores `ver` y `pcr0` para usarlos más adelante.
+
+La salida de ejemplo puede verse así:
+
+Recuerde que el checksum puede variar entre ejecuciones, ya que verifica la integridad del **archivo**. Por otro lado, el PCR0 para el mismo **código** permanece constante, como se muestra en el ejemplo anterior.
+
+La salida de ejemplo podría verse así:
+
+```
+{
+  "healthOK": true,
+  "startTime": "2024-04-08T17:06:20.177514099Z",
+  "uptime": 167168,
+  "ver": "v1.1.1",
+  "pcr0": "77541a3d09cdf2728417c1537d190be0998cc84f8aec95a4f1e823c91a007d97f276c2453be7f653fd73fb862b42fcee"
+}
+```
+
+### Construya el archivo del enclave
+
+1. Clone el repositorio localmente, reemplazando `v1.1.1` por el valor de `ver` del paso anterior:
+
+```
+git clone -b v1.1.1 https://github.com/0xsequence/waas-authenticator.git
+cd waas-authenticator
+```
+
+2. Ejecute el siguiente comando, nuevamente reemplazando la versión como antes:
+
+```
+make VERSION=v1.1.1 eif
+```
+
+3. Compare la salida del comando con el valor de PCR0 que anotó previamente, por ejemplo:
+
+```
+Output written into /out/waas-auth.v1.1.1.eif
+BootMeasurement: Sha384 { ... }: {"HashAlgorithm": "Sha384 { ... }", "PCR0": "77541a3d09cdf2728417c1537d190be0998cc84f8aec95a4f1e823c91a007d97f276c2453be7f653fd73fb862b42fcee", "PCR1": "b7ada9ee8a3fa0a2c74c23ddd04a58f0b095d0465327b2d8461b9b81bcbc7236563ff0326c8614fe9205669636955199", "PCR2": "365294f408bcc5913b44110544bb611255d05666f89fd182900330bc117744fa563c2afcf74808b719ac7a29492099c6"}
+SHA256 checksum:
+3843b48b32b98fa311cbcd1604c0c6931f03c75075212e8bb4c06d02a3d53509  waas-auth.v1.1.1.eif
+```
+
+Tenga en cuenta que el checksum puede variar entre ejecuciones, ya que solo se utiliza para verificar la integridad del **archivo**. Sin embargo, el PCR0 para el mismo **código** siempre será igual, como se muestra en el ejemplo anterior.
+
+## Método de verificación complejo
+El método simple nos permite comparar el PCR0 del archivo de enclave creado con el enclave "en vivo". Esto no es infalible. Una simple comparación de dos valores no aporta evidencia real. El enclave podría haber sido manipulado y lo que vemos podría ser solo una ilusión. De hecho, los valores de PCR0 para cada versión están disponibles públicamente ([https://github.com/0xsequence/waas-authenticator/releases](https://github.com/0xsequence/waas-authenticator/releases)).
+
+Aquí es donde la _atestación criptográfica_ se vuelve necesaria. Aún no hemos publicado herramientas para validación, pero es posible realizarla siguiendo esta guía de AWS ([https://docs.aws.amazon.com/enclaves/latest/user/verify-root.html](https://docs.aws.amazon.com/enclaves/latest/user/verify-root.html)).
+
+Cada solicitud al enclave devuelve el documento de atestación. Este viene en formato codificado en Base64 en el encabezado de respuesta `X-Attestation-Document`. Una solicitud también puede incluir un encabezado `X-Attestation-Nonce`, que contiene un valor que será firmado e incluido en el documento de atestación.
+
+Por ejemplo, puede obtener el documento de atestación ejecutando:
+
+```
+curl -si https://waas.sequence.app/health -H X-Attestation-Nonce:0123456789abcdef | grep x-attestation-document
+```

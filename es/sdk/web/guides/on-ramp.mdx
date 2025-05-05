@@ -1,0 +1,90 @@
+---
+title: Resumen de On-ramp
+description: El modal de on-ramp de checkout en Web SDK permite a los desarrolladores incorporar fácilmente usuarios con moneda fiat a criptomonedas usando una tarjeta de crédito.
+sidebarTitle: On-ramp
+---
+
+Con esta integración, se puede usar una tarjeta de crédito para comprar tokens en muchas redes diferentes.
+
+<Frame>
+  ![](/images/kit/kit-on-ramp.png)
+</Frame>
+
+## Integración
+Para integrar la función de on-ramp, siga estos pasos:
+
+<Steps>
+  <Step title="Conéctese con Web SDK">
+    Asegúrese de haber completado la guía de [Primeros Pasos](/sdk/web/getting-started).
+  </Step>
+
+  <Step title="1. Instale la librería @0xsequence/checkout">
+    ```bash
+    npm install @0xsequence/checkout
+    # or
+    pnpm install @0xsequence/checkout
+    # or
+    yarn add @0xsequence/checkout
+    ```
+  </Step>
+
+  <Step title="2. Coloque el `SequenceCheckoutProvider` debajo del Provider `SequenceConnect` en su App:">
+    ```jsx
+    import { SequenceCheckoutProvider } from '@0xsequence/checkout'
+    import { SequenceConnect } from '@0xsequence/connect'
+    import { config } from './config'
+
+    const App = () => {
+      return (
+        <SequenceConnect config={config}>
+          <SequenceCheckoutProvider>
+            <Page />
+          </SequenceCheckoutProvider>
+        </SequenceConnect>
+      )
+    }
+    ```
+  </Step>
+
+  <Step title="3. Agregar fondos con una tarjeta de crédito">
+    Llame a la función `triggerAddFunds` para que aparezca un modal
+
+    ```js
+      import { useAddFundsModal } from '@0xsequence/checkout'
+      import { useAccount } from 'wagmi'
+
+      const MyComponent = () => {
+        const { address: recipientAddress } = useAccount()
+        const { triggerAddFunds: toggleAddFunds } = useAddFundsModal()
+
+        const onClick = () => {
+          toggleAddFunds({
+            walletAddress: recipientAddress,
+          })
+        }
+
+        return (
+          <button onClick={onClick}>Add Funds</button>
+        )
+      }
+    ```
+  </Step>
+</Steps>
+
+¡Felicidades! Ahora sabe cómo agregar fondos a su wallet usando Web SDK.
+
+# Resumen de Configuración
+A continuación se muestran las opciones de personalización de configuración disponibles para los parámetros de toggleAddFunds
+
+```ts
+interface AddFundsSettings {
+  walletAddress: string | Hex // Address of the wallet where funds will be added
+  fiatAmount?: string // Specify the amount in fiat to add
+  fiatCurrency?: string // Specify the fiat currency (e.g., USD, EUR)
+  defaultFiatAmount?: string // Default amount in fiat to add
+  defaultCryptoCurrency?: string // Default cryptocurrency to use (e.g., ETH, BTC)
+  cryptoCurrencyList?: string // List of cryptocurrencies available for selection. Example: "USDT,BTC,USDC"
+  networks?: string // Specify network(s) to use for the transaction. Example: "mainnet,ethereum"
+  onClose?: () => void // Callback function to execute when the modal is closed
+}
+```

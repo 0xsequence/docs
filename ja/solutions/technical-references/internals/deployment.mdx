@@ -1,0 +1,45 @@
+---
+title: コントラクトのデプロイ
+description: この内容では、Sequenceコントラクトウォレットのデプロイ手順について説明しており、EVM互換ネットワーク間での決定論的な特性を強調しています。
+sidebarTitle: デプロイ
+---
+
+Sequenceコントラクトウォレットは完全に決定論的であり、EVM互換のネットワークであれば同じアドレスにマッピングされます。
+
+つまり、ウォレットを作成すると、そのアドレスは事前に導出でき、Ethereum、Arbitrum、Polygonなどのネットワークでも同じアドレスになります。
+
+<Warning>
+  **制限事項**<br />
+  Sequenceウォレットは、100% EVM互換でないチェーンでは同じアドレスにならない場合があります。
+
+  資産を送る前に、**必ずアドレスを再確認**してください。
+</Warning>
+
+これを実現するために、Sequenceは[Nickのメソッド](https://weka.medium.com/how-to-send-ether-to-11-440-people-187e332566b7)のバリエーションを使用しており、複数のチェーンに同じコントラクトを完全に信頼不要な方法でデプロイすることができます。
+
+Nick's methodは「デプロイヤー」コントラクトをデプロイし、その後コアとなるSequenceコントラクトをデプロイするために使われます。
+
+これらのコントラクトは以下の通りです：
+
+#### ファクトリーコントラクト
+新しいSequenceウォレットを初期設定とともに作成します。
+
+#### MainModule（v1およびv2）
+メインモジュールは、ウォレットのコアロジックを固定設定で実装します。
+
+#### MainModuleUpgradable（v1およびv2）
+MainModuleと同様ですが、ウォレットの設定をアップグレードできる機能があります。
+
+#### 補助コントラクト
+v1およびv2の両方に、SDKがウォレットとやり取りするための補助コントラクトがあります。これらはウォレットの動作に必須ではありませんが、SDKの利用には必要です。
+
+コントラクトの詳細はv1およびv2のドキュメントをご参照ください。
+
+<Note>
+  お知らせ<br />デプロイ用の完全なスクリプトは[Sequence Live Contractsリポジトリ](https://github.com/0xsequence/live-contracts)で参照できます。
+</Note>
+
+## 詳細なデプロイ手順
+
+- v1：[v1コントラクトのデプロイ](/solutions/technical-references/internals/v1/deploy)
+- v2：[v2コントラクトのデプロイ](/solutions/technical-references/internals/v2/deploy)

@@ -1,0 +1,41 @@
+---
+title: Introducción
+---
+
+Las Ventas Primarias implican el uso de un contrato inteligente para facilitar el minteo de ERC721/1155s a los usuarios.
+
+En general, recomendamos usar nuestros contratos de ventas primarias auditados que se pueden [implementar fácilmente desde el Sequence Builder](/solutions/collectibles/contracts/deploy-primary-sales-contract).
+
+## Ventas Primarias en Unity
+Al trabajar con los contratos de ventas de Sequence en Unity, se recomienda usar las clases `ERC721Sale` y `ERC1155Sale` para ventas de ERC721 y ERC1155 respectivamente. Si está usando su propio contrato de ventas primarias con su propio ABI, se recomienda construir un wrapper de contrato en C# (como hemos hecho con `ERC721Sale` y `ERC1155Sale`) para facilitar un flujo de trabajo más sencillo y menos propenso a errores. Este documento se centrará en el uso de nuestros contratos de Ventas Primarias.
+
+Ambas clases se pueden construir fácilmente:
+
+```
+ERC1155Sale sale1155 = new ERC1155Sale(contractAddress);
+ERC721Sale sale721 = new ERC721Sale(otherContractAddress);
+```
+
+Una vez que haya [configurado su contrato de Venta Primaria en el Sequence Builder](/solutions/collectibles/contracts/deploy-primary-sales-contract), puede que quiera obtener esos detalles en Unity.
+
+```
+IEthClient client = new SequenceEthClient(chain);
+SaleDetails globalSaleDetails = await sale1155.GetGlobalSaleDetailsAsync(client);
+SaleDetails tokenSaleDetails = await sale1155.TokenSaleDetailsAsync(client);
+SaleDetails nftSaleDetails = await sale721.GetSaleDetailsAsync(client);
+```
+
+Finalmente, para realizar el checkout, deberá otorgar a su contrato de venta los permisos de gasto adecuados sobre su moneda de precio y llamar a la función de minteo en su contrato de venta (o, si el precio es en token nativo, proporcionar el pago como el 'value' de su transacción).
+
+```
+List<Transaction> transactions = new List<Transaction>();
+ransactions.Add(new RawTransaction(paymentToken.Approve(sale1155.Contract.GetAddress(), tokenSaleDetails.Cost * _amount)));
+transactions.Add(new RawTransaction(sale1155.Mint(_wallet.GetWalletAddress(),
+    new BigInteger[] { BigInteger.Parse(_tokenId) },
+    new BigInteger[] { BigInteger.Parse(_amount.ToString()) }, null, paymentToken,
+    tokenSaleDetails.Cost * _amount)));
+
+_wallet.SendTransaction(chain, tranactions.ToArray());
+```
+
+<Tip>¡No olvide agregar las direcciones de sus contratos de ventas primarias y de la moneda de precio a su [Gas Tank](/solutions/builder/gas-tank) si desea que estas transacciones sean patrocinadas!</Tip>

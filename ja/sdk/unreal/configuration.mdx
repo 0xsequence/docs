@@ -1,0 +1,40 @@
+---
+title: 設定
+description: Sequenceインフラストラクチャスタックを用いたweb3ゲーム向けUnreal SDKセットアップのドキュメントです。
+---
+
+<Steps>
+  <Step title="プライベート依存モジュール">
+    プロジェクトのBuild.csファイル（[場所はこちら](https://forums.unrealengine.com/t/where-are-build-cs-and-target-cs/302665)）で、プライベート依存モジュールに "SequencePlugin" が含まれていることを確認してください。
+
+    ```cpp
+        public SequenceTest(ReadOnlyTargetRules Target) : base(Target)
+        {
+            PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
+    		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore" });
+    		PrivateDependencyModuleNames.AddRange(new string[] { "SequencePlugin" });
+    	}
+    ```
+  </Step>
+
+  <Step title="設定ファイルの作成">
+    `[YourProjectDirectory]/Config` に移動し、`SequenceConfig.ini` という名前のファイルを作成し、次の内容を追加してください：
+
+    ```
+    [/Script/Sequence.Config]
+
+    WaaSConfigKey = "Go to https://sequence.build/ under Onboard > Embedded Wallet"
+    ProjectAccessKey = "Go to https://sequence.build/ under Settings > API Keys"
+    GoogleClientID = "" 
+    AppleClientID = "" 
+    FacebookClientID = "" 
+    DiscordClientID = ""
+    PlayFabTitleID = ""
+    RedirectUrl = "https://api.sequence.app"
+    ```
+  </Step>
+</Steps>
+
+<Warning>
+  [Builderで埋め込みウォレットの設定を行うこと](/solutions/builder/embedded-wallet/configuration)も忘れずに行ってください。
+</Warning>

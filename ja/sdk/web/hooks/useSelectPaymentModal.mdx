@@ -1,0 +1,147 @@
+---
+title: useSelectPaymentModal
+description: 支払い選択モーダルを開くためのフック
+sidebarTitle: useSelectPaymentModal
+---
+
+## インポート
+
+```tsx
+import { useSelectPaymentModal } from '@0xsequence/checkout'
+```
+
+## 使い方
+
+```tsx
+import { useSelectPaymentModal } from '@0xsequence/checkout'
+import { encodeFunctionData, toHex } from 'viem'
+import { useAccount } from 'wagmi'
+
+function App() {
+  const { address } = useAccount()
+  const { openSelectPaymentModal } = useSelectPaymentModal()
+  
+  const handleCheckout = () => {
+    if (!address) return
+    
+    // ERC-20 payment settings
+    const currencyAddress = '0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359' // USDC on Polygon
+    const salesContractAddress = '0xe65b75eb7c58ffc0bf0e671d64d0e1c6cd0d3e5b'
+    const collectionAddress = '0xdeb398f41ccd290ee5114df7e498cf04fac916cb'
+    const price = '20000' // Price in smallest unit (0.02 USDC)
+    const chainId = 137 // Polygon
+    
+    // NFT details
+    const collectibles = [
+      {
+        tokenId: '1',
+        quantity: '1'
+      }
+    ]
+    
+    // Transaction data for the ERC-1155 mint function
+    const purchaseTransactionData = encodeFunctionData({
+      abi: ERC_1155_SALE_CONTRACT, // Your contract ABI
+      functionName: 'mint',
+      args: [
+        address,
+        collectibles.map(c => BigInt(c.tokenId)),
+        collectibles.map(c => BigInt(c.quantity)),
+        toHex(0),
+        currencyAddress,
+        price,
+        [toHex(0, { size: 32 })]
+      ]
+    })
+    
+    // Open the payment selection modal
+    openSelectPaymentModal({
+      collectibles,
+      chain: chainId,
+      price,
+      targetContractAddress: salesContractAddress,
+      recipientAddress: address,
+      currencyAddress,
+      collectionAddress,
+      creditCardProviders: ['sardine', 'transak'],
+      transakConfig: {
+        contractId: 'your-contract-id',
+        apiKey: 'your-api-key'
+      },
+      copyrightText: 'ⓒ2024 Your Company',
+      onSuccess: (txnHash: string) => {
+        console.log('success!', txnHash)
+      },
+      onError: (error: Error) => {
+        console.error(error)
+      },
+      onClose: () => {
+        console.log('modal closed!')
+      },
+      txData: purchaseTransactionData
+    })
+  }
+  
+  return (
+    <button onClick={handleCheckout}>
+      Buy NFT with multiple payment options
+    </button>
+  )
+}
+```
+
+## 返却型：`UseSelectPaymentModalReturnType`
+このフックは以下のプロパティを持つオブジェクトを返します。
+
+```tsx
+type UseSelectPaymentModalReturnType = {
+  openSelectPaymentModal: (settings: SelectPaymentSettings) => void
+  closeSelectPaymentModal: () => void
+  selectPaymentSettings: SelectPaymentSettings | undefined
+}
+```
+
+### プロパティ
+
+#### openSelectPaymentModal
+`(settings: SelectPaymentSettings) => void`
+
+指定した設定で支払い選択モーダルを開く関数です。
+
+**パラメータ：**
+
+`settings`オブジェクトには以下のプロパティを含めることができます:
+
+| パラメータ                   | 型                                            | 説明                                             |
+| ----------------------- | -------------------------------------------- | ---------------------------------------------- |
+| `collectibles`          | `Array<{tokenId: string, quantity: string}>` | 購入対象のコレクティブルの配列                                |
+| `chain`                 | `number`                                     | ブロックチェーンネットワークID                               |
+| `price`                 | `string`                                     | 通貨の最小単位での価格                                    |
+| `targetContractAddress` | `string`                                     | 操作対象となるコントラクトのアドレス                             |
+| `recipientAddress`      | `string`                                     | 購入したアイテムの受取先アドレス                               |
+| `currencyAddress`       | `string`                                     | 通貨トークンコントラクトのアドレス                              |
+| `collectionAddress`     | `string`                                     | NFTコレクションコントラクトのアドレス                           |
+| `creditCardProviders`   | `string[]`                                   | 対応するクレジットカードプロバイダーのリスト（例：'sardine', 'transak'） |
+| `transakConfig`         | `object`                                     | Transak連携用の設定                                  |
+| `copyrightText`         | `string`                                     | モーダル内に表示する著作権テキスト                              |
+| `onSuccess`             | `(txnHash: string) => void`                  | トランザクションが成功した際のコールバック                          |
+| `onError`               | `(error: Error) => void`                     | エラー発生時のコールバック                                  |
+| `onClose`               | `() => void`                                 | モーダルが閉じられたときのコールバック                            |
+| `txData`                | `string`                                     | 購入用のエンコード済みトランザクションデータ                         |
+
+#### closeSelectPaymentModal
+`() => void`
+
+支払い選択モーダルを閉じる関数です。
+
+#### selectPaymentSettings
+`SelectPaymentSettings | undefined`
+
+支払い選択モーダルの現在の設定内容
+
+## 補足
+このフックは、ユーザーが複数の支払い方法でデジタル資産を購入できる支払い選択モーダルの制御メソッドを提供します。モーダルでは以下の支払い方法が利用可能です：
+- ユーザーのウォレットから暗号資産で支払う
+- 異なる暗号資産にスワップして支払う
+- クレジット／デビットカードで支払う
+- 他のウォレットから資金を受け取る

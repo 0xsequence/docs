@@ -1,0 +1,38 @@
+---
+title: ノードゲートウェイ
+sidebarTitle: 概要
+---
+
+Sequence Node gateway infrastructure enables you to have fail-over resilient RPC endpoints that can scale with your application.
+
+By using our infrastructure, you save money for not having to deploy your own stack, and benefits from the feature of aggregating multiple public RPC providers into a single endpoint for use.
+
+## お試しください。
+Install `ethers` with `pnpm install ethers` or `yarn add ethers`
+
+Ensure to choose a network handle from our [network options](https://status.sequence.info)
+
+And acquire a [Sequence Builder access key](https://sequence.build) to authenticate your connection and append to the endpoint
+
+```js
+// Import the ethers library
+import { ethers } from "ethers";
+
+// Function to create a provider and fetch the latest block
+async function getLatestBlock() {
+  // Replace the following URL with your actual RPC endpoint
+  const rpcUrl =
+    "https://nodes.sequence.app/<chain_handle>/<project_access_key>";
+
+  // Create a provider using the RPC URL
+  const provider = new ethers.providers.JsonRpcProvider(rpcUrl);
+
+  // Fetch the latest block
+  const latestBlock = await provider.getBlock("latest");
+
+  console.log("Latest Block:", latestBlock);
+}
+
+// Call the function to get the latest block
+getLatestBlock().catch(console.error);
+```

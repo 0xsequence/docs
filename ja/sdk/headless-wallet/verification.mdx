@@ -1,0 +1,99 @@
+---
+title: 検証
+description: Embedded Wallet アドレスの所有権を、ノンスと任意の有効期限を使って検証する手順を詳しく解説します。
+sidebarTitle: バックエンドでの検証
+---
+
+よくあるケースとして、クライアント側でユーザーを認証した後、そのトークンやユーザー情報をバックエンドでも検証したい場合があります。この場合、Sequence では JWT を取得する関数を提供しており、お使いのフレームワークに合った JWT ライブラリで検証できます。以下は Typescript と express サーバーを使った例です。
+
+<Note>
+  下記のクライアント＆サーバーのサンプルは[こちら](https://github.com/0xsequence-demos/embedded-wallet-verify-session)でご覧いただけます。
+</Note>
+
+### 実装方法
+
+<Steps>
+  <Step title="クライアントで IdToken をリクエスト">
+    クライアントで Embedded Wallet で認証後、対応する関数を呼び出すだけで Sequence から JWT を取得できます。
+
+    ```typescript
+    // Using Sequence.js
+    const { idToken } = await sequence.getIdToken();
+    ```
+
+    ```typescript
+    // Using Web-SDK in React
+    const { connector } = useAccount()
+
+    const { idToken, expiry } = await connector.sequenceWaas.getIdToken()
+    ```
+  </Step>
+
+  <Step title="JWT をバックエンドに渡す">
+    取得した JWT をバックエンドに POST リクエストで送信します。
+
+    ```typescript
+    const response = await fetch(BACKEND_ENDPOINT, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ sequenceToken: idToken }),
+    });
+    ```
+  </Step>
+
+  <Step title="JWT ライブラリのインポートと JWKS の初期化">
+    バックエンドの express サーバーで、JWT を検証するためにお好みの JWT ライブラリをインポートし、JWKS を初期化します。また、想定する audience を正しく設定し、クレームが正しく検証されるようにしてください。
+
+    ```typescript
+    import * as jwt from "jsonwebtoken";
+    import * as jwksClient from "jwks-rsa";
+
+    ...serverConfig
+
+    // Initialize the JWKS client
+    const client = jwksClient({
+      jwksUri: "https://waas.sequence.app/.well-known/jwks.json",
+      cache: true,
+      cacheMaxAge: 86400000, // 1 day
+    });
+
+    // Should be equal to the audience claim in the JWT that you want to verify which will be of the form https://sequence.build/project/*projectID*
+    const EXPECTED_AUDIENCE = "https://sequence.build/project/*PROJECT_ID*"
+    ```
+  </Step>
+
+  <Step title="JWT のデコードとクレームの検証">
+    JWT をパースし、JWKS URI で検証した上で、必要なクレームを確認します。
+
+    ```typescript
+    const decodedToken = jwt.decode(token, { complete: true });
+    if (!decodedToken || typeof decodedToken === "string") {
+      throw new Error("Invalid token");
+    }
+
+    const kid = decodedToken.header.kid;
+    const signingKey = await getSigningKey(kid);
+    const publicKey = (
+      signingKey as jwksClient.CertSigningKey | jwksClient.RsaSigningKey
+    ).getPublicKey();
+
+    console.log(EXPECTED_AUDIENCE);
+
+    const verified = jwt.verify(token, publicKey, {
+      algorithms: ["RS256"], // Specify the expected algorithm
+      audience: EXPECTED_AUDIENCE, // Verify the audience claim
+    });
+
+      // Verifying Email claim
+    if (!verified.email || typeof verified.email !== "string") {
+      throw new Error("Invalid email claim");
+    }
+    ```
+  </Step>
+
+  <Step title="バックエンドの更新">
+    これで JWT に紐づく情報が検証できたので、必要に応じて安全にバックエンドを更新できます。
+  </Step>
+</Steps>

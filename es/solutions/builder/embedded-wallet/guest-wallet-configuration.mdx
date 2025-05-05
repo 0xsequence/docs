@@ -1,0 +1,43 @@
+---
+title: Configuración de Guest Wallet para Embedded Wallet
+description: Aprenda cómo configurar un Guest wallet para su instancia de Embedded Wallet.
+sidebarTitle: Configuración de Guest Wallet
+---
+
+Los Guest Wallets son una función en Sequence Stack que permiten la creación efímera de una identidad de autenticación que dura hasta que el usuario borra la caché de su navegador o inicia sesión nuevamente.
+
+Esta estrategia de onboarding puede ser útil para ofrecer acceso libre a su juego o experiencia, aumentando su tasa de conversión hasta que los jugadores deseen guardar su información de forma permanente.
+
+Es importante destacar que, si los usuarios borran su caché o pierden acceso al dispositivo, cualquier activo en el Guest Wallet no podrá recuperarse. Por lo tanto, los usuarios deben conectar un método de autenticación adicional si hay algún valor asociado al wallet.
+
+<Warning>
+  La función Guest Wallet actualmente está en acceso anticipado. Para habilitarla, visite [https://sequence.build/earlyaccess](https://sequence.build/earlyaccess) y active la funcionalidad.
+</Warning>
+
+Para configurar Embedded Wallet para Guest Wallet, siga estos pasos:
+
+<Steps>
+  <Step title="Configuración en el Builder">
+    Acceda a su proyecto en el Sequence builder, navegue a la sección de configuración de Embedded Wallet y luego agregue un proveedor de inicio de sesión:
+
+    <Frame>
+      ![agregar proveedor de inicio de sesión](/images/builder/builder_guest_wallet_add_provider.png)
+    </Frame>
+
+    Finalmente, seleccione `Guest Wallet` en el menú desplegable.
+
+    <Frame>
+      ![seleccionar guest wallet](/images/builder/builder_guess_wallet_select_provider.png)
+    </Frame>
+
+    Y seleccione el botón morado `Update configuration` para ingresar su contraseña y actualizar la configuración.
+  </Step>
+
+  <Step title="Implementación">
+    Una vez configurado, puede implementar un Guest Wallet con el siguiente código y usarlo como cualquier otro Embedded Wallet:
+
+    ```typescript App.tsx
+    await sequence.signIn({ guest: true }, "Session name");
+    ```
+  </Step>
+</Steps>

@@ -1,0 +1,68 @@
+---
+title: Empaquetado
+sidebarTitle: Requisitos de plataforma
+description: Documentación sobre empaquetado en Unreal para la infraestructura Sequence orientada a juegos web3.
+---
+
+Para configurar su sistema para el empaquetado, consulte los siguientes enlaces:
+- [Windows y MacOS](https://dev.epicgames.com/documentation/en-us/unreal-engine/packaging-unreal-engine-projects?application_version=5.3)
+- [Android](https://dev.epicgames.com/documentation/en-us/unreal-engine/packaging-android-projects-in-unreal-engine?application_version=5.3)
+- [iOS](https://dev.epicgames.com/documentation/en-us/unreal-engine/packaging-ios-projects-in-unreal-engine?application_version=5.3)
+- [Requisitos de software específicos para Mac](https://dev.epicgames.com/documentation/en-us/unreal-engine/hardware-and-software-specifications-for-unreal-engine)
+- [Configuración de Visual Studio para Unreal en Windows](https://dev.epicgames.com/documentation/en-us/unreal-engine/setting-up-visual-studio-development-environment-for-cplusplus-projects-in-unreal-engine)
+
+## Seguridad
+Para evitar la manipulación de datos, debe cifrar su proyecto empaquetado usando la configuración de empaquetado de Unreal. Puede consultar [esta documentación](https://dev.epicgames.com/documentation/en-us/unreal-engine/packaging-unreal-engine-projects?application_version=5.3) para más información.
+
+## Requisitos de hardware
+Para conocer los requisitos de hardware con Unreal, consulte [esta documentación](https://dev.epicgames.com/documentation/en-us/unreal-engine/hardware-and-software-specifications-for-unreal-engine?application_version=5.3)
+
+## Empaquetado para iOS
+
+### Provisioning
+Para aplicaciones iOS también debe configurar el provisioning, [siguiendo esta documentación](https://dev.epicgames.com/documentation/en-us/unreal-engine/setting-up-ios-tvos-and-ipados-provisioning-profiles-and-signing-certificates-for-unreal-engine-projects?application_version=5.3)
+
+### Inicio de sesión con redes sociales
+**Google**: Asegúrese de tener un \[GoogleClientID] correcto en `[YourProject/Config/SequenceConfig.ini]`
+
+**Apple**: Asegúrese de tener un \[AppleClientID] correcto en `[YourProject/Config/SequenceConfig.ini]` y de registrar y establecer correctamente el identificador de bundle de su app
+
+_Requisitos específicos de Apple_
+
+Para que el inicio de sesión con Apple funcione, asegúrese de registrar el \[RedirectUrl] en \[YourProject/Config/SequenceConfig.ini] de forma adecuada para su app.
+
+## Empaquetado para Android
+
+### Android SDK / NDK
+Al preparar su proyecto para compilar en Android, debe actualizar las siguientes configuraciones:
+En ProjectSettings/Android SDK
+Establezca el nivel de API del SDK en Android-34
+Establezca el nivel de API del NDK en cualquier valor entre \[26,33] (Recomendamos usar android-32)
+
+### Inicio de sesión con redes sociales
+**Google:** Para poder usar Google Auth correctamente, cree y coloque el archivo Keystore siguiendo [estas instrucciones](https://dev.epicgames.com/documentation/en-us/unreal-engine/signing-android-projects-for-release-on-the-google-play-store-with-unreal-engine?application_version=5.1).
+
+También deberá generar un \[Android client ID] y un \[Web Application client ID] para su aplicación. Coloque el \[Web Application client ID] en el campo \[GoogleClientID] de `[YourProject/Config/SequenceConfig.ini]`.
+
+Consulte [esta documentación](https://developers.google.com/identity/one-tap/android/get-started#api-console) para generar el \[Android client ID] y el \[Web Application client ID].
+
+[Esta guía](https://https://developers.google.com/android/guides/client-auth?hl=es-419) explica cómo obtener las huellas digitales SHA-1 para el \[Android client ID].
+
+**Apple:** Asegúrese de tener un \[AppleClientID] correcto en `[YourProject/Config/SequenceConfig.ini]`
+
+## Especificaciones de Unreal y Xcode
+Durante el proceso de empaquetado en Unreal, si ocurre un error de firma de código, puedes seguir estos pasos en XCode para obtener tu archivo .app empaquetado
+1. Después de empaquetar el proyecto en Unreal, abre el proyecto de Xcode (carpeta Sequence-unreal -> Intermediate -> ProjectFilesIOS -> SequenceUnreal.xcodeproj)
+2. Haz clic en el nombre del proyecto en el lado izquierdo para abrir la configuración del proyecto
+3. Haz clic en la pestaña Build Phase
+4. Haz clic en el ícono ‘+’ en la parte superior izquierda
+5. Selecciona Run Script
+6. Arrastra el nuevo run script para que quede debajo del último elemento en la lista de fases
+7. Expande el run script
+8. En el cuadro de script, agrega el siguiente comando: `xattr -cr /[path-to-your-project]/[your-project-name]/Binaries/IOS/Payload/[your-project-name.app]`
+9. Haz clic en la pestaña Build Settings
+10. Haz clic en cada elemento bajo el encabezado Architectures que contenga macOS y presiona la tecla eliminar
+11. Haz clic en la pestaña General
+12. Haz clic en Mac y Applevision Pro bajo destinos compatibles y presiona la tecla eliminar
+13. Ahora el proyecto se puede compilar (si la compilación falla al principio, espera unos momentos y vuelve a intentarlo. A veces tarda un poco en registrar el run script)
+14. Cuando termine de ejecutar el proyecto y desee hacer cambios en el código, RECUERDE eliminar este archivo xcodeproj en la carpeta sequence-unreal para asegurarse de que se cree uno nuevo al empaquetar el proyecto nuevamente.

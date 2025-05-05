@@ -1,0 +1,240 @@
+---
+title: useMetadataClient
+description: Hook para acceder al cliente Sequence Metadata para metadatos de tokens y contratos
+sidebarTitle: useMetadataClient
+---
+
+## Importar
+
+```tsx
+import { useMetadataClient } from '@0xsequence/hooks'
+```
+
+## Uso
+
+```tsx
+import { useMetadataClient } from '@0xsequence/hooks'
+
+function CustomMetadataFetcher() {
+  const metadataClient = useMetadataClient()
+  const [metadata, setMetadata] = useState(null)
+  const [isLoading, setIsLoading] = useState(false)
+  
+  const fetchContractMetadata = async () => {
+    setIsLoading(true)
+    try {
+      // Fetch metadata for a specific contract
+      const response = await metadataClient.getContractInfo({
+        chainID: "1",
+        contractAddress: "0x..." 
+      })
+      
+      setMetadata(response.contractInfo)
+    } catch (error) {
+      console.error('Failed to fetch metadata:', error)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  // Example of batch token metadata fetch
+  const fetchBatchTokenMetadata = async () => {
+    setIsLoading(true)
+    try {
+      const response = await metadataClient.getTokenMetadata({
+        chainID: "1",
+        contractAddress: "0x...",
+        tokenIDs: ["1", "2", "3"]
+      })
+      
+      setMetadata(response.tokenMetadata)
+    } catch (error) {
+      console.error('Failed to fetch token metadata:', error)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  return (
+    <div>
+      <button 
+        onClick={fetchContractMetadata}
+        disabled={isLoading}
+      >
+        Fetch Contract Info
+      </button>
+      
+      <button 
+        onClick={fetchBatchTokenMetadata}
+        disabled={isLoading}
+      >
+        Fetch Token Metadata
+      </button>
+
+      {isLoading && <div>Loading...</div>}
+      
+      {metadata && (
+        <pre>
+          {JSON.stringify(metadata, null, 2)}
+        </pre>
+      )}
+    </div>
+  )
+}
+```
+
+## Tipo de retorno: `SequenceMetadata`
+El hook retorna una instancia configurada del cliente `SequenceMetadata`. Esta es la estructura detallada:
+
+```tsx
+interface SequenceMetadata {
+  // Service Methods
+  ping(headers?: object, signal?: AbortSignal): Promise<PingResponse>
+  version(headers?: object, signal?: AbortSignal): Promise<VersionResponse>
+  runtimeStatus(headers?: object, signal?: AbortSignal): Promise<RuntimeStatusReturn>
+  
+  // Task Management Methods
+  getTask(args: GetTaskArgs, headers?: object, signal?: AbortSignal): Promise<GetTaskReturn>
+  getTaskStatus(args: GetTaskStatusArgs, headers?: object, signal?: AbortSignal): Promise<GetTaskStatusReturn>
+  
+  // Token Metadata Methods
+  getTokenMetadata(args: GetTokenMetadataArgs, headers?: object, signal?: AbortSignal): Promise<GetTokenMetadataReturn>
+  getTokenMetadataBatch(args: GetTokenMetadataBatchArgs, headers?: object, signal?: AbortSignal): Promise<GetTokenMetadataBatchReturn>
+  searchTokenMetadata(args: SearchTokenMetadataArgs, headers?: object, signal?: AbortSignal): Promise<SearchTokenMetadataReturn>
+  searchTokenIDs(args: SearchTokenIDsArgs, headers?: object, signal?: AbortSignal): Promise<SearchTokenIDsReturn>
+  tokenCollectionFilters(args: TokenCollectionFiltersArgs, headers?: object, signal?: AbortSignal): Promise<TokenCollectionFiltersReturn>
+  
+  // Token Refresh Methods
+  refreshTokenMetadata(args: RefreshTokenMetadataArgs, headers?: object, signal?: AbortSignal): Promise<RefreshTokenMetadataReturn>
+  enqueueTokensForRefresh(args: EnqueueTokensForRefreshArgs, headers?: object, signal?: AbortSignal): Promise<EnqueueTokensForRefreshReturn>
+  getTokenRefreshStatus(args: GetTokenRefreshStatusArgs, headers?: object, signal?: AbortSignal): Promise<GetTokenRefreshStatusReturn>
+  getTokenRefreshResult(args: GetTokenRefreshResultArgs, headers?: object, signal?: AbortSignal): Promise<GetTokenRefreshResultReturn>
+  cancelRefreshJob(args: CancelRefreshJobArgs, headers?: object, signal?: AbortSignal): Promise<CancelRefreshJobReturn>
+  
+  // Contract Methods
+  getContractInfo(args: GetContractInfoArgs, headers?: object, signal?: AbortSignal): Promise<GetContractInfoReturn>
+  getContractInfoBatch(args: GetContractInfoBatchArgs, headers?: object, signal?: AbortSignal): Promise<GetContractInfoBatchReturn>
+  searchContractInfo(args: SearchContractInfoArgs, headers?: object, signal?: AbortSignal): Promise<SearchContractInfoReturn>
+  searchContractInfoBatch(args: SearchContractInfoBatchArgs, headers?: object, signal?: AbortSignal): Promise<SearchContractInfoBatchReturn>
+  refreshContractInfo(args: RefreshContractInfoArgs, headers?: object, signal?: AbortSignal): Promise<RefreshContractInfoReturn>
+  refreshContractTokens(args: RefreshContractTokensArgs, headers?: object, signal?: AbortSignal): Promise<RefreshContractTokensReturn>
+  refreshAllContractTokens(args: RefreshAllContractTokensArgs, headers?: object, signal?: AbortSignal): Promise<RefreshAllContractTokensReturn>
+  
+  // Search Methods
+  searchMetadata(args: SearchMetadataArgs, headers?: object, signal?: AbortSignal): Promise<SearchMetadataReturn>
+  searchTokens(args: SearchTokensArgs, headers?: object, signal?: AbortSignal): Promise<SearchTokensReturn>
+  searchContracts(args: SearchContractsArgs, headers?: object, signal?: AbortSignal): Promise<SearchContractsReturn>
+  
+  // Niftyswap Methods
+  getNiftyswapTokenQuantity(args: GetNiftyswapTokenQuantityArgs, headers?: object, signal?: AbortSignal): Promise<GetNiftyswapTokenQuantityReturn>
+  getNiftyswapUnitPrices(args: GetNiftyswapUnitPricesArgs, headers?: object, signal?: AbortSignal): Promise<GetNiftyswapUnitPricesReturn>
+  getNiftyswapUnitPricesWithQuantities(args: GetNiftyswapUnitPricesWithQuantitiesArgs, headers?: object, signal?: AbortSignal): Promise<GetNiftyswapUnitPricesWithQuantitiesReturn>
+  
+  // Mint Monitor Methods
+  addContractToMintMonitor(args: AddContractToMintMonitorArgs, headers?: object, signal?: AbortSignal): Promise<AddContractToMintMonitorReturn>
+  removeContractFromMintMonitor(args: RemoveContractFromMintMonitorArgs, headers?: object, signal?: AbortSignal): Promise<RemoveContractFromMintMonitorReturn>
+  mintMonitorJobStatus(args: MintMonitorJobStatusArgs, headers?: object, signal?: AbortSignal): Promise<MintMonitorJobStatusReturn>
+  mintMonitorTriggerJob(args: MintMonitorTriggerJobArgs, headers?: object, signal?: AbortSignal): Promise<MintMonitorTriggerJobReturn>
+  
+  // Contract Sync Methods
+  syncContractTokens(args: SyncContractTokensArgs, headers?: object, signal?: AbortSignal): Promise<SyncContractTokensReturn>
+  abortContractSync(args: AbortContractSyncArgs, headers?: object, signal?: AbortSignal): Promise<AbortContractSyncReturn>
+  contractSyncJobStatus(args: ContractSyncJobStatusArgs, headers?: object, signal?: AbortSignal): Promise<ContractSyncJobStatusReturn>
+  
+  // Directory Methods
+  directoryGetNetworks(args: DirectoryGetNetworksArgs, headers?: object, signal?: AbortSignal): Promise<DirectoryGetNetworksReturn>
+  directoryGetCollections(args: DirectoryGetCollectionsArgs, headers?: object, signal?: AbortSignal): Promise<DirectoryGetCollectionsReturn>
+  directorySearchCollections(args: DirectorySearchCollectionsArgs, headers?: object, signal?: AbortSignal): Promise<DirectorySearchCollectionsReturn>
+}
+```
+
+### Métodos disponibles
+
+#### Métodos de servicio
+
+- `ping`: Verificar disponibilidad del servicio
+- `version`: Obtener información de la versión del servicio de metadatos
+- `runtimeStatus`: Obtener el estado actual de ejecución del servicio
+
+#### Métodos de gestión de tareas
+
+- `getTask`: Obtener detalles de una tarea específica
+- `getTaskStatus`: Obtener el estado de una tarea
+
+#### Métodos de metadatos de tokens
+
+- `getTokenMetadata`: Obtener metadatos de tokens específicos
+- `getTokenMetadataBatch`: Obtener metadatos de tokens en lote
+- `searchTokenMetadata`: Buscar entre metadatos de tokens
+- `searchTokenIDs`: Buscar IDs de tokens específicos
+- `tokenCollectionFilters`: Obtener filtros disponibles para colecciones de tokens
+
+#### Métodos de actualización de tokens
+
+- `refreshTokenMetadata`: Actualizar metadatos de tokens específicos
+- `enqueueTokensForRefresh`: Agendar tokens para actualización de metadatos
+- `getTokenRefreshStatus`: Verificar el estado de la actualización de tokens
+- `getTokenRefreshResult`: Obtener resultados de la actualización de tokens
+- `cancelRefreshJob`: Cancelar un trabajo de actualización en curso
+
+#### Métodos de contratos
+
+- `getContractInfo`: Obtener metadatos de un contrato
+- `getContractInfoBatch`: Obtener metadatos de contratos en lote
+- `searchContractInfo`: Buscar entre metadatos de contratos
+- `searchContractInfoBatch`: Buscar en lote entre metadatos de contratos
+- `refreshContractInfo`: Actualizar metadatos de un contrato
+- `refreshContractTokens`: Actualizar tokens de un contrato
+- `refreshAllContractTokens`: Actualizar todos los tokens de un contrato
+
+#### Métodos de búsqueda
+
+- `searchMetadata`: Buscar entre todos los metadatos
+- `searchTokens`: Buscar tokens específicos
+- `searchContracts`: Buscar contratos específicos
+
+#### Métodos de Niftyswap
+
+- `getNiftyswapTokenQuantity`: Obtener información de cantidad de tokens desde Niftyswap
+- `getNiftyswapUnitPrices`: Obtener precios unitarios desde Niftyswap
+- `getNiftyswapUnitPricesWithQuantities`: Obtener precios unitarios con cantidades desde Niftyswap
+
+#### Métodos de monitoreo de minteo
+
+- `addContractToMintMonitor`: Agregar contrato al monitoreo de minteo
+- `removeContractFromMintMonitor`: Quitar contrato del monitoreo de minteo
+- `mintMonitorJobStatus`: Verificar el estado del trabajo de monitoreo de minteo
+- `mintMonitorTriggerJob`: Iniciar un trabajo de monitoreo de minteo
+
+#### Métodos de sincronización de contratos
+
+- `syncContractTokens`: Sincronizar tokens de un contrato
+- `abortContractSync`: Abortar una sincronización de contrato en curso
+- `contractSyncJobStatus`: Verificar el estado de la sincronización del contrato
+
+#### Métodos de Directorio
+
+- `directoryGetNetworks`: Obtener redes disponibles
+- `directoryGetCollections`: Obtener el directorio de colecciones
+- `directorySearchCollections`: Buscar en el directorio de colecciones
+
+## Parámetros
+El hook no acepta parámetros, pero utiliza la configuración del hook `useConfig`:
+
+```tsx
+interface Config {
+  env: {
+    metadataUrl: string
+    // ... other environment settings
+  }
+  projectAccessKey: string
+  jwt?: string
+}
+```
+
+La configuración determina:
+- La URL del servicio de metadatos
+- La clave de acceso del proyecto para autenticación
+- JWT opcional para solicitudes autenticadas
+
+El cliente se memoriza en función de `projectAccessKey` y `jwt` para evitar reinstanciaciones innecesarias.

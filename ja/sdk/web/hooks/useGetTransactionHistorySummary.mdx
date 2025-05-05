@@ -1,0 +1,144 @@
+---
+title: useGetTransactionHistorySummary
+description: 複数チェーンにまたがるトランザクション履歴を取得・統合するためのフック
+sidebarTitle: useGetTransactionHistorySummary
+---
+
+## インポート
+
+```tsx
+import { useGetTransactionHistorySummary } from '@0xsequence/hooks'
+```
+
+## 使い方
+
+```tsx
+import { useGetTransactionHistorySummary } from '@0xsequence/hooks'
+import { useAccount } from 'wagmi'
+
+function TransactionHistory() {
+  const { address } = useAccount()
+  
+  const {
+    data: transactions,
+    isLoading,
+    isError,
+    error
+  } = useGetTransactionHistorySummary({
+    accountAddress: address || '',
+    chainIds: [1, 137] // Fetch from Ethereum and Polygon
+  })
+
+  if (isLoading) return <div>Loading...</div>
+  if (isError) return <div>Error: {error.message}</div>
+
+  return (
+    <div>
+      {transactions?.map(tx => (
+        <div key={tx.txnHash}>
+          <h3>Transaction: {tx.txnHash}</h3>
+          <p>Chain: {tx.chainId}</p>
+          <p>Time: {new Date(tx.timestamp).toLocaleString()}</p>
+          {tx.transfers?.map((transfer, index) => (
+            <div key={index}>
+              <p>From: {transfer.from}</p>
+              <p>To: {transfer.to}</p>
+              <p>Value: {transfer.value}</p>
+            </div>
+          ))}
+        </div>
+      ))}
+    </div>
+  )
+}
+```
+
+## 返却型: `UseQueryResult<Transaction[]>`
+このフックはReact Queryの`UseQueryResult`の全プロパティと、トランザクションデータを返します。詳細な構造は以下の通りです:
+
+```tsx
+interface TxnTransfer {
+    transferType: TxnTransferType;
+    contractAddress: string;
+    contractType: ContractType;
+    from: string;
+    to: string;
+    tokenIds?: Array<string>;
+    amounts: Array<string>;
+    logIndex: number;
+    contractInfo?: ContractInfo;
+    tokenMetadata?: {
+        [key: string]: TokenMetadata;
+    };
+}
+
+interface Transaction {
+  txnHash: string
+  chainId: number
+  timestamp: string
+  blockNumber: number
+  blockHash: string
+  metaTxnID?: string
+  transfers?: Array<TxnTransfer>
+}
+```
+
+### プロパティ
+
+#### data
+`Transaction[] | undefined`
+
+指定したすべてのチェーンからのトランザクション配列（タイムスタンプ順・新しい順）。各トランザクションには以下が含まれます:
+- `txnHash`: トランザクションハッシュ
+- `chainId`: トランザクションが発生したチェーンID
+- `timestamp`: トランザクションのタイムスタンプ
+- `blockNumber`: トランザクションがマイニングされたブロック番号
+- `blockHash`: ブロックのハッシュ
+- `metaTxnID`: メタトランザクションID（オプション）
+- `transfers`: 正規化されたアドレスを持つ転送オブジェクトの配列
+
+#### isLoading
+`boolean`
+
+初回データ取得時のローディング状態。
+
+#### isError
+`boolean`
+
+クエリが失敗した場合のエラー状態。
+
+#### エラー
+`Error | null`
+
+データ取得中に発生したエラー内容。
+
+## パラメータ
+このフックは2つのパラメータを受け取ります：
+
+### 引数: `GetTransactionHistorySummaryArgs`
+
+```tsx
+interface GetTransactionHistorySummaryArgs {
+  accountAddress: string
+  chainIds: number[]
+}
+```
+
+| パラメータ            | 型          | 説明                     |
+| ---------------- | ---------- | ---------------------- |
+| `accountAddress` | `string`   | トランザクションを取得するアカウントアドレス |
+| `chainIds`       | `number[]` | トランザクションを取得するチェーンIDの配列 |
+
+### options: `HooksOptions`
+
+```tsx
+interface HooksOptions {
+  disabled?: boolean
+  retry?: boolean
+}
+```
+
+| パラメータ      | 型         | 説明                       |
+| ---------- | --------- | ------------------------ |
+| `disabled` | `boolean` | （オプション）クエリの自動実行を無効にします   |
+| `retry`    | `boolean` | （オプション）失敗したクエリを再試行するかどうか |

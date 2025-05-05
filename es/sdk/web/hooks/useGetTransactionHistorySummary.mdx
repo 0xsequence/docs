@@ -1,0 +1,144 @@
+---
+title: useGetTransactionHistorySummary
+description: Hook para obtener y combinar el historial de transacciones a través de múltiples redes
+sidebarTitle: useGetTransactionHistorySummary
+---
+
+## Importar
+
+```tsx
+import { useGetTransactionHistorySummary } from '@0xsequence/hooks'
+```
+
+## Uso
+
+```tsx
+import { useGetTransactionHistorySummary } from '@0xsequence/hooks'
+import { useAccount } from 'wagmi'
+
+function TransactionHistory() {
+  const { address } = useAccount()
+  
+  const {
+    data: transactions,
+    isLoading,
+    isError,
+    error
+  } = useGetTransactionHistorySummary({
+    accountAddress: address || '',
+    chainIds: [1, 137] // Fetch from Ethereum and Polygon
+  })
+
+  if (isLoading) return <div>Loading...</div>
+  if (isError) return <div>Error: {error.message}</div>
+
+  return (
+    <div>
+      {transactions?.map(tx => (
+        <div key={tx.txnHash}>
+          <h3>Transaction: {tx.txnHash}</h3>
+          <p>Chain: {tx.chainId}</p>
+          <p>Time: {new Date(tx.timestamp).toLocaleString()}</p>
+          {tx.transfers?.map((transfer, index) => (
+            <div key={index}>
+              <p>From: {transfer.from}</p>
+              <p>To: {transfer.to}</p>
+              <p>Value: {transfer.value}</p>
+            </div>
+          ))}
+        </div>
+      ))}
+    </div>
+  )
+}
+```
+
+## Tipo de retorno: `UseQueryResult<Transaction[]>`
+El hook retorna todas las propiedades de `UseQueryResult` de React Query con los datos de transacciones. Esta es la estructura detallada:
+
+```tsx
+interface TxnTransfer {
+    transferType: TxnTransferType;
+    contractAddress: string;
+    contractType: ContractType;
+    from: string;
+    to: string;
+    tokenIds?: Array<string>;
+    amounts: Array<string>;
+    logIndex: number;
+    contractInfo?: ContractInfo;
+    tokenMetadata?: {
+        [key: string]: TokenMetadata;
+    };
+}
+
+interface Transaction {
+  txnHash: string
+  chainId: number
+  timestamp: string
+  blockNumber: number
+  blockHash: string
+  metaTxnID?: string
+  transfers?: Array<TxnTransfer>
+}
+```
+
+### Propiedades
+
+#### data
+`Transaction[] | undefined`
+
+Arreglo de transacciones de todas las redes especificadas, ordenadas por fecha (más recientes primero). Cada transacción incluye:
+- `txnHash`: Hash de la transacción
+- `chainId`: ID de la red donde ocurrió la transacción
+- `timestamp`: Marca de tiempo de la transacción
+- `blockNumber`: Número de bloque donde se minó la transacción
+- `blockHash`: Hash del bloque
+- `metaTxnID`: ID opcional de la meta transacción
+- `transfers`: Arreglo de objetos de transferencia con direcciones normalizadas
+
+#### isLoading
+`boolean`
+
+Estado de carga para la obtención inicial de datos.
+
+#### isError
+`boolean`
+
+Estado de error que indica si la consulta falló.
+
+#### error
+`Error | null`
+
+Cualquier error que ocurrió durante la obtención de datos.
+
+## Parámetros
+El hook acepta dos parámetros:
+
+### args: `GetTransactionHistorySummaryArgs`
+
+```tsx
+interface GetTransactionHistorySummaryArgs {
+  accountAddress: string
+  chainIds: number[]
+}
+```
+
+| Parámetro        | Type       | Description                                                      |
+| ---------------- | ---------- | ---------------------------------------------------------------- |
+| `accountAddress` | `string`   | La dirección de cuenta para la cual obtener las transacciones    |
+| `chainIds`       | `number[]` | Arreglo de IDs de red desde las cuales obtener las transacciones |
+
+### options: `HooksOptions`
+
+```tsx
+interface HooksOptions {
+  disabled?: boolean
+  retry?: boolean
+}
+```
+
+| Parámetro  | Type      | Description                                                                |
+| ---------- | --------- | -------------------------------------------------------------------------- |
+| `disabled` | `boolean` | (Opcional) Deshabilitar la consulta para que no se ejecute automáticamente |
+| `retry`    | `boolean` | (Opcional) Indica si se deben reintentar las consultas fallidas            |

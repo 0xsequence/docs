@@ -1,0 +1,191 @@
+---
+title: useGetSwapPrices
+description: 利用可能なスワップ価格と通貨情報を取得するためのフック
+sidebarTitle: useGetSwapPrices
+---
+
+## インポート
+
+```tsx
+import { useGetSwapPrices } from '@0xsequence/hooks'
+```
+
+## 使い方
+
+```tsx
+import { useGetSwapPrices } from '@0xsequence/hooks'
+
+function SwapComponent() {
+  const { data: swapPrices, isLoading } = useGetSwapPrices({
+    userAddress: '0x123...',
+    buyCurrencyAddress: '0x456...',
+    buyAmount: '1000000000000000000', 
+    chainId: 1,
+    withContractInfo: true
+  })
+
+  if (isLoading) return <div>Loading...</div>
+
+  return (
+    <div>
+      {swapPrices?.map(swap => (
+        <div key={swap.info?.address}>
+          Token: {swap.info?.symbol}
+          Price: {swap.price.price}
+          Balance: {swap.balance.balance}
+        </div>
+      ))}
+    </div>
+  )
+}
+```
+
+## 返却型：`UseQueryResult<SwapPricesWithCurrencyInfo[]>`
+このフックはReact Queryの`UseQueryResult`の全プロパティと、スワップ価格データを返します。詳細な構造は以下の通りです：
+
+```tsx
+interface SwapPrice {
+    currencyAddress: string;
+    currencyBalance: string;
+    price: string;
+    maxPrice: string;
+    transactionValue: string;
+}
+
+interface Balance {
+  balance: string
+}
+
+interface ContractInfo {
+    chainId: number;
+    address: string;
+    source: string;
+    name: string;
+    type: string;
+    symbol: string;
+    decimals?: number;
+    logoURI: string;
+    deployed: boolean;
+    bytecodeHash: string;
+    extensions: ContractInfoExtensions;
+    updatedAt: string;
+    notFound: boolean;
+    queuedAt?: string;
+    status: ResourceStatus;
+}
+
+enum ResourceStatus {
+    NOT_AVAILABLE = "NOT_AVAILABLE",
+    STALE = "STALE",
+    AVAILABLE = "AVAILABLE"
+}
+
+interface ContractInfoExtensions {
+    link: string;
+    description: string;
+    categories: Array<string>;
+    ogImage: string;
+    ogName: string;
+    originChainId: number;
+    originAddress: string;
+    blacklist: boolean;
+    verified: boolean;
+    verifiedBy: string;
+    featured: boolean;
+}
+
+type SwapPricesWithCurrencyInfo = {
+  price: SwapPrice
+  info: ContractInfo | undefined
+  balance: Balance
+}
+```
+
+### プロパティ
+
+#### data
+`SwapPricesWithCurrencyInfo[] | undefined`
+
+以下を含むスワップ価格オブジェクトの配列：
+
+##### price（SwapPrice）
+
+- `currencyAddress`: 通貨のアドレス
+- `currencyBalance`: 通貨の残高
+- `price`: スワップ価格
+- `maxPrice`: スワップの最大価格
+- `transactionValue`: トランザクションの金額
+
+##### info（ContractInfo）
+
+- `chainId`: トークンが存在するチェーンID
+- `address`: トークンコントラクトのアドレス
+- `source`: トークン情報のソース
+- `name`: トークン名
+- `type`: トークンタイプ
+- `symbol`: トークンシンボル
+- `decimals`: トークンの小数点以下の桁数
+- `logoURI`: トークンのロゴURL
+- `deployed`: トークンがデプロイされているかどうか
+- `bytecodeHash`: トークンのバイトコードハッシュ
+- `extensions`: 追加のトークンメタデータ
+- `updatedAt`: 最終更新日時
+- `notFound`: トークンが見つからなかったかどうか
+- `queuedAt`: トークンが更新キューに入った日時
+- `status`: トークンリソースの状態
+
+##### balance（Balance）
+
+- `balance`: ユーザーの通貨残高（基準単位）
+
+#### isLoading
+`boolean`
+
+データ取得時のローディング状態。
+
+#### isError
+`boolean`
+
+クエリが失敗した場合のエラー状態。
+
+#### エラー
+`Error | null`
+
+データ取得中に発生したエラー内容。
+
+## パラメータ
+このフックは2つのパラメータを受け取ります：
+
+### args: `UseGetSwapPricesArgs`
+
+```tsx
+interface UseGetSwapPricesArgs {
+  userAddress: string
+  buyCurrencyAddress: string
+  buyAmount: string
+  chainId: number
+  withContractInfo?: boolean
+}
+```
+
+| パラメータ                | 型         | 説明                             |
+| -------------------- | --------- | ------------------------------ |
+| `userAddress`        | `string`  | ユーザーのウォレットアドレス                 |
+| `buyCurrencyAddress` | `string`  | 購入する通貨のアドレス                    |
+| `buyAmount`          | `string`  | 購入する通貨の金額（基準単位）                |
+| `chainId`            | `number`  | スワップが行われるチェーンID                |
+| `withContractInfo`   | `boolean` | （オプション）各通貨の追加コントラクト情報を取得するかどうか |
+
+### options: `HooksOptions`
+
+```tsx
+interface HooksOptions {
+  disabled?: boolean
+  retry?: boolean
+}
+```
+
+| パラメータ      | 型         | 説明                       |
+| ---------- | --------- | ------------------------ |
+| `disabled` | `boolean` | （オプション）クエリの自動実行を無効にします   |
+| `retry`    | `boolean` | （オプション）失敗したクエリを再試行するかどうか |

@@ -1,0 +1,38 @@
+---
+title: Codificación de transacciones
+description: Este contenido explica el formato personalizado de codificación de transacciones usado por las Sequence Wallets para agrupar múltiples transacciones en una sola.
+---
+
+Las Sequence Wallets utilizan un formato personalizado de codificación de transacciones para agrupar varias transacciones en una sola. Esto se hace para reducir la cantidad de transacciones necesarias para interactuar con la wallet.
+Este formato también permite funciones adicionales, como revertir todo el paquete de transacciones si alguna de ellas falla.
+
+```solidity
+  struct Transaction {
+    bool delegateCall;   // Performs delegatecall
+    bool revertOnError;  // Reverts transaction bundle if tx fails
+    uint256 gasLimit;    // Maximum gas to be forwarded
+    address target;      // Address of the contract to call
+    uint256 value;       // Amount of ETH to pass with the call
+    bytes data;          // calldata to pass
+  }
+```
+
+La estructura `Transaction` se utiliza para codificar los datos de la transacción para la wallet. Se usa en la función `execute` del contrato de la wallet.
+
+El campo `delegateCall` se utiliza para determinar si la transacción debe ejecutarse usando `delegatecall` en lugar de un `call` regular.
+Esto es útil cuando el contrato de destino ofrece funcionalidades que deben ejecutarse en el contexto de la wallet.
+
+<Warning>
+  Como `delegatecall` ejecuta el contrato de destino en el contexto de la wallet, es importante asegurarse de que el contrato de destino sea confiable y no contenga código malicioso.
+</Warning>
+
+El campo `revertOnError` se utiliza para determinar si todo el paquete de transacciones debe revertirse si alguna de las transacciones falla.
+Al agrupar varias transacciones independientes, puede ser ventajoso revertir todo el paquete si alguna falla.
+
+El campo `gasLimit` se utiliza para especificar la cantidad máxima de gas que se debe enviar al contrato de destino.
+
+El campo `target` es la dirección del contrato al que se llama.
+
+El campo `value` es la cantidad de ETH que se envía con la llamada. Este ETH se transfiere desde el contrato de la wallet al contrato de destino.
+
+El campo `data` es el calldata que se pasa al contrato de destino.

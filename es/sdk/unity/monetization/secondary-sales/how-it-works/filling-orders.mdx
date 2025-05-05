@@ -1,0 +1,55 @@
+---
+title: Completando Órdenes
+---
+
+Para completar una orden (parcial o totalmente) o cancelar una orden, deberá generar y enviar transacciones.
+
+La interfaz `ICheckout`, implementada por `Checkout`, ofrece algunos métodos y eventos útiles.
+
+## Construcción de transacciones para interactuar con órdenes
+Las siguientes solicitudes asíncronas devolverán un `Step[]`; estos se utilizan para generar transacciones que, al enviarse, realizan la acción deseada.
+
+```
+Step[] steps = await <insert here your desired method>;
+TransactionReturn result = await steps.SubmitAsTransactions(_wallet, _chain);
+// or 
+Transaction[] stepTransactions = steps.AsTransactionArray();
+```
+
+Todos estos métodos pueden ser esperados directamente. También puede suscribirse a los eventos `OnTransactionStepsReturn` y `OnTransactionStepsError` para manejar las respuestas en otro lugar.
+1. `GenerateBuyTransaction` se utiliza para comprar una cantidad específica de un coleccionable determinado en las `Order[]`/listados proporcionados.
+
+```
+ICheckout checkout = new Checkout(_wallet, _chain);
+Step[] steps = await checkout.GenerateBuyTransaction(listings, 5);
+```
+
+2. `GenerateSellTransaction` se utiliza para vender una cantidad específica de un coleccionable determinado en las `Order[]`/ofertas proporcionadas.
+
+```
+ICheckout checkout = new Checkout(_wallet, _chain);
+Step[] steps = await checkout.GenerateSellTransaction(offers, 3);
+```
+
+3. `GenerateListingTransaction` se utiliza para crear un nuevo listado para un coleccionable, cantidad y precio determinados.
+
+```
+ICheckout checkout = new Checkout(_wallet, _chain);
+Step[] steps = await checkout.GenerateListingTransaction(collectionContractAddress, tokenId, 17, ContractType.ERC1155, currencyTokenAddress, 1000, expiryDateTime);
+```
+
+4. `GenerateOfferTransaction` se utiliza para crear una nueva oferta para un coleccionable, cantidad y precio determinados.
+
+```
+ICheckout checkout = new Checkout(_wallet, _chain);
+Step[] steps = await checkout.GenerateOfferTransaction(collectionContractAddress, tokenId, 46, ContractType.ERC1155, currencyTokenAddress, 850, expiryDateTime);
+```
+
+5. `GenerateCancelTransaction` se utiliza para cancelar una orden existente creada por el usuario.
+
+```
+ICheckout checkout = new Checkout(_wallet, _chain);
+Step[] steps = await checkout.GenerateCancelTransaction(collectionContractAddress, order);
+// Or alternatively provide the order id 
+Step[] steps = await checkout.GenerateCancelTransaction(collectionContractAddress, orderIdString);
+```

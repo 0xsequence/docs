@@ -1,0 +1,44 @@
+# Autenticación - Introducción
+Como SDK de Embedded Wallet, la autenticación es sumamente importante. La autenticación funciona estableciendo una sesión de firma de wallet mediante la asociación con las credenciales del usuario. Para más información sobre cómo funciona nuestro Embedded Wallet, por favor [consulte la documentación de Embedded Wallet](/solutions/wallets/embedded-wallet/overview).
+
+Para implementar la autenticación, recomendamos usar nuestro prefab `LoginPanel`. Ubique este prefab en `SequenceExamples > Prefabs` y arrástrelo bajo un [Canvas](https://docs.unity3d.com/2020.1/Documentation/Manual/UICanvas.html) en su escena.
+Recomendamos que el componente `Canvas Scaler` de su `Canvas` utilice el modo de escala de UI "Scale with Screen Size". Esto hará que el LoginPanel (y cualquier otro elemento de UI bajo este Canvas) se escale automáticamente al cambiar entre diferentes plataformas de compilación.
+
+Nota: el `LoginPanel` está oculto por defecto. Puede abrirlo con el método `Open` sin argumentos. Para ayudar con esto, el GameObject del `LoginPanel` no está deshabilitado, así que siéntase libre de usar [GetComponentInChildren](https://docs.unity3d.com/ScriptReference/Component.GetComponentInChildren.html), [FindObjectOfType](https://docs.unity3d.com/ScriptReference/Object.FindObjectOfType.html) u otro método similar para obtener una referencia al MonoBehaviour del `LoginPanel`.
+
+Esto le dará acceso fácil a dos métodos de autenticación:
+1.  [Inicio de sesión por correo electrónico + OTP](/sdk/unity/onboard/authentication/email)
+
+2.  [Inicio de sesión con redes sociales basado en OIDC](/sdk/unity/onboard/authentication/oidc)
+
+El SDK también ofrece soporte para:
+3\.  [Inicio de sesión con PlayFab](/sdk/unity/onboard/authentication/playfab)
+4. [Inicio de sesión como invitado](/sdk/unity/onboard/authentication/guest)
+
+## Obtener el `SequenceWallet`
+Una vez que haya obtenido credenciales de uno de los métodos de autenticación soportados (consulte su documentación respectiva), querrá obtener una referencia a su `SequenceWallet` recién creado.
+
+Por favor, suscríbase al evento `SequenceWallet.OnWalletCreated`. Puede hacerlo con el siguiente fragmento de código:
+
+```csharp
+SequenceWallet.OnWalletCreated += OnWalletCreatedHandler;
+
+public void OnWalletCreatedHandler(SequenceWallet wallet) {
+  // Do something
+}
+```
+
+donde `OnWalletCreatedHandler` es una función que acepta un `SequenceWallet` como único parámetro. Si no está familiarizado con el uso de eventos en Unity, ¡revise este excelente [post en Reddit](https://www.reddit.com/r/gamedev/comments/u3hz2v/how_to_use_events_a_supersimple_unity_example/)!
+
+## Manejo de errores
+Para capturar errores durante el proceso de inicio de sesión, asegúrese de suscribirse al evento `OnLoginFailed`.
+
+```csharp
+SequenceLogin login = SequenceLogin.GetInstance();
+login.OnLoginFailed += OnLoginFailedHandler;
+
+public void OnLoginFailedHandler(string message, LoginMethod method, string email, List<LoginMethod> loginMethods = default)
+{
+  Debug.LogError($"Error logging in: {message} with login method {method} and email {email}");
+}
+```

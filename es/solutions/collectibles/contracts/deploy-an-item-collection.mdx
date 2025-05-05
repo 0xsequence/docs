@@ -1,0 +1,127 @@
+---
+title: Cómo desplegar un contrato de colección de ítems en Sequence Builder
+description: Esta guía ofrece un recorrido detallado sobre cómo configurar y desplegar un contrato de Web3 Game Item en Builder. Explica las diferencias entre los contratos ERC721 y ERC1155 y describe los pasos para desplegar un contrato.
+sidebarTitle: Desplegar un contrato de colección
+---
+
+Esta guía explica cómo configurar y desplegar un contrato de Web3 Game Item en Builder.
+
+<Warning>
+  Requisito previo: Crear un Proyecto
+
+  Esta guía asume que usted ya [se registró en Builder y creó un Proyecto](/solutions/builder/getting-started).
+</Warning>
+
+#### ERC721 vs. ERC1155
+Ambos contratos mintean NFTs, pero ERC721, al ser el estándar más antiguo, ha logrado una amplia adopción, especialmente en coleccionables digitales. Conocido por su simplicidad y facilidad de auditoría en seguridad, los tokens ERC721 son únicos, lo que contribuye a su reconocimiento en varios marketplaces de NFT. Normalmente usaría un contrato ERC721 si: está gestionando un único activo repetido varias veces, o una colección compuesta por un solo tipo de ítem con múltiples ejemplares.
+
+Ejemplo de `ERC721`: [Azuki](https://etherscan.io/token/0xed5af388653567af2f388e6224dc7c4b3241c544)
+
+En cambio, ERC1155 ofrece versatilidad con operaciones por lotes eficientes tanto para tokens fungibles como no fungibles en un solo contrato, donde normalmente se maneja una multiplicidad de muchos ítems en muchas cantidades. Sin embargo, esta flexibilidad introduce complejidad, por lo que requiere atención cuidadosa en seguridad.
+
+Ejemplo de `ERC1155`: [Skyweaver](https://polygonscan.com/token/0x631998e91476da5b870d741192fc5cbc55f5a52e)
+
+## Paso 1: Navegue a contratos
+Comience seleccionando su `project` en la esquina superior izquierda para el cual desea crear el coleccionable, luego diríjase a la sección de `contracts` y seleccione `+ Deploy new contract`
+
+<Frame>
+  ![seleccionar proyecto y nuevo contrato](/images/collectibles/deploy_new_contract.png)
+</Frame>
+
+## Paso 2: Elija el tipo de coleccionable
+Luego, elija entre Web3 Game Item Collection (ERC1155) o NFT Collection (ERC721). En este ejemplo le mostraremos cómo crear una Web3 Game Item Collection (ERC1155)
+
+<Frame>
+  ![seleccionar game item](/images/collectibles/select_web3_game_item.png)
+</Frame>
+
+<Warning>
+  La única diferencia en el despliegue entre un `ERC1155` y un `ERC721` es que
+  se agrega un `symbol` a una NFT Collection ERC721
+</Warning>
+
+## Paso 3: Especifique los detalles del contrato
+Complete los detalles del contrato especificando un `Contract Name` y `Owner` para su contrato, con la opción de ingresar Royalties. Asegúrese de que la dirección Owner sea la Sequence Wallet en la esquina superior derecha y que tenga fondos en esa wallet en mainnet; de lo contrario, en testnet, nosotros patrocinamos estas transacciones por usted.
+
+<Frame>
+  ![desplegar game item](/images/collectibles/deploy_game_item.png)
+</Frame>
+
+<Note>
+  Nota:
+
+  Aunque puede cambiar el `name` más adelante en la interfaz de builder, donde se actualizará en todo el stack de Sequence, los exploradores populares no vuelven a indexar la información, así que lo que ponga primero permanecerá.
+</Note>
+
+## Paso 4: Despliegue su contrato
+Despliegue su contrato desde la ventana emergente en [http://sequence.app/sign-transaction](http://sequence.app/sign-transaction) y firme el mensaje seleccionando `confirm`
+
+<Frame>
+  <img src="/images/collectibles/sign_deploy_transaction.png" width="200" alt="Despliegue su contrato firmando el mensaje en la ventana emergente desde la Sequence Wallet" />
+</Frame>
+
+<Note>
+  Todas las testnets serán gratuitas para transaccionar.
+</Note>
+
+### Opcional: Agregue un rol de Minter al contrato
+Los contratos de Sequence tienen opciones de Access Control por defecto. En algunos casos, puede que desee otorgar permisos a una dirección específica para llamar a funciones como `mint()`.
+
+Primero seleccione el contrato que acaba de desplegar en la sección de `contracts`
+
+<Frame>
+  ![seleccionar contrato](/images/collectibles/select_deployed_contract.png)
+</Frame>
+
+Luego, diríjase a la sección `Write Contract`
+
+<Frame>
+  ![escribir contrato](/images/collectibles/select_item_write_contract.png)
+</Frame>
+
+En la sección `grantRole` de la navegación de la pestaña write contract
+
+<Frame>
+  ![otorgar rol](/images/collectibles/grant_role_game_item.png)
+</Frame>
+
+Complete con los siguientes datos:
+
+`bytes32 role`: `0x9f2df0fed2c77648de5860a4cc508cd0818c85b8b8a1ab4ceeef8d981c8956a6`
+`address account`: `<Wallet Address>`
+
+Donde la dirección de wallet es la dirección a la que desea dar permisos para mintear, específicamente cualquier Sequence wallet.
+
+<Frame>
+  ![copiar dirección](/images/collectibles/copy_address_game_item.png)
+</Frame>
+
+Finalice seleccionando `write` y firmando la transacción en la ventana emergente, como antes
+
+Con un mensaje de confirmación que muestra `Response Success`
+
+<Note>
+  La cadena de rol ingresada es el resultado de `solidityPackedKeccak256("MINTER_ROLE")` en
+  solidity o `ethers.solidityPackedKeccak256(ethers.toUtf8Bytes("MINTER_ROLE"))`
+  en javascript
+</Note>
+
+<Tip>
+  Es común utilizar cómputo offchain, como un worker de Cloudflare, junto con un wallet relayer que envía transacciones; este wallet se debe ingresar en el campo de cuenta. Puede encontrar más información sobre cómo lograr esto [aquí](/guides/mint-collectibles-serverless#mint-collectibles-using-a-gasless-serverless-transactions-api)
+</Tip>
+
+## Paso 6: Mintee tokens en la dirección de su wallet
+Vaya a la tarjeta `mint` en la sección `Write Contract` e ingrese el `to`, que es la dirección del wallet al que desea enviar el token, el `tokenId` (normalmente comenzando en 0), la `amount` de tokens, y finalmente en la sección `data` puede ingresar simplemente `0x00`, que usualmente representa datos adicionales sin formato específico.
+
+<Frame>
+  ![mintear tokens](/images/collectibles/mint_game_item.png)
+</Frame>
+
+## Paso 7: Confirme su coleccionable minteado
+¡Y listo!
+
+Puede ver las transacciones enviadas a la blockchain para la dirección de su wallet en la navegación de la pestaña `Transactions`
+
+<Frame>
+  ![ver transacciones de moneda](/images/collectibles/transactions_game_items.png)
+</Frame>

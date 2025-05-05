@@ -1,0 +1,294 @@
+---
+title: Webhooks
+sidebarTitle: Webhooks
+---
+
+Webhooks are a feature that allows systems to be called upon across the internet based on the emission of a blockchain event that meets some criteria.
+
+You can listen to transactions via webhooks using the Sequence Indexer by registering an endpoint or removing it after it's no longer required.
+
+<Warning>
+  If you prefer a no-code way to add webhooks that uses the Sequence Builder, check out [this walkthrough](/solutions/builder/webhooks).
+</Warning>
+
+To begin, direct yourself to the [Sequence Builder](https://sequence.build) and follow [this walkthrough for Public API Access Key](/solutions/builder/getting-started#claim-an-api-access-key) and [this walkthrough for a Secret API Access Key](/solutions/builder/getting-started#4-optional-for-development-create-a-service-account), both required for using the Sequence Indexer Webhooks.
+
+Function
+1. [Register a Webhook Listener](/api-references/indexer/examples/webhook-listener#1-register-a-webhook-listener)
+2. [Remove a Webhook Listener](/api-references/indexer/examples/webhook-listener#2-remove-a-webhook-listener)
+
+Webhook Response
+- [Webhook Listener Response](/api-references/indexer/examples/webhook-listener#webhook-listener-response)
+
+例
+- [Listen to All Mints & Transfers of a specific ERC1155 TokenID](/api-references/indexer/examples/webhook-listener#listen-to-a-specific-token-id-for-an-erc1155)
+
+<Note>
+  If you require a server for development, you can use the following:
+
+  [Template Nodejs Webhook Server](https://github.com/0xsequence-demos/template-nodejs-webhook-server/blob/master/README.md) combined with [ngrok](https://ngrok.com) a secure tunnel to your computer running the local server
+</Note>
+
+## 1. Register a Webhook Listener
+Our filters allow you to listen to on-chain events for particular contract addresses, contract events, specific token ids, account addresses, or topic hashes.
+
+<Note>
+  If you require a webhook endpoint to call, you can use [webhook.site](https://webhook.site/) for testing purposes to specify used in the `url` field.
+</Note>
+
+_Sequence Indexer `AddWebhookListener` Method:_ with `required*` fields
+- Request: POST /rpc/Indexer/AddWebhookListener
+- Content-Type: application/json
+- Body (in JSON):
+  - `url*` (string) -- the URL to send the webhook to
+  - `filters*` (object) -- an object of filters
+    - `contractAddresses*` (\[]string) -- an array of any contract address
+    - `events*` (\[]string)-- any contract event, with the included `indexed` keyword from the contract when necessary (e.g. `Transfer(address indexed from, address indexed to, uint256 amount)`. Shorthand is also acceptable without argument names, which will simply be parsed as: arg1, arg2, etc. i.e. `Transfer(address indexed,address indexed,uint256)` without argument names)
+    - `tokenIDs` (\[]int) -- an array of token IDs
+    - `accounts` (\[]string) -- an array of wallet addresses to listen on
+    - `topicHashes` (\[]string) -- a hash of the event being listened to (e.g. ethers.id("Transfer(address indexed from, address indexed to, uint256 amount)"))
+
+<br />
+
+<Note>
+  For a full list of events from the various token types: ERC20, ERC721, or ERC1155, [view here](/api-references/indexer/examples/webhook-listener#on-chain-token-event-types).
+</Note>
+
+**Example: `AddWebhookListener`**
+
+Where this example listens to all mints of an ERC1155 collectible contract:
+
+<CodeGroup>
+  ```bash cURL
+  curl -X POST \
+    -H "Content-Type: application/json" \
+    -H "X-Access-Key: <project_access_key>" \
+    -H "Authorization: BEARER <secret_API_key>" \
+    -d '{
+  		"url": "<URL>",
+          "filters": {
+            "contractAddresses": ["0x9bec34c1f7098e278afd48fedcf13355b854364a"],
+  		  "events": ["TransferSingle(address indexed operator, address indexed from, address indexed to, uint256 id, uint256 value)"],
+          }
+        }' \
+    https://arbitrum-sepolia-indexer.sequence.app/rpc/Indexer/AddWebhookListener
+  ```
+
+  ```typescript TypeScript
+  // Works in both a Webapp (browser) or Node.js:
+  import { SequenceIndexer } from '@0xsequence/indexer'
+
+  const indexer = new SequenceIndexer('https://polygon-indexer.sequence.app', '<project_access_key>', '<secret_API_key>')
+
+  const req = {
+      url: 'https://webhook.site/27c266b7-ee69-4046-8319-75ce91ec2bcf',
+      filters: {
+  		contractAddresses: ['0x631998e91476DA5B870D741192fc5Cbc55F5a52E'],
+  		events: ["TransferSingle(address indexed operator, address indexed from, address indexed to, uint256 id, uint256 value)"]
+  	}
+  }
+
+
+  const ok = await indexer.addWebhookListener({
+  	Url: req.url,
+      Filters: req.filters
+  })
+  	
+  console.log('ok', ok)
+  ```
+
+  ```go Go
+  import (
+  	"context"
+  	"fmt"
+  	"log"
+  	"net/http"
+
+  	"github.com/0xsequence/go-sequence/indexer"
+  )
+
+  func GetTransactionHistory(accountAddress string) {
+  	seqIndexer := indexer.NewIndexer("https://polygon-indexer.sequence.app", '<project_access_key>', '<secret_API_key>')
+
+  	ok, err := seqIndexer.AddWebhookListener(context.Background(),
+  		&proto.WebhookListener{
+  			Url: "https://webhook.site/27c266b7-ee69-4046-8319-75ce91ec2bcf",
+  			Filters: &proto.WebhookEventFilter{
+  				Accounts: []prototyp.Hash{prototyp.HashFromString("0xd4Bbf5d234CC95441A8Af0a317D8874eE425e74d")},
+                  ContractAddresses: []prototyp.Hash{prototyp.HashFromString("0xC852bf35CB7B54a33844B181e6fD163387D85868")},
+  				// TokenIDs:          []prototyp.BigInt{prototyp.NewBigInt(1)},
+  			},
+  		},
+  	)
+  	fmt.Println(ok, err)
+  }
+  ```
+</CodeGroup>
+
+## 2. Remove a Webhook Listener
+If you need to clean up your webhook listeners, you can submit requests to remove the listener based on listener `id` and `projectId`:
+
+_Sequence Indexer `RemoveWebhookListener` Method:_ with `required*` fields
+- Request: POST /rpc/Indexer/RemoveWebhookListener
+- Content-Type: application/json
+- Body (in JSON):
+  - `id*` (string) -- the id of the listener returned from `AddWebhookListener` (i.e. `response.listener.id`)
+  - `projectId*` (string) -- the Project ID the JWT Secret API key was obtained from
+
+**Example: `RemoveWebhookListener`**
+
+<CodeGroup>
+  ```bash cURL
+  curl -X POST \
+    -H "Content-Type: application/json" \
+    -H "X-Access-Key: <project_access_key>" \
+    -H "Authorization: BEARER <secret_API_key>" \
+    -d '{ "id": <listener_id>, "projectId": <project_id> }' \
+    https://arbitrum-sepolia-indexer.sequence.app/rpc/Indexer/RemoveWebhookListener
+  ```
+
+  ```typescript TypeScript
+  // Works in both a Webapp (browser) or Node.js:
+  import { SequenceIndexer } from '@0xsequence/indexer'
+
+  const indexer = new SequenceIndexer('https://arbitrum-sepolia-indexer.sequence.app', '<project_access_key>', '<secret_API_key>')
+
+  const ok = await indexer.removeWebhookListener({
+  	id: <listener_id>,
+      projectId: <project_id>
+  })
+  	
+  console.log('ok', ok)
+  ```
+
+  ```go Go
+  import (
+  	"context"
+  	"fmt"
+  	"log"
+  	"net/http"
+
+  	"github.com/0xsequence/go-sequence/indexer"
+  )
+
+  func RemoveWebhook(accountAddress string) {
+  	seqIndexer := indexer.NewIndexer("https://polygon-indexer.sequence.app", '<project_access_key>', <secret_API_key>)
+
+  	ok, err := seqIndexer.RemoveWebhookListener(context.Background(),
+  		&proto.WebhookListener{
+  			id: <listener_id>,
+  			projectId: <project_id>,
+  		},
+  	)
+  	fmt.Println(ok, err)
+  }
+  ```
+</CodeGroup>
+
+## Webhook Listener Response
+Upon webhook listener response, an object is returned in the following structure
+- Response (in JSON):
+  - `uid` (string) -- a deterministic hash value of the on-chain transaction log
+  - `type` (string), -- the type of event (i.e. `BLOCK_ADDED`)
+  - `blockNumber` (i32) -- the block number from the blockchain for when the event occured
+  - `blockHash` (string) -- the hash of the block for the transaction
+  - `parentBlockHash` (i32) -- the hash of the parent block
+  - `contractAddress` (string) -- the contract address from where the event came from
+  - `contractType` (string) -- the type of contract (e.g. `ERC20`, `ERC721`, `ERC1155`, etc.)
+  - `txnHash` (string) -- the transaction hash of the event
+  - `txnIndex` (i32) -- the index of the transaction in the blockchain block
+  - `txnLogIndex` (string) -- the log index in the transaction
+  - `ts` (date) -- an ISO 8601 formatted date and time of the event
+  - `event` ([event](/api-references/indexer/examples/webhook-listener#event-object)) -- the event data of the on-chain data
+  - `txnLogIndex` (string) -- the log index in the transaction
+  - `logDataType` (string) -- the type of log event (e.g. `TOKEN_TRANSFER`)
+  - `rawLog` ([raw](/api-references/indexer/examples/webhook-listener#rawlog-object)) -- the raw transaction object
+
+## 例
+
+### Listen to a Specific Token ID for an ERC1155
+If you want to get all mints and transfers of a specific token ID for an ERC1155
+
+<CodeGroup>
+  ```bash cURL
+  curl -X POST \
+    -H "Content-Type: application/json" \
+    -H "X-Access-Key: <project_access_key>" \
+    -H "Authorization: BEARER <secret_API_key>" \
+    -d '{
+  		"url": "<URL>",
+          "filters": {
+            "contractAddresses": ["0x9bec34c1f7098e278afd48fedcf13355b854364a"],
+  		  "events": ["TransferSingle(address indexed operator, address indexed from, address indexed to, uint256 id, uint256 value)"],
+            "tokenIDs": ["1237"]
+          }
+        }' \
+    https://arbitrum-sepolia-indexer.sequence.app/rpc/Indexer/AddWebhookListener
+  ```
+
+  ```typescript TypeScript
+  // Works in both a Webapp (browser) or Node.js:
+  import { SequenceIndexer } from '@0xsequence/indexer'
+
+  const indexer = new SequenceIndexer(
+      'https://arbitrum-sepolia-indexer.sequence.app', 
+      '<project_access_key>',
+      '<secret_API_key'
+  );
+
+  const req = {
+  	url: 'https://webhook-testing.ngrok.dev/webhook/5f5fe8ea-aa7e-4cf5-9d70-8f46c39a6117',
+  	filters:{   
+  		contractAddresses: ['0x9bec34c1f7098e278afd48fedcf13355b854364a'],
+  		events: ["TransferSingle(address indexed operator, address indexed from, address indexed to, uint256 id, uint256 value)"],
+  		tokenIDs: ['1237']
+  	}
+  }
+
+  const ok = await indexer.addWebhookListener({
+  	url: req.url,
+      filters: req.filters
+  })
+  	
+  console.log('ok', ok)
+  ```
+</CodeGroup>
+
+### On-chain Token Event Types
+
+#### ERC20
+
+- Transfer(address indexed from, address indexed to, uint256 value)
+- Approval(address indexed owner, address indexed spender, uint256 value)
+
+#### ERC721
+
+- Transfer(address indexed from, address indexed to, uint256 indexed tokenId)
+- Approval(address indexed owner, address indexed approved, uint256 indexed tokenId)
+- ApprovalForAll(address indexed owner, address indexed operator, bool approved)
+
+#### ERC1155
+
+- TransferSingle(address indexed operator, address indexed from, address indexed to, uint256 id, uint256 value)
+- TransferBatch(address indexed operator, address indexed from, address indexed to, uint256\[] ids, uint256\[] values)
+- ApprovalForAll(address indexed account, address indexed operator, bool approved)
+- URI(string value, uint256 indexed id)
+
+### Custom Return Data Types Glossary
+
+##### event (object)
+
+| Field     | Type      | Description                                                                                                                                          |
+| --------- | --------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| topicHash | string    | a hash of the event being listened to (e.g. ethers.id("Transfer(address indexed from, address indexed to, uint256 amount)"))                         |
+| eventSig  | string    | the event signature of the on-chain event (e.g. "Transfer(address indexed from, address indexed to, uint256 amount)")                                |
+| types     | \[]string | an array of argument types from the event                                                                                                            |
+| names     | \[]string | an array of event argument names in plain text (note: if names are not included in initial webhook creation, will appear as: arg1, arg2, arg3, etc.) |
+| values    | \[]string | an array of hex values corresponding to the argument names                                                                                           |
+
+##### rawLog (object)
+
+| Field  | Type      | Description                                |
+| ------ | --------- | ------------------------------------------ |
+| data   | string    | data                                       |
+| topics | \[]string | the topic event hashes emitted in the logs |

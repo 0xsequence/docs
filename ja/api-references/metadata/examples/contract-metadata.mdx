@@ -1,0 +1,151 @@
+---
+title: Contract Metadata
+sidebarTitle: Contract Metadata
+---
+
+- [Learn how to query contract-level metadata directly for any contract](/api-references/metadata/examples/token-metadata#fetch-token-metadata-for-any-erc721-or-erc1155-contract)
+- [Learn about contract-level metadata for ERC20, ERC721 and ERC1155 tokens](/api-references/metadata/examples/token-metadata#token-metadata-standards)
+- [Learn about querying contract-level info metadata extensions for ERC20, ERC721 and ERC1155 tokens](/api-references/metadata/examples/contract-metadata#search-contract-metadata)
+
+<Note>
+  \[PRO TIP: Sequence Indexer also returns token metadata]
+
+  When using the [Sequence Indexer](/api-references/indexer/overview), pass `"includeMetadata": true` to your request to
+  query token metadata for any ERC20, ERC721 or ERC1155 contract. See below how to fetch
+  contract-level metadata directly.
+</Note>
+
+## Fetch contract metadata of any ERC20, ERC721 or ERC1155 contract address
+_Sequence Metadata `GetContractInfoBatch` Method:_
+- Request: POST /rpc/Metadata/GetContractInfoBatch
+- Content-Type: application/json
+- Body (in JSON):
+  - `chainID` (string) -- the chain id, as a name or number (ie. "1" or "mainnet", "137" or "polygon", etc.)
+  - `contractAddresses` (string of strings) -- array of contract addresses
+
+**Example: `GetContractInfoBatch` of some contracts on Polygon using an `AQAAAAAAAF_JvPALhBthL7VGn6jV0YDqaFY`**
+
+<Note>
+  This code requires an API Access Key from [Sequence Builder](https://sequence.build).
+</Note>
+
+<CodeGroup>
+  ```shell cURL
+  curl -X POST -H "Content-Type: application/json" -H "X-Access-Key: AQAAAAAAAF_JvPALhBthL7VGn6jV0YDqaFY" https://metadata.sequence.app/rpc/Metadata/GetContractInfoBatch -d '{ "chainID": "polygon", "contractAddresses": ["0x631998e91476DA5B870D741192fc5Cbc55F5a52E", "0x17b66009af459dc8ebf37acf8a8b355379be2fe5", "0x2791bca1f2de4661ed88a30c99a7a9449aa84174", "0x2953399124f0cbb46d2cbacd8a89cf0599974963", "0x7227e371540cf7b8e512544ba6871472031f3335", "0x7c0ebabfc394ec6d926e801fe0e69a1f15a7fe4d", "0x8f3cf7ad23cd3cadbd9735aff958023239c6a063", "0xa1c57f48f0deb89f569dfbe6e2b7f46d33606fd4"] }'
+  ```
+
+  ```ts Typescript
+  // Works in both a Webapp (browser) or Node.js:
+  import { SequenceMetadata } from '@0xsequence/metadata'
+
+  const metadataClient = new SequenceMetadata("https://metadata.sequence.app", "AQAAAAAAAF_JvPALhBthL7VGn6jV0YDqaFY")
+
+  const contractMetadata = await metadataClient.getContractInfoBatch({
+    chainID: 'polygon',
+    contractAddresses: [
+      '0x631998e91476DA5B870D741192fc5Cbc55F5a52E',
+      '0x17b66009af459dc8ebf37acf8a8b355379be2fe5',
+      '0x2791bca1f2de4661ed88a30c99a7a9449aa84174',
+      '0x2953399124f0cbb46d2cbacd8a89cf0599974963',
+      '0x7227e371540cf7b8e512544ba6871472031f3335',
+      '0x7c0ebabfc394ec6d926e801fe0e69a1f15a7fe4d',
+      '0x8f3cf7ad23cd3cadbd9735aff958023239c6a063',
+      '0xa1c57f48f0deb89f569dfbe6e2b7f46d33606fd4'
+    ]
+  })
+
+  console.log('Contract info for above addresses:', contractMetadata)
+  ```
+
+  ```go Go
+  import (
+  	"github.com/0xsequence/go-sequence/metadata"
+  )
+
+  seqMetadata := metadata.NewMetadata("AQAAAAAAAF_JvPALhBthL7VGn6jV0YDqaFY")
+
+  contractInfo, err := seqMetadata.GetContractInfo(context.Background(), "polygon", "0x631998e91476DA5B870D741192fc5Cbc55F5a52E")
+  ```
+
+  ```shell Other
+  Please contact our team for assistance with integrations to another target.
+  ```
+</CodeGroup>
+
+## Contract-level Metadata Standards
+Additionally, OpenSea added something called `contractURI` ([https://docs.opensea.io/docs/contract-level-metadata](https://docs.opensea.io/docs/contract-level-metadata)).
+
+## Search Contract Metadata
+
+### Fetch contract-level info metadata for any ERC20, ERC721 or ERC1155 contract address based on a search criteria
+_Sequence Metadata `SearchContracts` Method:_
+- Request: POST /rpc/Metadata/SearchContracts
+- Content-Type: application/json
+- Body (in JSON):
+  - `chainID` **optional**  (string) -- the chain id, as a number (ie. "1" for "mainnet", "137" for "polygon", etc.)
+  - `chainIDs` **optional** (string) -- a list of chain ids, as a number (ie. "1" for "mainnet", "137" for "polygon", etc.)
+  - `q` (string) -- either a search parameter to search contarct info, or, plainly a contract address to search for
+
+<br />
+
+**Example: `SearchContracts` of some queries / a contract on Polygon using an `AQAAAAAAAF_JvPALhBthL7VGn6jV0YDqaFY`**
+
+<Note>
+  This code requires an API Access Key from [Sequence Builder](https://sequence.build).
+</Note>
+
+<CodeGroup>
+  ```shell cURL
+  curl -X POST -H "Content-Type: application/json" -H "X-Access-Key: AQAAAAAAAF_JvPALhBthL7VGn6jV0YDqaFY" https://metadata.sequence.app/rpc/Metadata/SearchContracts -d '{ "q": "skyweaver"}'
+  ```
+
+  ```ts Typescript
+  // Works in both a Webapp (browser) or Node.js:
+  import { SequenceMetadata } from '@0xsequence/metadata'
+
+  const metadataClient = new SequenceMetadata('https://metadata.sequence.app', 'AQAAAAAAAF_JvPALhBthL7VGn6jV0YDqaFY')
+      
+  const contractAddressSearchMetadata = await metadataClient.searchContracts({
+      chainIDs: ['137'],
+      q: '0x631998e91476DA5B870D741192fc5Cbc55F5a52E',
+  })
+
+  console.log('Contract info metadata for above address:', contractAddressSearchMetadata)
+
+  const contractQuerySearchMetadata = await metadataClient.searchContracts({
+      chainIDs: ['137'],
+      q: 'skyweaver',
+  })
+
+  console.log('Contract info metadata for query:', contractQuerySearchMetadata)
+  ```
+
+  ```go Go
+
+  package main
+
+  import (
+  	"context"
+  	"fmt"
+  	"log"
+  	"github.com/0xsequence/go-sequence/metadata"
+  )
+
+  func main() {
+  	seqMetadata := metadata.NewMetadata("AQAAAAAAAF_JvPALhBthL7VGn6jV0YDqaFY")
+  	chainID := "137"
+
+  	contractInfo, _, err := seqMetadata.SearchContracts(context.Background(), "0x631998e91476DA5B870D741192fc5Cbc55F5a52E", &chainID, nil, nil)
+  	
+  	if err != nil {
+  		log.Fatalf("Failed to get contract info: %v", err)
+  	}
+
+  	fmt.Printf("Contract Info: %+v\n", contractInfo)
+  }
+  ```
+
+  ```shell Other
+  Please contact our team for assistance with integrations to another target.
+  ```
+</CodeGroup>

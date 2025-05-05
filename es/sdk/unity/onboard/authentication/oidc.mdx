@@ -1,0 +1,176 @@
+---
+title: OIDC - Inicio de sesión con redes sociales
+---
+
+Nuestro SDK soporta inicio de sesión con redes sociales usando [OIDC](https://openid.net/developers/how-connect-works/) con el [flujo implícito](https://auth0.com/docs/authenticate/login/oidc-conformant-authentication/oidc-adoption-implicit-flow).
+
+Actualmente, los proveedores OIDC soportados incluyen:
+- Google -> [Configuración en Builder](/solutions/builder/embedded-wallet/google-configuration)
+- Apple -> [Configuración en Builder](/solutions/builder/embedded-wallet/apple-configuration)
+
+<Warning>Configure su proveedor OIDC en el Builder siguiendo las instrucciones enlazadas arriba. Agregue su(s) client ID(s) al objeto scriptable `SequenceConfig` en su carpeta Resources.</Warning>
+
+Una vez que el usuario inicia sesión correctamente, se devuelve un idToken mediante un deep link a la aplicación.
+Para habilitar el deep linking, debemos registrar un esquema de URL personalizado para nuestra aplicación. Hay algunos requisitos específicos de cada plataforma para configurarlo.
+
+### Editor
+Para que el inicio de sesión con redes sociales funcione en el editor, necesitará desplegar un servidor simple en su máquina local. Proporcionamos una implementación de ejemplo [aquí](https://gist.github.com/BellringerQuinn/d012cd29eb9e756fe3555d4d03b001b2).
+
+Para desplegar este servidor de ejemplo, siga estos pasos.
+1. Descargue e instale Go: [https://go.dev/dl/](https://go.dev/dl/)
+2. Abra una terminal o consola de comandos y verifique su instalación escribiendo
+
+```
+go version
+```
+
+3. Cree un directorio para su proyecto en Go y un archivo main.go
+
+```
+mkdir myUnityServer
+cd myUnityServer
+touch main.go
+```
+
+4. Copie y pegue el [gist](https://gist.github.com/BellringerQuinn/d012cd29eb9e756fe3555d4d03b001b2) en el archivo main.go
+5. Inicialice el proyecto creando un módulo de Go
+
+```
+go mod init myUnityServer
+```
+
+6. Ejecute el servidor
+
+```
+go run main.go
+```
+
+7. Debería ver `Server listening on port 8080` impreso en su terminal o consola de comandos
+
+Si decide desplegar el servidor en otro lugar (otro puerto, un servidor público, etc.), deberá cambiar el valor de `OpenIdAuthenticator.RedirectUrl` en su código antes de iniciar el proceso de inicio de sesión
+
+```csharp
+OpenIdAuthenticator.InjectRedirectUrl("the url for your deployed server");
+```
+
+Nota: debe usar un cliente web para su proveedor de inicio de sesión con redes sociales con `http://localhost:8080/` (o la URL de su servidor) en la lista blanca como URL de redirección bajo `Standalone Platforms` en `SequenceConfig`
+
+### iOS
+
+#### Iniciar sesión con Apple
+Este SDK es compatible con el inicio de sesión nativo con Apple mediante el popular paquete [`apple-signin-unity`](https://github.com/lupidan/apple-signin-unity). Esto [requiere la capacidad de `Sign in with Apple` en XCode](https://developer.apple.com/documentation/xcode/configuring-sign-in-with-apple#Add-the-Sign-in-with-Apple-capability-to-your-app) para funcionar. Siempre que haya [importado los scripts `Setup` mediante Package Manager > Samples](https://docs.sequence.xyz/sdk/unity/installation#package-manager---recommended) y/o tenga `SignInWithApplePostprocessor.cs` bajo una subcarpeta `Editor`, esta capacidad se agregará automáticamente a sus builds de XCode.
+
+Tenga en cuenta que esta capacidad no es compatible con `Personal Teams`.
+
+#### Otras plataformas sociales
+Todas las demás plataformas sociales son compatibles por defecto, solo asegúrese de agregar sus client IDs en `SequenceConfig`.
+
+### MacOS
+
+1. Abra la ventana de Player Settings para Windows/Mac/Linux (menú: Edit > Project Settings > Player Settings, luego seleccione Windows/Mac/Linux).
+2. Seleccione `Other Settings` y luego desplácese hasta `Mac Configuration`.
+3. Expanda la sección `Supported URL schemes` y aumente el tamaño en 1.
+4. En el nuevo campo `Element N`, ingrese el esquema de URL que configuró en `SequenceConfig`.
+
+![Esquema de URL en Mac](/images/unity/unity-url-scheme-mac.png)
+
+### PC
+No se requieren pasos adicionales.
+
+<Tip>Al configurar las credenciales de su _cliente web_ para inicio de sesión con redes sociales con Google (por ejemplo) para plataformas de escritorio (y Android), debe incluir en la lista blanca [https://api.sequence.app/oauth/callback](https://api.sequence.app/oauth/callback) como "Authorized redirect URIs"</Tip>
+
+### Android
+
+1. En la ventana del Proyecto, navegue a `Assets > Plugins > Android`.
+
+a) Nota: en versiones de Unity 2021.2 en adelante, esta ruta no existe por defecto. Por favor, diríjase a `Edit > Project Settings > Player` y, en Android Publishing Settings, habilite `Custom Main Manifest` en la sección Build. Consulte [https://docs.unity3d.com/Manual/deep-linking-android.html](https://docs.unity3d.com/Manual/deep-linking-android.html) para más información.
+2\. Si aún no existe, cree un archivo nuevo y llámelo `AndroidManifest.xml`.
+3\. Pegue el siguiente XML en el archivo o, si ya tiene uno, agregue las nuevas claves de este XML al suyo.
+4\. Asegúrese de reemplazar 'sdk-powered-by-sequence' por el esquema de URL que configuró en `SequenceConfig`
+
+```xml
+   <?xml version="1.0" encoding="utf-8"?>
+   <manifest
+     xmlns:android="http://schemas.android.com/apk/res/android"
+     xmlns:tools="http://schemas.android.com/tools"
+   >
+     <application>
+       <activity
+         android:name="com.unity3d.player.UnityPlayerActivity"
+         android:theme="@style/UnityThemeSelector"
+       >
+         <intent-filter>
+           <action android:name="android.intent.action.MAIN" />
+           <category android:name="android.intent.category.LAUNCHER" />
+         </intent-filter>
+         <intent-filter>
+           <action android:name="android.intent.action.VIEW" />
+           <category android:name="android.intent.category.DEFAULT" />
+           <category android:name="android.intent.category.BROWSABLE" />
+           <data android:scheme="sdk-powered-by-sequence"/> <!-- substitute 'sdk-powered-by-sequence' with the Url Scheme you set in `SequenceConfig` -->
+         </intent-filter>
+       </activity>
+     </application>
+   </manifest>
+```
+
+b) Nota: Las versiones de Unity 2022 anteriores a `2022.3.7f1` y las de 2023 anteriores a `2023.1.7f1`, `2023.2.0b3` o `2023.3.0a1` contienen un error con el deep-linking en Android. Por favor, use este XML en su lugar.
+
+```xml
+<?xml version="1.0" encoding="utf-8"?>
+<manifest
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:tools="http://schemas.android.com/tools"
+>
+    <application>
+        <activity
+                android:name="com.unity3d.player.UnityPlayerActivity"
+                android:theme="@style/UnityThemeSelector"
+                android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+            <meta-data android:name="unityplayer.UnityActivity" android:value="true" />
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="sdk-powered-by-sequence"/> <!-- substitute 'sdk-powered-by-sequence' with the Url Scheme you set in `SequenceConfig` -->
+            </intent-filter>
+        </activity>
+    </application>
+</manifest>
+```
+
+Es decir, agregue `<meta-data android:name="unityplayer.UnityActivity" android:value="true" />` después de su primer `intent-filter`. Consulte [https://forum.unity.com/threads/deep-linking-in-unity-2022-the-app-is-restarted.1447300/](https://forum.unity.com/threads/deep-linking-in-unity-2022-the-app-is-restarted.1447300/) para más información.
+
+<Tip>Si está trabajando con Unity 6, puede que necesite reemplazar `UnityPlayerActivity` en su AndroidManifest por `UnityPlayerGameActivity`. También puede que deba cambiar su `android:theme`; hemos comprobado que "@style/BaseUnityGameActivityTheme" funciona bien en nuestras pruebas.</Tip>
+
+### Web
+El inicio de sesión con redes sociales en plataformas web utiliza React mediante el [WebGLTemplate](https://docs.unity3d.com/Manual/webgl-templates.html) que se encuentra en `WebGLTemplates/SequenceReact`. Esto ha sido validado en WebGL y WebGPU. Para aprender cómo habilitar WebGPU en Unity, consulte [este post en el foro](https://forum.unity.com/threads/early-access-to-the-new-webgpu-backend-in-unity-2023-3.1516621/).
+
+Tenga en cuenta que Google es el único proveedor OIDC actualmente compatible en plataformas web mediante nuestro WebGLTemplate `SequenceReact` por defecto; sin embargo, puede ampliarlo para agregar soporte a otros proveedores OIDC compatibles con nuestra API.
+
+#### Configuración inicial única
+Arrastre esta carpeta `WebGLTemplates` a `Assets` (o simplemente arrastre la plantilla `SequenceReact` a su carpeta existente de `WebGLTemplates` si ya tiene una) para que la ruta sea `Assets/WebGLTemplates/SequenceReact`.
+
+<Warning>Es muy importante que sus `WebGLTemplates` estén en `Assets/WebGLTemplates`. Al igual que la carpeta `Plugins`, si no están exactamente en esa ubicación, ¡Unity no los detectará!</Warning>
+
+Una vez que haya agregado la plantilla `SequenceReact`, reinicie el editor para que Unity la reconozca.
+
+Desde aquí, puede seleccionar la plantilla en `Project Settings > Player Settings > Resolution and Presentation`.
+
+#### Compilación
+Después de la configuración inicial, cuando compile su proyecto de Unity para plataformas web, se construirá como parte de un proyecto React.
+1. Abra una línea de comandos en la raíz de su nueva build (compilación)
+2. [Instale pnpm](https://pnpm.io/installation) si aún no lo tiene
+3. Ejecute `pnpm install` para instalar las dependencias
+4. Ejecute `pnpm dev` para correr el proyecto en su localhost (por defecto en el puerto 4444, configurable en `SequenceReact/package.json`)
+5. Abra [http://localhost:4444](http://localhost:4444)
+
+<Warning>Al compilar su aplicación WebGL, si utiliza algún `Compression Format` (por ejemplo, Gzip o Brotli), se recomienda habilitar `Decompression Fallback` en `Player Settings > Publishing Settings`. Aprenda más sobre el despliegue de WebGL aquí: [https://docs.unity3d.com/Manual/webgl-deploying.html](https://docs.unity3d.com/Manual/webgl-deploying.html)</Warning>
+
+<Tip>Al configurar las credenciales de inicio de sesión con redes sociales con Google (por ejemplo), debe incluir en la lista blanca [http://localhost:4444](http://localhost:4444) y la URL final donde se alojará su juego como "Authorized Javascript origins"</Tip>
+
+<Tip>¡No olvide suscribirse al evento `SequenceWallet.OnWalletCreated` para recibir su wallet recién creada!</Tip>

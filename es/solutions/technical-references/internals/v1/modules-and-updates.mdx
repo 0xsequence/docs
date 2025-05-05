@@ -1,0 +1,208 @@
+---
+title: Módulos y actualización de la wallet
+description: Este contenido explica cómo las wallets Sequence se implementan usando módulos y cómo se puede actualizar la configuración de la wallet.
+---
+
+Los módulos de Sequence son la implementación de programa subyacente de las wallets; las wallets pueden cambiar de módulo en tiempo de ejecución.
+
+El `MainModule` es el módulo inicial de toda wallet Sequence; se diferencia de otros módulos porque no almacena el conjunto de firmantes en el almacenamiento del contrato; utiliza el [salt](/solutions/technical-references/internals/v1/wallet-factory) proporcionado a Factory.
+
+## Implementación de la wallet
+Los módulos de Sequence pueden asignarse a las wallets ya sea por la factory o actualizándolos después del despliegue inicial. Solo un módulo puede estar asignado a una wallet a la vez.
+
+### \_updateConfiguration
+El método `updateImplementation` permite actualizar la implementación subyacente del proxy de la wallet. Esta implementación contiene todo el código principal que define el comportamiento de la wallet.
+
+<Warning>
+  Llamar a `updateImplementation` con una implementación inválida resultará en la corrupción de la wallet.
+
+  Las wallets corruptas pueden llevar a la pérdida de fondos.
+</Warning>
+
+```solidity
+function updateImplementation(
+  address _implementation
+) external override onlySelf
+```
+
+#### Parámetros:
+
+| Nombre           | Type    | Description                                        |
+| ---------------- | ------- | -------------------------------------------------- |
+| \_implementation | address | Dirección de la nueva implementación de la wallet. |
+
+Este método tiene el modificador `onlySelf`, lo que significa que solo puede ser llamado por la propia wallet usando una transacción auto-referenciada. Las llamadas a este método desde otras direcciones, incluso si son firmantes de la wallet, serán rechazadas.
+
+### Lectura de la implementación actual
+La implementación de la wallet se almacena en el slot de almacenamiento del contrato definido por la dirección de la wallet. Dado que cada wallet tiene una dirección única, el slot de implementación varía de wallet a wallet.
+
+```js
+import {AbiCoder} "ethers"
+
+const address = "0x596af90cecdbf9a768886e771178fd5561dd27ab"
+const provider = new ethers.providers.JsonRpcProvider("http://localhost:8545")
+
+// Read storage slot address(address)
+const slot = await provider.getStorageAt(address, AbiCoder.defaultAbiCoder().encode(['address'], [address]))
+
+// Decode bytes32 as address value
+const implementation = AbiCoder.defaultAbiCoder().decode(['address'], slot)[0]
+
+console.log(implementation)
+```
+
+## Validación de la configuración de la wallet
+
+<Note>
+  Configuración fija
+  La configuración de firmantes en wallets que usan `MainModule` no puede ser cambiada. La única manera de cambiar el conjunto de firmantes o el umbral es actualizando el módulo de la wallet.
+</Note>
+
+Todos los módulos de Sequence deben implementar la interfaz `ModuleAuth`, que permite al resto del módulo validar firmas para la wallet. En el caso de `MainModule`, esta interfaz se implementa como una validación contrafactual del hash pasado a Factory durante la creación de la wallet de contrato.
+
+### \_isValidImage
+
+```solidity
+  function _isValidImage(
+    bytes32 _imageHash
+  ) internal override view returns (bool _isValid)
+```
+
+Valida si el `imageHash` proporcionado corresponde al configurado en la wallet. Esta función se llama internamente para validar firmas de transacciones y mensajes.
+
+El `imageHash` es un hash de la configuración de la wallet, que contiene el umbral, los firmantes y los pesos de la wallet.
+
+#### Parámetros:
+
+| Nombre      | Type    | Description                                      |
+| ----------- | ------- | ------------------------------------------------ |
+| \_imageHash | bytes32 | Hash de la configuración de la wallet a validar. |
+
+#### Valores de retorno:
+
+| Nombre    | Type | Description                                                                          |
+| --------- | ---- | ------------------------------------------------------------------------------------ |
+| \_isValid | bool | Verdadero si el `imageHash` dado corresponde a la configuración actual de la wallet. |
+
+## MainModuleUpgradeable
+`MainModuleUpgradeable` es un módulo que imita el comportamiento del `MainModule` pero permite actualizar la configuración de la wallet.
+
+### `updateImageHash`
+Actualiza el `imageHash` de la wallet, que es el hash que define la configuración de la wallet (firmantes, pesos, umbral).
+
+```solidity
+  function updateImageHash(
+    bytes32 _imageHash
+  ) external override onlySelf
+```
+
+#### Parámetros:
+
+| Nombre      | Type    | Description                                    |
+| ----------- | ------- | ---------------------------------------------- |
+| \_imageHash | bytes32 | Hash de la nueva configuración para la wallet. |
+
+<Warning>
+  El `imageHash` no se valida; es responsabilidad del llamador asegurarse de que el hash sea correcto. Razones para hashes incorrectos incluyen:
+
+  - El peso combinado de los firmantes está por debajo del umbral.
+  - Los firmantes no son direcciones válidas.
+  - Los firmantes son wallets de contrato inteligente sin soporte adecuado para EIP-1271.
+  - El `imageHash` no corresponde a ninguna configuración de wallet (puede ser una cadena aleatoria).
+  - El `imageHash` corresponde a una configuración de wallet desconocida.
+
+  En cualquiera de estos casos la wallet quedará **inutilizable**.
+</Warning>
+
+Este método tiene el modificador `onlySelf`, lo que significa que solo puede ser llamado por la propia wallet usando una transacción auto-referenciada. Las llamadas a este método desde otras direcciones, incluso si son firmantes de la wallet, serán rechazadas.
+
+## Primera actualización de configuración
+Cuando se crean las wallets Sequence, el contrato factory no llama a una función `initialize`. La configuración se define en cambio por el `salt` proporcionado a la factory; luego el `MainModule` verifica la validez contrafactual de todas las firmas contra la dirección de la wallet.
+
+Esto significa que no hay una manera directa de actualizar la configuración de una wallet mientras se sigue usando el `MainModule`. Dado que la primera actualización de configuración también debe cambiar la implementación de la wallet a `MainModuleUpgradable`, el `MainModule` se actualiza a `MainModuleUpgradable` y se llama al método `updateImageHash` para actualizar la configuración de la wallet.
+
+```js
+const transactions = [
+  {
+    delegateCall: false,
+    revertOnError: true,
+    to: wallet,
+    data: walletInterface.encodeFunctionData(
+      walletInterface.getFunction('updateImplementation'), [this.context.mainModuleUpgradable]
+    ),
+    value: ethers.constants.Zero,
+    gasLimit: ethers.constants.Zero,
+  },
+  {
+    delegateCall: false,
+    revertOnError: true,
+    to: wallet,
+    data: mainModuleInterface.encodeFunctionData(
+      mainModuleInterface.getFunction('updateImageHash'), [newImageHash]
+    ),
+    value: ethers.constants.Zero,
+    gasLimit: ethers.constants.Zero,
+  }
+]
+```
+
+#### delegateCall: false
+`delegateCall` se utiliza para extender la funcionalidad de la wallet más allá de lo permitido por el módulo. En este caso, los métodos llamados están definidos en los propios módulos, por lo que no es necesario usar `delegateCall`.
+
+#### revertOnError: true
+`revertOnError` se utiliza para revertir todo el paquete de transacciones si una transacción marcada así falla. En este caso, la operación debe ser atómica ya que una actualización parcial de la configuración de la wallet **la** dejará inutilizable.
+
+#### to: wallet
+Los métodos que se llaman están definidos en la propia wallet, pero deben llamarse externamente, así que la dirección `to` es la propia wallet.
+
+#### value: ethers.constants.Zero
+El `value` de la transacción siempre es cero, ya que la transacción es auto-referenciada y no requiere transferir fondos.
+
+#### gasLimit: ethers.constants.Zero
+El `gasLimit` de la transacción siempre es cero, ya que representa una cantidad ilimitada de gas.
+
+<Warning>
+  Operación peligrosa
+
+  Cuando la wallet se actualiza por primera vez a `MainModuleUpgradable` aún no tiene un `imageHash` válido. Es imperativo que el `imageHash` se actualice antes de que termine de ejecutarse el paquete de transacciones.
+  Si el `imageHash` no se actualiza antes de que termine de ejecutarse el paquete de transacciones, la wallet quedará inutilizable.
+
+  Por esta razón, se deben tener en cuenta las siguientes consideraciones al actualizar la wallet por primera vez:
+
+  - Todas las transacciones deben marcarse con `revertOnError = true`.
+  - `updateImplementation` y `updateImageHash` deben declararse en el mismo paquete de transacciones.
+  - El `gasLimit` de ambas transacciones debe establecerse como ilimitado (`0`).
+</Warning>
+
+### Actualizaciones de configuración posteriores
+Una vez que la wallet se ha actualizado a `MainModuleUpgradable`, puede actualizarse llamando al método `updateImageHash`, sin ninguna transacción adicional.
+
+```js
+const transactions = [
+  {
+    delegateCall: false,
+    revertOnError: true,
+    to: wallet,
+    data: mainModuleInterface.encodeFunctionData(
+      mainModuleInterface.getFunction('updateImageHash'), [newImageHash]
+    ),
+    value: ethers.constants.Zero,
+    gasLimit: ethers.constants.Zero,
+  }
+]
+```
+
+### Obtener la configuración actual
+Si la wallet se ha actualizado a `MainModuleUpgradable`, se puede consultar la configuración actual llamando al método `getImageHash`.
+
+Este método debe devolver el hash de la configuración actual de la wallet, que puede compararse con una lista de configuraciones conocidas de wallet para encontrar la correcta.
+
+#### Obtener la configuración de la wallet
+El método `imageHash` devuelve `bytes32(0)` si la wallet aún no ha sido actualizada al `MainModuleUpgradable`.
+En este caso, la wallet está en un estado contrafactual y no se puede consultar directamente el `imageHash`.
+
+Esto también aplica para wallets que no han sido desplegados.
+
+Para encontrar el `imageHash` de un wallet no desplegado o no actualizado, es necesario comparar un `imageHash` conocido como candidato contra la dirección del wallet.
+
+Consulte [Calcular dirección del wallet](/solutions/technical-references/internals/v1/wallet-configuration).

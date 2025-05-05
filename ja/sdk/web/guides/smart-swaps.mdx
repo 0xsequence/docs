@@ -1,0 +1,114 @@
+---
+title: Smart Swaps
+description: Sequence Smart Swapsは、ユーザーのウォレット内で利用可能な通貨を自動的に検出し、ターゲット通貨へスワップします。開発者はターゲット通貨を指定するだけで、UIやフローも含めてSequenceがWeb SDKを通じてすべて処理します。
+sidebarTitle: Smart Swaps
+---
+
+Smart Swapsの強みは、ユーザーが保有する通貨をインテリジェントに検出し、Sequenceウォレットを利用している場合は複数の取引をまとめてUXを簡素化できる点です。これにより、`approve`や`transfer`などの取引を個別に行う必要がなくなります。
+
+<Frame>
+  ![](/images/kit/swap-modal.png)
+</Frame>
+
+<Note>
+  カスタムトークンでSmart Swapsを利用する場合は、サポートされているDEX（例：Uniswap）上で十分な流動性（推奨：USDC、USDT、ETH）を確保してください。
+</Note>
+
+スワップで対応しているチェーンは以下の通りです：
+- Ethereum（メインネット）
+- Ethereum（Sepolia）
+- Arbitrum
+- Avalanche
+- Base
+- Blast
+- BSC
+- Optimism
+- Polygon
+
+サポートしている流動性プールプロバイダーの例：
+
+`UniSwap` `SushiSwap` `Pancake Swap` `Curve` `Balancer` `Bancor` `Synapse` `Solidly`
+
+# インストールとセットアップ
+Web SDKでスワップ機能を統合するには、以下の手順に従ってください。
+
+<Steps>
+  <Step title="@0xsequence/checkout ライブラリをインストールする">
+    ```bash
+    npm install @0xsequence/checkout
+    # or
+    pnpm install @0xsequence/checkout
+    # or
+    yarn add @0xsequence/checkout
+    ```
+  </Step>
+
+  <Step title="アプリ内で `SequenceConnect` プロバイダーの下に `SequenceCheckoutProvider` を配置する：">
+    ```jsx
+    import { SequenceCheckoutProvider } from '@0xsequence/checkout'
+    import { SequenceConnect } from '@0xsequence/connect'
+    import { config } from './config'
+
+    const App = () => {
+      return (
+        <SequenceConnect config={config}>
+          <SequenceCheckoutProvider>
+            <Page />
+          </SequenceCheckoutProvider>
+        </SequenceConnect>
+      )
+    }
+    ```
+  </Step>
+
+  <Step title="スワップの依存関係とロジックをインポートする">
+    - `currencyAddress`：ターゲット通貨のアドレス。スワップ後にユーザーが受け取るトークンです。
+    - `currencyAmount`：ターゲット通貨の数量。スワップ後にユーザーが受け取る金額です。
+    - `postSwapTransactions`：スワップ後にスワップしたトークンで実行する追加取引の配列（オプション）。
+    - `title`：モーダルのタイトル。
+    - `description`：スワップや支払いプロセスの説明。
+    - `chainId`：ターゲット通貨のチェーンID。
+    - `onSuccess`：スワップが成功した際に呼ばれるコールバック関数。
+
+    ```jsx
+    import { useSwapModal, type SwapModalSettings } from '@0xsequence/checkout'
+
+    const MyComponent = () => {
+      const { openSwapModal } = useSwapModal()
+
+      const onClick = () => {
+        const chainId = 137
+        const currencyAddress = '0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359'
+        const currencyAmount = '20000'
+
+        const contractAbiInterface = new ethers.Interface(['function demo()']) // Optionally, replace with your contract's abi interface
+
+        const data = contractAbiInterface.encodeFunctionData('demo', []) as `0x${string}` // Optionally, replace 'demo' with the function you want to call,
+
+        const swapModalSettings: SwapModalSettings = {
+          onSuccess: () => {
+            console.log('swap successful!')
+          },
+          chainId,
+          currencyAddress,
+          currencyAmount,
+          postSwapTransactions: [ // Optionally, replace with the transaction you would like to execute after the swap has taken place.
+            {
+              to: '0x37470dac8a0255141745906c972e414b1409b470',
+              data
+            }
+          ],
+          title: 'Swap and Pay',
+          description: 'Select a token in your wallet to swap to 0.2 USDC.'
+        }
+
+        openSwapModal(swapModalSettings)
+      }
+
+      return <button onClick={onClick}>Swap and Pay</button>
+    }
+    ```
+  </Step>
+</Steps>
+
+おめでとうございます！Web SDKでSmart Swapsの使い方を習得しました。

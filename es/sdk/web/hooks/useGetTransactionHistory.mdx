@@ -1,0 +1,165 @@
+---
+title: useGetTransactionHistory
+description: Hook para obtener y paginar el historial de transacciones
+sidebarTitle: useGetTransactionHistory
+---
+
+## Importar
+
+```tsx
+import { useGetTransactionHistory } from '@0xsequence/hooks'
+```
+
+## Uso
+
+```tsx
+import { useGetTransactionHistory } from '@0xsequence/hooks'
+
+function TransactionList() {
+  const {
+    data,
+    fetchNextPage,
+    hasNextPage,
+    isLoading,
+    isFetchingNextPage
+  } = useGetTransactionHistory({
+    chainId: 1,
+    accountAddress: '0x123...',
+    // Optional filters:
+    // contractAddress: '0x456...',
+    // tokenId: '1'
+  })
+
+  if (isLoading) return <div>Loading...</div>
+
+  return (
+    <div>
+      {data?.pages.map(page => 
+        page.transactions.map(tx => (
+          <div key={tx.txnHash}>
+            Transaction: {tx.txnHash}
+            Block: {tx.blockNumber}
+            Time: {tx.timestamp}
+          </div>
+        ))
+      )}
+      
+      {hasNextPage && (
+        <button 
+          onClick={() => fetchNextPage()}
+          disabled={isFetchingNextPage}
+        >
+          {isFetchingNextPage ? 'Loading more...' : 'Load more'}
+        </button>
+      )}
+    </div>
+  )
+}
+```
+
+## Tipo de retorno: `UseGetTransactionHistoryReturnType`
+El hook retorna todas las propiedades de `UseInfiniteQueryResult` de React Query con los datos del historial de transacciones. Esta es la estructura detallada:
+
+```tsx
+type UseGetTransactionHistoryReturnType = UseInfiniteQueryResult<
+  InfiniteData<GetTransactionHistoryReturn, unknown>,
+  Error
+>
+```
+
+### Propiedades
+
+#### data
+`InfiniteData<GetTransactionHistoryReturn> | undefined`
+
+Los datos paginados del historial de transacciones que contienen varias páginas. Cada página incluye:
+
+##### transactions
+Arreglo de objetos de transacción con las siguientes propiedades:
+- `txnHash`: Hash de la transacción
+- `blockNumber`: Número de bloque donde se minó la transacción
+- `blockHash`: Hash del bloque
+- `chainId`: ID de la red donde ocurrió la transacción
+- `metaTxnID`: ID opcional de la meta transacción
+- `transfers`: Arreglo opcional de transferencias de la transacción
+- `timestamp`: Marca de tiempo de la transacción
+
+##### page
+Objeto con información de paginación que contiene:
+- `page`: Número de la siguiente página
+- `more`: Indica si existen más resultados en la siguiente página
+- `pageSize`: Cantidad de resultados por página
+
+#### fetchNextPage
+`() => Promise<unknown>`
+
+Función para cargar la siguiente página de transacciones.
+
+#### hasNextPage
+`boolean`
+
+Booleano que indica si hay más transacciones disponibles para cargar.
+
+#### isLoading
+`boolean`
+
+Estado de carga para la obtención inicial de datos.
+
+#### isFetching
+`boolean`
+
+Estado de carga para cualquier obtención de datos (inicial o posterior).
+
+#### isFetchingNextPage
+`boolean`
+
+Estado de carga específicamente para la obtención de la siguiente página.
+
+#### error
+`Error | null`
+
+Cualquier error que ocurrió durante la obtención de datos.
+
+## Parámetros
+El hook acepta dos parámetros:
+
+### args: `UseGetTransactionHistoryArgs`
+
+```tsx
+interface UseGetTransactionHistoryArgs {
+  chainId: number
+  accountAddress: string
+  contractAddress?: string
+  tokenId?: string
+  page?: {
+    page: number
+  }
+}
+```
+
+| Parámetro         | Type     | Description                                                     |
+| ----------------- | -------- | --------------------------------------------------------------- |
+| `chainId`         | `number` | El ID de la red desde la cual obtener las transacciones         |
+| `accountAddress`  | `string` | La dirección para la cual obtener el historial de transacciones |
+| `contractAddress` | `string` | (Opcional) Filtrar transacciones por dirección de contrato      |
+| `tokenId`         | `string` | (Opcional) Filtrar transacciones por ID de token                |
+| `page`            | `object` | (Opcional) Configuración de paginación                          |
+
+### options: `HooksOptions`
+
+```tsx
+interface HooksOptions {
+  disabled?: boolean
+  retry?: boolean
+}
+```
+
+| Parámetro  | Type      | Description                                                                |
+| ---------- | --------- | -------------------------------------------------------------------------- |
+| `disabled` | `boolean` | (Opcional) Deshabilitar la consulta para que no se ejecute automáticamente |
+| `retry`    | `boolean` | (Opcional) Indica si se deben reintentar las consultas fallidas            |
+
+## Notas
+Este hook ofrece métodos para obtener el historial de transacciones con soporte para scroll infinito. Puede filtrar transacciones por dirección de contrato e ID de token, lo que lo hace útil tanto para vistas generales de cuentas como para vistas de activos específicos.
+
+El hook utiliza internamente `@tanstack/react-query` para la obtención y el caché de datos, con un tiempo de obsolescencia de 30 segundos.

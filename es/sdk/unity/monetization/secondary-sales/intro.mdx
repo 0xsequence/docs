@@ -1,0 +1,28 @@
+---
+title: Introducción
+---
+
+Las ventas secundarias y el intercambio peer to peer se facilitan a través de nuestra [Marketplace API](/api-references/marketplace/overview).
+
+Los usuarios podrán comprar y vender ERC721/1155 entre sí mediante el SDK del marketplace en Unity; pagando con criptomonedas (con abstracción de moneda habilitada por defecto) o con tarjeta de crédito donde esté disponible.
+
+## Entendiendo lo básico
+Antes de profundizar en los detalles del marketplace, primero establezcamos algunos conceptos básicos.
+
+### Órdenes
+Hay dos tipos básicos de órdenes: listados y ofertas.
+
+Los `Listings` (listados) indican la intención de vender una cantidad determinada de un coleccionable (donde un coleccionable es la combinación de una cadena, dirección de contrato y token id) a un precio específico por coleccionable en una moneda determinada. Una vez creados, los listados pueden ser consultados y comprados por otro usuario.
+
+Las `Offers` (ofertas) indican la intención de comprar una cantidad determinada de un coleccionable a un precio específico por coleccionable en una moneda determinada. Una vez creadas, las ofertas pueden ser consultadas y vendidas por otro usuario.
+
+Para crear, completar o cancelar una orden, debe usar la llamada Generate\_Method\_Transaction correspondiente según el método que esté utilizando. Esto le dará un `Step[]` que puede enviarse como una transacción para realizar la acción deseada. Más información en la [sección de completar órdenes](/sdk/unity/monetization/secondary-sales/how-it-works/filling-orders) de la documentación.
+
+### Monedas
+Una moneda es un token ERC20 o un token nativo que ha sido incluido en la lista blanca para un proyecto y cadena específicos para su uso en el marketplace. Puede agregar una nueva moneda a la lista blanca de su proyecto añadiéndola como moneda personalizada al crear un marketplace de marca blanca en el Sequence Builder. Por favor, consulte [esta guía](http://localhost:5173/solutions/marketplaces/white-label-marketplace/guide#add-a-custom-currency). Todas las órdenes deben estar valoradas en monedas incluidas en la lista blanca, de lo contrario serán ignoradas por la API.
+
+### Colecciones
+Una colección es un grupo de coleccionables, identificados por una dirección de contrato ERC721 o ERC1155.
+
+### Coleccionables
+Un coleccionable es una instancia específica de una colección, identificada por la dirección del contrato ERC721/ERC1155 y el id del token.

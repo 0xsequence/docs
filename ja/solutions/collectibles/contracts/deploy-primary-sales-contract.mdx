@@ -1,0 +1,88 @@
+---
+title: Sequence Builderでプライマリセールスコントラクトをデプロイする
+description: このガイドでは、Builderでプライマリセールスコントラクトを設定・デプロイする手順を詳しく解説します。ERC721とERC1155コントラクトの違いや、コントラクトのデプロイ手順について説明します。
+sidebarTitle: プライマリセールスコントラクトをデプロイする
+---
+
+### Sequence Builderでプライマリセールスコントラクトをデプロイする方法
+このガイドでは、NFTドロップやゲーム内ストアなどに適したプライマリセールのコントラクトを設定・デプロイする手順を説明します。
+
+<Steps>
+  <Step title="ステップ1：コントラクト画面へ移動">
+    まず、セールを作成したい`project`を選択し、`Contracts > Deploy`に進みます。
+  </Step>
+
+  <Step title="ステップ2：選択したコレクティブルコントラクトをデプロイする">
+    [こちらのガイド](/solutions/collectibles/contracts/deploy-an-item-collection)に従って、セール対象となるコレクションのコントラクトをデプロイし、コレクションのメタデータをアップロードしてください。
+
+    <Frame>
+      ![ゲームアイテムを選択](/images/collectibles/select_web3_game_item.png)
+    </Frame>
+  </Step>
+
+  <Step title="ステップ3：プライマリセールスコントラクトをデプロイする">
+    デプロイが完了したら、コントラクトページに戻り、再度`+ Deploy new contract`を選択します。次に、先ほどデプロイしたコレクティブルコントラクトに対応するERC721またはERC1155のセールコントラクトを選択し、`Deploy sale contract`をクリックします。
+
+    <Frame>
+      ![セールコントラクトをデプロイ](/images/collectibles/primary-sales/docs_deploy_sale.png)
+    </Frame>
+  </Step>
+
+  <Step title="ステップ4：プライマリセールスコントラクトでミント詳細を設定する">
+    プライマリセールスコントラクトのミント詳細タブに移動し、希望するセールパラメータを入力します。
+
+    <Frame>
+      ![ミントアクセス](/images/collectibles/primary-sales/docs_mint_access.png)
+    </Frame>
+
+    - `Supply Cap`：ユーザーがセールコントラクトを通じてミントできるトークンの供給上限です。
+    - `Cost`：1トークンをミントする際のGWEI単位のコストです。この例ではBuilderから簡単にミントできるよう0に設定していますが、本番環境ではユーザーに請求したい金額に合わせて設定してください。
+    - `Start and End Time`：セールの開始・終了日時です。現在時刻が指定した範囲内であれば、セールが有効になります。必要に応じて将来の日付に設定することもできます。
+    - `Payment Token`：チェーンのネイティブトークンや、カスタム通貨をセール通貨として選択できます。
+    - `Sale Type`：パブリックミントまたはプライベートミントを選択できます。プライベートミントを選択した場合は、[Audience](https://sequence.build/project/default/audience/)機能を使ってアップロードした許可リスト参加者を指定できます。なお、プライベートミントの場合は、セール詳細で追加したマークルルートに対応するマークルプルーフをミント時に入力する必要がありますが、このロジックは当社のボイラープレートに標準で含まれています。
+
+    この手順では、パブリックミントを作成する場合を想定しています。
+  </Step>
+
+  <Step title="ステップ5：セールスコントラクトにMinterロールを付与する">
+    セールスコントラクトのアドレスをコピーし、該当するコントラクトに移動し、設定からパーミッションを表示します。
+
+    <Frame>
+      ![コントラクト設定](/images/builder/builder_contract_specific_settings.png)
+    </Frame>
+
+    モーダルが開いたら、`Permissions`タブを選択し、`Edit`または`+ Add Collaborator`を選択できます。
+
+    <Frame>
+      ![コラボレーターを追加](/images/builder/builder_contract_specific_permissions.png)
+    </Frame>
+
+    フォームにセールスコントラクトのアドレスを入力し、コラボレーターとして追加、ドロップダウンから`Minter`ロールを割り当てます。
+
+    <Frame>
+      ![役割を割り当て](/images/builder/builder_contract_permissions_dropdown.png)
+    </Frame>
+
+    最後に、トランザクションに署名してコントラクトのアクセスコントロールを更新します。
+  </Step>
+
+  <Step title="ステップ6：">
+    コントラクトの設定が完了したら、テストミントを試してみましょう。
+
+    デプロイ済みのセールコントラクトに戻り、`Write contract`を選択します。次に`mint()`関数をクリックし、いくつかのパラメータを入力します。
+
+    - `to`：NFTのミント先アドレスです。通常は購入者のアドレスですが、今回は右上のBuilderアドレスを入力しても構いません。
+    - `amount`：ミントするNFTの数です。ここでは1つだけミントします。
+    - `paymentToken`：カスタム通貨の場合はその通貨のアドレスを入力します。ネイティブトークンの場合は`0x0000000000000000000000000000000000000000`となります。
+    - `maxTotal`：支払い可能な通貨の最大額です。
+    - `proof`：パブリックミントの場合は空欄で構いません。プライベートミントの場合は、ユーザーアドレスと事前に指定したマークルルートに対応するプルーフを入力します。
+
+    <Frame>
+      ![Minterロールを付与](/images/collectibles/primary-sales/docs_mint_sale.png)
+    </Frame>
+
+    すべての情報を入力したら、`Write`をクリックしてトランザクションを作成し、`Confirm`でトークンをミントします。
+  </Step>
+</Steps>
+
+次は？これでセールコントラクトを使って、NFTドロップやゲーム内ストアでアイテムをプレイヤーに販売できるようになりました。また、[Sequence Pay boilerplate](https://github.com/0xsequence-demos/sequence-pay-boilerplate)もぜひご覧ください。これを活用することで、クレジットカードによるフィアット決済や、さまざまな通貨での支払いなど、幅広いユースケースに対応できます。

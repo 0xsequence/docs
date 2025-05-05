@@ -1,0 +1,330 @@
+---
+title: カスタム構成オプション
+description: 構成セクションでは、`SequenceConnect` ラッパーにオプションを渡すことで Web SDK をカスタマイズできます。
+sidebarTitle: カスタム構成
+---
+
+開発者は `SequenceConnect` ラッパーに構成オプションを渡すことで Web SDK の体験をカスタマイズできます。
+
+これらのオプションを使ってキットを設定する方法は次の通りです。
+
+```jsx
+  const connectConfig =  {
+		defaultTheme: 'light',
+		position: 'top-left',
+		...
+	}
+
+  <SequenceConnect config={connectConfig}>
+    <App />
+  </SequenceConnect>
+
+```
+
+## 構成の概要
+利用可能な構成カスタマイズオプションは以下の通りです。詳細は[こちら](/sdk/web/custom-configuration#available-options)をご覧ください。
+
+```typescript
+interface CreateConfigOptions {
+  appName: string
+  projectAccessKey: string
+  chainIds?: number[]
+  defaultChainId?: number
+  disableAnalytics?: boolean
+  defaultTheme?: Theme
+  position?: ModalPosition
+  signIn?: {
+    logoUrl?: string
+    projectName?: string
+    useMock?: boolean
+  }
+  displayedAssets?: Array<{
+    contractAddress: string
+    chainId: number
+  }>
+  ethAuth?: EthAuthSettings
+  wagmiConfig?: WagmiConfig // optional wagmiConfig overrides
+  waasConfigKey: string
+  enableConfirmationModal?: boolean
+  walletConnect?:
+    | boolean
+    | {
+        projectId: string
+      }
+  google?:
+    | boolean
+    | {
+        clientId: string
+      }
+  apple?:
+    | boolean
+    | {
+        clientId: string
+        rediretURI: string
+      }
+  email?:
+    | boolean
+    | {
+        legacyEmailAuth?: boolean
+      }
+}
+```
+
+## カスタムスタイリングとデザイン
+Web SDK の接続モーダルの見た目は、`defaultTheme` 構成オプションにカスタムテーマオブジェクトを指定することでカスタマイズできます。カスタムスタイリングの実装例は以下の通りです。
+
+```typescript
+import { createConfig } from "@0xsequence/connect";
+
+const CUSTOM_THEME = {
+  backgroundPrimary: "rgba(35, 100, 32, 1)",
+  backgroundSecondary: "navy",
+};
+
+export const config = createConfig("waas", {
+  projectAccessKey: projectAccessKey,
+  defaultTheme: CUSTOM_THEME,
+  // ... other config options
+});
+```
+
+### 利用可能なテーマ変数
+カスタマイズできるテーマ変数は以下の通りです。
+
+```typescript
+// Text Colors
+text100: string; // 'rgba(255, 255, 255, 1)'
+text80: string; // 'rgba(255, 255, 255, 0.8)'
+text50: string; // 'rgba(255, 255, 255, 0.5)'
+textInverse100: string; // 'rgba(0, 0, 0, 1)'
+
+// Background Colors
+backgroundPrimary: string; // 'rgba(0, 0, 0, 1)'
+backgroundSecondary: string; // 'rgba(255, 255, 255, 0.1)'
+backgroundContrast: string; // 'rgba(0, 0, 0, 0.5)'
+backgroundMuted: string; // 'rgba(255, 255, 255, 0.05)'
+backgroundControl: string; // 'rgba(255, 255, 255, 0.25)'
+backgroundInverse: string; // 'rgba(255, 255, 255, 1)'
+backgroundBackdrop: string; // 'rgba(34, 34, 34, 0.9)'
+backgroundOverlay: string; // 'rgba(0, 0, 0, 0.7)'
+backgroundRaised: string; // 'rgba(54, 54, 54, 0.7)'
+
+// Button Colors
+buttonGlass: string; // 'rgba(255, 255, 255, 0.15)'
+buttonEmphasis: string; // 'rgba(0, 0, 0, 0.5)'
+buttonInverse: string; // 'rgba(255, 255, 255, 0.8)'
+
+// Border Colors
+borderNormal: string; // 'rgba(255, 255, 255, 0.25)'
+borderFocus: string; // 'rgba(255, 255, 255, 0.5)'
+```
+
+これらの変数は任意の組み合わせで上書きでき、値は有効な CSS カラー形式（rgba、hex、名前付きカラーなど）で指定できます。
+
+# 利用可能なオプション
+
+## Sequence アプリ開発
+
+### `appName`
+
+| 型      | デフォルト値 |
+| ------ | ------ |
+| string | 未定義    |
+
+ユーザーには表示されない内部ソフトウェア用の名前です。
+
+### `projectAccessKey`
+
+| 型      | デフォルト値 |
+| ------ | ------ |
+| string | 未定義    |
+
+[Sequence Builder](https://sequence.build) から取得できる、必要なプロジェクトアクセスキーです。
+
+### `ethAuth` as EthAuthSettings
+
+```typescript
+{
+  /*app name*/
+  app?: string
+  /** expiry number (in seconds) that is used for ETHAuth proof. Default is 1 week in seconds. */
+  expiry?: number
+  /** origin hint of the dapp's host opening the wallet. This value will automatically
+   * be determined and verified for integrity, and can be omitted. */
+  origin?: string
+  /** nonce is an optional number to be passed as ETHAuth's nonce claim for replay protection. **/
+  nonce?: number
+}
+```
+
+### `waasConfigKey`
+
+| 型      | デフォルト値 |
+| ------ | ------ |
+| string | 未定義    |
+
+WaaS ウォレット用に [Sequence Builder](https://sequence.build) で設定された Embedded Wallet 構成キーです。
+
+## ネットワーク
+
+### `chainIds`
+
+| 型         | デフォルト値 |
+| --------- | ------ |
+| number\[] | 未定義    |
+
+チェーン ID のリスト。例：\[1, 137]
+
+### `defaultChainId`
+
+| 型      | デフォルト値 |
+| ------ | ------ |
+| number | 未定義    |
+
+署名やトランザクションで最初に使われるチェーン ID です。
+
+## UI
+モーダルインターフェースを拡張するユーザーインターフェース関連のパラメータです。
+
+### サインインモーダルの構成（`signIn`）
+`signIn` オブジェクトはサインインモーダルの設定に使います。
+
+#### `signIn.logoUrl`
+
+<Frame>
+  ![Web SDK にダークテーマを適用](/images/kit/sign-in-modal-with-logo.png)
+</Frame>
+
+| 型      | デフォルト値 |
+| ------ | ------ |
+| string | 未定義    |
+
+サインインモーダルに表示するロゴの URL です。
+
+#### `signIn.projectName`
+
+<Frame>
+  ![Web SDK にプロジェクト名を追加](/images/kit/sign-in-modal-project-name.png)
+</Frame>
+
+| 型      | デフォルト値 |
+| ------ | ------ |
+| string | 未定義    |
+
+サインインモーダルに表示するプロジェクト名です。
+
+#### `signIn.useMock`
+
+| 型       | デフォルト値 |
+| ------- | ------ |
+| boolean | 未定義    |
+
+`true` に設定すると [wagmi mock connector](https://wagmi.sh/core/api/connectors/mock#mock) を使い、ライブのブロックチェーンリクエストができなくなります。
+
+### `position`
+
+| 型      | デフォルト値 |
+| ------ | ------ |
+| string | center |
+
+position パラメータは各種モーダルの画面上の位置を決定します。指定できる値は以下の通りです。
+- center
+- middle-right
+- middle-left
+- top-center
+- top-right
+- top-left
+- bottom-center
+- bottom-right
+- bottom-left
+
+### `defaultTheme`
+
+| 型                 | デフォルト値 |
+| ----------------- | ------ |
+| string または object | dark   |
+
+defaultTheme はモーダルのスタイリングに使われるカラーパレットを決定します。指定できる値は以下の通りです。
+- 'light'
+- 'dark'
+- object
+
+特定の色はテーマオーバーライドオブジェクトを渡すことで上書きできます。[Sequence Builder](https://sequence.build/) には Web SDK の色を試せる便利なプレイグラウンドがあります。
+
+## ウォレット
+ウォレット構成オプションに関するパラメータです。
+
+### `disableAnalytics`
+
+| 型       | デフォルト値 |
+| ------- | ------ |
+| boolean | 未定義    |
+
+[Sequence Builder](http://sequence.build) プロジェクトに接続されているアナリティクス機能のオン・オフを切り替える方法です。
+
+### `displayedAssets`
+
+| 型                                                     | デフォルト値 |
+| ----------------------------------------------------- | ------ |
+| \[\{ contractAddress: string, chainId: number }, ...] | 未定義    |
+
+このオプションを設定すると、ゲーム内ウォレットモーダルのメイン画面に表示するアセットを指定できます。
+表示するアセットのリストを渡すことで、指定したアセットのみがメイン画面に表示されます。
+何も指定しない場合は、保有しているすべてのアセットがメイン画面に表示されます。
+
+### `enableConfirmationModal`
+
+| 型       | デフォルト値 |
+| ------- | ------ |
+| boolean | 未定義    |
+
+トランザクション送信時に確認モーダルを有効にします。
+
+## サインインプロバイダー
+ユーザーのウォレット接続を作成するための各種サインインプロバイダー：
+
+### `walletConnect`
+
+| 型       | デフォルト値                  |             |
+| ------- | ----------------------- | ----------- |
+| `false` | `{ projectId: string }` | `undefined` |
+
+### `google`
+
+| 型       | デフォルト値                 |             |
+| ------- | ---------------------- | ----------- |
+| `false` | `{ clientId: string }` | `undefined` |
+
+### `apple`
+
+| 型       | デフォルト値                                      |             |
+| ------- | ------------------------------------------- | ----------- |
+| `false` | `{ clientId: string, redirectURI: string }` | `undefined` |
+
+### `email`
+
+| 型         | デフォルト値                         |             |
+| --------- | ------------------------------ | ----------- |
+| `boolean` | `{ legacyEmailAuth: boolean }` | `undefined` |
+
+# ユニバーサルデフォルトコネクタの作成
+通常はSequenceKitでEmbedded Walletsの利用を推奨していますが、代替としてユニバーサルウォレット構成もご利用いただけます。wagmiの`connectors`変数を作成する際、`@0xsequence/kit`パッケージから`getDefaultConnectors`関数をインポートし、[こちら](https://cloud.walletconnect.com/app)で取得したWallet Connect ID、デフォルトのチェーンID、アプリ名、`projectAccessKey`を含めて設定してください。その後は[クイックスタートの手順](/sdk/web/getting-started)に従って統合を進めてください。
+
+```typescript [config.ts]
+import { getDefaultConnectors } from '@0xsequence/kit'
+...
+export const projectAccessKey = '<access-key>'
+
+const connectors = getDefaultConnectors( "universal", {
+  walletConnectProjectId: 'wallet-connect-id',
+  defaultChainId: 1,
+  appName: 'demo app',
+  projectAccessKey
+})
+
+export const config = createConfig({
+  transports,
+  connectors,
+  chains
+})
+```

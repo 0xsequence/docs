@@ -1,0 +1,40 @@
+---
+title: Configuración
+description: Documentación para la configuración del SDK de Unreal para la infraestructura de Sequence para juegos web3.
+---
+
+<Steps>
+  <Step title="Módulos de dependencia privada">
+    En el archivo Build.cs del proyecto ([dónde encontrarlo](https://forums.unrealengine.com/t/where-are-build-cs-and-target-cs/302665)), verifica que el módulo de dependencia privada incluya "SequencePlugin":
+
+    ```cpp
+        public SequenceTest(ReadOnlyTargetRules Target) : base(Target)
+        {
+            PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
+    		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore" });
+    		PrivateDependencyModuleNames.AddRange(new string[] { "SequencePlugin" });
+    	}
+    ```
+  </Step>
+
+  <Step title="Crea un archivo de configuración">
+    Ve a `[YourProjectDirectory]/Config`, crea un archivo llamado `SequenceConfig.ini` y agrega el siguiente contenido:
+
+    ```
+    [/Script/Sequence.Config]
+
+    WaaSConfigKey = "Go to https://sequence.build/ under Onboard > Embedded Wallet"
+    ProjectAccessKey = "Go to https://sequence.build/ under Settings > API Keys"
+    GoogleClientID = "" 
+    AppleClientID = "" 
+    FacebookClientID = "" 
+    DiscordClientID = ""
+    PlayFabTitleID = ""
+    RedirectUrl = "https://api.sequence.app"
+    ```
+  </Step>
+</Steps>
+
+<Warning>
+  ¡No olvides [configurar los ajustes de tu embedded wallet en el Builder Console](/solutions/builder/embedded-wallet/configuration)!
+</Warning>

@@ -1,0 +1,58 @@
+---
+title: Minteo de NFTs
+description: Este ejemplo demuestra cómo mintear un NFT usando Sidekick.
+---
+
+Cuando usa Sidekick, su clave privada está asociada a una cuenta inteligente Sequence. Antes de realizar acciones como mintear NFTs o transferir tokens, asegúrese de que esta cuenta inteligente tenga los permisos necesarios para ejecutar estas operaciones.
+
+A continuación, ilustramos los pasos para preparar y mintear ERC1155 usando Sidekick.
+
+<Note>
+  Este ejemplo asume que el control de acceso ERC1155 es basado en roles.
+</Note>
+
+<Note>
+  Su smart wallet de Sidekick debería ser el nuevo `owner` ahora si planea ejecutar transacciones desde Sidekick. No funcionará mintear nuevos tokens si no transfiere la propiedad
+  a la smart wallet de Sidekick o utiliza control de acceso basado en roles y otorga el rol de minteador a la smart wallet de Sidekick.
+</Note>
+
+## Minteo de un NFT con control de acceso basado en roles
+
+<Steps>
+  <Step title="Configuración completa de Sidekick">
+    Asegúrese de haber seguido la guía de [Configuración de Sidekick](/solutions/sidekick/overview).
+  </Step>
+
+  <Step title="Obtén la dirección de tu smart wallet de Sidekick">
+    Envía una solicitud GET al endpoint `/sidekick/smart-account-address` para obtener la dirección de tu smart wallet de Sidekick. Esta dirección se usará para interactuar con tus contratos NFT.
+
+    <video controls className="w-full aspect-video" src="../../../video/sidekick/sidekick_getaddress.mp4" />
+  </Step>
+
+  <Step title="Otorga el rol de minteo a la dirección del smart wallet de Sidekick desde el contrato" />
+
+  <Step title="Mintea el NFT">
+    Ahora que tu smart wallet de Sidekick tiene el rol de minteo, puedes enviar una solicitud POST al endpoint `/write/erc1155/{chainId}/{contractAddress}/mint` para mintear un NFT desde el backend.
+  </Step>
+</Steps>
+
+<Note>
+  Si tu NFT no es basado en roles, en lugar de otorgar el rol de minteo deberás transferir la propiedad del contrato al smart wallet de Sidekick.
+</Note>
+
+## Despliegue y minteo desde Sidekick
+También puedes desplegar tu contrato desde Sidekick y mintear, sin pasos adicionales.
+
+<Steps>
+  <Step title="Despliega el contrato NFT">
+    Despliega el contrato NFT usando Sidekick.
+
+    <video controls className="w-full aspect-video" src="../../../video/sidekick/sidekick_deploy.mp4" />
+  </Step>
+
+  <Step title="Mintea el NFT">
+    Mintea el NFT usando Sidekick.
+
+    <video controls className="w-full aspect-video" src="../../../video/sidekick/sidekick_mint.mp4" />
+  </Step>
+</Steps>

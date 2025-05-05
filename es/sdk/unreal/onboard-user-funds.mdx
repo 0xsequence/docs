@@ -1,0 +1,135 @@
+---
+title: On-Ramp (compra de criptomonedas) con tarjeta de crédito
+description: Documentación general del SDK de Unreal para la infraestructura Sequence orientada a juegos web3.
+---
+
+Si desea que sus usuarios puedan pagar dentro de su juego usando criptomonedas, nuestra integración con Transak le será de gran utilidad.
+Transak permite a los usuarios comprar diversas criptomonedas en diferentes blockchains usando su tarjeta de crédito a través de una interfaz web fácil de usar. Puede obtener más información sobre Transak [aquí](https://transak.com/).
+
+## Generar URL de On-Ramp (compra de criptomonedas)
+Para generar un enlace de On-Ramp (compra de criptomonedas) de Transak para su usuario.
+
+<Tabs>
+  <Tab title="Blueprint">
+    <Frame caption="Pay Onramp Link">
+      <img src="/images/unreal/pay_onramp_link.png" />
+    </Frame>
+  </Tab>
+
+  <Tab title="C++">
+    ```cpp
+    UTransakOnRamp* Transak = UTransakOnRamp::Init("UserWalletAddress");
+    FString OnRampLink = Transak->GetTransakLink("USD", "100", "BTC", "network1,network2", false);
+    // You can tailor the user experience by providing different default values for the parameters.
+    ```
+  </Tab>
+</Tabs>
+
+<Accordion title="Parámetros">
+  **Wallet Address (FString)**
+
+  La dirección del usuario que recibirá la cantidad de criptomonedas comprada.
+
+  **Moneda Fiat (FString)**
+
+  La moneda fiat predeterminada que se muestra en el modal de On-Ramp.
+
+  **Monto Fiat (FString)**
+
+  El monto fiat predeterminado que se muestra en el modal de On-Ramp.
+
+  **Criptomoneda (FString)**
+
+  La criptomoneda que el usuario puede comprar.
+
+  **Redes (FString)**
+
+  Lista de redes que el usuario puede seleccionar, separadas por coma. Por ejemplo: 'ethereum, mainnet'.
+
+  **Desactivar formulario de dirección de wallet (Booleano)**
+
+  Establezca este valor en 'false' para permitir que los usuarios editen su dirección de wallet.
+</Accordion>
+
+<Accordion title="Tipos de retorno">
+  **Tipo de retorno (FString)**
+
+  El enlace de On-Ramp que se usa para abrir en un WebView o navegador externo.
+</Accordion>
+
+## Abrir URL de On-Ramp
+Para generar un enlace de On-Ramp (compra de criptomonedas) de Transak para su usuario:
+
+<Tabs>
+  <Tab title="Blueprint">
+    <Frame caption="Pay Open Onramp">
+      <img src="/images/unreal/pay_open_onramp.png" />
+    </Frame>
+  </Tab>
+
+  <Tab title="C++">
+    ```cpp
+    UTransakOnRamp* Transak = UTransakOnRamp::Init("UserWalletAddress");
+    Transak->OpenTransakLink("USD", "100", "BTC", "network1,network2", false);
+    // This will automatically open the generated Transak On-Ramp link in the default web browser.
+    ```
+  </Tab>
+</Tabs>
+
+<Accordion title="Parámetros">
+  **Wallet Address (FString)**
+
+  La dirección del usuario que recibirá la cantidad de criptomonedas comprada.
+
+  **Moneda Fiat (FString)**
+
+  La moneda fiat predeterminada que se muestra en el modal de On-Ramp.
+
+  **Monto Fiat (FString)**
+
+  El monto fiat predeterminado que se muestra en el modal de On-Ramp.
+
+  **Criptomoneda (FString)**
+
+  La criptomoneda que el usuario puede comprar.
+
+  **Redes (FString)**
+
+  Lista de redes que el usuario puede seleccionar, separadas por coma. Por ejemplo: 'ethereum, mainnet'.
+
+  **Desactivar formulario de dirección de wallet (Booleano)**
+
+  Establezca este valor en 'false' para permitir que los usuarios editen su dirección de wallet.
+</Accordion>
+
+## Obtener países compatibles
+Para consultar los países compatibles con Transak y cómo se soportan, utilice el método `GetSupportedCountries`.
+
+<Tabs>
+  <Tab title="Blueprint">
+    <Frame caption="Pay Get Supported Countries">
+      <img src="/images/unreal/pay_get_supported_countries.png" />
+    </Frame>
+  </Tab>
+
+  <Tab title="C++">
+    ```cpp
+    Transak->GetSupportedCountries(
+        [](TArray<FSupportedCountry> SupportedCountries) {
+        for (const FSupportedCountry& Country : SupportedCountries) {
+        UE_LOG(LogTemp, Log, TEXT("Country: %s"), *Country.CountryName);
+    }
+    },
+        [](FSequenceError Error) {
+            UE_LOG(LogTemp, Error, TEXT("Encountered error fetching supported countries from Transak: %s"), *Error.ErrorMessage);
+        }
+    );
+    ```
+  </Tab>
+</Tabs>
+
+<Accordion title="Tipos de retorno">
+  **Países compatibles (Array de FSupportedCountry)**
+
+  Lista de objetos que incluyen información de cada país, como el nombre o el código de moneda.
+</Accordion>

@@ -1,0 +1,28 @@
+---
+title: Introducción
+description: Para desarrolladores experimentados en blockchains basadas en EVM, nuestra librería ligera de Ethereum, SequenceEthereum, diseñada para Unity, ofrece herramientas esenciales sin la complejidad de librerías populares como Nethereum.
+---
+
+## Introducción
+Para usuarios avanzados con experiencia en el desarrollo de aplicaciones sobre blockchains EVM, hemos creado nuestra propia librería ligera y personalizada para Unity: [SequenceEthereum](https://github.com/0xsequence/sequence-unity/tree/master/Assets/SequenceSDK/Ethereum).
+SequenceEthereum debería proporcionarle todo lo necesario para construir su app de Unity sobre EVM, sin todas las funciones adicionales que ofrece la popular librería [Nethereum](https://github.com/Nethereum/Nethereum).
+
+Aunque SequenceEthereum está ampliamente probada, en general, al trabajar con métodos asíncronos en la librería, debe considerarlos "no seguros", ya que <i>pueden</i> lanzar excepciones si se usan incorrectamente.
+En general, envolver llamadas asíncronas que puedan lanzar excepciones en bloques try-catch es una buena práctica; especialmente en Unity, donde los `Tasks` pueden fallar silenciosamente al lanzar excepciones, lo que dificulta la depuración si no se envuelven en try-catch.
+
+### Componentes importantes
+Al trabajar con la librería SequenceEthereum, puede ser útil entender algunos de los principales "componentes" y cómo se relacionan lógicamente entre sí.
+
+#### Cliente
+Los clientes gestionan la conexión a las redes blockchain, realizando diversas solicitudes RPC. Cada vez que desee consultar la blockchain o enviar una transacción, necesitará un cliente. Como regla general, si un método requiere un cliente, debe esperar que realizará una solicitud web y tendrá que trabajar con tareas asíncronas y estar preparado para manejar cualquier excepción que se genere.
+
+#### Sequence.Wallet.IWallet
+Un wallet mantiene su propio par de claves privada/pública y dirección, y es responsable de proporcionar su clave privada cuando se firman transacciones.
+
+#### Transacción
+Una transacción, tal como se implementa en `EthTransaction`, contiene todos los datos y parámetros para una transacción EVM. Este objeto se utiliza para iniciar su [codificación RLP](https://ethereum.org/en/developers/docs/data-structures-and-encoding/rlp/) (las transacciones deben ser firmadas y codificadas en RLP al enviarse).
+
+Nota: todas las transacciones se codifican incluyendo un chain id para proteger contra ataques de repetición; consulte [EIP-155](https://eips.ethereum.org/EIPS/eip-155).
+
+#### Contrato
+Un contrato es responsable de crear transacciones (para llamadas a métodos) y mensajes (para consultas) dirigidos a él. Estas transacciones luego son firmadas por el wallet y enviadas (junto con los mensajes de consulta) usando un cliente.

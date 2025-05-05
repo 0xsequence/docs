@@ -1,0 +1,89 @@
+---
+title: Autentique usuarios con firma de mensaje
+description: Aprenda cómo autenticar usuarios con la dirección de su wallet usando Sequence. Permita fácilmente que los usuarios conecten su wallet y verifiquen su identidad firmando un mensaje.
+---
+
+## Solicite la dirección de la wallet
+Para obtener la dirección de la wallet Sequence del usuario:
+
+```ts
+const wallet = sequence.getWallet()
+const address = wallet.getAddress()
+console.log(address)
+```
+
+## Autentique la wallet
+En muchos casos, querrá que sus usuarios se conecten y luego verifiquen que realmente controlan esa dirección de wallet. Las aplicaciones suelen hacer esto pidiendo al usuario
+que firme un mensaje con su wallet, y luego verifican la firma para asegurar su integridad.
+
+Como este es un flujo tan común, Sequence puede autenticar automáticamente la dirección de la cuenta al mismo tiempo
+que se le solicita al usuario conectar su wallet a su dapp. Esto permite que la experiencia del usuario sea más simple y
+fluida.
+
+```ts
+import { sequence } from '0xsequence'
+
+const wallet = sequence.getWallet()
+
+const connectDetails = await wallet.connect({
+  app: 'Your Dapp name',
+  authorize: true // <---<<< this will automatically sign+verify a EIP712 message when user clicks "Connect"
+})
+```
+
+Así se verá para sus usuarios:
+
+<Frame caption="Sequence on-demand sign in, connect">
+  <img src="/images/authorize_connect.png" />
+</Frame>
+
+En el ejemplo anterior, pasamos `authorize: true` a la función `connect()`, lo que hará que el usuario
+firme automáticamente un **mensaje firmado EIP712** para probar su identidad. Esto le permite autenticar fácilmente la dirección
+de wallet conectada con total certeza.
+
+Puede encontrar la prueba del mensaje firmado en `connectDetails.proof`, que es un objeto firmado EIP712 usando
+una convención simple de [ethauth](https://github.com/0xsequence/ethauth.js).
+
+<Note>
+  EIP712 le permite usar un objeto real para firmar en lugar de solo una cadena de texto plano.
+</Note>
+
+## Autentique la wallet del lado del servidor
+El ejemplo anterior muestra cómo conectar y verificar la identidad del usuario en su dapp del lado del cliente,
+pero si desea autenticar la prueba de autorización de Sequence en su servidor, puede hacerlo con el siguiente fragmento:
+
+```ts
+import { ValidateSequenceWalletProof } from '@0xsequence/auth'
+import { commons, v2 } from '@0xsequence/core'
+import { ETHAuth } from '@0xsequence/ethauth'
+import { trackers } from '@0xsequence/sessions'
+import * as ethers from 'ethers'
+
+// ...
+
+const rpcUrl = 'https://polygon-mainnet.infura.io/v3/<your infura key here>'
+const provider = new ethers.providers.JsonRpcProvider(rpcUrl)
+
+// create an EIP-6492-aware ETHAuth proof validator
+const validator = ValidateSequenceWalletProof(
+  () => new commons.reader.OnChainReader(provider),
+  new trackers.remote.RemoteConfigTracker('https://sessions.sequence.app'),
+  v2.DeployedWalletContext
+)
+const ethauth = new ETHAuth(validator)
+await ethauth.configJsonRpcProvider(rpcUrl)
+
+try {
+  const proof = await ethAuth.decodeProof(connectDetails.proof.proofString)
+  console.log(`proof for address ${proof.address} is valid`)
+} catch (err) {
+  console.log(`invalid proof -- do not trust address: ${err}`)
+}
+```
+
+Consulte el [SDK de Go para Sequence](https://github.com/0xsequence/go-sequence) para usar Sequence en sus aplicaciones Go.
+
+Si su servidor está escrito en un lenguaje distinto a Javascript/Typescript o Go, solo debe validar
+la firma con [EIP1271, el método estándar para validar mensajes firmados en una smart wallet](https://eips.ethereum.org/EIPS/eip-1271).
+
+Como siempre, si tiene preguntas o necesita ayuda, contáctenos en [Discord](https://discord.gg/sequence).

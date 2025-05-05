@@ -1,0 +1,26 @@
+---
+title: PlayFab
+---
+
+Nuestro SDK/API es compatible con el inicio de sesión usando el popular servicio [PlayFab](https://playfab.com/) proporcionado por Microsoft Azure.
+
+Sin embargo, dado que el [SDK de PlayFab para Unity](https://github.com/PlayFab/UnitySDK) actualmente solo puede importarse manualmente mediante un archivo `.unitypackage`, hemos optado por no incluirlo directamente en nuestro SDK, ya que podría generar conflictos de dependencias en su proyecto. De manera similar, no hemos incluido ningún código de integración dentro de nuestro SDK.
+
+Por suerte, el SDK de PlayFab se integra fácilmente en su proyecto. Consulte su [readme para instrucciones de instalación e integración](https://github.com/PlayFab/UnitySDK).
+
+Una vez que haya autenticado a su usuario mediante PlayFab, debería haber recibido un `SessionTicket` del objeto `LoginResult`.
+
+A partir de aquí, simplemente llame a `PlayFabLogin` en un objeto `SequenceLogin`
+
+```csharp
+public void OnPlayFabLoginSuccess(LoginResult result) {
+    SequenceLogin login = SequenceLogin.GetInstance();
+    login.PlayFabLogin(PlayFabSettings.staticSettings.TitleId, result.SessionTicket, email);
+}
+```
+
+donde `email` es el correo electrónico utilizado para iniciar sesión en PlayFab (o `""` si utiliza PlayFab Guest Login).
+
+<Tip>¡No olvide suscribirse al evento `SequenceWallet.OnWalletCreated` para recibir su wallet recién creada!</Tip>
+
+<Warning>¡No olvide [configurar PlayFab en el Builder](/sdk/headless-wallet/authentication#authenticating-with-playfab)!</Warning>

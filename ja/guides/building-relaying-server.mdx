@@ -1,0 +1,301 @@
+---
+title: リレートランザクションサーバーの構築
+description: Sequenceを使い、サーバーがユーザーに代わってトランザクションを送信できるリレートランザクションサーバーの構築方法を説明します。
+sidebarTitle: バックエンドトランザクションサービスの構築
+---
+
+Sequenceを利用すれば、サーバー用のスマートコントラクトウォレットを作成し、トランザクション速度やスループット、再編成を気にせずユーザーのためにトランザクションを送信できます。
+
+通常のSequenceウォレットでブロックチェーンにトランザクションを送信する場合との違いは、スマートコントラクトレベルで`msg.sender`がSequence Relayersウォレットアドレスのいずれかになる点です。Sequence Builder標準コントラクトでは、リレートランザクションAPIリクエストと組み合わせれば問題ありません。
+
+<Note>
+  デフォルトでは、Sequenceのトランザクションは順番に実行されます。
+</Note>
+
+以下の手順では、サーバーの作成方法とコレクティブルをウォレットアドレスへミントする方法を説明します。
+1. Expressライブラリを使って、HTTPリクエストを受け付けるNodeJsベースのサーバーを作成します。
+2. プロジェクトとアクセスキーの管理：Sequenceスタックと連携するためのパブリックアクセスキーを発行します。
+3. コレクティブルコントラクトのデプロイ：ウォレットアドレスへトークンをミントするために、コレクティブルコントラクトをブロックチェーン上にデプロイします。
+4. Transactions APIを使ったスポンサー付きリレイヤーの構築：Expressのルートで利用する関数を作成し、スポンサー付きコントラクトからSequence Transactions APIを呼び出します。
+
+追加機能：
+- （オプション）ウォレット保有通貨によるリレー：Expressのルートで利用する関数を作成し、ウォレットが保有する通貨でSequence Transactions APIの支払いを行います。
+- （オプション）並列トランザクションのリレイヤー：通貨を送信するためにトランザクションのバッチ処理を行います。
+
+<Steps>
+  <Step title="Expressサーバーによる環境構築">
+    以下のコマンドで `pnpm`（または他のNodeパッケージマネージャ）がインストールされていることを確認してください。
+
+    ```shell
+    curl -fsSL https://get.pnpm.io/install.sh | sh -
+    ```
+
+    [こちらのExpressテンプレートコード](https://github.com/0xsequence-demos/template-node-transactions-backend/tree/template-starter) をクローンします。
+
+    <Note>
+      Expressは、Webおよびモバイルアプリケーション向けの堅牢な機能を提供する、最小限かつ柔軟なNode.jsウェブアプリケーションフレームワークです。本ガイドで使用します。
+    </Note>
+
+    コードをローカル環境に配置したら、以下のコマンドでサーバーとクライアントを起動します。
+
+    ```shell
+    pnpm run start
+    ```
+
+    コード内には `/mint` というルートが含まれており、CLIからテスト用に呼び出すことができます。
+
+    以下の例のcurlリクエストで試してみてください。
+
+    ```shell
+    curl -X POST http://localhost:3000/mint -d '{"tokenID": 0, "address": "0x"}'
+    ```
+
+    次のような出力が表示されるはずです。
+
+    ```shell
+    {"txHash":"0x"}
+    ```
+  </Step>
+
+  <Step title="プロジェクトとアクセスキーの管理">
+    まずは[こちらの手順](/support/builder/project-management)に従い、[Sequence Builder](https://sequence.build/)へのサインアップ方法やプロジェクト作成方法をご確認ください。
+
+    次に、Transactions APIを利用するためには、[こちらの手順](/support/builder/project-settings#5-billing-settings)に従ってBillingを `Developer` にアップグレードする必要があります。
+
+    最後に、Transactions APIには `Public Access Key` が必要です。[こちらの手順](/solutions/builder/getting-started#claim-an-api-access-key)に従って取得してください。
+
+    最後に、`.env.example` を `.env` にリネームしてから、以下の内容で更新してください。
+
+    ```shell
+    CHAIN_HANDLE='<CHAIN_HANDLE>' # e.g. `mainnet`, `xr-sepolia`, etc.
+    PROJECT_ACCESS_KEY='<PUBlIC_ACCESS_KEY>'
+    ```
+  </Step>
+
+  <Step title="コレクティブルコントラクトのデプロイ">
+    [こちらの手順](/solutions/collectibles/contracts/deploy-an-item-collection)に従ってコレクティブルコントラクトをデプロイしてください。
+
+    <Note>
+      テストネット以外を利用し、コントラクトのスポンサーが必要な場合は、[こちらの手順]()に従って実行できます。
+    </Note>
+
+    最後に、デプロイしたコレクティブルコントラクトの情報で `.env` を更新してください。
+
+    ```shell
+    ...
+    COLLECTIBLE_CONTRACT_ADDRESS="<ADDRESS>"
+    ```
+
+    ## Transactions APIによるスポンサー付きリレイヤーの構築
+
+    <Note>
+      このセクションの全コードは[こちら](https://github.com/0xsequence-demos/template-node-transactions-backend)で確認できます。
+    </Note>
+
+    まず、ステップ1で用意したテンプレートコードにいくつかのパッケージを追加します。
+
+    ```typescript
+    import { Session } from '@0xsequence/auth'
+    import { findSupportedNetwork, NetworkConfig } from '@0xsequence/network'
+    ```
+
+    次に、サーバーにはメッセージに署名できるEOAウォレットが必要です。このウォレットがサーバー側Sequenceウォレットの所有者となり、トランザクションの送信に利用されます。
+
+    <Warning>
+      セッションを開始すると、Sequenceウォレットが新しいバージョンにマイグレーションされる場合があります。例えば、`v1` から `v2` への移行、または将来のバージョンへの移行が含まれます。
+
+      マイグレーションは一方向のみであり、一度ウォレットが移行されると以前のバージョンには戻せません。
+
+      予期しないマイグレーションを検知するには、`onMigration` コールバックを利用できます。
+    </Warning>
+
+    `callContract` 関数を実装するには、以下のように単一の署名者でトランザクションをリレーするコードを追加してください。
+
+    ```typescript
+    const callContract = async (address: string, tokenID: number): Promise<ethers.providers.TransactionResponse> => {
+    	
+    	const chainConfig: NetworkConfig = findSupportedNetwork(process.env.CHAIN_HANDLE!)!
+    	const provider = new ethers.providers.StaticJsonRpcProvider({
+    		url: chainConfig.rpcUrl
+    	})
+
+    	const walletEOA = new ethers.Wallet(process.env.PKEY!, provider);
+    	const relayerUrl = `https://${chainConfig.name}-relayer.sequence.app`
+
+    	// Create a single signer sequence wallet session
+    	const session = await Session.singleSigner({
+    		signer: walletEOA,
+    		projectAccessKey: process.env.PROJECT_ACCESS_KEY!
+    	})
+
+    	const signer = session.account.getSigner(chainConfig.chainId)
+    	
+    	// Standard interface for ERC1155 contract deployed via Sequence Builder
+    	const collectibleInterface = new ethers.Interface([
+    		'function mint(address to, uint256 tokenId, uint256 amount, bytes data)'
+    	])
+    		
+    	const data = collectibleInterface.encodeFunctionData(
+    		'mint', [`${address}`, `${tokenID}`, "1", "0x00"]
+    	)
+
+    	const txn = {
+    		to: process.env.COLLECTIBLE_CONTRACT_ADDRESS, 
+    		data: data
+    	}
+
+    	try {
+    		return await signer.sendTransaction(txn)
+    	} catch (err) {
+    		console.error(`ERROR: ${err}`)
+    		throw err
+    	}
+    }
+    ```
+
+    最後に、[こちらのアプリ](https://sequence-ethauthproof-viewer.vercel.app/)で生成できるウォレットのプライベートキーを `.env` に設定してください（これはデモ用です）。本番環境では、ご自身のPC上で安全にプライベートキーを生成することを推奨します。
+
+    次に、取得したキーを`PKEY`変数に設定してください。
+
+    ```shell
+    ...
+    PKEY='<WALLET_PRIVATE_KEY>'
+    ```
+
+    ### リレイヤーウォレットアドレスへのMinterロール付与
+
+    コントラクトのロールアクセスをBuilderで更新し、ミンターウォレットアドレスからのみリクエストを受け付けるようにします。
+
+    Sequence Builderで `minter permission` を `Sequence Wallet Transactions API Address` に付与してください。
+
+    プロジェクトを開き、`Contracts` ページに移動し、`Linked contracts` を選択、`Write Contract` タブで `grantRole` メソッドを展開します。
+
+    以下の情報で入力してください。
+
+    `bytes32 role`: `0x9f2df0fed2c77648de5860a4cc508cd0818c85b8b8a1ab4ceeef8d981c8956a6`
+
+    `address account`: `<Generated Sequence Transactions API Wallet Address>`
+
+    <Frame>
+      <img src="/images/relayer/grant_role.png" alt="リレイヤーにロールを付与する" />
+    </Frame>
+
+    ここで入力する `role` 文字列は、solidityでは `keccak256("MINTER_ROLE")`、javascriptでは `ethers.solidityPackedKeccak256(ethers.toUtf8Bytes("MINTER_ROLE"))` の結果です。
+
+    これにより、特定のアドレスのみがコントラクトからミントできるようになり、それ以外はエラーとなります。
+
+    `write` をクリックし、スポンサー付きトランザクションに署名してロールの更新を完了してください。
+
+    これで、クライアントフロントエンドでウォレットにサインインし、「ミント」をクリックしてテストトランザクションを送信できます。
+
+    お試しください。
+
+    <Warning>
+      クライアントの `initWallet` 関数でアクセスキーを更新することも忘れないでください。
+    </Warning>
+  </Step>
+</Steps>
+
+## （オプション）ウォレット保有通貨によるリレー
+ガス代の支払い方法を特定の方法に制限することも可能です。
+
+```ts
+import { Session } from '@0xsequence/auth'
+import { ethers } from 'ethers'
+
+// where the <chain_handle> corresponds to https://docs.sequence.xyzhttps://status.sequence.info/
+const provider = new ethers.providers.JsonRpcProvider('https://nodes.sequence.app/<chain_handle>');
+
+// Create your server EOA
+const walletEOA = new ethers.Wallet(serverPrivateKey, provider)
+
+// Open a Sequence session, this will find or create
+// a Sequence wallet controlled by your server EOA
+const session = await Session.singleSigner({
+  signer: walletEOA,
+  projectAccessKey: '<access_key>'
+  // OPTIONAL: Multiple wallets could be found for the same EOA
+  // to enforce a specific wallet you can use the following callback
+  selectWallet: async (wallets: string[]) => {
+    const found = wallets.find(w => w === EXPECTED_WALLET_ADDRESS)
+    if (!found) throw Error('wallet not found')
+    // Returning the wallet address will make the session use it
+    // returning undefined will make the session create a new wallet
+    return found
+  }
+})
+
+const signer = session.account.getSigner(137, {
+  // OPTIONAL: You can also enforce a specific way to pay for gas fees
+  // if not provided the sdk will select one for you
+  selectFee: async (
+    _txs: any,
+    options: FeeOption[]
+  ) => {
+    // Find the option to pay with native tokens
+    const found = options.find(o => !o.token.contractAddress)
+    if (!found) throw Error('fee option not found')
+    return found
+  }
+})
+
+// Initialize the contract
+const usdc = new ethers.Contract(
+  '0x2791bca1f2de4661ed88a30c99a7a9449aa84174', // USDC on Polygon
+  ERC_20_ABI,
+  signer
+)
+
+// Send the transaction
+const txnResponse = await usdc.transfer(recipient, 1)
+
+// Check if transaction was successful
+if (txnReceipt.status != 1) {
+  console.log(`Unexpected status: ${txnReceipt.status}`)
+}
+```
+
+## （オプション）並列トランザクションのリレー
+複数の独立したトランザクションをバッチ処理せずに送信したい場合は、それぞれ異なるnonceスペースで送信できます。
+
+トランザクションごとに異なるnonceスペースを使うことで、トランザクション間に依存関係がないことをAPIに示し、オンチェーンで任意の順序で実行できるようになります。
+
+これにより、バッファを介さずに即時トランザクションを送信できます。
+
+その方法の例を以下に示します。
+
+```js
+// Generate random nonce spaces with ~0% probability of collision
+const randomNonceSpace1 = ethers.BigNumber.from(
+  ethers.hexlify(ethers.randomBytes(20))
+);
+const randomNonceSpace2 = ethers.BigNumber.from(
+  ethers.hexlify(ethers.randomBytes(20))
+);
+
+// Create signers for each nonce space
+const signer1 = session.account.getSigner(137, {
+  nonceSpace: randomNonceSpace1,
+});
+
+const signer2 = session.account.getSigner(137, {
+  nonceSpace: randomNonceSpace2,
+});
+
+// Generate transactions
+const txn1 = {
+  to: tokenContract.address,
+  data: erc20Interface.encodeFunctionData("transfer", [recipient1, amount1]),
+};
+
+const txn2 = {
+  to: tokenContract.address,
+  data: erc20Interface.encodeFunctionData("transfer", [recipient2, amount2]),
+};
+
+// Dispatch transactions, which can now be executed in parallel
+await Promise.all([
+  signer1.sendTransaction(txn1),
+  signer2.sendTransaction(txn2),
+]);
+```

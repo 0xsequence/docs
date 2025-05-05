@@ -1,0 +1,130 @@
+---
+title: useCheckoutModal
+description: シンプルなチェックアウトモーダルを管理するためのフック
+sidebarTitle: useCheckoutModal
+---
+
+## インポート
+
+```tsx
+import { useCheckoutModal } from '@0xsequence/checkout'
+```
+
+## 使い方
+
+```tsx
+import { useCheckoutModal } from '@0xsequence/checkout'
+import { ChainId } from '@0xsequence/network'
+
+function App() {
+  const { address } = useAccount()
+  const { triggerCheckout } = useCheckoutModal()
+  
+  const handleCheckout = () => {
+    // NFT purchase settings
+    const chainId = ChainId.POLYGON
+    const orderbookAddress = '0xfdb42A198a932C8D3B506Ffa5e855bC4b348a712'
+    const nftQuantity = '1'
+    const orderId = 'your-order-id'
+    const tokenContractAddress = '0xabcdef...' // NFT contract address
+    const tokenId = '123' // NFT token ID
+
+    triggerCheckout({
+      creditCardCheckout: {
+        chainId,
+        contractAddress: orderbookAddress,
+        recipientAddress: address || '',
+        currencyQuantity: '100000',
+        currencySymbol: 'USDC',
+        currencyAddress: '0x3c499c542cef5e3811e1192ce70d8cc03d5c3359',
+        currencyDecimals: '6',
+        nftId: tokenId,
+        nftAddress: tokenContractAddress,
+        nftQuantity,
+        approvedSpenderAddress: orderbookAddress,
+        calldata: "0x...",
+        onSuccess: (txHash) => console.log('Success!', txHash)
+      },
+      orderSummaryItems: [
+        {
+          title: 'NFT #' + tokenId,
+          subtitle: 'Your Collection',
+          imageUrl: 'https://example.com/nft.png'
+        }
+      ]
+    })
+  }
+  
+  return (
+    <button onClick={handleCheckout}>
+      Checkout
+    </button>
+  )
+}
+```
+
+## 返り値の型: `UseCheckoutModalReturnType`
+このフックは以下のプロパティを持つオブジェクトを返します。
+
+```tsx
+type UseCheckoutModalReturnType = {
+  triggerCheckout: (settings: CheckoutSettings) => void
+  closeCheckout: () => void
+  settings: CheckoutSettings | undefined
+}
+```
+
+### プロパティ
+
+#### triggerCheckout
+`(settings: CheckoutSettings) => void`
+
+指定したパラメータでチェックアウトモーダルを開きます。
+
+**パラメータ：**
+
+`settings`オブジェクトには以下のプロパティを含めることができます:
+
+| プロパティ                | 型        | 説明               |
+| -------------------- | -------- | ---------------- |
+| `creditCardCheckout` | `object` | クレジットカード決済フローの設定 |
+| `orderSummaryItems`  | `array`  | 注文概要に表示するアイテム    |
+
+`creditCardCheckout`オブジェクトには次の内容が含まれます:
+
+| パラメータ                    | 型                          | 説明                        |
+| ------------------------ | -------------------------- | ------------------------- |
+| `chainId`                | `number`                   | ブロックチェーンネットワークID          |
+| `contractAddress`        | `string`                   | 操作対象となるコントラクトのアドレス        |
+| `recipientAddress`       | `string`                   | 購入したアイテムの受取先アドレス          |
+| `currencyQuantity`       | `string`                   | 支払いに使用する通貨の数量             |
+| `currencySymbol`         | `string`                   | 通貨のシンボル（例: 'USDC'）        |
+| `currencyAddress`        | `string`                   | 通貨トークンコントラクトのアドレス         |
+| `currencyDecimals`       | `string`                   | 通貨の小数点以下の桁数               |
+| `nftId`                  | `string`                   | 購入するNFTのID                |
+| `nftAddress`             | `string`                   | NFTコントラクトのアドレス            |
+| `nftQuantity`            | `string`                   | 購入するNFTの数量                |
+| `approvedSpenderAddress` | `string`                   | トークンの支払いを許可されたアドレス        |
+| `calldata`               | `string`                   | トランザクションのエンコード済み関数呼び出しデータ |
+| `onSuccess`              | `(txHash: string) => void` | トランザクションが成功した際のコールバック     |
+
+`orderSummaryItems`配列には以下のオブジェクトが含まれます:
+
+| パラメータ      | 型        | 説明          |
+| ---------- | -------- | ----------- |
+| `title`    | `string` | アイテムのタイトル   |
+| `subtitle` | `string` | アイテムのサブタイトル |
+| `imageUrl` | `string` | アイテム画像のURL  |
+
+#### closeCheckout
+`() => void`
+
+チェックアウトモーダルを閉じます。
+
+#### settings
+`CheckoutSettings | undefined`
+
+チェックアウトモーダルの現在の設定構成です。
+
+## 補足
+このフックは、さまざまな支払い方法で購入を完了できるチェックアウトモーダルを制御するためのメソッドを提供します。チェックアウトは、クレジットカード決済や暗号資産決済によるデジタル資産の購入に対応しています。

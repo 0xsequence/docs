@@ -1,0 +1,97 @@
+---
+title: 署名エンコーディング
+description: Sequence ウォレットは、トランザクションやメッセージの署名に ERC-1271 標準コントラクト署名検証をサポートしています。メッセージは ERC-191 Ethereum Signed Data または ERC-712 Structured Data Signatures でエンコードできます。
+sidebarTitle: 署名エンコーディング
+---
+
+Sequence ウォレットは、[ERC-1271 標準コントラクト署名検証](https://eips.ethereum.org/EIPS/eip-1271) をサポートしており、トランザクションやメッセージの署名が可能です。
+
+## ERC-191 Ethereum Signed Data
+[ERC-191 Ethereum Signed Data](https://eips.ethereum.org/EIPS/eip-191) でエンコードされたメッセージは、以下のように作成・署名できます。
+
+```ts
+import { Wallet } from '@0xsequence/wallet'
+
+// Construct your Sequence Wallet (out of scope for this section)
+const wallet: Wallet
+
+const message = "Hello, World!"
+
+const prefixedMessage = "\x19Ethereum Signed Message:\n" + len(message) + message
+const signature = await wallet.signMessage(prefixedMessage)
+```
+
+上記の方法ではローカルでメッセージに署名し、しきい値に達した場合は署名が返されます。
+しきい値に達しない場合は、ライブラリがリモート署名者にも処理を行います。
+最終的な署名は結合され、16進文字列としてエンコードされます。
+
+## ERC-712 構造化データ署名
+[ERC-712 構造化データ](https://eips.ethereum.org/EIPS/eip-712) も同様の方法で署名できます。
+
+```ts
+import { Wallet } from '@0xsequence/wallet'
+import { encodeTypedDataDigest } from '@0xsequence/utils'
+
+// Construct your Sequence Wallet (out of scope for this section)
+const wallet: Wallet
+
+// Encode the typed data
+const chainId = 1
+const typedData = {
+	types: {
+		Person: [
+			{ name: 'name', type: 'string' },
+			{ name: 'wallet', type: 'address' },
+			{ name: 'count', type: 'uint8' }
+		]
+	},
+	primaryType: 'Person' as const,
+	domain: {
+		name: 'Ether Mail',
+		version: '1',
+		chainId: chainId,
+		verifyingContract: '0xCcCCccccCCCCcCCCCCCcCcCccCcCCCcCcccccccC'
+	},
+	message: {
+		name: 'Bob',
+		wallet: '0xbBbBBBBbbBBBbbbBbbBbbbbBBbBbbbbBbBbbBBbB',
+		count: 4
+	}
+} 
+const hashedData = encodeTypedDataDigest(typedData)
+
+const signature = await wallet.signMessage(hashedData)
+```
+
+上記の方法ではローカルでメッセージに署名し、しきい値に達した場合は署名が返されます。
+しきい値に達しない場合は、ライブラリがリモート署名者にも処理を行います。
+最終的な署名は結合され、16進文字列としてエンコードされます。
+
+## 検証
+署名はウォレットの `isValidSignature` メソッドを呼び出して検証できます。
+
+```
+  /**
+   * @notice Verifies whether the provided signature is valid with respect to the provided hash
+   * @dev MUST return the correct magic value if the signature provided is valid for the provided hash
+   *   > The bytes4 magic value to return when signature is valid is 0x1626ba7e : bytes4(keccak256("isValidSignature(bytes32,bytes)"))
+   * @param _hash       keccak256 hash that was signed
+   * @param _signatures Signature byte array associated with _data.
+   *                    Encoded as abi.encode(Signature[], Configs)
+   * @return magicValue Magic value 0x1626ba7e if the signature is valid and 0x0 otherwise
+   */
+  function isValidSignature(
+    bytes32 _hash,
+    bytes calldata _signatures
+  ) public override virtual view returns (bytes4) {
+    // Validate signatures
+    (bool isValid,) = _signatureValidation(_hash, _signatures);
+    if (isValid) {
+      return SELECTOR_ERC1271_BYTES32_BYTES;
+    }
+
+    return bytes4(0);
+  }
+```
+
+これにより、結合された署名を順に検証し、ウォレットのしきい値を満たしているか確認します。

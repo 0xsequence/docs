@@ -1,0 +1,58 @@
+---
+title: Envío de un lote de transacciones
+description: Cómo agrupar varias transacciones en una sola transacción nativa.
+---
+
+De igual manera, agrupar varias transacciones para enviarlas en una sola transacción nativa es igual de sencillo:
+
+```ts
+const transaction1 = {
+  to: recipient1Address,
+  value: 1000000000000000000
+}
+
+const transaction2 = {
+  to: recipient2Address,
+  value: 1000000000000000000
+}
+
+const signer = wallet.getSigner()
+const response = await signer.sendTransaction([transaction1, transaction2])
+console.log(response)
+```
+
+Las transacciones no tienen que ser del mismo token ni siquiera del mismo estándar de token.
+Puede combinarlas como desee:
+
+```ts
+const erc20Interface = new ethers.Interface([
+  'function transfer(address _to, uint256 _value)'
+])
+const erc721Interface = new ethers.Interface([
+  'function safeTransferFrom(address _from, address _to, uint256 _tokenId)'
+])
+const erc1155Interface = new ethers.Interface([
+  'function safeTransferFrom(address _from, address _to, uint256 _id, uint256 _value, bytes calldata _data)'
+])
+
+const erc20Data = erc20Interface.encodeFunctionData(
+  'transfer', [recipient2Address, amount2]
+)
+const erc721Data = erc721Interface.encodeFunctionData(
+  'safeTransferFrom', [address, recipient3Address, amount3]
+)
+const erc1155Data = erc1155Interface.encodeFunctionData(
+  'safeTransferFrom', [address, recipient4Address, token4Id, amount4, '0x']
+)
+
+const transactions = [
+  { to: recipient1Address, value: '1000000000000000000' },
+  { to: daiContractAddress, data: erc20Data },
+  { to: erc721ContractAddress, data: erc721Data },
+  { to: erc1155ContractAddress, data: erc1155Data }
+]
+
+const signer = wallet.getSigner()
+const response = await signer.sendTransaction(transactions)
+console.log(response)
+```

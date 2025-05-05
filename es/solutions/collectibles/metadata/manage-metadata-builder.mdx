@@ -1,0 +1,99 @@
+---
+title: Cómo gestionar metadatos de ítems en Sequence Builder
+description: Esta guía explica cómo administrar los metadatos de tokens en Sequence Builder con la ayuda de Pinata para alojamiento en IPFS.
+---
+
+## Introducción
+Siguiendo esta guía, podrá gestionar fácilmente los metadatos de los tokens de los ítems de su contrato en Sequence Builder, con un poco de ayuda de [Pinata](https://www.pinata.cloud/) para alojamiento en IPFS.
+
+## Paso 1: Prepare sus imágenes y metadatos de tokens
+Primero, reúna todas las imágenes de sus tokens. Para cada token, necesitará un archivo de metadatos llamado `id.json` (como `1.json`, `2.json`, etc.). Estos archivos deberían verse al menos así:
+
+```json
+{
+    "name": "Token Name",
+    "description": "Token Description",
+    "image": "ipfs://"
+}
+```
+
+Como puede imaginar, puede construir a partir de estos conceptos básicos. Puede tener atributos únicos de cada ítem integrados en este token y generados dinámicamente.
+
+## Paso 2: Configuración en Pinata.cloud
+Vaya a [Pinata.cloud](https://www.pinata.cloud/) y cree una cuenta. Suba cada una de sus imágenes de tokens como archivos separados. Luego, actualice los archivos JSON de metadatos con la dirección `ipfs` de cada token. Para ello, simplemente copie el CID (Identificador de Contenido) de cada archivo en Pinata y péguelo después de `ipfs://` en sus archivos JSON. Debería verse así:
+
+```json
+{
+    "name": "Token Name",
+    "description": "Token Description",
+    "image": "ipfs://QmdJzQExj2wnNY7pNNn4KauzckjH4vA5xhoxmmis919Ev3"
+}
+```
+
+![Configurar Pinata](/images/guides/manage-contract-metadata-builder/1.jpeg)
+
+## Ahora, suba todos sus archivos JSON de metadatos en una sola carpeta en su computadora. Use la función 'Upload > Folder' de Pinata para subir esta carpeta. Luego, copie el CID de toda la carpeta.
+Ahora, suba todos sus archivos JSON de metadatos en una sola carpeta en su computadora. Use la función 'Upload > Folder' de Pinata para subir esta carpeta. Luego, copie el CID de toda la carpeta.
+
+![Subir metadatos](/images/guides/manage-contract-metadata-builder/2.jpeg)
+
+## Paso 4: Obtenga la URL de la carpeta
+Haga clic en el nombre de la carpeta que creó en Pinata. Esto abrirá una nueva pestaña mostrando todos sus archivos JSON subidos. Copie la URL de esta carpeta.
+
+![Obtener URL de carpeta desde Pinata](/images/guides/manage-contract-metadata-builder/3.jpeg)
+
+## Paso 5: Configuración en Sequence Builder
+Vaya a [Sequence Builder](https://sequence.build/), cree su cuenta y cree su proyecto en la red de su preferencia. En la sección de Contratos, haga clic en "Deploy New Contract".
+
+![Configurar contrato en Builder](/images/guides/manage-contract-metadata-builder/4.jpeg)
+
+## Paso 6: Despliegue su contrato
+Seleccione "Web3 Game Item Collection (ERC-1155)" y asigne un nombre a su contrato. Sequence Builder desplegará automáticamente su contrato.
+
+![Implementar contrato](/images/guides/manage-contract-metadata-builder/5.jpeg)
+
+## Paso 7: Vaya a los detalles del contrato
+Una vez que firme la transacción, ¡su contrato estará listo! Haga clic en él para ver la pantalla de detalles.
+
+![Detalles del contrato](/images/guides/manage-contract-metadata-builder/6.jpeg)
+
+## Paso 8: Actualice los atributos del contrato
+Vaya a la sección “Write Contract”. Aquí podrá modificar los atributos de su contrato ERC-1155 recién desplegado. Por ahora, concéntrese en estos dos métodos:
+- `setBaseMetadataURI` permite al creador establecer la URL base de los metadatos para este contrato. Debe apuntar a los archivos JSON que creó, dependiendo del ID del NFT.
+- `mint` mintea uno de sus tokens y lo envía a la dirección que usted elija.
+
+## Paso 9: Establezca la URI base de metadatos
+Desplácese hasta `setBaseMetadataURI`, expándalo y, en `tokenBaseURI`, pegue la URL de la carpeta de JSON que obtuvo previamente de Pinata. Debería verse así:
+
+```
+https://azure-wooden-lemur-911.mypinata.cloud/ipfs/QmW5gvYGWb98GsN8VjTRWu4pLn6jryEXNxZKNWpPhVwtDm/
+```
+
+Haga clic en “Write” y se le pedirá que firme nuevamente. Esto modificará el contrato en la blockchain para establecer la base de los metadatos. Básicamente, cualquier ID de token que proporcione se añadirá a esta URL, junto con el sufijo `.json`. Así que si mintea el token ID 123, buscará `tokenBaseURI + 123.json`.
+
+![Configurar metadatos base](/images/guides/manage-contract-metadata-builder/7.jpeg)
+
+## Paso 10: ¡Hora de mintear!
+Finalmente, ¡es momento de mintear! Desplácese hasta `mint`, expándalo y complete los detalles:
+- `to (address)`: Esta es la dirección a la que se enviará el token. Use la dirección de su wallet Sequence o cualquier otra dirección válida.
+- `tokenId (uint256)`: Este es el ID de su token. Siempre que tenga un archivo `tokenId.json` ya subido a pinata.cloud dentro de la carpeta, funcionará.
+- `amount (uint256)`: La cantidad de tokens a mintear (usualmente 1).
+- `data (bytes)`: Ingrese `0x00` para este proceso sencillo.
+
+![Prueba de minteo](/images/guides/manage-contract-metadata-builder/8.jpeg)
+
+## Paso 11: Finalice y admire
+Haga clic en "Write" y firme la transacción. ¡Felicidades, acaba de mintear un token! Vaya a la sección "Tokens" para ver sus tokens minteados con sus nombres e imágenes.
+
+![Finalizar minteo](/images/guides/manage-contract-metadata-builder/9.jpeg)
+
+## Paso 12: Actualizar metadatos
+Si comete errores con los metadatos de los tokens, siempre puede actualizarlos y luego llamar al endpoint de actualización de metadatos de Sequence para recargar los tokens específicos:
+
+```
+curl -X GET "https://metadata.sequence.app/tokens/mumbai/0xb392c99d9f8e3e0b248e5c283818be5bf5cecca7/1/refresh"
+```
+
+El formato es: `https://metadata.sequence.app/tokens/<chain-name>/<contract-address>/<token-id>/refresh`
+
+Ahora que está listo para mintear, quizás quiera leer sobre [cómo puede lanzar su propio endpoint serverless para mintear tokens de forma segura](/guides/mint-collectibles-serverless).

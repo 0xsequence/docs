@@ -1,0 +1,40 @@
+---
+title: オファーの受け入れ
+---
+
+未処理のオファーがある場合、ユーザーは「オファーを受け入れる」ことで、コレクティブルをオファーしたユーザーに販売できます。
+
+`ListCollectibleOffersWithHighestPricedOfferFirst`を使って、未処理のオファーを取得できます：
+
+```csharp
+IMarketplaceReader reader = new MarketplaceReader(chain);
+ListCollectibleListingsReturn collectiblesResponse = await reader.ListCollectibleOffersWithHighestPricedOfferFirst(collectibleContractAddress, optionalCollectiblesFilter);
+```
+
+または、ユーザーが売却可能なすべてのオファーを取得したい場合は、`ListAllSellableOffers`ヘルパーメソッド（または下記の`CollectiblesFilter`を指定）を利用できます：
+
+```csharp
+IMarketplaceReader reader = new MarketplaceReader(chain);
+CollectibleOrder[] sellableOffers = await reader.ListAllSellableOffers(userAddress, collectionContractAddress, optionalCollectiblesFilter);
+```
+
+このメソッドは、ユーザーのアドレス（売り手のアドレス）をCollectiblesFilterオブジェクトの`inAccounts`と`ordersNotCreatedBy`フィルターに追加します。また、ページネーションも自動で処理され、ページがなくなるまでリクエストを続けます。大量のオファーが予想される場合は注意してご利用ください。大量のオファーがある場合は、`ListCollectibleOffersWithHighestPricedOfferFirst`を使い、上記の`CollectiblesFilter`を指定してください。
+
+ユーザーが受け入れたいオファーと売却したいコレクティブルの数を選択したら、オファーを成立させてコレクティブルを販売できます：
+
+```csharp
+ICheckout checkout = new Checkout(_wallet, _chain);
+Step[] steps = await checkout.GenerateSellTransaction(selectedOrders, amount);
+TransactionReturn result = await steps.SubmitAsTransactions(_wallet, _chain);
+if (result is SuccessfulTransactionReturn successTransaction) {
+    // Handle success case
+}else {
+    // Handle fail case
+}
+```
+
+Boilerplate Factoryを使って、このプロセスをすぐに始めることもできます
+
+```csharp
+            BoilerplateFactory.OpenSellOfferPanel(Transform parent, ICheckout checkout, CollectibleOrder item, Action onClose = null)
+```

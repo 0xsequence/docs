@@ -1,0 +1,24 @@
+---
+title: リスティングの作成
+---
+
+ユーザーがマーケットプレイスにリスティングを作成できるようにするには、まず [ブロックチェーンからデータを読み取る](/sdk/unity/power/read-from-blockchain) ことで、ユーザーのトークン残高を取得します。取得後は、UI上でユーザーに残高を表示するのが一般的です。
+
+ユーザーが販売したいコレクティブル、数量、価格を選択したら、リスティングを作成します。
+
+```
+ICheckout checkout = new Checkout(_wallet, _chain);
+Step[] steps = await checkout.GenerateListingTransaction(collectionContractAddress, tokenId, amount, ContractType.ERC1155, currencyTokenAddress, pricePerTokenInstance, expiryDateTime);
+TransactionReturn result = await steps.SubmitAsTransactions(_wallet, _chain);
+if (result is SuccessfulTransactionReturn successTransaction) {
+    // Handle success case
+}else {
+    // Handle fail case
+}
+```
+
+Boilerplate Factoryを使って、このプロセスをすぐに始めることもできます
+
+```csharp
+            BoilerplateFactory.OpenListItemPanel(Transform parent, ICheckout checkout, TokenBalance item, Action onClose = null)
+```

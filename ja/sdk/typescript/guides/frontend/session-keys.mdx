@@ -1,0 +1,91 @@
+---
+title: ウォレット確認不要の署名
+description: この内容では、セッションキー（クライアント側に保存される一時的な秘密鍵）を使って、分散型アプリケーションでのユーザー操作を効率化する方法について解説します。
+---
+
+Sequenceウォレットで毎回確認を求めずに、ユーザーがメッセージに署名できるアプリケーションを構築することが可能です。これは、\_セッションキー\_や一時的な鍵を使うことで実現できます。
+
+# セッションキー
+セッションキーは、クライアント側（通常はユーザーのローカルストレージ）で生成・保存される一時的な秘密鍵です。これにより、ユーザーは主ウォレットで毎回確認することなく、特定の操作を安全かつ便利に承認できます。
+
+ユーザーは主ウォレット（例：Sequence Wallet）でメッセージに署名することで、セッションキーに一定期間または範囲で代理権を与えることができます。アプリケーションは、そのセッションキーからの署名済みメッセージをユーザーのウォレットからのものとして扱い、ユーザー体験を向上させます。
+
+セッションキーは、頻繁なユーザー操作が必要なアプリケーションで特に有効です。ウォレット確認の回数を減らしつつ、安全で検証可能な認証プロセスを維持できます。
+
+# Sequenceでのセッションキー利用方法
+
+### 1. Sequenceウォレットの初期化と接続
+
+```javascript
+import { Wallet } from '@0xsequence/wallet'
+import { ethers } from 'ethers'
+
+const wallet = new Wallet()
+await wallet.connect()
+
+const signer = wallet.getSigner()
+const userAddress = signer.getAddress()
+```
+
+### 2. セッションキーの生成
+新しい一時的な秘密鍵を作成し、ローカルストレージに保存して、対応するアドレスを導出します。
+
+```javascript
+const sessionPrivateKey = ethers.randomBytes(32)
+localStorage.setItem('sessionPrivateKey', ethers.hexlify(sessionPrivateKey))
+const sessionWallet = new ethers.Wallet(sessionPrivateKey)
+const sessionAddress = await sessionWallet.getAddress()
+```
+
+### 3. 認可メッセージへの署名
+ユーザーのSequenceウォレットでメッセージに署名し、セッションキーを認可します。
+
+```javascript
+const authorizationMessage = `Authorize this device to play this game.`
+const signature = await signer.signMessage(authorizationMessage)
+```
+
+### 4. 認可署名の検証
+Sequenceのユーティリティ関数を使い、サーバーまたはクライアント側で署名を検証します。
+
+```javascript
+const provider = wallet.getProvider()
+const chainId = await wallet.getChainId()
+
+const isValid = await wallet.utils.isValidMessageSignature(
+  userAddress,
+  authorizationMessage,
+  signature,
+  chainId
+)
+
+if (isValid) {
+  console.log('Session key authorized')
+} else {
+  console.log('Session key not authorized')
+}
+```
+
+### 5. セッションキーによるメッセージ署名
+セッションキーを使い、ユーザー操作なしでクライアント側からメッセージに署名します。
+
+```javascript
+const message = 'Perform action without wallet confirmation'
+const sessionSignature = await sessionWallet.signMessage(message)
+```
+
+### 6. セッション署名の検証
+サーバーまたはクライアント側でセッション署名を検証します。
+
+```javascript
+const recoveredSessionAddress = ethers.verifyMessage(message, sessionSignature)
+if (recoveredSessionAddress === sessionAddress) {
+  console.log('Session signature valid')
+} else {
+  console.log('Session signature invalid')
+}
+```
+
+<Note>
+  アプリケーションの読み込み時には、ローカルストレージに保存されたセッションキーを取得し、見つからない場合のみ新しいセッションキーを作成してください。
+</Note>

@@ -1,0 +1,225 @@
+---
+title: SDK móvil para Embedded Wallet (React Native)
+sidebarTitle: React Native
+description: Este contenido ofrece instrucciones detalladas para integrar el Sequence Embedded Wallet SDK con React Native, logrando una integración completa de wallet e indexador.
+---
+
+El Sequence Embedded Wallet SDK puede usarse con React Native para una integración completa de [Embedded Wallet](/solutions/wallets/embedded-wallet/overview) y [Indexer](/api-references/indexer/overview) de Sequence.
+
+Puedes ver un ejemplo completo de cómo usar el SDK o descargar la plantilla en el repositorio [Embedded Wallet React Native Demo](https://github.com/0xsequence/demo-waas-react-native).
+
+## Vista previa en video
+
+<video controls className="w-full aspect-video" src="https://pub-f048362b915448c9b012a2e03c189024.r2.dev/SequenceMobileSDK.mp4" />
+
+## Configuración con tus propias credenciales/llaves
+Siga esta guía para obtener su clave de acceso al proyecto y otras credenciales/llaves: [https://docs.sequence.xyz/solutions/builder/embedded-wallet/](https://docs.sequence.xyz/solutions/builder/embedded-wallet/)
+
+### Instrucciones específicas sobre cómo gestionar credenciales/llaves en las carpetas ./ios y ./android
+
+#### iOS
+Usando Expo, puede establecer GIDClientID en ios > infoPlist dentro del archivo app.json.
+
+De forma manual, puede establecer GIDClientID en el archivo Info.plist para el inicio de sesión con Google.
+
+#### Android
+Usando Expo, puede establecer el intent-filter en android > intentFilters dentro del archivo app.json.
+
+De forma manual, puede establecer el intent-filter en el archivo AndroidManifest.xml para el inicio de sesión con Google.
+
+## Detalles de la integración
+
+<Steps>
+  <Step title="Configurar shims para ethers y otros paquetes relacionados con la criptografía">
+    Primero, revise el contenido de [cryptoSetup.ts](https://github.com/0xsequence/demo-waas-react-native/blob/main/cryptoSetup.ts) para la configuración de los shims y el registro de `pbkdf2` para `ethers` desde `react-native-quick-crypto` a continuación:
+
+    ```ts
+    import { install } from "react-native-quick-crypto";
+    install();
+
+    import "react-native-url-polyfill/auto";
+    import { ReadableStream } from "web-streams-polyfill";
+    globalThis.ReadableStream = ReadableStream;
+
+    import crypto from "react-native-quick-crypto";
+    global.getRandomValues = crypto.getRandomValues;
+
+    export * from "@ethersproject/shims";
+
+    import * as ethers from "ethers";
+
+    ethers.pbkdf2.register(
+      (
+        password: Uint8Array,
+        salt: Uint8Array,
+        iterations: number,
+        keylen: number,
+        algo: "sha256" | "sha512"
+      ) => {
+        console.info("Using react-native-quick-crypto for pbkdf2");
+        return ethers.hexlify(
+          new Uint8Array(
+            crypto.pbkdf2Sync(
+              password,
+              salt,
+              iterations,
+              keylen,
+              algo === "sha256" ? "SHA-256" : "SHA-512"
+            )
+          )
+        );
+      }
+    );
+
+    export * from "ethers";
+    ```
+
+    Luego, asegúrese de importar `cryptoSetup.ts` lo más temprano posible en el ciclo de vida de la app. En este demo, se importa y configura al inicio en [App.tsx](https://github.com/0xsequence/demo-waas-react-native/blob/main/App.tsx).
+
+    En segundo lugar, es necesario establecer alias para algunos shims en `babel.config.js` con ayuda de la dependencia de desarrollo `babel-plugin-module-resolver`. Vea [babel.config.js](https://github.com/0xsequence/demo-waas-react-native/blob/main//babel.config.js) para el fragmento de código que actualiza los alias.
+  </Step>
+
+  <Step title="Inicializar Sequence WaaS">
+    ```ts
+    export const sequenceWaas = new SequenceWaaS(
+      {
+        network: initialNetwork,
+        projectAccessKey: projectAccessKey,
+        waasConfigKey: waasConfigKey,
+      },
+      localStorage,
+      null,
+      new KeychainSecureStoreBackend()
+    );
+    ```
+
+    (Consulte el archivo [waasSetup.ts](https://github.com/0xsequence/demo-waas-react-native/blob/main/waasSetup.ts) para más detalles)
+  </Step>
+
+  <Step title="Inicio de sesión">
+    Una vez que tenga una instancia de Sequence WaaS inicializada, puede usarla para iniciar sesión con correo electrónico, Google o Apple. Vea el fragmento de código de Google a continuación como ejemplo y consulte el archivo [App.tsx](https://github.com/0xsequence/demo-waas-react-native/blob/main/App.tsx) para más detalles.
+
+    ```ts
+    const redirectUri = `${iosRedirectUri}:/oauthredirect`;
+
+    const scopes = ["openid", "profile", "email"];
+    const request = new AuthRequest({
+      clientId,
+      scopes,
+      redirectUri,
+      usePKCE: true,
+      extraParams: {
+        audience: webClientId,
+        include_granted_scopes: "true",
+      },
+    });
+
+    const result = await request.promptAsync({
+      authorizationEndpoint: `https://accounts.google.com/o/oauth2/v2/auth`,
+    });
+
+    if (result.type === "cancel") {
+      return undefined;
+    }
+
+    const serverAuthCode = result?.params?.code;
+
+    const configForTokenExchange: AccessTokenRequestConfig = {
+      code: serverAuthCode,
+      redirectUri,
+      clientId: iosClientId,
+      extraParams: {
+        code_verifier: request?.codeVerifier || "",
+        audience: webClientId,
+      },
+    };
+
+    const tokenResponse = await exchangeCodeAsync(configForTokenExchange, {
+      tokenEndpoint: "https://oauth2.googleapis.com/token",
+    });
+
+    const userInfo = await fetchUserInfo(tokenResponse.accessToken);
+
+    const idToken = tokenResponse.idToken;
+
+    if (!idToken) {
+      throw new Error("No idToken");
+    }
+
+    try {
+      const signInResult = await sequenceWaas.signIn(
+        {
+          idToken: idToken,
+        },
+        randomName()
+      );
+
+      console.log("signInResult", JSON.stringify(signInResult));
+    } catch (e) {
+      console.log("error", JSON.stringify(e));
+    }
+    ```
+  </Step>
+
+  <Step title="Operaciones de wallet">
+    Una vez que haya iniciado sesión, puede usar la instancia `sequenceWaas` para realizar operaciones de wallet como enviar transacciones, firmar mensajes, etc. Vea el fragmento de código de Google a continuación como ejemplo y consulte el archivo [App.tsx](https://github.com/0xsequence/demo-waas-react-native/blob/main/App.tsx) para más detalles.
+
+    ```ts
+    // Signing a message
+    const signature = await sequenceWaas.signMessage({ message: "your message" });
+
+    // Sending a txn
+    const txn = await sequenceWaas.sendTransaction({
+      transactions: [
+        {
+          to: walletAddress,
+          value: 0,
+        },
+      ],
+    });
+    ```
+  </Step>
+
+  <Step title="Notas de migración para la actualización a Ethers v6">
+    - `react-native-quick-crypto-ethers-patch.js` y la configuración relacionada ya no son necesarias, ya que ethers v6 permite registrar la función pbkdf2 directamente desde el paquete `react-native-quick-crypto`. (Consulte [cryptoSetup.ts](https://github.com/0xsequence/demo-waas-react-native/blob/main//cryptoSetup.ts) para el código relacionado.)
+    - Puede seguir la [guía de migración de ethers](https://docs.ethers.org/v6/migrating/) para migrar su base de código a ethers v6.
+
+    <br />
+  </Step>
+</Steps>
+
+## Dependencias
+
+### Paquetes requeridos de Sequence
+
+- @0xsequence/waas
+- @0xsequence/react-native
+
+### Otras dependencias/shims requeridas
+
+#### Common
+
+-   ethers
+
+-   ethersproject/shims
+
+-   expo
+
+-   react-native-quick-crypto
+
+-   react-native-mmkv
+
+-   react-native-keychain
+
+-   babel-plugin-module-resolver (como dependencia de desarrollo)
+
+#### Para inicio de sesión con Apple y Google
+
+- expo-web-browser
+- expo-auth-session
+- @invertase/react-native-apple-authentication
+
+#### Para inicio de sesión con correo electrónico
+
+- react-native-url-polyfill
+- web-streams-polyfill

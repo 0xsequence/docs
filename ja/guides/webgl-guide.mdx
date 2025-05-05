@@ -1,0 +1,605 @@
+---
+title: WebGL を使用した Aviator Web3 ゲーム
+description: Sequence Stack のツールを使って WebGL ゲームに実績機能やカスタム ERC1155 を組み込む方法を学びましょう。
+sidebarTitle: WebGL でゲームを作成する
+---
+
+所要時間：40分
+
+このガイドでは、WebGL をゲームに統合し、Sequence Stack のツールを活用して実績を獲得したり、カスタム ERC1155 を使ってゲームをプレイする方法を解説します。
+
+<Note>
+  ゲームのライブバージョンは[こちら](https://0xsequence.github.io/aviator-demo/)でプレイできます。
+
+  このゲームの全コードは[こちら](https://github.com/0xsequence/aviator-demo/)で公開されています。
+
+  本ガイドで使用するテンプレートコードは[こちら](https://github.com/0xsequence-demos/template-webgl-js-sequence-kit-starter)から入手できます。
+</Note>
+
+これらのツールで以下のことが可能になります：
+1. [Webpack でのプロジェクトセットアップ](/guides/webgl-guide#1-project-setup-with-webpack)：Webpack でコンパイル可能な WebGL プロジェクト構成を有効化します。
+2. [Web SDK の統合](/guides/webgl-guide#2-integrate-sequence-kit)：すべての EOA と Sequence Wallet でユーザー認証を可能にします。
+3. [コレクティブルコントラクトのデプロイ](/guides/webgl-guide#3-deploy-a-collectibles-contract)：独自のコレクティブルコントラクトを作成します。
+4. [リモートミンターのデプロイとゲーム内トークンのミント](/guides/webgl-guide#4-deploy-a-remote-minter-and-mint-in-game-achievement-tokens)：Cloudflare Workers を使ってガスレスのリレー取引を実行します。
+5. [ゲーム内でアイテムを活用](/guides/webgl-guide#5-leverage-items-in-game)：Sequence Indexer を使ってゲーム内でコレクティブルを統合します。
+6. [ゲーム内実績トークンのバーン](/guides/webgl-guide#6-burn-in-game-achievement-tokens)：wagmi を使ってゲーム実績をバーンします。
+7. [(オプション) Embedded Wallet を Web SDK に統合](/guides/webgl-guide#7-optional-integrate-embedded-wallet-into-sequence-kit)：署名メッセージなしでスムーズな UX を実現します。
+
+## 1. Webpack でプロジェクトセットアップ
+
+#### リポジトリをクローン
+まずは、`three` を使って作成された WebGL コンポーネントがいくつか含まれているテンプレートプロジェクトをクローンします。すべて [webpack](https://webpack.js.org/) でコンパイルされています。
+
+[Template WebGL JS Web SDK Starter](https://github.com/0xsequence-demos/template-webgl-js-sequence-kit-starter/tree/simple-start)
+
+上記リポジトリをクローンし、`cd template-webgl-js-sequence-kit-starter` でディレクトリに移動します。
+
+#### .env を更新
+`.env.example` を参考に、環境変数を記載した `.env` ファイルを作成します。
+
+```
+PROJECT_ACCESS_KEY=
+WALLET_CONNECT_ID=
+```
+
+そして、以下のコマンドを実行してアプリを起動します。
+
+```
+# or your choice of package manager
+pnpm install
+pnpm run dev
+```
+
+正常に動作すれば、水面上を飛行機が飛んでいる画面が表示されます。
+
+## 2. Web SDK の統合
+プロジェクト構成ができたので、Web SDK を統合します。
+
+#### `App.jsx` コンポーネントのセットアップ
+`src` フォルダ内に `react` フォルダを作成し、2 つのファイル（`App.jsx` と `Login.jsx`）を作成します。
+
+`App.jsx` には次のコードを記述します。
+
+```js
+import React from "react";
+import { useOpenConnectModal } from "@0xsequence/kit";
+import { useDisconnect, useAccount } from "wagmi";
+import Login from "./Login.jsx";
+
+import { KitProvider } from "@0xsequence/kit";
+import { getDefaultConnectors } from "@0xsequence/kit-connectors";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { createConfig, http, WagmiConfig } from "wagmi";
+import { arbitrumSepolia, Chain } from "wagmi/chains";
+
+const queryClient = new QueryClient();
+
+function App(props) {
+  const chains = [arbitrumSepolia];
+  const projectAccessKey = process.env.PROJECT_ACCESS_KEY;
+
+  const connectors = getDefaultConnectors("universal", {
+    walletConnectProjectId: process.env.WALLET_CONNECT_ID,
+    defaultChainId: 421614,
+    appName: "demo app",
+    projectAccessKey,
+  });
+
+  const transports = {};
+
+  chains.forEach((chain) => {
+    transports[chain.id] = http();
+  });
+
+  const config = createConfig({
+    transports,
+    connectors,
+    chains,
+  });
+
+  return (
+    <WagmiConfig config={config}>
+      <QueryClientProvider client={queryClient}>
+        <KitProvider config={{ defaultTheme: "dark" }}>
+          <Login scene={props.scene} />
+        </KitProvider>
+      </QueryClientProvider>
+    </WagmiConfig>
+  );
+}
+
+export default App;
+```
+
+次に、`Login.jsx` ファイルに以下のコードを追加し、画面上部にログインボタンを作成します。
+
+```js
+import React, { useEffect } from "react";
+import { useOpenConnectModal, useKitWallets } from "@0xsequence/kit";
+import { useWalletClient } from "wagmi";
+
+function Login(props) {
+  const { setOpenConnectModal } = useOpenConnectModal();
+  const { data: walletClient } = useWalletClient();
+  const {
+    wallets, // Array of connected wallets
+    linkedWallets, // Array of linked wallets (for embedded wallets)
+    setActiveWallet, // Function to set a wallet as active
+    disconnectWallet, // Function to disconnect a wallet
+  } = useKitWallets();
+
+  const isConnected = wallets.length;
+
+  useEffect(() => {
+    if (isConnected) {
+      props.scene.login();
+    } else {
+      props.scene.logout();
+    }
+  }, [isConnected]);
+
+  const sendBurnToken = async () => {
+    // empty for now
+  };
+
+  useEffect(() => {
+    if (isConnected && walletClient) {
+      props.scene.sequenceController.init(walletClient, sendBurnToken);
+    }
+  }, [isConnected, walletClient]);
+
+  return (
+    <>
+      <div style={{ textAlign: "center" }}>
+        <br />
+        {isConnected && (
+          <div
+            onClick={() => disconnectWallet(wallets[0].address) // assuming one wallet is connected. you can also disconnect a specific wallet from useKitWallets by specifying the address}
+            style={{
+              cursor: "pointer",
+              position: "fixed",
+              top: "30px",
+              right: "30px",
+              zIndex: "1",
+            }}
+          >
+            sign out
+          </div>
+        )}
+      </div>
+    </>
+  );
+}
+
+export default Login;
+```
+
+#### Javascript の `index.js` でコンポーネントをレンダリング
+最後に、`index.js` で `App.jsx` コンポーネントをインポートし、`index.html` の `root` ID 要素にレンダリングします。
+
+```js
+import * as ReactDOM from 'react-dom/client';
+import App from './react/App.jsx'
+
+...
+
+const root = ReactDOM.createRoot(document.getElementById('root'))
+
+root.render(
+    <App scene={mainScene}/>
+);
+```
+
+##### ログインモーダルを呼び出すクリックハンドラの作成
+`Login.jsx` コンポーネントに以下のコードを追加します。
+
+```js
+window.setOpenConnectModal = () => {
+  setOpenConnectModal(true);
+};
+```
+
+そして、`index.js` に次のクリックハンドラコードを追加します。
+
+```ts
+function handleMouseUp(event) {
+  window.setOpenConnectModal();
+}
+
+document
+  .getElementById("world")
+  .addEventListener("mouseup", handleMouseUp, false);
+```
+
+これらの要素を `index.html` に追加します。
+
+```html
+<div id="mintBtn" className="btn" onclick="window.mintPlane()">mint plane</div>
+<div id="mintAchievementBtn" className="btn" onclick="window.mintAchievement()">
+  mint achievement
+</div>
+<div id="burnBtn" className="btn" onclick="window.burn()">burn achievement</div>
+
+<div id="login">click to login</div>
+<div className="world" id="world"></div>
+```
+
+これで、モーダルを表示するボタンができました。
+
+## 3. コレクティブルコントラクトのデプロイ
+[Sequence Builder](https://sequence.build) でコレクティブルを作成する必要があります。詳しくは[こちらのガイド](/solutions/collectibles/contracts/deploy-an-item-collection)をご参照ください。
+
+実績トークン用と飛行機用の2つのコレクションを作成しましょう。
+
+## 4. リモートミンターのデプロイ & ゲーム内実績トークンのミント
+次に、ガスレスでシームレスにブロックチェーンへトランザクションを送信するため、前のステップでデプロイしたコントラクトからアイテムをミントする [Cloudflare Worker](/guides/mint-collectibles-serverless) を実装します。トランザクション API コントラクトアドレスを `Minter Role` として入力してください。
+
+コレクティブルのミントには、飛行機用と実績用の2種類のパスを用意します。
+
+これは、Cloudflare リクエストボディに `isPlane` というキー/値を追加し、Cloudflare Worker 側で `if/else` を追加することで実現しています。
+
+このコードは[こちらの GitHub リポジトリ](https://github.com/0xsequence-demos/template-webgl-js-sequence-kit-starter/blob/master/cloudflare/noisy-silence-ee19/src/index.ts#L80)で確認できます。
+
+このガイドでは、Cloudflare のコードはローカル開発環境で実行します。プロジェクトフォルダ内で、以下のコマンドで Cloudflare Worker を起動してください。
+
+```
+wrangler dev
+```
+
+## 5. ゲーム内でアイテムを活用
+このセクションは、ゲーム内資産の所有状況に応じて UI を更新する2つの実装に分かれています。
+- ウォレット資産に基づく飛行機の変更表示
+- ウォレット資産に基づく UI の変更表示
+
+#### ウォレット資産に基づく飛行機の変更表示
+ウォレットが所有する資産に応じてゲームを変化させるには、トークンをミントするボタンを実装し、そのレスポンスでインデクサの変化をチェックします。
+
+`index.js` では、`index.html` の要素の `onclick` 属性にボタンを追加しています。
+
+```js
+window.mintPlane = () => {
+  const tokenID = 1;
+  mainScene.sequenceController.callContract(tokenID, true, (res) => {
+    mainScene.sequenceController.fetchPlaneTokens(tokenID);
+  });
+};
+```
+
+`callContract` はミント処理を担当し、1回のミントのみが同時に行われるようミューテックスでラップされた fetch を呼び出します。これは `/API/SequenceController.js` の `SequenceController` クラスに追加されています。
+
+```js
+import { Mutex, E_CANCELED} from 'async-mutex';
+
+const mutexMinting = new Mutex();
+...
+async callContract(tokenId, isPlane, callback) {
+  if(!mutexMinting.isLocked()){
+    try {
+      await mutexMinting.runExclusive(async () => {
+        console.log('Minting token:', tokenId);
+        const url = 'http://localhost:8787';
+        const data = {
+          address: this.walletAddress,
+          tokenId: tokenId,
+          isPlane: isPlane
+        };
+
+        try {
+          const res = await fetch(url, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(data),
+          })
+          const txHash = await res.text();
+          mutexMinting.release();
+          callback(txHash);
+        } catch(err) {
+          mutexMinting.release();
+          callback(err);
+        }
+      });
+    } catch (err) {
+      if (err === E_CANCELED) {
+        mutexMinting.release();
+      }
+    }
+  } else {
+    console.log('mutex is locked')
+  }
+}
+```
+
+`fetchPlaneTokens` はウォレットに資産が追加されるまでポーリングし、`plane color` を変更して別の飛行機を表現します。
+
+`fetchPlaneTokens` は次のコードで実装されており、残高の条件チェックは1より大きいかどうか、`tokenID` は検索対象の ID と一致するかどうかで判定しています。
+
+このUIの条件付きロジックは、アプリケーションに応じて変更してください。
+
+```js
+import { SequenceIndexer } from '@0xsequence/indexer';
+...
+async fetchPlaneTokens(){
+
+  // a polling wait
+  const wait = (ms) => new Promise((res) => setTimeout(res, ms))
+  let hasFoundPlane = false
+
+  while(!hasFoundPlane) {
+      const response = await this.indexer.getTokenBalances({
+      accountAddress: this.walletAddress,
+      contractAddress: '0x10ac72ada55ed46ee35deed371b8d215c2e870e1', // the collection address
+    })
+    await wait(1000)
+    for(let i = 0; i < response.balances.length; i++){
+      // a check on the inventory
+      if(response.balances[i].tokenID == '1' && Number(response.balances[i].balance) > 0){
+        // implement any UI update here
+        this.scene.airplane.addPlane(Number(response.balances[i].tokenID))
+        hasFoundPlane = true // breaks from the loop
+      }
+    }
+  }
+}
+```
+
+#### ウォレット資産に基づくUI変更の表示
+次に、ユーザーがアチーブメントを持っているかどうかに応じて `burn achievement` ボタンを追加するUI変更を実装します。
+
+まず、前回と同様の HTML/JS のクリックハンドラーのロジックを実装します。
+
+今回は、`callContract` の `isPlane` 値を `false` に設定します。
+
+```js
+// index.js
+window.mintAchievement = () => {
+  const tokenID = 0;
+  mainScene.sequenceController.callContract(tokenID, false, (res) => {
+    mainScene.sequenceController.fetchTokensFromAchievementMint(tokenID);
+  });
+};
+```
+
+<Warning>
+  注意：実際のゲームでは、アチーブメントトークンのミントはゲーム内の何らかのトリガーイベントに基づいて行われますが、簡単のためにボタンを用意しています。
+</Warning>
+
+今回は、`SequenceController` に追加された `fetchTokensFromAchievementMint` を呼び出します。
+
+```js
+  async fetchTokensFromAchievementMint(tokenID) {
+    // check for achievement balance
+    const wait = (ms) => new Promise((res) => setTimeout(res, ms))
+    let hasFoundPlane = false
+    let tokenIDs = []
+    while(!hasFoundPlane) {
+      const response = await this.indexer.getTokenBalances({
+        accountAddress: this.walletAddress,
+        contractAddress: '0x856de99d7647fb7f1d0f60a04c08340db3875340', // you achievements collection address
+      })
+      await wait(1000)
+      for(let i = 0; i < response.balances.length; i++){
+        // can update this logic to see if there is any balance: i.e. if(response.balances.length > 0)
+        if(response.balances[i].tokenID == String(tokenID)){
+          hasFoundPlane = true
+          // making the button appear
+          document.getElementById('burnBtn').style.display = 'flex'
+        }
+      }
+    }
+  }
+```
+
+これにより、インデクサーから残高が返された場合のみ、`display` 属性によってボタンが表示されるようになります。
+
+## 6. ゲーム内アチーブメントトークンのバーン
+最後に、アチーブメントトークンをバーンするには、ブロックチェーンへのアクション送信に Cloudflare Worker を使うことはできません。なぜなら、ミント時にはトランザクションAPIを使ってアドレスの「代理」で実行され（コントラクト内の `msg.sender` が `relayer` アドレスの一つになる）、今回はコントラクト内の `msg.sender` がトークンの所有権を証明し、`user` から直接送信される必要があるからです。これを実現するために、`wagmi` のフロントエンド関数とクラスの組み合わせを利用します。
+
+```js
+// index.js
+window.burn = () => {
+  const tokenID = 0;
+  mainScene.sequenceController.burnToken(tokenID, (res) => {
+    mainScene.sequenceController.fetchTokensFromBurn(tokenID);
+  });
+};
+```
+
+ここで `burnToken` は、Reactコンポーネントから渡される関数で、ミューテックスを使うパターンを踏襲し、`wagmi` パッケージの `sendTransaction` を使ってトランザクションを送信し、トランザクションハッシュの更新を待ってコールバックを返します。
+
+```js
+// react/Login.jsx
+import {
+    useAccount,
+    useWalletClient,
+    useSendTransaction,
+} from 'wagmi';
+import { useMutex } from 'react-context-mutex';
+import { ethers } from 'ethers'
+import { SequenceIndexer } from '@0xsequence/indexer';
+
+let burnCallback = null
+const ContractAddress = '0x856de99d7647fb7f1d0f60a04c08340db3875340';
+
+function Login() {
+  const MutexRunner = useMutex();
+  const mutexBurn = new MutexRunner('sendMutexBurn');
+
+  const { isConnected } = useAccount()
+  const { data: walletClient } = useWalletClient();
+  const { data: txnData, sendTransaction, isLoading: isSendTxnLoading } = useSendTransaction();
+
+  useEffect(() => {
+    if (isConnected && walletClient) {
+        props.scene.sequenceController.init(
+            walletClient,
+            sendBurnToken
+        );
+    }
+  }, [isConnected, walletClient]);
+
+  const sendBurnToken = async (tokenID, callback) => {
+      if(!mutexBurn.isLocked()){
+          const contractABI = ['function burn(uint256 tokenId, uint256 amount)']; // Replace with your contract's ABI
+          const contract = new ethers.Contract(ContractAddress, contractABI);
+
+          // call indexer
+          // check for achievement balance
+          const indexer = new SequenceIndexer(
+              'https://arbitrum-sepolia-indexer.sequence.app',
+              process.env.PROJECT_ACCESS_KEY
+          );
+
+          const response = await indexer.getTokenBalances({
+              accountAddress: walletClient.account.address,
+              contractAddress: '0x856de99d7647fb7f1d0f60a04c08340db3875340',
+          })
+
+          const data = contract.interface.encodeFunctionData('burn', [
+              tokenID,
+              response.balances[0].balance, // get the balance from the indexer
+          ]);
+
+          try {
+              mutexBurn.lock()
+              burnCallback = callback
+              await sendTransaction({
+                  to: ContractAddress,
+                  data: data,
+                  value: '0',
+                  gas: null,
+              })
+          } catch (error) {
+              console.log(error)
+          callback(error);
+          }
+      } else {
+          console.log('burn in progress')
+      }
+  };
+
+  useEffect(() => {
+    if(txnData && burnCallback && mutexBurn.isLocked()) {
+        mutexBurn.unlock();
+        burnCallback(txnData)
+    }
+  }, [burnCallback, txnData])
+...
+}
+```
+
+そして `SequenceController` では、`burnToken` でラップした `sendBurnToken` 関数を呼び出し、Reactの関数をアプリケーション全体で利用できるようにします。
+
+```js
+async burnToken(tokenID, callback) {
+  this.sendBurnToken(tokenID, callback);
+}
+
+async init(walletClient, sendTransactionBurn) {
+  this.walletAddress = walletClient.account.address;
+
+  this.sendBurnToken = sendTransactionBurn;
+}
+```
+
+バーンされたトークンがUIに反映されるよう、最初にトークンをバーンするためのボタンを非表示にします。これは `SequenceController` 内の次のコードで実現します。
+
+```js
+async fetchTokensFromBurn(tokenID){
+  const wait = (ms) => new Promise((res) => setTimeout(res, ms))
+  let hasBeenBurned = false
+  while(!hasBeenBurned) {
+    let tokenIDs = [] // create an empty array to include all the tokens
+    const response = await this.indexer.getTokenBalances({
+      accountAddress: this.walletAddress,
+      contractAddress: '0x856de99d7647fb7f1d0f60a04c08340db3875340',
+    })
+    await wait(1000)
+    for(let i = 0; i < response.balances.length; i++){
+        tokenIDs.push(response.balances[i].tokenID)
+    }
+    if(!tokenIDs.includes(String(tokenID))) { // check that the token id is not contained in the array
+      hasBeenBurned = true
+      // can apply any UI logic here
+      document.getElementById('burnBtn').style.display = 'none' // hide the button
+    }
+  }
+}
+```
+
+これで完了です。コード全体の例は[こちら](https://github.com/0xsequence-demos/template-webgl-js-sequence-kit-starter)でご覧いただけます。
+
+## 7.（オプション）Embedded WalletをWeb SDKに統合する
+すべての取引でユーザーによる署名を不要にし、ユーザー体験をよりスムーズにしたい場合は、Web SDK の React コンポーネントの設定を更新して Embedded Wallet を有効にできます。
+
+これにより、`wagmi` でトークンをバーンする際のポップアップが減少し、アチーブメントトークンの付与やコレクティブルのミントは Cloudflare Worker を利用してガスレスで実行されます。
+
+これは、いくつかの環境変数を追加し、使用するコネクタの種類を切り替えることで実現できます。
+
+まず、以下の環境変数を `.env` ファイルに追加してください。
+
+```
+WAAS_CONFIG_KEY=
+GOOGLE_CLIENT_ID=
+APPLE_CLIENT_ID=
+```
+
+次に、これらの変数を `App.jsx` の Web SDK コネクタに渡してください。
+
+```js
+
+import { getKitConnectWallets } from '@0xsequence/kit';
+import { getDefaultWaasConnectors } from '@0xsequence/kit-connectors';
+import { createConfig, http, WagmiProvider } from 'wagmi';
+...
+const projectAccessKey = process.env.PROJECT_ACCESS_KEY_NEXT;
+const waasConfigKey = process.env.WAAS_CONFIG_KEY;
+const googleClientId = process.env.GOOGLE_CLIENT_ID;
+const appleClientId = process.env.APPLE_CLIENT_ID;
+
+function App(props) {
+
+  const appleRedirectURI =
+  'https://' + window.location.host + '/aviator-demo';
+
+  const connectors = [
+    ...getDefaultWaasConnectors({
+      walletConnectProjectId: process.env.WALLET_CONNECT_ID,
+      defaultChainId: 421614,
+      waasConfigKey,
+      googleClientId,
+      appleClientId,
+      appleRedirectURI,
+      appName: 'demo app',
+      projectAccessKey,
+      enableConfirmationModal: false,
+    }),
+    ...getKitConnectWallets(projectAccessKey, []),
+  ];
+
+  const transports = {};
+
+  chains.forEach(chain => {
+    transports[chain.id] = http();
+  });
+
+  const config = createConfig({
+    transports,
+    connectors,
+    chains,
+  });
+
+  return (
+    <WagmiProvider config={config}>
+    ...
+    <WagmiProvider/>
+  )
+}
+```
+
+これで完了です。トランザクションフローを完了するために追加の統合は必要ありません。
+
+<Note>
+  ゲーム内ウォレットについて詳しくは[こちら](/solutions/wallets/embedded-wallet/overview)をご参照ください。
+</Note>

@@ -1,0 +1,137 @@
+---
+title: Migrar de Web SDK a Web SDK
+description: Web SDK (v4) ahora es Web SDK (v5), aquí están los cambios más importantes.
+sidebarTitle: Migrar de v4 a v5
+---
+
+<Note>
+  ¡React 19 es compatible con Web SDK!
+</Note>
+
+## Instalando nuevas dependencias
+Todas nuestras librerías de hooks han sido renombradas, estas son las nuevas dependencias que debe instalar para comenzar con Web SDK:
+
+<CodeGroup>
+  ```bash New 
+  npm install @0xsequence/connect wagmi ethers@6.13.0 viem 0xsequence @tanstack/react-query
+  # or
+  pnpm install @0xsequence/connect wagmi ethers@6.13.0 viem 0xsequence @tanstack/react-query
+  # or
+  yarn add @0xsequence/connect wagmi ethers@6.13.0 viem 0xsequence @tanstack/react-query
+  ```
+
+  ```bash Old
+  npm install @0xsequence/kit @0xsequence/waas wagmi ethers@6.13.0 viem 0xsequence @0xsequence/design-system@^1.9.0 motion @tanstack/react-query
+  # or
+  pnpm install @0xsequence/kit @0xsequence/waas wagmi ethers@6.13.0 viem 0xsequence @0xsequence/design-system@^1.9.0 motion @tanstack/react-query
+  # or
+  yarn add @0xsequence/kit @0xsequence/waas wagmi ethers@6.13.0 viem 0xsequence @0xsequence/design-system@^1.9.0 motion @tanstack/react-query
+  ```
+</CodeGroup>
+
+## Configurando su aplicación
+Principales diferencias en cuanto a configuración:
+
+<CodeGroup>
+  ```tsx New
+  import React from "react";
+  import ReactDOM from "react-dom/client";
+  import "./index.css"; 
+
+  import App from "./App";
+  import { SequenceConnect } from "@0xsequence/connect";
+  import { SequenceCheckoutProvider } from "@0xsequence/checkout"
+  import { config } from "./config";
+
+  function Dapp() {
+    return (
+      <SequenceConnect config={config}>
+        <SequenceCheckoutProvider>
+            <App />
+        </SequenceCheckoutProvider>
+      </SequenceConnect>
+    );
+  }
+
+  ReactDOM.createRoot(document.getElementById("root")!).render(
+    <React.StrictMode>
+      <Dapp />
+    </React.StrictMode>
+  );
+  ```
+
+  ```tsx Old
+  import React from "react";
+  import ReactDOM from "react-dom/client";
+  import "./index.css";
+
+  import App from "./App";
+  import { SequenceKit } from "@0xsequence/kit";
+  import { KitCheckoutProvider } from "@0xsequence/kit-checkout";
+  import { config } from "./config";
+  import '@0xsequence/design-system/styles.css'
+
+  function Dapp() {
+    return (
+      <SequenceKit config={config}>
+        <KitCheckoutProvider>
+          <App />
+        </KitCheckoutProvider>
+      </SequenceKit>
+    );
+  }
+
+  ReactDOM.createRoot(document.getElementById("root")!).render(
+    <React.StrictMode>
+      <Dapp />
+    </React.StrictMode>
+  );
+  ```
+</CodeGroup>
+
+- `@0xsequence/kit` -> `@0xsequence/connect` para autenticación
+- `@0xsequence/kit` -> `@0xsequence/wallet-widget` para la interfaz de wallet
+- `@0xsequence/kit-checkout` -> `@0xsequence/checkout`
+- no es necesario importar manualmente `@0xsequence/design-system/styles.css` al usar `@0xsequence/connect`
+- `@0xsequence/connect` es compatible con `@0xsequence/design-system` v2
+- `KitProvider` ahora es `SequenceConnectProvider`
+- `KitCheckoutProvider` ahora es `SequenceCheckoutProvider`
+- `KitWalletProvider` ahora es `SequenceWalletProvider`
+
+## Conectando su aplicación
+
+<CodeGroup>
+  ```tsx New
+  import './App.css'
+  import { useOpenConnectModal } from '@0xsequence/connect'
+
+  function App() {
+    const {setOpenConnectModal} = useOpenConnectModal()
+    
+    return (
+      <>
+        <button onClick={() => setOpenConnectModal(true)}>Connect</button>
+      </>
+    )
+  }
+
+  export default App
+  ```
+
+  ```tsx Old
+  import './App.css'
+  import { useOpenConnectModal } from '@0xsequence/kit'
+
+  function App() {
+    const {setOpenConnectModal} = useOpenConnectModal()
+    
+    return (
+      <>
+        <button onClick={() => setOpenConnectModal(true)}>Connect</button>
+      </>
+    )
+  }
+
+  export default App
+  ```
+</CodeGroup>

@@ -1,0 +1,26 @@
+---
+title: ユーザー資金のオンボード
+---
+
+ユーザーのウォレットに十分な暗号資産残高があれば、コレクティブルの購入はとても簡単です！しかし、これまでユーザー資金を暗号資産にオンランプするのは簡単ではありませんでしたが、今は違います！
+
+Sequence SDKは、[Transak](https://transak.com/#onramp)や[Sardine](https://docs.payments.sardine.ai/guides/integration/OnOffRamps/quickstart)など、さまざまな決済サービスプロバイダーと連携し、クレジット／デビットカードを使ったユーザーフレンドリーなWebベースのフローで資金のオンランプを実現しています。
+
+どちらの統合も直接利用できますが、`SequencePay`経由で利用することを推奨します。これにより、地理的な利用可能性などに応じて適切なプロバイダーが自動的に選択されます。
+
+## クレジット／デビットカードによる資金オンランプ
+ユーザーの資金オンランプ用リンクを生成するには：
+
+```csharp
+SequencePay pay = new SequencePay(wallet, chain);
+string onRampLink = pay.GetOnRampLink(); 
+```
+
+ここから、`onRampLink`を`Application.OpenURL`などで開くことができます。または、次の方法も利用できます：
+
+```csharp
+SequencePay pay = new SequencePay(wallet, chain);
+pay.OnRamp();
+```
+
+これにより、生成されたオンランプリンクが自動的に`Application.OpenURL`で開かれます。

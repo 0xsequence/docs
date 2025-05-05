@@ -1,0 +1,61 @@
+---
+title: ERC-721（NFT）トークンの送信
+description: web3ゲーム向けSequenceインフラストラクチャスタックでのTypescriptによるERC721送信のドキュメントです。
+---
+
+ERC-721 NFTの送信は、ERC-20トークンの送信と似ています。
+主な違いはコントラクト規格自体にあります。
+
+```ts
+const erc721Interface = new ethers.Interface([
+  'function safeTransferFrom(address _from, address _to, uint256 _tokenId)'
+])
+
+// Encode the transfer of the NFT tokenId to recipient
+const address = await wallet.getAddress()
+const data = erc721Interface.encodeFunctionData(
+  'safeTransferFrom', [address, recipientAddress, tokenId]
+)
+
+const transaction = {
+  to: erc721TokenAddress,
+  data
+}
+
+const signer = wallet.getSigner()
+const txnResponse = await signer.sendTransaction(transaction)
+console.log(txnResponse)
+
+```
+
+バッチ機能を使えば、複数のトークン送信を1つのネイティブトランザクションでまとめて行えます。
+
+```ts
+const erc721Interface = new ethers.Interface([
+  'function safeTransferFrom(address _from, address _to, uint256 _tokenId)'
+])
+
+// Encode two different ERC-721 token transfers
+const data1 = erc721Interface.encodeFunctionData(
+  'safeTransferFrom', [address, recipient1Address, amount1]
+)
+const data2 = erc721Interface.encodeFunctionData(
+  'safeTransferFrom', [address, recipient2Address, amount2]
+)
+
+const transaction1 = {
+  to: erc721ContractAddress,
+  data: data1
+}
+
+const transaction2 = {
+  to: erc721ContractAddress,
+  data: data2
+}
+
+// Send a multiple transactions as a single bundle which is executed as one transaction on-chain.
+const signer = wallet.getSigner()
+const txnResponse = await signer.sendTransactionBatch([transaction1, transaction2])
+console.log(txnResponse)
+
+```

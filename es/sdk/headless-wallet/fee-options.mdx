@@ -1,0 +1,185 @@
+---
+title: Opciones de Comisión
+description: Este contenido brinda información detallada sobre cómo implementar Opciones de Comisión para tarifas de gas al enviar transacciones usando un Embedded Wallet con el stack de Sequence.
+sidebarTitle: Opciones de Comisión
+---
+
+Al implementar un Embedded Wallet, será necesario poder pagar las tarifas de gas en una red que no sea testnet para enviar una transacción.
+
+Las opciones de comisión ofrecen una cotización para cubrir las tarifas de gas, utilizable solo por un periodo de tiempo determinado (lo cual es exclusivo de Sequence).
+
+Para enviar una transacción con éxito, tienes varias alternativas:
+- **Testnets**: Usando una testnet, las transacciones con Sequence son gratuitas y no requieren ingresar una opción de comisión en la llamada al SDK.
+- **Contrato o wallet patrocinado**: Si el smart contract o wallet está patrocinado, no se requiere ingresar una opción de comisión en la llamada al SDK. Puede aprender cómo patrocinar un contrato o wallet [aquí](/solutions/builder/gas-tank.mdx).
+- **Opciones de comisión**: Usando la API de Sequence para obtener una cotización personalizada y un objeto de opciones de comisión, pase ambos a la llamada del waas sdk. [Vea más abajo](/sdk/headless-wallet/fee-options#implementing-fee-options).
+
+<Note>
+  Sabrás si necesitas patrocinar tu contrato o wallet, o implementar opciones de comisión si recibes la siguiente respuesta de la API de WaaS:
+
+  ```shell
+  {
+      "error": "WebrpcEndpoint",
+      "code": 0,
+      "msg": "endpoint error",
+      "cause": "sending transaction: WebrpcEndpoint 0: endpoint error: failed to send transaction: Aborted 1005: Request aborted: failed to relay transaction: Aborted 1005: Request aborted: refusing to dispatch: missing required fee payment",
+      "status": 400
+  }
+  ```
+</Note>
+
+## Implementando Opciones de Comisión
+Antes de implementar el siguiente flujo de "Opciones de Comisión", debe asegurarse de que su wallet tenga fondos suficientes para pagar su transacción en la red específica y en la moneda nativa.
+
+Puede transferir tokens a su wallet, o usar la [función de on-ramp](/sdk/web/guides/on-ramp) usando la solución Web SDK.
+
+Asegúrese de tener instalados los siguientes paquetes:
+
+```shell
+pnpm install @0xsequence/waas ethers
+```
+
+<Steps>
+  <Step title="API generalizada para Opciones de Comisión y Cotización">
+    Para implementar las opciones de comisión en la solicitud, primero debe llamar a `sequence.feeOptions({...})`, que está envuelta en la siguiente función `checkTransactionFeeOptions`:
+
+    <Note>
+      En los siguientes ejemplos, la variable `sequence` es un objeto Embedded Wallet inicializado desde el paquete npm `@0xsequence/waas` con el `WaasConfigKey` y el `ProjectAccessKey`. Descubre cómo hacerlo [aquí](/sdk/headless-wallet/quickstart)
+    </Note>
+
+    ```typescript
+    import { FeeOption, Network, Transaction } from "@0xsequence/waas"
+
+    ....
+
+    async function checkTransactionFeeOptions({transactions, network}: {transactions: Transaction[], network: string | number }): Promise<{feeQuote: string | undefined, feeOptions: FeeOption[] | undefined, isSponsored: boolean}> {
+      const resp = await sequence.feeOptions({
+        transactions: transactions,
+        network: network,
+      })
+
+      if (resp.data.feeQuote && resp.data.feeOptions) {
+        return {feeQuote: resp.data.feeQuote, feeOptions: resp.data.feeOptions, isSponsored: false}
+      }
+      return {feeQuote: resp.data.feeQuote, feeOptions: resp.data.feeOptions, isSponsored: true}
+    }
+    ```
+  </Step>
+
+  <Step title="Creando Opciones de Comisión y Cotización junto con la transacción">
+    #### Implementando una transacción ERC20
+
+    ```typescript
+    import { ethers } from 'ethers'
+    import { erc20 } from '@0xsequence/waas'
+
+    ...
+
+    const response = await checkTransactionFeeOptions({
+        transactions: [erc20({
+            token: customTokenAddress,
+            to: destinationAddress,
+            value: ethers.parseUnits(amount, decimals).toString()
+        })],
+        network: 'arbitrum-nova' // i.e. network or chainID e.g. 42170 
+    })
+
+    const tx = await sequence.sendERC20({
+        token: customTokenAddress,
+        to: destinationAddress,
+        value: ethers.parseUnits(amount, decimals),
+        network: 'arbitrum-nova',
+        transactionsFeeOption: response.feeOptions,
+        transactionsFeeQuote: response.feeQuote
+    })
+    ```
+
+    #### Implementando una transacción ERC1155 / ERC721
+
+    Para ERC721 solo reemplace `erc1155({...})` por `erc721({...})` y llame a `sequence.sendERC721({...})`
+
+    ```typescript
+    import { ethers } from 'ethers'
+    import { erc1155, erc721 } from '@0xsequence/waas'
+
+    ...
+
+    const response = await checkTransactionFeeOptions({
+        transactions: [erc1155({
+            token: customTokenAddress,
+            to: destinationAddress,
+            values: [{
+              id: tokenID,
+              amount: ethers.parseUnits(amount, 0)
+            }]
+        })],
+        network: 'arbitrum-nova' // i.e. network or chainID e.g. 42170 
+    })
+
+    const tx = await sequence.sendERC1155({
+        token: customTokenAddress,
+        to: destinationAddress,
+        values: [{
+            id: tokenID,
+            amount: ethers.parseUnits(amount, 0)
+        }],
+        network: 'arbitrum-nova',
+        transactionsFeeOption: response.feeOptions,
+        transactionsFeeQuote: response.feeQuote
+    })
+    ```
+
+    #### Implementando una transacción con moneda nativa
+
+    ```typescript
+    import { ethers } from 'ethers'
+
+    const to = '0x...'
+
+    const response = await checkTransactionFeeOptions({
+        transactions: [{
+            to, value: ethers.parseEther(amount),
+        }],
+        network: 'arbitrum-nova'
+    })
+
+    const tx = await sequence.sendTransaction({
+        transactions: [{
+            to, value: ethers.parseEther(amount),
+        }],
+        network: 'arbitrum-nova',
+        transactionsFeeOption: feeOption,
+        transactionsFeeQuote: feeQuote
+    })
+    ```
+
+    #### Implementando una transacción de contrato personalizado
+
+    ```typescript
+    import { delayedEncode } from '@0xsequence/waas'
+
+    ...
+
+    const response = await checkTransactionFeeOptions({
+        transactions: [delayedEncode({
+            to: contractAddress,
+            abi: contractAbi,
+            func: contractMethod, // e.g. "transfer"
+            args: JSON.parse(contractMethodArgs), // e.g. [0x..., 1000] or named { "to": "0x...", "amount": "1000" }
+            value: "0"
+        })],
+        network: 'arbitrum-nova'
+    })
+
+    const tx = await sequence.callContract({
+        network: 'arbitrum-nova',
+        to: contractAddress,
+        abi: contractAbi,
+        func: contractMethod, // e.g. "transfer"
+        args: JSON.parse(contractMethodArgs),
+        value: 0,
+        transactionsFeeOption: response.feeOption,
+        transactionsFeeQuote: response.feeQuote
+    })
+    ```
+  </Step>
+</Steps>

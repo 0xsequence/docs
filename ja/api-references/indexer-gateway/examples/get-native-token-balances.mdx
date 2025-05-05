@@ -1,0 +1,113 @@
+---
+title: Fetch Native Network Balance from all chains
+description: This content provides instructions on getting native balances on all Ethereum networks
+---
+
+# Native Token Balances
+In the following examples, we're going to use the `GetNativeTokenBalance`
+method from Sequence Indexer Gateway.
+
+## `GetNativeTokenBalance`
+
+- Request: POST /rpc/IndexerGateway/GetNativeTokenBalance
+- Content-Type: application/json
+- Body (in JSON):
+  - `chainIds` (\[]int - optional) -- return results only for the chains that match the given ID.
+  - `networks` (\[]string - optional) -- return results only for the chains that match the given names.
+  - `accountAddress` (string) -- the wallet account address
+
+These examples are based on the [Native network
+balances](/api-references/indexer/examples/native-network-balance) example for Indexer.
+
+### Fetch all native balances from all chains at once
+Example: Get the native balances of an account address across all chains with a
+single query
+
+<CodeGroup>
+  ```shell [Curl]
+  curl -X POST \
+    -H "Content-Type: application/json" \
+    -H "X-Access-Key: AQAAAAAAAF_JvPALhBthL7VGn6jV0YDqaFY" \
+    https://indexer.sequence.app/rpc/IndexerGateway/GetNativeTokenBalance \
+    -d '{
+      "accountAddress": "0x8e3E38fe7367dd3b52D1e281E4e8400447C8d8B9"
+    }'
+  ```
+
+  ```ts [Typescript]
+  import { SequenceIndexerGateway } from '@0xsequence/indexer'
+
+  const INDEXER_TOKEN = 'AQAAAAAAAF_JvPALhBthL7VGn6jV0YDqaFY';
+  const ACCOUNT_ADDRESS = '0x8e3E38fe7367dd3b52D1e281E4e8400447C8d8B9';
+
+  const indexerGateway = new SequenceIndexerGateway(
+    'https://indexer.sequence.app',
+    INDEXER_TOKEN
+  )
+
+  const res = await indexerGateway.getNativeTokenBalance({
+    accountAddress: ACCOUNT_ADDRESS
+  })
+
+  res.balances.forEach(({ chainId, error, result }) => {
+    if (error) {
+      console.error(`Error fetching balance for chainId ${chainId}: ${error}`);
+      return;
+    }
+
+    console.log(`chainId: ${chainId} → native balance: ${result.balance}`);
+  });
+
+  ```
+
+  ```go [Go]
+  package main
+
+  import (
+  	"context"
+  	"fmt"
+  	"log"
+  	"net/http"
+
+  	"github.com/0xsequence/go-sequence/indexer"
+  )
+
+  const indexerToken = "AQAAAAAAAF_JvPALhBthL7VGn6jV0YDqaFY"
+
+  func main() {
+  	ctx := context.TODO()
+
+  	seqIndexerGW := indexer.NewIndexerGatewayClient(
+  		"https://indexer.sequence.app",
+  		http.DefaultClient,
+  	)
+
+  	authCtx, err := indexer.WithHTTPRequestHeaders(ctx, http.Header{
+  		"X-Access-Key": []string{indexerToken},
+  	})
+  	if err != nil {
+  		log.Fatal(err)
+  	}
+
+  	accountAddress := "0x8e3E38fe7367dd3b52D1e281E4e8400447C8d8B9"
+
+  	nativeTokenBalances, err := seqIndexerGW.GetNativeTokenBalance(
+  		authCtx,
+  		nil, // No chainId filter
+  		nil, // No network filter
+  		&accountAddress,
+  	)
+  	if err != nil {
+  		log.Fatal(err)
+  	}
+
+  	for _, tb := range nativeTokenBalances {
+  		fmt.Printf(
+  			"ChainID: %d → Balance: %s\n",
+  			tb.ChainID,
+  			tb.Result.Balance,
+  		)
+  	}
+  }
+  ```
+</CodeGroup>

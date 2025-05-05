@@ -1,0 +1,263 @@
+---
+title: ブロックチェーンへの書き込み
+description: web3ゲーム向けSequenceインフラスタックを使い、ブロックチェーンへの書き込みを行うためのUnreal SDK APIドキュメントです。
+---
+
+## メッセージへの署名
+指定したメッセージを 16 進文字列として署名します。たとえば、この署名を使ってバックエンドで内容の検証ができます。
+
+<Tabs>
+  <Tab title="ブループリント">
+    <Frame caption="Sign Message">
+      <img src="/images/unreal/sign_message.png" />
+    </Frame>
+  </Tab>
+
+  <Tab title="C++">
+    ```cpp
+    const TSuccessCallback<FSeqSignMessageResponse_Response> OnResponse = [this] (const FSeqSignMessageResponse_Response& Response)
+    {
+        //Response is the signed message
+    };
+    const FFailureCallback OnFailure = [this](const FSequenceError& Error)
+    {
+        UE_LOG(LogTemp,Display,TEXT("Error Message: %s"),*Error.Message);
+    };
+    const TOptional<USequenceWallet*> WalletOptional = USequenceWallet::Get();
+    if (WalletOptional.IsSet() && WalletOptional.GetValue())
+    {
+        USequenceWallet* Wallet = WalletOptional.GetValue();
+        const FString Message = "Hi";
+        Wallet->SignMessage(Message, OnResponse, OnFailure);
+    }
+    ```
+  </Tab>
+</Tabs>
+
+## ネイティブトークンの送信
+ETH などのネイティブトークン残高を他のユーザーに送信できます（例：Ethereum Mainnet で ETH を送るなど）。
+
+<Tabs>
+  <Tab title="ブループリント">
+    <Frame caption="Send Native Token">
+      <img src="/images/unreal/send_native_token.png" />
+    </Frame>
+  </Tab>
+
+  <Tab title="C++">
+    ```cpp
+    FRawTransaction T;
+    T.data = "0x0";
+    T.to = ToAddress;
+    T.value = "1";
+
+    // Append the Raw Transaction
+    Txn.Push(TUnion<FRawTransaction, FERC20Transaction, FERC721Transaction, FERC1155Transaction, FDelayedTransaction>(T));
+    ```
+  </Tab>
+</Tabs>
+
+## ERC20 トークンの送信
+Builder からカスタム ERC20 トークンをユーザーに送信したり、USDC や WETH など既存トークンを転送できます。
+
+<Tabs>
+  <Tab title="ブループリント">
+    <Frame caption="Send Erc20">
+      <img src="/images/unreal/send_erc20.png" />
+    </Frame>
+  </Tab>
+
+  <Tab title="C++">
+    ```cpp
+    // Create the ERC20 transaction
+    FERC20Transaction T20;
+    T20.to = "0x0E0f9d1c4BeF9f0B8a2D9D4c09529F260C7758A2";
+    T20.tokenAddress = "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174";
+    T20.value = "1000";
+
+    // Append the ERC20 transaction to the Txn object
+    Txn.Push(TUnion<FRawTransaction, FERC20Transaction, FERC721Transaction, FERC1155Transaction, FDelayedTransaction>(T20));
+    ```
+  </Tab>
+</Tabs>
+
+## NFT（ERC721 トークン）の送信
+ユーザーが NFT を他の人に送信できるようにします。
+
+<Tabs>
+  <Tab title="ブループリント">
+    <Frame caption="Send Erc721">
+      <img src="/images/unreal/send_erc721.png" />
+    </Frame>
+  </Tab>
+
+  <Tab title="C++">
+    ```cpp
+    // Create the ERC721 transaction
+    FERC721Transaction T721;
+    T721.safe = true;
+    T721.id = "54530968763798660137294927684252503703134533114052628080002308208148824588621";
+    T721.to = "0x0E0f9d1c4BeF9f0B8a2D9D4c09529F260C7758A2";
+    T721.tokenAddress = "0xa9a6A3626993D487d2Dbda3173cf58cA1a9D9e9f";
+
+    // Append the ERC721 transaction to the Txn object
+    Txn.Push(TUnion<FRawTransaction, FERC20Transaction, FERC721Transaction, FERC1155Transaction, FDelayedTransaction>(T721));
+    ```
+  </Tab>
+</Tabs>
+
+## コレクティブル（ERC1155 トークン）の送信
+ユーザーがコレクティブルを他の人に送信できるようにします。
+
+<Tabs>
+  <Tab title="ブループリント">
+    <Frame caption="Send Erc1155">
+      <img src="/images/unreal/send_erc1155.png" />
+    </Frame>
+  </Tab>
+
+  <Tab title="C++">
+    ```cpp
+    // Create the ERC1155 transaction
+    FERC1155Transaction T1155;
+    T1155.to = "0x0E0f9d1c4BeF9f0B8a2D9D4c09529F260C7758A2";
+    T1155.tokenAddress = "0x631998e91476DA5B870D741192fc5Cbc55F5a52E";
+
+    FERC1155TxnValue Val;
+    Val.amount = "1";
+    Val.id = "66635";
+    T1155.vals.Add(Val);
+
+    // Append the ERC1155 transaction to the Txn object
+    Txn.Push(TUnion<FRawTransaction, FERC20Transaction, FERC721Transaction, FERC1155Transaction, FDelayedTransaction>(T1155));
+    ```
+  </Tab>
+</Tabs>
+
+## Raw トランザクションの送信
+
+<Note>
+  Raw タイプでコントラクトを呼び出したい場合は、`#include "ABI/ABI.h"` ヘッダーをインクルードし、ABI を使ってコントラクトコール用のデータをエンコードしてください。
+</Note>
+
+<Tabs>
+  <Tab title="ブループリント">
+    <Frame caption="Send Raw Transaction">
+      <img src="/images/unreal/send_raw_transaction.png" />
+    </Frame>
+  </Tab>
+
+  <Tab title="C++">
+    ```cpp
+    void UMyClass::BurnToken(TArray<TUnion<FRawTransaction, FERC20Transaction, FERC721Transaction, FERC1155Transaction, FDelayedTransaction>> Txn, FString ContractAddress, int32 TokenId, int32 Amount)
+    {
+        FString FunctionSignature = "burn(uint256,uint256)";
+        TFixedABIData ABITokenId = ABI::Int32(TokenId);
+        TFixedABIData ABIFixedAmount = ABI::Int32(Amount);
+        TArray<ABIEncodeable*> Arr;
+        Arr.Add(&ABITokenId);
+        Arr.Add(&ABIFixedAmount);
+        FUnsizedData EncodedData = ABI::Encode(FunctionSignature, Arr);
+        FRawTransaction T;
+        T.data = "0x" + EncodedData.ToHex();
+        T.to = ContractAddress;
+        T.value = "0"
+
+        // Append the Raw Transaction
+        Txn.Push(TUnion<FRawTransaction, FERC20Transaction, FERC721Transaction, FERC1155Transaction, FDelayedTransaction>(T));
+    }
+    ```
+  </Tab>
+</Tabs>
+
+## 遅延エンコードトランザクションの送信
+Blueprints で作業する場合は、サーバーサイドでエンコードする遅延エンコードトランザクションを使うと、コントラクト呼び出しが簡単です。
+
+<Tabs>
+  <Tab title="ブループリント">
+    <Frame caption="Delayed Encode">
+      <img src="/images/unreal/delayed_encode.png" />
+    </Frame>
+  </Tab>
+
+  <Tab title="C++">
+    ```cpp
+    FDelayedTransaction DelayedEncodeTxn;
+    DelayedEncodeTxn.to = ERC20Address;
+    DelayedEncodeTxn.value = TEXT("0");
+    UDelayedEncodingBP* data = NewObject<UDelayedEncodingBP>();
+    data->SetAbi(TEXT("mint(address,uint256)"));
+    UDelayedEncodingArrayArgsBP* args = NewObject<UDelayedEncodingArrayArgsBP>();
+    args->AddStringArg(WalletAddress);
+    args->AddStringArg("1");
+    data->SetArgs(args);
+    data->SetFunc(TEXT("mint"));
+    DelayedEncodeTxn.data = data;
+    Transactions.Add(TransactionUnion(DelayedEncodeTxn));
+    ```
+  </Tab>
+</Tabs>
+
+## 手数料オプション付きトランザクションの送信
+手数料オプション付きでトランザクションを送信するには、まず `GetFeeOptions` メソッドで利用可能な手数料オプションを取得します。
+手数料オプションを受け取ったら、希望のオプションを選択し、`SendTransactionWithFeeOption` メソッドで選択した手数料オプション付きでトランザクションを送信します。
+
+<Tabs>
+  <Tab title="ブループリント">
+    <Frame caption="Transaction Fee Options">
+      <img src="/images/unreal/transaction_fee_options.png" />
+    </Frame>
+  </Tab>
+
+  <Tab title="C++">
+    ```cpp
+    // Define the callback for handling the fee options response
+    const TFunction<void(TArray<FFeeOption>)> OnFeeResponse = [Transactions, OnSuccess, OnFailure](const TArray<FFeeOption>& Response)
+    {
+        if (Response.Num() > 0)
+    {
+        const FFeeOption SelectedFeeOption = Response[0];
+        UE_LOG(LogTemp, Display, TEXT("Using FeeOption: %s"), *UIndexerSupport::StructToString(SelectedFeeOption));
+
+        const FFailureCallback OnTransactionFailure = [OnFailure](const FSequenceError& Error)
+    {
+        OnFailure("Transaction failure", Error);
+    };
+
+        const UAuthenticator* Auth = NewObject<UAuthenticator>();
+        const TOptional<USequenceWallet*> WalletOptional = USequenceWallet::Get(Auth->GetStoredCredentials().GetCredentials());
+        if (WalletOptional.IsSet() && WalletOptional.GetValue())
+    {
+        USequenceWallet* Wallet = WalletOptional.GetValue();
+        Wallet->SendTransactionWithFeeOption(Transactions, SelectedFeeOption, [=](const FSeqTransactionResponse_Data& Transaction)
+    {
+        FString OutputString;
+        const TSharedRef<TJsonWriter<>> Writer = TJsonWriterFactory<>::Create(&OutputString);
+        FJsonSerializer::Serialize(Transaction.Json.ToSharedRef(), Writer);
+        OnSuccess(OutputString);
+    }, OnTransactionFailure);
+    }
+    }
+        else
+    {
+        OnFailure("Test failed no fee options in response", FSequenceError(EErrorType::EmptyResponse, "Empty fee option response"));
+    }
+    };
+
+    // Define the callback for handling fee options retrieval failure
+    const FFailureCallback OnFeeFailure = [OnFailure](const FSequenceError& Error)
+    {
+        OnFailure("Get Fee Option Response failure", Error);
+    };
+
+    // Retrieve fee options and send the transaction with the selected fee option
+    const UAuthenticator* Auth = NewObject<UAuthenticator>();
+        const TOptional<USequenceWallet*> WalletOptional = USequenceWallet::Get(Auth->GetStoredCredentials().GetCredentials());
+        if (WalletOptional.IsSet() && WalletOptional.GetValue())
+        {
+            USequenceWallet* Wallet = WalletOptional.GetValue();
+            Wallet->GetFeeOptions(Transactions, OnFeeResponse, OnFeeFailure);
+        }
+    ```
+  </Tab>
+</Tabs>

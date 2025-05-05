@@ -1,0 +1,61 @@
+---
+title: Sequence Metadata API - Documentation and Endpoints
+description: The Sequence Metadata API service allows for querying, managing, and updating collections, token & NFT metadata for Ethereum-compatible chains. To access, obtain a Service Account & Token through Sequence Builder Console.
+---
+
+# Metadata API
+:::note
+[Metadata API documentation and endpoints](https://0xsequence.redoc.ly/tag/metadata)
+:::
+
+The Sequence Metadata API service offers a simple and fast API to query, manage, and update collections, token & NFT metadata for Ethereum-compatible chains.
+
+<Note>
+  Our Metadata service is managed through [Sequence Builder Console](HTTPS://SEQUENCE.BUILD) and requires a Service Account & Token in order to call the corresponding endpoints. Please follow the [section](/api-references/metadata#obtaining-a-service-account--token) below prior to calling the endpoints
+</Note>
+
+## Obtaining a Service Account & Token
+Since the Metadata API requires write access in order to update on-chain state, you will need to first obtain a Service Account & Token to call this from your backend. Importantly, this is a secret key and should not be exposed publicly.
+1. Create a New Project using our [Builder](https://sequence.build). Navigate to Settings > API Keys > Add Service Account.
+2. In the modal that pops up, click the dropdown for Permission and change to Write. After completed click Add.
+3. On the next screen, you will be given your Secret API Token. Copy the key and store it securely as it is not possible to see it again. Once this is done, click Confirm and you are all set to utilize the API.
+
+Keep in mind, in contrast to our Public API Access key - this Secret API Token should be stored securely and not be used publicly. You will pass this token as a normal JWT in the Request Headers as X-Access-Key
+
+## Creating Collections, Tokens, and Managing Metadata
+The below steps walk through an end to end example utilizing our Metadata API in order to deploy an NFT collection, create tokens within that collection, and deploy asset metadata to such as an image to that token.
+1.  [Call `CreateCollection` endpoint](https://docs.sequence.xyz/api-references/metadata/endpoints) - ensure you pass in the Secret Service Token created in the prior section.
+
+2.  `CreateToken` - use returned collectionId from previous request
+
+3.  `CreateAsset` - use collectionId and your tokenId
+    - set `metadataField` (assetType) to one of the following
+      - image
+      - animation\_url
+      - audio
+      - video
+
+4.  Upload file with PUT method to this endpoint `PUT {metadata-server}/projects/{projectId}/collections/{collectionId}/tokens/{tokenId}/upload/{assetIdOrAssetType}`- use assetId that is returned in step 3 OR, you can pass assetType, such as "image"
+
+- For example you can upload to [https://metadata.sequence.app/projects/486/collections/1/tokens/1/upload/image](https://metadata.sequence.app/projects/486/collections/1/tokens/1/upload/image) which will find the asset of the type "image" for the token, and will upload there.
+  - You can also pass in the assetId if you prefer, i.e., PUT [https://metadata.sequence.app/projects/486/collections/1/assets/1/upload](https://metadata.sequence.app/projects/486/collections/1/assets/1/upload)
+- Asset types include: image, audio, video, animation\_url
+
+5.  Asset is now privately accessible with JWT token at `GET {metadata-server}/projects/{projectID}/collections/{collectionID}/tokens/{tokenID}/asset/{assetType}`
+    - for example: [https://metadata.sequence.app/projects/486/collections/1/tokens/1/asset/image](https://metadata.sequence.app/projects/486/collections/1/tokens/1/asset/image)
+
+6.  `PublishCollection` -- this sets the collection to be accessible by the public
+
+7.  `GetCollection` -- will return both baseURIs for contract and token level metadata.
+
+- Collection-level metadata (aka contract-level) metadata: [https://metadata.sequence.app/projects/486/collections/1](https://metadata.sequence.app/projects/486/collections/1) or [https://metadata.sequence.app/projects/486/collections/1.json](https://metadata.sequence.app/projects/486/collections/1.json)
+- Token-level metadata: [https://metadata.sequence.app/projects/486/collections/1/tokens/{tokenId}](https://metadata.sequence.app/projects/486/collections/1/tokens/\{tokenId})
+  - ie. [https://metadata.sequence.app/projects/486/collections/1/tokens/1](https://metadata.sequence.app/projects/486/collections/1/tokens/1) or [https://metadata.sequence.app/projects/486/collections/1/tokens/1.json](https://metadata.sequence.app/projects/486/collections/1/tokens/1.json)
+
+8. Finally, to use the metadata in your contract, simply update your contract's metadata base URIs to the values above, and everything will simply work.
+
+Below is an architecture demonstrating the steps above of how an NFT collection (ERC721 or ERC1155) is created and managed.
+![Sequence Support](/images/metadata/metadata_api_architecture.png)
+
+## Pricing & Usage
+The Sequence Metadata is available for free with moderate request limits, but if your project requires higher limits, please contact the [Sequence](https://sequence.xyz) team.

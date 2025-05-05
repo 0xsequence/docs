@@ -1,0 +1,265 @@
+---
+title: Integración de vinculación de Sequence Wallet - Autenticación de Embedded Wallet y acceso con wallet externa
+description: Esta guía muestra cómo integrar una Embedded Wallet principal con métodos de autenticación web2 para propósitos de vinculación de wallets. Cubre el inicio de sesión con un proveedor de inicio de sesión con redes sociales y la vinculación usando firmas de una wallet externa conectada vía Web SDK, almacenadas de forma privada y segura.
+---
+
+# Integrando la vinculación de wallets
+Tiempo estimado: 25-35 minutos
+
+En esta guía, mostraremos cómo iniciar sesión en una [Embedded Wallet](/solutions/wallets/embedded-wallet/overview) usando autenticación tradicional como correo electrónico o inicio de sesión con redes sociales. Luego, para vincular una dirección de wallet externa usando Web SDK a su Embedded Wallet, firmaremos un mensaje que crea un conjunto de direcciones consultables para un solo perfil de usuario almacenado fuera de la cadena de manera privada. Finalmente, se explorarán otras funciones del API, como listar todas las wallets vinculadas y eliminar el estado de wallets vinculadas, ambas utilizando firmas para preservar la privacidad.
+
+# Demo
+[Pruebe una demo de ejemplo](https://demo-waas-wallet-link.pages.dev/) o [vea el código fuente completo](https://github.com/0xsequence-demos/demo-embedded-wallet-linking).
+
+# Inicio rápido
+Pruebe una aplicación de inicio rápido con un comando CLI en su terminal para ejecutarla localmente:
+
+### Clone el repositorio
+
+```shell
+git clone https://github.com/0xsequence-demos/demo-embedded-wallet-linking.git && cd ./demo-embedded-wallet-linking
+```
+
+### Copie las variables de entorno
+
+```shell
+cp .example.env .env
+```
+
+### Ejecute localmente
+
+```shell
+pnpm install && pnpm dev
+```
+
+Una vez que haya probado el ejemplo, simplemente actualice el archivo `.env` con la configuración de su Embedded Wallet después de crear un proyecto con [Builder](https://sequence.build):
+1. `Waas Config Key` [usada para la Embedded Wallet](/solutions/builder/embedded-wallet).
+2. `Project Access Key` [usada para la Embedded Wallet](/solutions/builder/getting-started#claim-an-api-access-key).
+3. Cómo obtener un `Google Client ID` para [autenticación social con Embedded Wallets](/solutions/builder/embedded-wallet/google-configuration).
+
+# Uso del API de vinculación de wallets
+
+## 1. Integración del archivo de interfaz del API
+Para comenzar a usar el API, se integra un archivo de interfaz en la aplicación clonada para poder llamar fácilmente al API de Sequence.
+
+[El código fuente de la interfaz puede encontrarse aquí](https://github.com/0xsequence-demos/demo-embedded-wallet-linking/blob/master/src/api/api.gen.ts) y luego se instancia con el servidor existente de Sequence de la siguiente manera:
+
+```typescript
+import { 
+    API,            // API interface
+    LinkedWallet    // typed class
+} from "./api.gen";
+
+const api = new API("https://dev-api.sequence.app", fetch);
+```
+
+#### Ejemplos simples usando las funciones del API integradas en el repositorio utilizando los paquetes `0xsequence/waas` y `wagmi`:
+
+1. [`linkWallet(...)`](/solutions/wallets/link-wallets/integration-guide#5-link-an-external-wallet-to-an-embedded-wallet)
+2. [`getLinkedWallets(...)`](/solutions/wallets/link-wallets/integration-guide#6-retrieve-linked-wallets)
+3. [`removeLinkedWallet(...)`](/solutions/wallets/link-wallets/integration-guide#7-remove-linked-wallet)
+
+## 2. Vincular una wallet externa a una embedded wallet
+Para vincular una wallet externa (por ejemplo, EOA, Sequence Universal Wallet, etc.) a una Embedded Wallet, primero necesitamos autenticar al usuario con una embedded wallet que se categoriza como la wallet `parent`. Una vez autenticado, se autentica nuevamente usando Web SDK, donde el usuario firma un mensaje después de la autenticación para validar la propiedad de esa wallet. Ese mensaje se enviará al endpoint `linkWallet` del API, con los siguientes argumentos tipados y tipos de retorno (ignorando los valores opcionales):
+
+```typescript
+interface LinkWalletArgs {
+  parentWalletAddress: string // Address of the Embedded Wallet
+  parentWalletMessage: string // Message from the Embedded Wallet
+  parentWalletSignature: string // Signature from Embedded Wallet
+  linkedWalletAddress: string // External wallet address you want to link
+  linkedWalletMessage: string // Message from the external wallet
+  linkedWalletSignature: string // Signature from the external wallet
+  signatureChainId: string // ChainId which you want to verify, using 137 in the example.
+  linkedWalletType?: string // Optional value to identify what type of wallet is being connected, i.e., 'sequence'
+}
+
+interface LinkWalletReturn {
+  status: boolean
+}
+
+linkWallet(args: LinkWalletArgs, headers?: object, signal?: AbortSignal): Promise<LinkWalletReturn>
+```
+
+### Firmar mensaje para atestiguar la propiedad de una dirección
+Se requieren dos firmas: una de la Embedded Wallet firmando la dirección de la wallet del Web SDK (wallet vinculada), y la wallet vinculada (desde Web SDK) firmando la dirección de la wallet principal (Embedded Wallet). Puede firmar cualquier mensaje presentado al usuario, siempre que el mensaje y la firma sean consistentes con lo que se envía al API después. Por ejemplo, usando el siguiente código en React con Wagmi para obtener esta información usando Sequence:
+
+```typescript
+import {
+  ...
+  useSignMessage,
+  useAccount,
+  ...
+} from "wagmi";
+
+function App() {
+
+    const { signMessageAsync } = useSignMessage();
+    const { address: kitWalletAddress } = useAccount();
+    
+    const getSignaturesForLinking = async () => {
+        const parentWalletMessage = "linked wallet with address "
+        const linkedWalletMessage = "parent wallet with address "
+        const parentMessage = parentWalletMessage + kitWalletAddress
+        const parentWalletAddress = await sequenceWaas.getAddress()
+        const linkingMessage = "Link to " + linkedWalletMessage + parentWalletAddress
+
+        const response: any = await signMessageAsync({
+            message: linkingMessage,
+        })
+
+        const parentSignatureRes = await sequenceWaas.signMessage({
+            message: parentMessage
+        })
+
+        const parentSignature = parentSignatureRes.data.signature
+        const linkedSignature = response
+        const linkedWalletAddress = kitWalletAddress
+
+        return { parentWalletAddress, linkedWalletAddress, parentMessage, linkingMessage, parentSignature, linkedSignature }
+    }
+}
+```
+
+### Usar la API para agregar el payload de la firma y la dirección de la wallet principal
+Llama a la función `getSignaturesForLinking` anterior y desempaqueta la respuesta para pasar los resultados a la función `api.linkWallet`:
+
+```typescript
+function App(){
+    const connections = useConnections();
+    ...
+    const linkWallet = async () => {
+        const signaturesResult = await getSignaturesForLinking()
+        const { parentWalletAddress, linkedWalletAddress, parentMessage, linkingMessage, parentSignature, linkedSignature } = signaturesResult
+        const connectorName = connections[0]?.connector.name;
+
+        const response = await api.linkWallet({
+            signatureChainId: "137", // network chosen for both embedded wallet and Web SDK
+            linkedWalletType: connectorName,
+            parentWalletAddress,
+            parentWalletMessage: parentMessage,
+            parentWalletSignature: parentSignature,
+            linkedWalletAddress: linkedWalletAddress!,
+            linkedWalletMessage: linkingMessage,
+            linkedWalletSignature: linkedSignature,
+        })
+
+        console.log(`status: ${response.status}`)
+    }
+}
+```
+
+## 3. Obtener wallets vinculadas
+Para proteger la privacidad de los usuarios, puede enviar una firma generada desde la Embedded Wallet principal para obtener la lista de direcciones de wallet vinculadas a una dirección de wallet principal.
+
+La API devolverá los objetos de wallets vinculadas en el siguiente formato:
+
+```typescript
+interface LinkedWallet {
+  id: number
+  walletType?: string
+  walletAddress: string
+  linkedWalletAddress: string
+  createdAt?: string
+}
+
+interface GetLinkedWalletsReturn {
+  linkedWallets: Array<LinkedWallet>
+}
+```
+
+Esto puede lograrse de la siguiente manera, enviando un mensaje, obteniendo una firma de la Embedded Wallet principal, verificando que la firma sea legible y luego enviando las variables: `parentWalletAddress`, `parentWalletMessage`, `parentWalletSignature` y `signatureChainId` al API:
+
+```typescript
+const getLinkedWallets = async () => {
+    const parentWalletAddress = await sequenceWaas.getAddress()
+    const message = "parent wallet with address " + parentWalletAddress
+    const signature = await sequenceWaas.signMessage({
+        message: message,
+    })
+
+    if (!signature.data.signature) {
+        console.error("Could not get signature from wallet to be linked")
+        throw new Error("Could not get signature from wallet to be linked")
+    }
+
+    const response = await api.getLinkedWallets({
+        parentWalletAddress: parentWalletAddress as `0x${string}`,
+        parentWalletMessage: message,
+        parentWalletSignature: signature.data.signature,
+        signatureChainId: "137",
+    })
+
+    response.linkedWallets.map((linkedWallet: LinkedWallet) => console.log(linkedWallet))
+
+    return response.linkedWallets
+}
+```
+
+## 4. Eliminar wallets vinculadas
+Finalmente, si ya no desea mantener una wallet vinculada fuera de la cadena a una wallet principal, puede realizar una firma con ambas instancias de wallet (Embedded Wallet y la wallet vinculada con Web SDK), y pasar la dirección de la wallet vinculada, [como en el paso 6](/solutions/wallets/link-wallets/integration-guide#6-link-sequence-kit-signed-in-wallet), para eliminar el estado de vinculación:
+
+### Firmar mensaje para atestiguar la eliminación de una dirección vinculada
+
+```typescript
+import {
+  ...
+  useAccount,
+  useSignMessage
+  ...
+} from "wagmi";
+
+function App() {
+
+    const { address: kitWalletAddress } = useAccount();
+    const { signMessageAsync } = useSignMessage();
+
+    const getSignaturesForUnlinking = async () => {
+        const parentWalletMessage = "linked wallet with address "
+        const linkedWalletMessage = "parent wallet with address "
+        const parentWalletAddress = await sequenceWaas.getAddress()
+        const linkingMessage = "Unlink from " + linkedWalletMessage + parentWalletAddress
+
+        const response: any = await signMessageAsync({
+            message: linkingMessage,
+        })
+
+        const parentSignatureRes = await sequenceWaas.signMessage({
+            message: parentMessage
+        })
+
+        const parentSignature = parentSignatureRes.data.signature
+        const linkedSignature = response
+        const linkedWalletAddress = kitWalletAddress
+
+        return { parentWalletAddress, linkedWalletAddress, parentMessage, linkingMessage, parentSignature, linkedSignature }
+    }
+}
+```
+
+### Usar la API para agregar el payload de firma para la dirección principal
+
+```typescript
+function App(){
+    ...
+    const unLinkWallet = async () => {
+        const signaturesResult = await getSignaturesForUnlinking()
+        const { parentWalletAddress, linkedWalletAddress, parentMessage, linkingMessage, parentSignature, linkedSignature } = signaturesResult;
+
+        const response = await api.removeLinkedWallet({
+            signatureChainId: "137", // network chosen for both Embedded Wallet and Web SDK
+            parentWalletAddress,
+            parentWalletMessage: parentMessage,
+            parentWalletSignature: parentSignature,
+            linkedWalletAddress: linkedWalletAddress!,
+            linkedWalletMessage: linkingMessage,
+            linkedWalletSignature: linkedSignature,
+        });
+
+        console.log(`status: ${response.status}`)
+    }
+}
+```
+
+## Conclusión
+Hemos proporcionado una aplicación de ejemplo que le permite autenticar a un usuario con su configuración de Embedded Wallet, validar un mensaje desde una wallet externa y luego vincular ambas usando la API de Sequence Linking. Además, revisamos cómo usar estas funciones de la API con ejemplos sencillos en React y Wagmi. Puede usar la aplicación independiente que le ofrecemos o implementar el mismo flujo en su propia aplicación desde aquí.

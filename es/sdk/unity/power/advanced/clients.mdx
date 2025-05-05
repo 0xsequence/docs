@@ -1,0 +1,153 @@
+---
+title: Clientes
+---
+
+En el contexto de SequenceEthereum, un `Client` está definido por la [interfaz `IEthClient`](https://github.com/0xsequence/sequence-unity/blob/master/Assets/SequenceSDK/Ethereum/Provider/IEthClient.cs).
+
+Para crear un cliente se requiere una `Chain`. Esto utilizará nuestro servicio Node Gateway, altamente disponible y rápido, para sus solicitudes RPC; se accede usando la clave API del Builder que usted haya proporcionado en su objeto scriptable `SequenceConfig`. Si prefiere usar su propia URL RPC, puede crear un `SequenceEthClient` usando una cadena de URL como parámetro en su lugar.
+
+Puede crear un cliente usando este fragmento:
+
+```csharp
+IEthClient client = new SequenceEthClient(Chain.Polygon);
+```
+
+## Métodos
+Como su punto de conexión con los nodos de Ethereum, un cliente puede realizar varios métodos, los cuales se encuentran en la interfaz `IEthClient` y están implementados por `SequenceEthClient`.
+
+Nota: con la excepción de BalanceAt (potencialmente), la mayoría de los usuarios no necesitarán utilizar estos métodos, pero los hemos incluido en nuestra documentación para mayor exhaustividad.
+
+### BalanceAt
+Se utiliza para obtener el saldo de la moneda de gas de un wallet específico en un bloque determinado (en formato hexadecimal proporcionado como cadena)
+
+```csharp
+BigIntegar balance = await client.BalanceAt(wallet.GetAddress()); // By default, if no blockNumber string is provided, check the latest block
+BigIntegar balance = await client.BalanceAt(wallet.GetAddress(), blockNumber);
+```
+
+Nota: existen dos valores especiales para blockNumber. "earliest" obtiene el saldo en el bloque más antiguo de la cadena. "latest" obtiene el saldo en el bloque más reciente y es el parámetro predeterminado si no se proporciona ninguno. De lo contrario, debe proporcionar el blockNumber en formato hexadecimal como cadena.
+
+<Warning><b><u>A menos que <i>realmente</i> quiera adentrarse en los detalles de cómo funciona, se recomienda ENCARECIDAMENTE pasar a la siguiente página de la documentación en este punto</u></b></Warning>
+
+### BlockByNumber
+Se utiliza para obtener el `Block` con un número de bloque específico.
+
+```csharp
+Block block = await client.BlockByNumber(blockNumber);
+```
+
+Nota: como arriba, blockNumber debe estar en formato hexadecimal o usar los valores especiales "earliest" y "latest"
+
+### BlockByHash
+Se utiliza para obtener el `Block` mediante un hash de bloque específico (cadena)
+
+```csharp
+Block block = await client.BlockByHash(blockHash);
+```
+
+### BlockNumber
+Se utiliza para obtener el número de bloque más reciente en formato hexadecimal
+
+```csharp
+string blockNumber = await client.BlockNumber();
+```
+
+### BlockRange
+Se utiliza para obtener una `List<Block>` de los bloques en un rango especificado por blockNumbers
+
+```csharp
+List<Block> blockRange = await client.BlockRange(startingBlockNumber, endingBlockNumber);
+```
+
+Nota: como arriba, blockNumber debe estar en formato hexadecimal o usar los valores especiales "earliest" y "latest"
+
+### ChainID
+Se utiliza para obtener el chain id en formato hexadecimal de la cadena a la que está conectado el cliente
+
+```csharp
+string chainId = await client.ChainID();
+```
+
+### CodeAt
+Se utiliza para obtener el bytecode de un smart contract en una dirección específica en formato hexadecimal en un blockNumber determinado
+
+```csharp
+string code = await client.CodeAt(contractAddress, blockNumber);
+```
+
+Nota: como arriba, blockNumber debe estar en formato hexadecimal o usar los valores especiales "earliest" y "latest"
+
+### EstimateGas
+Dado un `TransactionCall`, estima la cantidad de gas requerida para la transacción
+
+```csharp
+BigIntegar gas = await client.EstimateGas(transactionCall);
+```
+
+### FeeHistory
+Obtiene un `FeeHistoryResult` de las tarifas de gas pagadas en blockCount bloques desde newestBlock (blockNumber)
+
+```csharp
+FeeHistoryResult feeHistory = await client.FeeHistory(blockCount, newestBlock, new int[] { });
+```
+
+Nota: como arriba, blockNumber debe estar en formato hexadecimal o usar los valores especiales "earliest" y "latest"
+
+### NetworkId
+Se utiliza para obtener el chain id en formato entero (como cadena) de la cadena a la que está conectado el cliente
+
+```csharp
+string networkId = await client.NetworkId();
+```
+
+### NonceAt
+Se utiliza para obtener el nonce recomendado para una `Address` en un blockNumber específico (por defecto es "latest")
+
+```csharp
+BigInteger nonce = await client.NonceAt(wallet.GetAddress()); // Nonce at latest
+BigIntegar nonce = await client.NonceAt(wallet.GetAddress(), blockNumber);
+```
+
+Nota: como arriba, blockNumber debe estar en formato hexadecimal o usar los valores especiales "earliest" y "latest"
+
+### SendRawTransaction
+Dada una transacción firmada como cadena, envía la transacción a la red y devuelve un hash de transacción
+
+```csharp
+string transactionHash = await client.SendRawTransaction(signedTransactionString);
+```
+
+### SuggestGasPrice
+Se utiliza para obtener un precio de gas sugerido
+
+```csharp
+BigIntegar gasPrice = await client.SuggestGasPrice();
+```
+
+### SuggestGasTipCap
+Se utiliza para obtener la tarifa de prioridad máxima sugerida para el gas
+
+```csharp
+BigIntegar gasTipCap = await client.SuggestGasTipCap();
+```
+
+### TransactionByHash
+Se utiliza para obtener una `Transaction` mediante el hash de la transacción
+
+```csharp
+Transaction transaction = await client.TransactionByHash(transactionHash);
+```
+
+### TransactionCount
+Se utiliza para obtener el número de transacciones en un bloque por hash de bloque
+
+```csharp
+BigIntegar transactionCount = await client.TransactionCount(blockHash);
+```
+
+### WaitForTransactionReceipt
+Proporcione un hash de transacción para esperar y devolver el `TransactionReceipt`
+
+```csharp
+TransactionReceipt receipt = await client.WaitForTransactionReceipt(transactionHash);
+```

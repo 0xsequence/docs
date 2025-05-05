@@ -1,0 +1,298 @@
+---
+title: Sequence Indexer Gateway API - Fetch ERC20, ERC721, and ERC1155 Tokens and Metadata
+description: The Tokens API allows users to fetch a list of ERC20, ERC721, and ERC1155 tokens along with metadata from any wallet across multiple Ethereum networks.
+---
+
+# Tokens Balances
+In the following examples, we're going to use the `GetTokenBalances` method from
+Sequence Indexer Gateway:
+
+## `GetTokenBalances`
+
+- Request: POST /rpc/IndexerGateway/GetTokenBalances
+- Content-Type: application/json
+- Body (in JSON):
+  - `chainIds` (\[]int - optional) -- return results only for the chains that match the given ID.
+  - `networks` (\[]string - optional) -- return results only for the chains that match the given names.
+  - `accountAddress` (string) -- the wallet account address
+  - `contractAddress`: (string -- optional) -- the token contract address
+  - `tokenID`: (string -- optional) -- the ID of the token
+  - `includeMetadata` (boolean - optional - default: false) -- toggle token metadata to be included in the response
+  - `includeCollectionTokens` (boolean - optional - default: true) -- toggle to represent ERC721 / ERC1155 tokens as a single summary item in the response
+  - `metadataOptions` (object - optional) -- additional options for metadata
+    - `verifiedOnly` (boolean - optional) -- return only contracts which are 'verified' to help reduce spam
+    - `unverifiedOnly` (boolean - optional) -- return only contracts which are 'unverified'
+    - `includeContracts` (\[]string - optional) -- list of specific contract addresses to always be included, even if verifiedOnly is enabled.
+
+These examples are based on the [Fetch All Tokens
+example](/api-references/indexer/examples/fetch-tokens) for Indexer.
+
+### Get token balances and metadata from an account on multiple Ethereum networks
+Example: Retrieve token balances, along metadata for the
+`0x8e3E38fe7367dd3b52D1e281E4e8400447C8d8B9` account across all chains.
+
+<CodeGroup>
+  ```shell [Curl]
+  curl -X POST \
+    -H "Content-Type: application/json" \
+    -H "X-Access-Key: AQAAAAAAAF_JvPALhBthL7VGn6jV0YDqaFY" \
+    https://indexer.sequence.app/rpc/IndexerGateway/GetTokenBalances \
+    -d '{
+      "accountAddress": "0x8e3E38fe7367dd3b52D1e281E4e8400447C8d8B9", 
+      "includeMetadata": true,
+      "metadataOptions": {
+        "verifiedOnly": true
+      }
+    }'
+  ```
+
+  ```ts [Typescript]
+  import { SequenceIndexerGateway } from '@0xsequence/indexer'
+
+  const INDEXER_TOKEN = 'AQAAAAAAAF_JvPALhBthL7VGn6jV0YDqaFY';
+  const ACCOUNT_ADDRESS = '0x8e3E38fe7367dd3b52D1e281E4e8400447C8d8B9'
+
+  const indexerGateway = new SequenceIndexerGateway(
+    'https://indexer.sequence.app',
+    INDEXER_TOKEN
+  )
+
+  const res = await indexerGateway.getTokenBalances({
+    // chainIds: [1, 4, 137], /* limit results to specific chains */
+    accountAddress: ACCOUNT_ADDRESS,
+    includeMetadata: true,
+    metadataOptions: {
+      verifiedOnly: true
+    }
+  })
+
+  res.balances.forEach(({chainId, results}) => {
+    if (results.length === 0) {
+      return
+    }
+
+    console.log(`chainId: ${chainId} → ${results.length} tokens found.`);
+    results.forEach(token => {
+      console.log(`\ttoken: ${token.contractAddress} (${token.contractInfo?.symbol}): ${token.balance}`);
+    });
+  })
+
+  /*
+  Sample output:
+  chainId: 1946 → 1 tokens found.
+          token: 0x5bcbc265a86fda3502e12cf17947445f7fd4402a (MINE): 1
+  chainId: 421614 → 2 tokens found.
+          token: 0x1f3abc3c5e4ac0601a21183380ed426e06ec694a (MINE): 2
+    ""       token: 0x631980c251af5b4e71429ccc95f77155d75b89d4 (PCKX): 1
+  */
+  ```
+
+  ```go [Go]
+  package main
+
+  import (
+  	"context"
+  	"fmt"
+  	"log"
+  	"net/http"
+
+  	"github.com/0xsequence/go-sequence/indexer"
+  )
+
+  const indexerToken = "AQAAAAAAAF_JvPALhBthL7VGn6jV0YDqaFY"
+
+  func main() {
+  	ctx := context.TODO()
+
+  	seqIndexerGW := indexer.NewIndexerGatewayClient(
+  		"https://indexer.sequence.app",
+  		http.DefaultClient,
+  	)
+
+  	authCtx, err := indexer.WithHTTPRequestHeaders(ctx, http.Header{
+  		"X-Access-Key": []string{indexerToken},
+  	})
+
+  	includeMetadata := true
+  	accountAddress := "0x8e3E38fe7367dd3b52D1e281E4e8400447C8d8B9"
+
+  	chainIDs := make([]uint64, 0)
+
+  	// chainIDs = []uint64{1, 100, 137} // optional filter by chainID
+
+  	metadataOptions := indexer.MetadataOptions{
+  		VerifiedOnly: true,
+  	}
+
+  	_, tokenBalances, err := seqIndexerGW.GetTokenBalances(
+      authCtx, 
+      chainIDs,
+      nil, 
+      &accountAddress, 
+      nil, 
+      nil, 
+      &includeMetadata, 
+      &metadataOptions, 
+      nil,
+      nil,
+    )
+  	if err != nil {
+  		log.Fatal(err)
+  	}
+
+  	for _, tb := range tokenBalances {
+  		if len(tb.Results) == 0 {
+  			continue
+  		}
+  		fmt.Printf("ChainID: %d -> %d tokens found\n", tb.ChainID, len(tb.Results))
+  		for _, tokenBalance := range tb.Results {
+  			fmt.Printf("\tToken: %q (%q): %s\n", tokenBalance.ContractAddress, tokenBalance.ContractInfo.Symbol, tokenBalance.Balance)
+  		}
+  	}
+  }
+
+  /*
+  Sample output:
+  ChainID: 1 -> 7 tokens found
+          Token: "0xc770eefad204b5180df6a14ee197d99d808ee52d" ("FOX"): 58899592885266406938
+          Token: "0x6b175474e89094c44da98b954eedeac495271d0f" ("DAI"): 5021334051688125324
+          Token: "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48" ("USDC"): 221887067
+  */
+  ```
+</CodeGroup>
+
+<br />
+
+<Note>
+  **PRO TIP: fetching ERC721/1155 token IDs**
+
+  You'll notice that, by default, `GetTokenBalances` will return at most one
+  token instance from each contract.  In order to fetch ERC721/1155 token
+  balances, you must pass the `contractAddress` to the `GetTokenBalances` method.
+  This will return all of the tokens owned by `accountAddress` from the specified
+  `contractAddress`.  See section below for more information.
+</Note>
+
+### Fetch token IDs, balances and metadata of ERC721 and ERC1155 collections.
+Example: fetch token balances for a specific account and token contract on the
+Polygon network
+
+<CodeGroup>
+  ```shell [Curl]
+  curl -X POST \
+    -H "Content-Type: application/json" \
+    -H "X-Access-Key: AQAAAAAAAF_JvPALhBthL7VGn6jV0YDqaFY" \
+    https://indexer.sequence.app/rpc/IndexerGateway/GetTokenBalances \
+    -d '{
+      "chainIds": [137],
+      "accountAddress": "0x8e3E38fe7367dd3b52D1e281E4e8400447C8d8B9",
+      "contractAddress": "0x631998e91476DA5B870D741192fc5Cbc55F5a52E",
+      "includeMetadata": true,
+      "metadataOptions": {
+        "verifiedOnly": true
+      }
+    }'
+
+  ```
+
+  ```typescript [Typescript]
+  import { SequenceIndexerGateway } from '@0xsequence/indexer'
+
+  const INDEXER_TOKEN = 'AQAAAAAAAF_JvPALhBthL7VGn6jV0YDqaFY';
+  const ACCOUNT_ADDRESS = '0x8e3E38fe7367dd3b52D1e281E4e8400447C8d8B9';
+  const CONTRACT_ADDRESS = '0x631998e91476DA5B870D741192fc5Cbc55F5a52E';
+
+  const indexerGateway = new SequenceIndexerGateway(
+    'https://indexer.sequence.app',
+    INDEXER_TOKEN
+  )
+
+  const res = await indexerGateway.getTokenBalances({
+    chainIds: [137],
+    accountAddress: ACCOUNT_ADDRESS,
+    contractAddress: CONTRACT_ADDRESS,
+    includeMetadata: true,
+    metadataOptions: {
+      verifiedOnly: true
+    }
+  })
+
+  res.balances.forEach(({ chainId, results }) => {
+    if (results.length === 0) {
+      return
+    }
+
+    console.log(`chainId: ${chainId} → ${results.length} tokens found.`);
+    results.forEach(token => {
+      console.log(`\ttoken: ${token.contractAddress} (${token.contractInfo?.symbol}): ${token.balance}`);
+    });
+  });
+
+  ```
+
+  ```go [Go]
+  package main
+
+  import (
+  	"context"
+  	"fmt"
+  	"log"
+  	"net/http"
+
+  	"github.com/0xsequence/go-sequence/indexer"
+  )
+
+  const indexerToken = "AQAAAAAAAF_JvPALhBthL7VGn6jV0YDqaFY"
+
+  func main() {
+  	ctx := context.TODO()
+
+  	seqIndexerGW := indexer.NewIndexerGatewayClient(
+  		"https://indexer.sequence.app",
+  		http.DefaultClient,
+  	)
+
+  	authCtx, err := indexer.WithHTTPRequestHeaders(ctx, http.Header{
+  		"X-Access-Key": []string{indexerToken},
+  	})
+  	if err != nil {
+  		log.Fatal(err)
+  	}
+
+  	includeMetadata := true
+  	accountAddress := "0x8e3E38fe7367dd3b52D1e281E4e8400447C8d8B9"
+  	contractAddress := "0x631998e91476DA5B870D741192fc5Cbc55F5a52E"
+  	chainIDs := []uint64{137}
+
+  	metadataOptions := indexer.MetadataOptions{
+  		VerifiedOnly: true,
+  	}
+
+  	_, tokenBalances, err := seqIndexerGW.GetTokenBalances(
+  		authCtx,
+  		chainIDs,
+  		nil,
+  		&accountAddress,
+  		&contractAddress,
+  		nil,
+  		&includeMetadata,
+  		&metadataOptions,
+  		nil,
+  		nil,
+  	)
+  	if err != nil {
+  		log.Fatal(err)
+  	}
+
+  	for _, tb := range tokenBalances {
+  		if len(tb.Results) == 0 {
+  			continue
+  		}
+  		fmt.Printf("ChainID: %d -> %d tokens found\n", tb.ChainID, len(tb.Results))
+  		for _, tokenBalance := range tb.Results {
+  			fmt.Printf("\tToken: %q (%q): %s\n", tokenBalance.ContractAddress, tokenBalance.ContractInfo.Symbol, tokenBalance.Balance)
+  		}
+  	}
+  }
+  ```
+</CodeGroup>

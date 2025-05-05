@@ -1,0 +1,124 @@
+---
+title: Sequence Builderでアイテムコレクションコントラクトをデプロイする方法
+description: このガイドでは、BuilderでWeb3ゲームアイテムコントラクトをセットアップしデプロイする手順を詳しく解説します。ERC721とERC1155コントラクトの違いについても説明し、コントラクトのデプロイ手順を案内します。
+sidebarTitle: コレクションコントラクトのデプロイ
+---
+
+このガイドでは、BuilderでWeb3ゲームアイテムコントラクトをセットアップしデプロイする方法を解説します。
+
+<Warning>
+  前提条件：プロジェクトの作成
+
+  このガイドは、すでに[Builderにサインアップし、プロジェクトを作成済み](/solutions/builder/getting-started)であることを前提としています。
+</Warning>
+
+#### ERC721とERC1155の違い
+どちらのコントラクトもNFTをミントできますが、ERC721は初期の標準であり、特にデジタルコレクティブル分野で広く採用されています。シンプルでセキュリティ監査がしやすい点が特徴で、ERC721トークンはすべて固有であるため、多くのNFTマーケットプレイスで認知されています。たとえば、同じ資産を複数扱う場合や、1つのコレクション内に1種類のアイテムが多数ある場合はERC721コントラクトが適しています。
+
+`ERC721`の例：[Azuki](https://etherscan.io/token/0xed5af388653567af2f388e6224dc7c4b3241c544)
+
+一方、ERC1155は、ファンジブルトークンとノンファンジブルトークンの両方を1つのコントラクトで効率的にバッチ処理できる柔軟性があります。多くのアイテムと数量の組み合わせを扱う場合に適していますが、その分複雑さが増し、セキュリティ面での注意が必要です。
+
+`ERC1155`の例：[Skyweaver](https://polygonscan.com/token/0x631998e91476da5b870d741192fc5cbc55f5a52e)
+
+## ステップ1：コントラクト画面へ移動
+左上の `project` からコレクティブルを作成したいプロジェクトを選択し、`contracts` セクションに進み、`+ Deploy new contract` を選択します。
+
+<Frame>
+  ![プロジェクトと新規コントラクトの選択](/images/collectibles/deploy_new_contract.png)
+</Frame>
+
+## ステップ2：コレクティブルの種類を選択する
+次に、Web3ゲームアイテムコレクション（ERC1155）またはNFTコレクション（ERC721）から選択します。この例では、Web3ゲームアイテムコレクション（ERC1155）を例に手順を説明します。
+
+<Frame>
+  ![ゲームアイテムを選択](/images/collectibles/select_web3_game_item.png)
+</Frame>
+
+<Warning>
+  `ERC1155`と`ERC721`のデプロイ時の唯一の違いは、ERC721 NFTコレクションには`symbol`を追加する点です。
+</Warning>
+
+## ステップ3：コントラクトの詳細を入力
+`Contract Name`（コントラクト名）と`Owner`（オーナー）を指定してコントラクトの詳細を入力し、必要に応じてロイヤリティも設定できます。オーナーアドレスが右上に表示されているSequenceウォレットであること、また、そのウォレットにメインネットで十分な資金があることを確認してください。テストネットの場合は、これらの取引手数料は当社が負担します。
+
+<Frame>
+  ![ゲームアイテムをデプロイ](/images/collectibles/deploy_game_item.png)
+</Frame>
+
+<Note>
+  注意：
+
+  `name`は後からBuilderのインターフェースで変更できますが、Sequence全体では更新されても、一般的なエクスプローラーは情報を再インデックスしないため、最初に入力した内容がそのまま残ります。
+</Note>
+
+## ステップ4：コントラクトのデプロイ
+[http://sequence.app/sign-transaction](http://sequence.app/sign-transaction) のポップアップウィンドウからコントラクトをデプロイし、`confirm` を選択して署名します。
+
+<Frame>
+  <img src="/images/collectibles/sign_deploy_transaction.png" width="200" alt="Sequenceウォレットのポップアップウィンドウでメッセージに署名し、コントラクトをデプロイします。" />
+</Frame>
+
+<Note>
+  すべてのテストネットでは無料で取引できます。
+</Note>
+
+### オプション：コントラクトにMinterロールを追加する
+Sequenceのコントラクトにはデフォルトでアクセスコントロール機能があります。場合によっては、特定のアドレスに`mint()`などの関数を呼び出す権限を与えたいことがあります。
+
+まず、`contracts` セクションで先ほどデプロイしたコントラクトを選択します。
+
+<Frame>
+  ![コントラクトを選択](/images/collectibles/select_deployed_contract.png)
+</Frame>
+
+次に、`Write Contract` セクションに進みます。
+
+<Frame>
+  ![コントラクトに書き込む](/images/collectibles/select_item_write_contract.png)
+</Frame>
+
+コントラクト書き込みタブの`grantRole`セクションへ進みます。
+
+<Frame>
+  ![ロールを付与](/images/collectibles/grant_role_game_item.png)
+</Frame>
+
+以下の情報で入力してください。
+
+`bytes32 role`: `0x9f2df0fed2c77648de5860a4cc508cd0818c85b8b8a1ab4ceeef8d981c8956a6`
+`address account`: `<ウォレットアドレス>`
+
+ウォレットアドレスには、ミント権限を付与したいアドレス（特にSequenceウォレット）を入力します。
+
+<Frame>
+  ![アドレスをコピー](/images/collectibles/copy_address_game_item.png)
+</Frame>
+
+`write` を選択し、これまでと同様にポップアップウィンドウでトランザクションに署名して完了します。
+
+`Response Success` の確認メッセージが表示されます。
+
+<Note>
+  入力したロール文字列は、solidityでは `solidityPackedKeccak256("MINTER_ROLE")`、javascriptでは `ethers.solidityPackedKeccak256(ethers.toUtf8Bytes("MINTER_ROLE"))` の結果です。
+</Note>
+
+<Tip>
+  一般的なパターンとして、Cloudflare Workerのようなオフチェーンコンピュートとリレイヤーウォレットを使ってトランザクションを送信する方法があります。その場合はアカウント欄に入力します。詳しくは[こちら](/guides/mint-collectibles-serverless#mint-collectibles-using-a-gasless-serverless-transactions-api)をご覧ください。
+</Tip>
+
+## ステップ6：ウォレットアドレスにトークンをミント
+`Write Contract`セクションの`mint`カードに移動し、`to`にはトークンを受け取りたいウォレットアドレス、`tokenId`（通常は0から開始）、`amount`（発行するトークン数）、`data`欄には通常`0x00`（追加データがない場合）を入力します。
+
+<Frame>
+  ![トークンをミント](/images/collectibles/mint_game_item.png)
+</Frame>
+
+## ステップ7：ミントしたコレクティブルを確認する
+これで完了です！
+
+`Transactions` タブで、ウォレットアドレスに対してブロックチェーンに送信されたトランザクションを確認できます。
+
+<Frame>
+  ![通貨取引を表示](/images/collectibles/transactions_game_items.png)
+</Frame>

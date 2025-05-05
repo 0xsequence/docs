@@ -1,0 +1,12 @@
+---
+title: Transferencias
+---
+
+Para transferir ETH (o la moneda de gas de su red), se recomienda usar `TranferEth.CreateTransaction`
+
+```csharp
+EthTransaction transferTransaction = await TransferEth.CreateTransaction(client, wallet, recipientAddress, DecimalNormalizer.Normalize(1));
+TransactionReceipt receipt = await wallet.SendTransactionAndWaitForReceipt(client, transferTransaction);
+```
+
+En segundo plano, esto creará un `GasLimitEstimator` que construirá la transacción por usted, incluyendo la determinación del gasPrice, gasLimit y nonce apropiados.

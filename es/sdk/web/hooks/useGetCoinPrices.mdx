@@ -1,0 +1,115 @@
+---
+title: useGetCoinPrices
+description: Hook para obtener los precios actuales de una lista de tokens
+sidebarTitle: useGetCoinPrices
+---
+
+## Importar
+
+```tsx
+import { useGetCoinPrices } from '@0xsequence/hooks'
+```
+
+## Uso
+
+```tsx
+import { useGetCoinPrices } from '@0xsequence/hooks'
+import { ZERO_ADDRESS } from '@0xsequence/hooks'
+
+function TokenPriceDisplay() {
+  const tokens = [
+    {
+      chainId: 1,
+      contractAddress: ZERO_ADDRESS // ETH
+    },
+    {
+      chainId: 137,
+      contractAddress: '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174' // USDC on Polygon
+    }
+  ]
+  
+  const { 
+    data: prices, 
+    isLoading, 
+    error,
+    isError,
+    isSuccess 
+  } = useGetCoinPrices(tokens)
+  
+  if (isLoading) {
+    return <div>Loading prices...</div>
+  }
+  
+  if (isError) {
+    return <div>Error: {error.message}</div>
+  }
+  
+  return (
+    <div>
+      <h2>Token Prices</h2>
+      {isSuccess && prices && (
+        <ul>
+          {prices.map((price, index) => (
+            <li key={`${tokens[index].chainId}-${tokens[index].contractAddress}`}>
+              Chain {tokens[index].chainId}:{' '}
+              {price.price.value} {price.price.currency}
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  )
+}
+```
+
+## Parámetros
+
+### tokens
+`Token[]`
+
+Arreglo de tokens para obtener precios. Cada token debe incluir:
+
+```tsx
+interface Token {
+  chainId: number        // The chain ID where the token exists
+  contractAddress: string // The token's contract address
+}
+```
+
+Use `ZERO_ADDRESS` para tokens nativos (por ejemplo, ETH en Ethereum, MATIC en Polygon).
+
+### options
+`HooksOptions` (opcional)
+
+```tsx
+interface HooksOptions {
+  retry?: boolean  // Whether to retry failed requests (defaults to true)
+  disabled?: boolean // Whether to disable the query
+}
+```
+
+## Tipo de retorno
+El hook retorna un objeto resultado de React Query:
+
+```tsx
+interface Price {
+  value: number
+  currency: string
+}
+
+{
+  data: {
+    token: Token,
+    price?: Price,
+    price24hChange?: Price,
+    floorPrice?: Price,
+    buyPrice?: Price,
+    sellPrice?: Price,
+    updatedAt: string
+  }[]
+  isLoading: boolean    // Whether the initial request is in progress
+  error: Error | null   // Any error that occurred
+  isError: boolean      // Whether an error occurred
+  isSuccess: boolean    // Whether the request was successful
+}
+```

@@ -1,0 +1,102 @@
+---
+title: Inicialice su UI
+sidebarTitle: UI de inicio de sesión
+description: Documentación general del SDK de Unreal para la infraestructura Sequence orientada a juegos web3.
+---
+
+## Configuración de UI integrada
+Puede usar el `[BP_CustomSpectatorPawn]`, pero dado que tanto este como su clase padre residen dentro del plugin, cualquier modificación que haga dentro del plugin se perderá durante las actualizaciones. Estos sirven principalmente como referencia y punto de partida. _Le recomendamos_ duplicar el `BP_CustomSpectatorPawn` fuera de la carpeta del plugin y luego actualizar su clase padre a una clase C++ propia que también esté fuera de la carpeta de contenido del plugin.
+
+Se requiere una configuración adicional del GameMode antes de que aparezca cualquier UI. SequencePlugin incluye un GameMode de ejemplo `[GM_Sequence]` almacenado en `[Demonstration]` dentro de la carpeta de contenido del plugin. Duplique este GameMode y muévalo fuera de la carpeta del plugin. Luego abra `[GM_Sequence]` y establezca el DefaultPawn en el Pawn Blueprint que acaba de crear.
+
+Por último, en la configuración del proyecto, debe establecer este GameMode como el predeterminado. Específicamente en `ProjectSettings -> Maps & Modes`
+
+<Note>
+  El plugin de navegador web de Unreal utiliza el navegador embebido Chromium. Si su dispositivo no lo soporta, puede usar la función `Launch URL` de Unreal.
+</Note>
+
+<Tip>
+  ¡Intente ejecutar su proyecto ahora! Debería poder iniciar sesión usando sus credenciales de redes sociales si ha configurado todo correctamente hasta ahora.
+</Tip>
+
+### Personalización de la UI integrada
+En la carpeta ubicada en _SequencePlugin Content/Core/Style_ encontrará una struct `F_SequenceUIStyle`. En la sección de valores predeterminados de esta struct podrá actualizar los colores e imágenes que se muestran en la UI. Actualmente solo se lee desde `Sequence_Style_Dark_Mode`
+
+## Integraciones de UI personalizadas
+Para comenzar, querrá crear un UObject `[UAuthenticator]` así: `[UAuthenticator * Auth = NewObject<UAuthenticator>()]`, este UObject gestiona la autenticación de Sequence.
+
+En un **UObject** en C++ con una serie de `[UFUNCTIONS]` de paso configuradas de forma similar a `[SequenceBackendManager.h/.cpp]`. Cada una de estas llamadas se implementa en `[UAuthenticator]`; solo necesita pasar los datos con **SU** UObject UAuthenticator.
+
+```cpp
+/*
+   Used to initiate mobile Social Signin
+   (No other calls need to be made to complete mobile SSO)
+*/
+void InitiateMobileSSO(const ESocialSigninType& Type)
+/*
+   Optional Call,
+   Used to set a custom encryptor implementation for the Authentication Process
+*/
+void SetCustomEncryptor(UGenericNativeEncryptor * EncryptorIn);
+/*
+   This call is for generating a login URL for Desktop based Social Signin
+   the received URL is fed into a WebBrowser to begin the login process
+*/
+FString GetLoginURL(const ESocialSigninType& Type);
+/*
+   This is call is for undergoing social login once an ID_Token has been collected.
+*/
+void SocialLogin(const FString& IDTokenIn);
+/*
+   This Call is made after you've collected the email address from the Users in the UI
+   The Delegate **[AuthRequiresCode]** will fire when a code is ready to be received
+   by the UAuthenticator
+*/
+void EmailLogin(const FString& EmailIn);
+/*
+   This is call is made after the Delegate **[AuthRequiresCode]** is fired
+   The Code collected from the User in the GUI is sent in via this call
+*/
+void EmailCode(const FString& CodeIn);
+/*
+   Optional call used to retrieve stored credentials on disk
+*/
+FStoredCredentials_BE GetStoredCredentials() const;
+/*
+   Optional call used to check if the credentials on disk are valid or not
+*/
+bool StoredCredentialsValid();
+```
+
+### Vinculación a los Delegates
+Asegúrese de vincularse a los Delegates para **\[AuthSuccess]**, **\[AuthFailure]**, **\[AuthRequiresCode]** antes de realizar cualquier llamada de inicio de sesión. Puede vincularse a estos delegates de la siguiente manera:
+
+```cpp
+this->authenticator->AuthRequiresCode.AddDynamic(this, &AYourClass::YourCallReadyToReceiveCode);
+this->authenticator->AuthFailure.AddDynamic(this, &AYourClass::YourCallShowAuthFailureScreen);
+```
+
+En el caso de **\[AuthSuccess]**, dado que también se pasa un parámetro, se vincula así
+
+```cpp
+FScriptDelegate del;
+del.BindUFunction(this, "CallShowAuthSuccessScreen");
+this->authenticator->AuthSuccess.Add(del);
+```
+
+**Nota:** Reemplace el uso de `SequenceBackendManager.h/.cpp` por el suyo propio al construir una GUI personalizada; aquí solo se utiliza como referencia en caso de que se necesite más contexto con estas instrucciones. Donde \[CallShowAuthSuccessScreen] está definido en SequenceBackendManager.h como ejemplo de la siguiente manera:
+
+```cpp
+UFUNCTION()
+void CallShowAuthSuccessScreen(const FCredentials_BE& CredentialsIn);
+And in SequenceBackendManager.cpp like so:
+
+void ASequenceBackendManager::CallShowAuthSuccessScreen(const FCredentials_BE& CredentialsIn)
+{
+this->Credentials = CredentialsIn;
+if (this->ShowAuthSuccessDelegate.IsBound())
+  this->ShowAuthSuccessDelegate.Broadcast(Credentials);
+else
+  UE_LOG(LogTemp, Error, TEXT("**[Nothing bound to: ShowAuthSuccessDelegate]**"));
+}
+```
