@@ -5,29 +5,45 @@ description: Learn how to use Social Sign In and get an Id Token using the Brows
 
 <Steps>
     <Step title="Get a Google or Apple Id Token">
+        Start by calling the `Get Google Token Id` function. When you make iOS & Android, it will leverage native plugins
+        to manage the id token and calls the `IdTokenReceived` event once the process is finished. When you develop and build
+        for Mac & Windows, you are required to handle the Sign In Url with the Browser Plugin.
+
         <Frame>
             <img src="/images/unreal/guides/social_signin/get_token.png" />
         </Frame>
     </Step>
     <Step title="Load the URL using the Browser plugin">
+        Create a Browser object and load the `Sign In Url`.
+
         <Frame>
             <img src="/images/unreal/guides/social_signin/load_url.png" />
         </Frame>
     </Step>
     <Step title="Listen to URL changes">
+        In order to get the Id token from Apple & Google, we need to listen to changes in the Url string.
+        The id token is inside the Url during the Sign-In process and we need additional functions to parse it out of the Url.
+
         <Frame>
             <img src="/images/unreal/guides/social_signin/listen_to_url_changes.png" />
         </Frame>
     </Step>
     <Step title="Parse the id token from the URL">
+        Let's integrate a few helper functions to parse the id token from the Url.
+
+        **Url to Map:** Convert the Url's query parameters to a string to string map.
         <Frame>
             <img src="/images/unreal/guides/social_signin/url_to_map.png" />
         </Frame>
+
+        **Token from Url:** Use the map to check if the `id_token` value exists and return it.
         <Frame>
             <img src="/images/unreal/guides/social_signin/token_from_url.png" />
         </Frame>
     </Step>
     <Step title="Create the session">
+        Finally, we check if we got the id token and use the value to create a session using the `Start Oidc Session`.
+
         <Frame>
             <img src="/images/unreal/guides/social_signin/start_session.png" />
         </Frame>
