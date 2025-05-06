@@ -1,0 +1,52 @@
+---
+
+title: "Connecting External Wallets"
+description: Documentation for Unreal SDK API to manage sessions for the Sequence infrastructure stack for web3 gaming.
+---
+
+Get- and remove linked wallets in your Unreal project. Learn more on [how to link external wallets](/solutions/wallets/link-wallets/integration-guide) such as Metamask on a web app.
+Linking Wallets gives you read-only access to those wallets such as using our Indexer to query balances from externally owned items.
+
+## Get Linked Wallets
+
+Query the list of all wallets the user linked to their Embedded Wallet.
+
+<Tabs>
+    <Tab title="Blueprint">
+        <Frame>
+            <img src="/images/unreal/get_linked_wallets.png" />
+        </Frame>
+    </Tab>
+
+    <Tab title="C++">
+        ```cpp
+        const TFunction<void (FSeqLinkedWalletsResponse)> OnApiSuccess = [OnSuccess](const FSeqLinkedWalletsResponse& LinkedWallets) { };
+        const TFunction<void (FSequenceError)> OnApiFailure = [OnFailure](const FSequenceError& Err) { };
+
+        USequenceWallet* Wallet = NewObject<USequenceWallet>();
+        Wallet->GetLinkedWallets(OnApiSuccess, OnApiFailure);
+        ```
+    </Tab>
+</Tabs>
+
+## Remove Linked Wallet
+
+Removes the specified wallet.
+
+<Tabs>
+    <Tab title="Blueprint">
+        <Frame>
+            <img src="/images/unreal/remove_linked_wallets.png" />
+        </Frame>
+    </Tab>
+
+    <Tab title="C++">
+        ```cpp
+        const TFunction<void()> OnApiSuccess = [OnSuccess]() { };
+        const TFunction<void (FSequenceError)> OnApiFailure = [OnFailure](const FSequenceError& Err) { };
+
+        USequenceWallet* Wallet = NewObject<USequenceWallet>();
+        Wallet->RemoveLinkedWallet(LinkedWalletAddress, OnApiSuccess, OnApiFailure);
+        ```
+    </Tab>
+</Tabs>

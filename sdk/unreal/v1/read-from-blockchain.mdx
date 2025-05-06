@@ -1,0 +1,293 @@
+---
+
+title: "Read From Blockchain"
+description: Documentation for Unreal SDK API for reading from the blockchain with the Sequence infrastructure stack for web3 gaming.
+---
+
+## Set Chain Id
+
+Select the Chain ID from which you want to retrieve user information. By default, this is set to Polygon.
+
+<Tabs>
+    <Tab title="Blueprint">
+        <Frame caption="Set Chain Id">
+            <img src="/images/unreal/v1/set_chain_id.png" />
+        </Frame>
+  </Tab>
+</Tabs>
+
+<Accordion title="Parameters">
+  **New Chain Type (ENetwork Enum)**
+
+   The type of chain you want to request information from. This includes options like Ethereum Mainnet or Sepolia. " + "Make sure that you select the correct chain for your project from Sequence's Builder.
+
+</Accordion>
+
+## Get Ether Balance
+
+Use the Indexer API to retrieve the Ether balance for a specified wallet address, such as the local user's address.
+
+<Tabs>
+    <Tab title="Blueprint">
+        <Frame caption="Get Ether Balance">
+            <img src="/images/unreal/v1/get_ether_balance.png" />
+        </Frame>
+    </Tab>
+
+    <Tab title="C++">
+        ```cpp twoslash
+        // Define success and failure callbacks
+        const TSuccessCallback<FEtherBalance> GenericSuccess = [=](const FEtherBalance& etherBalance) { };
+        const FFailureCallback GenericFailure = [=](const FSequenceError& Error) { };
+
+        // Get a reference of the user's current wallet session.
+        const TOptional<USequenceWallet*> WalletOptional = USequenceWallet::Get();
+        if (WalletOptional.IsSet() && WalletOptional.GetValue())
+        {
+            // Example Indexer call
+            USequenceWallet * Wallet = WalletOptional.GetValue();
+            Wallet->GetEtherBalance(Wallet->GetWalletAddress(), GenericSuccess, GenericFailure);
+        }
+        ```
+  </Tab>
+</Tabs>
+
+<Accordion title="Parameters">
+  **Wallet Address (FString)**
+
+   The wallet address from which you want to retrieve data.
+
+</Accordion>
+
+<Accordion title="Return Types">
+  **Balance (Integer64)**
+
+   The amount of Ether owned by the specified wallet address.
+
+</Accordion>
+
+## Get Token Balances
+
+Retrieve the user's token balances for ERC20, ERC721, and ERC1155 tokens. This will return an array of all tokens
+owned by the user.
+
+<Tabs>
+    <Tab title="Blueprint">
+        <Frame caption="Get Token Balances">
+            <img src="/images/unreal/v1/get_token_balances.png" />
+        </Frame>
+    </Tab>
+
+    <Tab title="C++">
+        ```cpp
+        const TSuccessCallback<FGetTokenBalancesReturn> GenericSuccess = [=](const FGetTokenBalancesReturn& tokenBalances)
+        {
+            //Response in FGetTokenBalancesReturn
+        };
+        const FFailureCallback GenericFailure = [=](const FSequenceError& Error)
+        {
+            //GetTokenBalances Failure
+        };
+
+        const TOptional<USequenceWallet*> WalletOptional = USequenceWallet::Get();
+        if (WalletOptional.IsSet() && WalletOptional.GetValue())
+        {
+            USequenceWallet * Wallet = WalletOptional.GetValue();
+            FGetTokenBalancesArgs args;
+            args.accountAddress = Wallet->GetWalletAddress();
+            args.includeMetaData = true;
+            Wallet->GetTokenBalances(args, GenericSuccess, GenericFailure);
+        }
+        ```
+  </Tab>
+</Tabs>
+
+<Accordion title="Parameters">
+  **Contract Address (FString)**
+
+   An ERC20, ERC721 or ERC1155 contract address from which you want to retrieve data.
+
+  **Wallet Address (FString)**
+
+   The wallet address which owns tokens on the specified contract address.
+
+  **Include Metadata (Boolean)**
+
+   Enable this flag if you want to receive token metadata in the response.
+
+</Accordion>
+
+<Accordion title="Return Types">
+  **Balances (SeqGetTokenBalancesReturn Struct)**
+
+   Contains a SeqTokenBalance array that lists all token IDs owned by the specified wallet address. " + "If 'Include Metadata' is set to true, token metadata is also included.
+
+</Accordion>
+
+## Get Token Supplies
+
+Retrieve the token supplies for an ERC20, ERC721, or ERC1155 token.
+
+<Tabs>
+    <Tab title="Blueprint">
+        <Frame caption="Get Token Supplies">
+            <img src="/images/unreal/v1/get_token_supplies.png" />
+        </Frame>
+    </Tab>
+
+    <Tab title="C++">
+        ```cpp
+        const TSuccessCallback<FGetTokenSuppliesReturn> GenericSuccess = [=](const FGetTokenSuppliesReturn& tokenSupplies)
+        {
+            //Response is in FGetTokenSuppliesReturn
+        };
+        const FFailureCallback GenericFailure = [=](const FSequenceError& Error)
+        {
+            //GetTokenSupplies Failure
+        };
+
+        const TOptional<USequenceWallet*> WalletOptional = USequenceWallet::Get();
+        if (WalletOptional.IsSet() && WalletOptional.GetValue())
+        {
+            USequenceWallet * Wallet = WalletOptional.GetValue();
+            FGetTokenSuppliesArgs args;
+            args.contractAddress = "0x01";//Testing Contract Address in hex with leading 0x
+            args.includeMetaData = true;
+            Wallet->GetTokenSupplies(args, GenericSuccess, GenericFailure);
+        }
+        ```
+  </Tab>
+</Tabs>
+
+<Accordion title="Parameters">
+  **Contract Address (FString)**
+
+   An ERC20, ERC721 or ERC1155 contract address from which you want to retrieve token supplies.
+
+  **Include Metadata (Boolean)**
+
+   Enable this flag if you want to receive token metadata in the response.
+
+</Accordion>
+
+<Accordion title="Return Types">
+  **Supplies (SeqGetTokenSuppliesReturn Struct)**
+
+   Contains a SeqTokenSupply array that lists all token IDs available on the specified contract address. " + "Each element contains a 'supply' value. If 'Include Metadata' is set to true, token metadata is also included.
+
+</Accordion>
+
+## Get Token Supplies Map
+
+Retrieve a collection of token supplies for ERC20, ERC721, or ERC1155 tokens.
+
+<Tabs>
+    <Tab title="Blueprint">
+        <Frame caption="Get Token Supplies Map">
+            <img src="/images/unreal/v1/get_token_supplies_map.png" />
+        </Frame>
+    </Tab>
+
+    <Tab title="C++">
+        ```cpp
+        const TSuccessCallback<FGetTokenSuppliesMapReturn> GenericSuccess = [=](const FGetTokenSuppliesMapReturn& tokenSuppliesMap)
+        {
+            //Response is in FGetTokenSuppliesMapReturn
+        };
+        const FFailureCallback GenericFailure = [=](const FSequenceError& Error)
+        {
+            //GetTokenSuppliesMap Failure
+        };
+        const TOptional<USequenceWallet*> WalletOptional = USequenceWallet::Get();
+        if (WalletOptional.IsSet() && WalletOptional.GetValue())
+        {
+            USequenceWallet * Wallet = WalletOptional.GetValue();
+            TMap<FString, FTokenList> tokenMap;
+            const TPair<FString,FTokenList> item;
+            tokenMap.Add(item);
+            FGetTokenSuppliesMapArgs args;
+            args.includeMetaData = true;
+            args.tokenMap = tokenMap;
+            Wallet->GetTokenSuppliesMap(args, GenericSuccess, GenericFailure);
+        }
+        ```
+  </Tab>
+</Tabs>
+
+<Accordion title="Parameters">
+  **Token Map (FString->FSeqTokenList Map))**
+
+   A map of token IDs that you want to retrieve data from.
+
+  **Include Metadata (Boolean)**
+
+   Enable this flag if you want to receive token metadata in the response.
+
+</Accordion>
+
+<Accordion title="Return Types">
+  **Supplies (SeqGetTokenSuppliesMapReturn Struct)**
+
+   Contains a SeqTokenSupply array for each specified ID in the 'Token Map'. " + "Each element contains a 'supply' value. If 'Include Metadata' is set to true, token metadata is also included.
+
+</Accordion>
+
+## Get Transaction History
+
+Retrieve the transaction history for a wallet- or token address.
+For example, here we get all transactions for the current user.
+
+<Tabs>
+    <Tab title="Blueprint">
+        <Frame caption="Get Transaction History">
+            <img src="/images/unreal/v1/get_transaction_history.png" />
+        </Frame>
+    </Tab>
+
+    <Tab title="C++">
+        ```cpp
+        const TSuccessCallback<FGetTransactionHistoryReturn> GenericSuccess = [=](const FGetTransactionHistoryReturn& transactionHistory)
+        {
+            //Response is in FGetTransactionHistoryReturn
+        };
+        const FFailureCallback GenericFailure = [=](const FSequenceError& Error)
+        {
+            //GetTransactionHistory Failure
+        };
+
+        const TOptional<USequenceWallet*> WalletOptional = USequenceWallet::Get();
+        if (WalletOptional.IsSet() && WalletOptional.GetValue())
+        {
+            USequenceWallet * Wallet = WalletOptional.GetValue();
+            FGetTransactionHistoryArgs args;
+            args.filter.accountAddress = Wallet->GetWalletAddress();
+            args.includeMetaData = true;
+            args.page.page = 0;
+            args.page.more = true;
+            Wallet->GetTransactionHistory(args, GenericSuccess, GenericFailure);
+        }
+        ```
+  </Tab>
+</Tabs>
+
+<Accordion title="Parameters">
+  **Account Address (FString)**
+
+   Specify a wallet address if you want to receive the history for a specific user.
+
+  **Contract Address (FString)**
+
+   Specify an ERC20, ERC721 or ERC1155 contract address if you want to receive the history for a specific token.
+
+  **Include Metadata (Boolean)**
+
+   Enable this flag if you want to receive token metadata in the response.
+
+</Accordion>
+
+<Accordion title="Return Types">
+  **Transaction History (SeqGetTransactionHistoryReturn Struct)**
+
+   Contains a SeqTransaction array that lists all transactions.
+
+</Accordion>

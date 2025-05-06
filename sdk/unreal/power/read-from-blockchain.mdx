@@ -1,0 +1,363 @@
+---
+
+title: "Read From Blockchain"
+description: Documentation for Unreal SDK API for reading from the blockchain with the Sequence infrastructure stack for web3 gaming.
+---
+
+## Set Chain by Id
+
+By default your Chain Id is defined in your SequenceConfig.ini file. Use this function to change it during runtime.
+
+<Tabs>
+    <Tab title="Blueprint">
+        <Frame>
+            <img src="/images/unreal/set_chain_by_id.png" />
+        </Frame>
+    </Tab>
+    <Tab title="C++">
+        ```cpp
+        SequenceSdk::SetChainId(NewChainId);
+        ```
+    </Tab>
+</Tabs>
+
+<Accordion title="Parameters">
+    **NewChainId (int64)**
+
+    The new chain id, such as 421614 for Arbitrum Sepolia.
+
+</Accordion>
+
+## Get Native Token Balance
+
+Use the Indexer API to retrieve the Ether balance for a specified wallet address, such as the local user's address.
+
+<Tabs>
+    <Tab title="Blueprint">
+        <Frame>
+            <img src="/images/unreal/get_native_token_balance.png" />
+        </Frame>
+    </Tab>
+    <Tab title="C++">
+        ```cpp
+        const TSuccessCallback<FSeqEtherBalance> OnApiSuccess = [this, OnSuccess](const FSeqEtherBalance& EtherBalance) { };
+        const FFailureCallback OnApiFailure = [this, OnFailure](const FSequenceError& Error) { };
+
+        USequenceIndexer* Indexer = NewObject<USequenceIndexer>();
+        Indexer->GetNativeTokenBalance(SequenceSdk::GetChainId(), WalletAddress, OnApiSuccess, OnApiFailure);
+        ```
+  </Tab>
+</Tabs>
+
+<Accordion title="Parameters">
+  **Wallet Address (FString)**
+
+   The wallet address from which you want to retrieve data.
+
+</Accordion>
+
+<Accordion title="Return Types">
+  **Balance (Integer64)**
+
+   The amount of Ether owned by the specified wallet address.
+
+</Accordion>
+
+## Get Token Balances
+
+Retrieve the user's token balances for ERC20, ERC721, and ERC1155 tokens. This will return an array of all tokens
+owned by the user.
+
+<Tabs>
+    <Tab title="Blueprint">
+        <Frame>
+            <img src="/images/unreal/get_token_balances.png" />
+        </Frame>
+    </Tab>
+    <Tab title="C++">
+        ```cpp
+        const TSuccessCallback<FSeqGetTokenBalancesReturn> OnApiSuccess = [this, OnSuccess](const FSeqGetTokenBalancesReturn& Balances) { };
+        const FFailureCallback OnApiFailure = [this, OnFailure](const FSequenceError& Error) { };
+
+        FSeqGetTokenBalancesArgs Args;
+        Args.accountAddress = WalletAddress;
+        Args.contractAddress = ContractAddress;
+        Args.includeMetaData = IncludeMetadata;
+
+        USequenceIndexer* Indexer = NewObject<USequenceIndexer>();
+        Indexer->GetTokenBalances(SequenceSdk::GetChainId(), Args, OnApiSuccess, OnApiFailure);
+        ```
+    </Tab>
+</Tabs>
+
+<Accordion title="Parameters">
+  **Contract Address (FString)**
+
+   An ERC20, ERC721 or ERC1155 contract address from which you want to retrieve data.
+
+  **Wallet Address (FString)**
+
+   The wallet address which owns tokens on the specified contract address.
+
+  **Include Metadata (Boolean)**
+
+   Enable this flag if you want to receive token metadata in the response.
+
+</Accordion>
+
+<Accordion title="Return Types">
+  **Balances (SeqGetTokenBalancesReturn Struct)**
+
+   Contains a SeqTokenBalance array that lists all token IDs owned by the specified wallet address. " + "If 'Include Metadata' is set to true, token metadata is also included.
+
+</Accordion>
+
+## Get Token Supplies
+
+Retrieve the token supplies for an ERC20, ERC721, or ERC1155 token.
+
+<Tabs>
+    <Tab title="Blueprint">
+        <Frame>
+            <img src="/images/unreal/get_token_supplies.png" />
+        </Frame>
+    </Tab>
+
+    <Tab title="C++">
+        ```cpp
+        const TSuccessCallback<FSeqGetTokenSuppliesReturn> OnApiSuccess = [this, OnSuccess](const FSeqGetTokenSuppliesReturn& Supplies) { };
+        const FFailureCallback OnApiFailure = [this, OnFailure](const FSequenceError& Error) { };
+
+        FSeqGetTokenSuppliesArgs Args;
+        Args.contractAddress = ContractAddress;
+        Args.includeMetaData = IncludeMetadata;
+
+        USequenceIndexer* Indexer = NewObject<USequenceIndexer>();
+        Indexer->GetTokenSupplies(SequenceSdk::GetChainId(), Args, OnApiSuccess, OnApiFailure);
+        ```
+  </Tab>
+</Tabs>
+
+<Accordion title="Parameters">
+  **Contract Address (FString)**
+
+   An ERC20, ERC721 or ERC1155 contract address from which you want to retrieve token supplies.
+
+  **Include Metadata (Boolean)**
+
+   Enable this flag if you want to receive token metadata in the response.
+
+</Accordion>
+
+<Accordion title="Return Types">
+  **Supplies (SeqGetTokenSuppliesReturn Struct)**
+
+   Contains a SeqTokenSupply array that lists all token IDs available on the specified contract address. " + "Each element contains a 'supply' value. If 'Include Metadata' is set to true, token metadata is also included.
+
+</Accordion>
+
+## Get Token Supplies Map
+
+Retrieve a collection of token supplies for ERC20, ERC721, or ERC1155 tokens.
+
+<Tabs>
+    <Tab title="Blueprint">
+        <Frame>
+            <img src="/images/unreal/get_token_supplies_map.png" />
+        </Frame>
+    </Tab>
+
+    <Tab title="C++">
+        ```cpp
+        const TSuccessCallback<FSeqGetTokenSuppliesMapReturn> OnApiSuccess = [this, OnSuccess](const FSeqGetTokenSuppliesMapReturn& SuppliesMap) { };
+        const FFailureCallback OnApiFailure = [this, OnFailure](const FSequenceError& Error) { };
+
+        FSeqGetTokenSuppliesMapArgs Args;
+        Args.tokenMap = TokenMap;
+        Args.includeMetaData = IncludeMetadata;
+
+        USequenceIndexer* Indexer = NewObject<USequenceIndexer>();
+        Indexer->GetTokenSupplies(SequenceSdk::GetChainId(), Args, OnApiSuccess, OnApiFailure);
+        ```
+  </Tab>
+</Tabs>
+
+<Accordion title="Parameters">
+  **Token Map (FString->FSeqTokenList Map))**
+
+   A map of token IDs that you want to retrieve data from.
+
+  **Include Metadata (Boolean)**
+
+   Enable this flag if you want to receive token metadata in the response.
+
+</Accordion>
+
+<Accordion title="Return Types">
+  **Supplies (SeqGetTokenSuppliesMapReturn Struct)**
+
+   Contains a SeqTokenSupply array for each specified ID in the 'Token Map'. " + "Each element contains a 'supply' value. If 'Include Metadata' is set to true, token metadata is also included.
+
+</Accordion>
+
+## Get Transaction History
+
+Retrieve the transaction history for a wallet- or token address.
+For example, here we get all transactions for the current user.
+
+<Tabs>
+    <Tab title="Blueprint">
+        <Frame>
+            <img src="/images/unreal/get_transaction_history.png" />
+        </Frame>
+    </Tab>
+
+    <Tab title="C++">
+        ```cpp
+        const TSuccessCallback<FSeqGetTransactionHistoryReturn> OnApiSuccess = [this, OnSuccess](const FSeqGetTransactionHistoryReturn& TransactionHistory) { };
+        const FFailureCallback OnApiFailure = [this, OnFailure](const FSequenceError& Error) { };
+
+        FSeqGetTransactionHistoryArgs Args;
+        Args.filter = Filter;
+        Args.page = Page;
+        Args.includeMetaData = IncludeMetadata;
+
+        USequenceIndexer* Indexer = NewObject<USequenceIndexer>();
+        Indexer->GetTransactionHistory(SequenceSdk::GetChainId(), Args, OnApiSuccess, OnApiFailure);
+        ```
+  </Tab>
+</Tabs>
+
+<Accordion title="Parameters">
+  **Account Address (FString)**
+
+   Specify a wallet address if you want to receive the history for a specific user.
+
+  **Contract Address (FString)**
+
+   Specify an ERC20, ERC721 or ERC1155 contract address if you want to receive the history for a specific token.
+
+  **Include Metadata (Boolean)**
+
+   Enable this flag if you want to receive token metadata in the response.
+
+</Accordion>
+
+<Accordion title="Return Types">
+  **Transaction History (SeqGetTransactionHistoryReturn Struct)**
+
+   Contains a SeqTransaction array that lists all transactions.
+
+</Accordion>
+
+## Runtime Status
+
+Retrieve the runtime status of the current chain.
+For example, call this function to get the latest block number.
+
+<Tabs>
+    <Tab title="Blueprint">
+        <Frame>
+            <img src="/images/unreal/runtime_status.png" />
+        </Frame>
+    </Tab>
+
+    <Tab title="C++">
+        ```cpp
+        const TSuccessCallback<FSeqRuntimeStatus> OnApiSuccess = [this, OnSuccess](const FSeqRuntimeStatus& Status) { };
+        const FFailureCallback OnApiFailure = [this, OnFailure](const FSequenceError& Error) { };
+
+        USequenceIndexer* Indexer = NewObject<USequenceIndexer>();
+        Indexer->RuntimeStatus(SequenceSdk::GetChainId(), OnApiSuccess, OnApiFailure);
+        ```
+    </Tab>
+</Tabs>
+
+<Accordion title="Return Types">
+    **Status (SeqRuntimeStatus Struct)**
+
+    Object containing all details related to the status of our Indexer.
+
+    **Error (FString)**
+
+    Error message containing more details on why the request failed.
+
+</Accordion>
+
+## Version
+
+Retrieve the version of the current chain.
+
+<Tabs>
+    <Tab title="Blueprint">
+        <Frame>
+            <img src="/images/unreal/version.png" />
+        </Frame>
+    </Tab>
+
+    <Tab title="C++">
+        ```cpp
+        const TSuccessCallback<FSeqVersion> OnApiSuccess = [this, OnSuccess](const FSeqVersion& Status) { };
+        const FFailureCallback OnApiFailure = [this, OnFailure](const FSequenceError& Error) { };
+
+        USequenceIndexer* Indexer = NewObject<USequenceIndexer>();
+        Indexer->Version(SequenceSdk::GetChainId(), OnApiSuccess, OnApiFailure);
+        ```
+    </Tab>
+</Tabs>
+
+<Accordion title="Return Types">
+    **Web Rpc Version (FString)**
+
+    TBD.
+
+    **Schema Version (FString)**
+
+    TBD.
+
+    **Schema Hash (FString)**
+
+    TBD.
+
+    **App Version (FString)**
+
+    TBD.
+
+    **Error (FString)**
+
+    Error message containing more details on why the request failed.
+
+</Accordion>
+
+## Ping
+
+Ping the indexer to check if our endpoint is alive and ready.
+
+<Tabs>
+    <Tab title="Blueprint">
+        <Frame>
+            <img src="/images/unreal/ping.png" />
+        </Frame>
+    </Tab>
+
+    <Tab title="C++">
+        ```cpp
+        const TSuccessCallback<bool> OnApiSuccess = [this, OnSuccess](const bool Status) { };
+        const FFailureCallback OnApiFailure = [this, OnFailure](const FSequenceError& Error) { };
+
+        USequenceIndexer* Indexer = NewObject<USequenceIndexer>();
+        Indexer->Ping(SequenceSdk::GetChainId(), OnApiSuccess, OnApiFailure);
+        ```
+    </Tab>
+</Tabs>
+
+<Accordion title="Return Types">
+    **Success (bool)**
+
+    True if the indexer is running.
+
+    **Error (FString)**
+
+    Error message containing more details on why the request failed.
+
+</Accordion>
