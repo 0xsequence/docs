@@ -1,0 +1,50 @@
+---
+title: Interfaz de Wallet
+---
+
+Como producto Wallet as a Service, este SDK no requiere interfaz de usuario. Sin embargo, como esperamos que algunas apps aún decidan ofrecer algún tipo de interfaz de wallet a los usuarios, estamos trabajando para brindar una UI predeterminada que puedes usar.
+
+Esta interfaz se encuentra bajo `SequenceFrontend`.
+
+Para agregar la UI a su escena, puede añadir el prefab `WalletPanel` que se encuentra en `SequenceFrontend > Prefabs`. Se abre usando el método Open; debe proporcionar un `Sequence.EmbeddedWallet.IWallet` (por ejemplo, un `SequenceWallet`) como argumento.
+
+Notarás que la interfaz aún está en desarrollo y también utiliza mocks en algunos lugares (como al obtener historial de transacciones y precios). Estos serán reemplazados en próximas actualizaciones del SDK, pero si quieres, puedes reemplazarlos tú mismo (¡y si quieres sumar puntos extra, envía un PR!).
+
+## Cómo Funciona
+La interfaz de ejemplo de Sequence está compuesta por algunos componentes importantes.
+
+### UIPage
+Un `UIPage` es la implementación base de una "página" en la interfaz de ejemplo. Ejemplos de páginas: `LoginPage`, `TokenInfoPage`
+
+Es responsable de abrir/cerrar la página y gestionar el `ITween` elegido.
+
+### ITween
+Un `ITween` es una interfaz para una animación (entrada/salida) que se puede aplicar a un `RectTransform` (un componente requerido de un `UIPage`). Si no le gustan las animaciones de un `UIPage` o `UIPanel` puede cambiarlas fácilmente por cualquier otro MonoBehaviour que implemente la interfaz `ITween`, ¡incluso uno propio!
+
+Consejo: para ahorrar tiempo creando sus propias animaciones, considere usar el popular [conjunto de herramientas DOTween](https://assetstore.unity.com/packages/tools/animation/dotween-hotween-v2-27676)
+
+### UIPanel
+Heredando de `UIPage`, un `UIPanel` es la implementación base de un "panel" en la interfaz de ejemplo. Ejemplos de paneles: `LoginPanel`, `WalletPanel`
+
+Además de las responsabilidades de `UIPage`, los UIPanels mantienen una pila de UIPages y `object[]` (argumentos de apertura) y se encargan de gestionar los event listeners requeridos y las transiciones de UI entre sus páginas hijas (según la jerarquía del inspector de la escena), incluyendo el manejo del botón "Atrás".
+
+### SequenceSampleUI
+`SequenceSampleUI` puede considerarse el "administrador" de la interfaz de ejemplo. Mantiene una referencia a todos los UIPanels y se encarga de abrirlos según sea necesario, incluso en `Start()`. Si está integrando toda o parte de la interfaz de ejemplo en su proyecto, puede resultarle más práctico reemplazar `SequenceSampleUI` por su propio "administrador" de UI, usando `SequenceSampleUI` como referencia.
+
+## Personalización de la Interfaz
+Construida sobre el sistema de UI de Unity, la interfaz es completamente personalizable. ¡Le animamos a adaptarla y "embellecerla" para que se ajuste a su aplicación!
+
+### Administrador de Esquema de Colores
+Para ayudarle en el proceso, hemos agregado un script básico `ColorSchemeManager` que puede probar en nuestra escena Demo, la cual puede [importar vía Package Manager](/sdk/unity/installation#samples).
+
+Para usar el `ColorSchemeManager`, realice lo siguiente en modo edición.
+1. Cree un [scriptable object](https://docs.unity3d.com/Manual/class-ScriptableObject.html) `Color Scheme` navegando a la barra superior `Assets > Create > Sequence > Color Scheme` y asígnele un nombre apropiado.
+2. Configure los colores deseados en su nuevo scriptable object — ¡no olvide ajustar los valores alfa! Unity los pone en 0 por defecto.
+3. Ubique el MonoBehaviour `ColorSchemeManager` en su escena en el inspector. En nuestra escena demo, esto está adjunto al gameObject `SequenceCanvas`.
+4. Asigne su scriptable object recién creado como el Color Scheme.
+5. Haga clic en "Apply". Tenga en cuenta que esto puede tardar unos segundos en aplicarse y <i>puede</i> que deba hacer clic en aplicar varias veces debido a cómo Unity refresca los cambios en el inspector (depende de la versión).
+
+El `ColorSchemeManager` no está pensado para darle resultados perfectos ni una interfaz perfecta desde el inicio, ¡pero esperamos que le ahorre algo de tiempo en el proceso!
+
+### Pronto habrá más herramientas de personalización
+¡Esperamos brindarle más herramientas de conveniencia para ayudarle a personalizar la interfaz de usuario de manera más rápida y sencilla! Aunque tenemos nuestras propias ideas, nadie entiende sus necesidades mejor que usted, así que no dude en contactarnos con cualquier sugerencia que tenga. ¡O mejor aún, envíe un PR!

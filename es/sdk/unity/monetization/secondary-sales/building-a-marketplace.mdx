@@ -1,0 +1,44 @@
+---
+title: Construyendo un Marketplace
+---
+
+Este documento le guiará sobre cómo recomendamos usar el Sequence SDK para construir un marketplace de coleccionables on-chain para ventas secundarias.
+
+<Tip>Antes de comenzar, no olvide [configurar su marketplace en el Builder](/solutions/marketplaces/white-label-marketplace/guide#launch-a-marketplace).</Tip>
+
+## 1. Leer Listados
+Primero, querrá leer los listados de su marketplace para mostrarlos a su usuario.
+
+```
+IMarketplaceReader reader = new MarketplaceReader(_chain);
+ListCollectiblesReturn collectiblesReturn = await reader.ListCollectibleListingsWithLowestPricedListingsFirst(myCollectionContractAddress);
+CollectibleOrder[] orders = collectiblesReturn.collectibles;
+```
+
+Opcionalmente, puede proporcionar un `CollectiblesFilter` para aplicar filtros a su consulta.
+
+Esta solicitud utiliza paginación. Si está trabajando con una colección pequeña y no quiere lidiar con la paginación, puede usar la función auxiliar `ListAllCollectibleListingsWithLowestPricedListingsFirst`; esta manejará la paginación por usted y continuará haciendo solicitudes hasta que se hayan recuperado todos los `CollectibleOrder` relevantes.
+
+También puede suscribirse opcionalmente a los eventos `OnListCollectibleOrdersReturn` y `OnListCollectibleOrdersError` para manejar las respuestas en otra parte.
+
+Esto le dará un `CollectibleOrder` por cada coleccionable, el listado con el precio más bajo.
+
+## 2. Mostrar los Listados
+Una vez que haya obtenido su `CollectibleOrder[]` del paso #1, querrá usar el `TokenMetadata` devuelto en su `CollectibleOrder` para mostrar los pedidos en la interfaz de usuario de su marketplace de alguna manera.
+
+Hemos proporcionado un ejemplo muy básico de cómo mostrar esta información a su usuario en la escena Demo incluida en el SDK.
+
+## 3. Finalizar la compra
+Una vez que el usuario ha seleccionado un coleccionable y la cantidad en su interfaz, querrá iniciar el proceso de checkout. Recomendamos usar nuestra [Checkout UI](/sdk/unity/monetization/checkout-ui) y modificar su apariencia según lo requiera.
+
+Para abrir la Checkout UI, necesitará una instancia de `ICheckoutHelper` y `IFiatCheckout`. En este caso, querrá usar las implementaciones `NftCheckout` y `SequenceCheckout` respectivamente.
+
+```
+ICheckoutHelper checkoutHelper = new NftCheckout(wallet, collectibleOrder, collectibleSprite, amount);
+```
+
+Donde collectibleOrder es el coleccionable seleccionado del CollectibleOrder\[] mostrado en la interfaz. NftCheckout obtendrá listados adicionales para el mismo coleccionable según sea necesario para cubrir la cantidad solicitada (y limitará la cantidad comprada a la disponible en todos los listados).
+
+```
+IFiatCheckout fiatCheckout = new SequenceCheckout(wallet, chain, collectibleOrder, amount);
+```

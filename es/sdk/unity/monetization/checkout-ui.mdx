@@ -1,0 +1,30 @@
+---
+title: Checkout UI
+---
+
+El SDK incluye una interfaz de pago (Checkout UI) predeterminada que recomendamos usar como punto de partida y personalizar para su juego.
+
+## Trabajando con la Checkout UI incorporada
+Hemos incluido un `CheckoutPanel` como parte de nuestro ensamblado Boilerplates. Al igual que el resto de los boilerplates, estos se acceden mediante nuestro `BoilerplatesFactory`. Consulte [Bootstrap Your Game](/sdk/unity/bootstrap_game) para más información.
+
+En resumen, con el prefab `CheckoutPanel` ubicado en `Assets/**/Resources/Checkout/CheckoutPanel`, puede abrir fácilmente el `CheckoutPanel` usando el `BoilerplateFactory`:
+
+```
+(CheckoutPanel, CheckoutPage) checkoutUi = BoilerplateFactory.OpenCheckoutPanel(parentTransform, checkoutHelperInstance, fiatCheckoutInstance, optionalOnCloseAction);
+```
+
+donde checkoutHelperInstance implementa la interfaz `ICheckoutHelper` y fiatCheckoutInstance implementa la interfaz `IFiatCheckout`.
+
+Actualmente hay dos implementaciones de `ICheckoutHelper` disponibles: `NftCheckout` y `ERC1155SaleCheckout` para Marketplaces de ventas secundarias y ventas primarias ERC1155, respectivamente. Pronto estará disponible una implementación para ventas primarias ERC721.
+
+`SequenceCheckout` es actualmente la única implementación de `IFiatCheckout` disponible; admite tanto Marketplaces de ventas secundarias como ventas primarias ERC1155. El soporte para ventas primarias ERC721 llegará pronto a `SequenceCheckout`.
+
+## How it Works
+Puede ser útil comprender cómo se integra el ecosistema de Checkout, especialmente si quiere crear su propio panel/modal de pago personalizado.
+
+Este diagrama ayuda a entender cómo está estructurado el sistema.
+
+![Diagrama ERG](/images/unity/ERG_SequencePayModal.png)
+[Fuente](https://github.com/0xsequence/sequence-unity/blob/Feature/marketplaceCheckout/Packages/Sequence-Unity/Sequence/SequenceSDK/Marketplace/ERG_CheckoutModal.mmd)
+
+Esto, junto con el código fuente de `CheckoutPage` (y relacionados), puede servir como una excelente referencia si decide escribir su propia lógica de interfaz de usuario personalizada.

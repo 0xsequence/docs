@@ -1,0 +1,124 @@
+---
+title: Fetch balance updates from specific contracts
+description: This content provides instructions on fetching balance updates from specific contracts.
+---
+
+# Balance Updates API
+
+## `GetBalanceUpdates`
+
+- Request: POST /rpc/IndexerGateway/GetBalanceUpdates
+- Content-Type: application/json
+- Body (in JSON):
+  - `chainIds` (\[]int - optional) -- return results only for the chains that match the given ID.
+  - `networks` (\[]string - optional) -- return results only for the chains that match the given names.
+  - `contractAddress` (string)
+  - `lastBlockNumber` (int - optional)
+  - `lastBlockHash` (string - optional)
+
+### Get the summary of balances of verified tokens on specific networks
+Example: query balance updates of the USDT contract on Ethereum network.
+
+<CodeGroup>
+  ```shell [Curl]
+  curl -X POST \
+    -H "Content-Type: application/json" \
+    -H "X-Access-Key: AQAAAAAAAF_JvPALhBthL7VGn6jV0YDqaFY" \
+    https://indexer.sequence.app/rpc/IndexerGateway/GetBalanceUpdates \
+    -d '{
+      "chainIds": [
+          1
+      ],
+      "contractAddress": "0xdac17f958d2ee523a2206206994597c13d831ec7"
+    }'
+  ```
+
+  ```ts [Typescript]
+  import { SequenceIndexerGateway } from '@0xsequence/indexer'
+
+  const INDEXER_TOKEN = 'AQAAAAAAAF_JvPALhBthL7VGn6jV0YDqaFY';
+  const CONTRACT_ADDRESS = '0xdac17f958d2ee523a2206206994597c13d831ec7';
+
+  const indexerGateway = new SequenceIndexerGateway(
+    'https://indexer.sequence.app',
+    INDEXER_TOKEN
+  )
+
+  const res = await indexerGateway.getBalanceUpdates({
+    chainIds: [1],
+    contractAddress: CONTRACT_ADDRESS
+  })
+
+  res.balances.forEach(({ chainId, error, results }) => {
+    if (error) {
+      console.error(`Error fetching balance updates for chainId ${chainId}: ${error}`);
+      return;
+    }
+    console.log(`chainId: ${chainId}`);
+    results.forEach(({ accountAddress, balance }) => {
+      if (balance === '0') {
+        return;
+      }
+      console.log(`\taccountAddress: ${accountAddress}, balance: ${balance}`);
+    });
+  });
+  ```
+
+  ```go [Go]
+  package main
+
+  import (
+  	"context"
+  	"fmt"
+  	"log"
+  	"net/http"
+
+  	"github.com/0xsequence/go-sequence/indexer"
+  )
+
+  const indexerToken = "AQAAAAAAAF_JvPALhBthL7VGn6jV0YDqaFY"
+
+  func main() {
+  	ctx := context.TODO()
+
+  	seqIndexerGW := indexer.NewIndexerGatewayClient(
+  		"https://indexer.sequence.app",
+  		http.DefaultClient,
+  	)
+
+  	authCtx, err := indexer.WithHTTPRequestHeaders(ctx, http.Header{
+  		"X-Access-Key": []string{indexerToken},
+  	})
+  	if err != nil {
+  		log.Fatal(err)
+  	}
+
+  	contractAddress := "0xdac17f958d2ee523a2206206994597c13d831ec7"
+  	chainIDs := []uint64{1} // Ethereum Mainnet
+
+  	_, balanceUpdates, err := seqIndexerGW.GetBalanceUpdates(
+  		authCtx,
+  		chainIDs,
+  		nil, // No network names
+  		contractAddress,
+  		0,   // No lastBlockNumber filter
+  		nil, // No lastBlockHash filter
+  		nil, // Default page
+  	)
+  	if err != nil {
+  		log.Fatal(err)
+  	}
+
+  	for _, update := range balanceUpdates {
+  		fmt.Printf("chainId: %d\n", update.ChainID)
+  		for _, result := range update.Results {
+  			if result.Balance.Int64() == 0 {
+  				continue
+  			}
+  			fmt.Printf("\taccountAddress: %s, balance: %s\n",
+  				result.AccountAddress, result.Balance)
+  		}
+  	}
+  }
+  ```
+</CodeGroup>

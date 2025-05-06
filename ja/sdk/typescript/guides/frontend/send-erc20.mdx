@@ -1,0 +1,59 @@
+---
+title: ERC-20トークンの送信
+description: ethers.jsを使ったERC-20トークン送信方法です。
+---
+
+ウォレットに単一のERC-20トークン送信を依頼できます。
+
+```ts
+const erc20Interface = new ethers.Interface([
+  'function transfer(address _to, uint256 _value)'
+])
+
+// Encode an ERC-20 token transfer to recipient of the specified amount
+const data = erc20Interface.encodeFunctionData(
+  'transfer', [recipientAddress, amount]
+)
+
+const transaction = {
+  to: daiContractAddress,
+  data
+}
+
+const signer = wallet.getSigner()
+const txnResponse = await signer.sendTransaction(transaction)
+console.log(txnResponse)
+
+```
+
+バッチ機能を使えば、複数のトークン送信を1つのネイティブトランザクションでまとめて行えます。
+
+```ts
+const erc20Interface = new ethers.Interface([
+  'function transfer(address _to, uint256 _value)'
+])
+
+// Encode two different ERC-20 token transfers
+const data1 = erc20Interface.encodeFunctionData(
+  'transfer', [recipient1Address, amount1]
+)
+const data2 = erc20Interface.encodeFunctionData(
+  'transfer', [recipient2Address, amount2]
+)
+
+const transaction1 = {
+  to: daiContractAddress,
+  data: data1
+}
+
+const transaction2 = {
+  to: daiContractAddress,
+  data: data2
+}
+
+// Send a multiple transactions as a single bundle which is executed as one transaction on-chain.
+const signer = wallet.getSigner()
+const txnResponse = await signer.sendTransaction([transaction1, transaction2])
+console.log(txnResponse)
+
+```

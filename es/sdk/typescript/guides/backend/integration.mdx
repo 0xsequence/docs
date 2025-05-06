@@ -1,0 +1,220 @@
+---
+title: Conecte y envíe transacciones
+description: Aprenda cómo integrar Sequence con sus servicios de backend
+---
+
+## Requisitos previos
+Antes de comenzar, asegúrese de tener:
+- Un proyecto de Sequence con una clave de acceso desde [Sequence Builder](https://sequence.build)
+- Entorno Node.js
+- Paquetes requeridos instalados:
+
+```bash
+npm install @0xsequence/auth @0xsequence/network ethers
+```
+
+### Configurando el Provider
+Primero, cree un provider para conectarse a la blockchain:
+
+Obtenga su URL de Sequence RPC desde el [Sequence Builder](https://sequence.build).
+
+```typescript
+import { findSupportedNetwork } from "@0xsequence/network";
+import type { NetworkConfig } from "@0xsequence/network";
+import { ethers } from "ethers";
+
+export const getProvider = async (chainConfig: NetworkConfig) => {
+    const provider = new ethers.JsonRpcProvider(process.env.SEQUENCE_RPC_URL, chainConfig.chainId);
+    return provider;
+};
+```
+
+### Opciones de firmante
+Sequence admite varios tipos de firmantes para una gestión segura de claves.
+
+#### 1. Firmante con clave privada sin procesar
+Este es el tipo de firmante más básico. Utiliza una instancia de ethers.Wallet para firmar transacciones.
+
+```typescript
+import { Session } from "@0xsequence/auth";
+import { findSupportedNetwork } from "@0xsequence/network";
+import { ethers } from "ethers";
+
+export const getLocalSigner = async (chainHandle: string) => {
+    const chainConfig = findSupportedNetwork(chainHandle);
+    if (!chainConfig) {
+        throw new Error(`Chain config not found for chain handle: ${chainHandle}`);
+    }
+
+    const provider = await getProvider(chainConfig);
+    const walletEOA = new ethers.Wallet(process.env.EVM_PRIVATE_KEY ?? '', provider);
+    
+    const smartAccount = await Session.singleSigner({
+        signer: walletEOA,
+        projectAccessKey: process.env.PROJECT_ACCESS_KEY ?? ''
+    });
+
+    return smartAccount.account.getSigner(chainConfig.chainId);
+};
+```
+
+#### 2. Firmante de Google Cloud KMS
+Puede usar Google Cloud KMS para gestionar sus claves privadas de forma segura.
+
+<Steps>
+  <Step>
+    Primero instale el paquete `@0xsequence/google-kms-signer`:
+
+    ```bash
+    npm install @0xsequence/google-kms-signer
+    ```
+  </Step>
+
+  <Step>
+    Debe configurar GCP KMS para obtener las variables de entorno necesarias.
+    Consulte una guía basada en nuestra solución Sidekick [aquí](https://docs.sequence.xyz/solutions/sidekick/overview#:~:text=GCP-,KMS,-Configuration%3A)
+  </Step>
+
+  <Step>
+    Luego, cree un firmante de Google Cloud KMS:
+
+    ```typescript
+    import { GoogleKmsSigner } from "@0xsequence/google-kms-signer";
+    import { findSupportedNetwork } from "@0xsequence/network";
+
+    export const getGoogleKmsSigner = async (chainHandle: string) => {
+        const chainConfig = findSupportedNetwork(chainHandle);
+        if (!chainConfig) {
+            throw new Error(`Chain config not found for chain handle: ${chainHandle}`);
+        }
+
+        const googleKmsSigner = new GoogleKmsSigner({
+            project: process.env.PROJECT ?? '',
+            location: process.env.LOCATION ?? '',
+            keyRing: process.env.KEY_RING ?? '',
+            cryptoKey: process.env.CRYPTO_KEY ?? '',
+            cryptoKeyVersion: process.env.CRYPTO_KEY_VERSION ?? ''
+        });
+
+        const smartAccount = await Session.singleSigner({
+            signer: googleKmsSigner,
+            projectAccessKey: process.env.PROJECT_ACCESS_KEY ?? ''
+        });
+
+        return smartAccount.account.getSigner(chainConfig.chainId);
+    };
+    ```
+  </Step>
+</Steps>
+
+#### 3. Firmante de AWS KMS
+Puede usar AWS KMS para gestionar sus claves privadas de forma segura.
+
+<Steps>
+  <Step>
+    Primero instale el paquete `@0xsequence/aws-kms-signer`:
+
+    ```bash
+    npm install @0xsequence/aws-kms-signer
+    ```
+  </Step>
+
+  <Step>
+    Debe configurar AWS KMS para obtener las variables de entorno necesarias.
+    Consulte una guía basada en nuestra solución Sidekick [aquí](https://docs.sequence.xyz/solutions/sidekick/overview#:~:text=AWS-,KMS,-Configuration%3A)
+  </Step>
+
+  <Step>
+    Luego, cree un firmante de AWS KMS:
+
+    ```typescript
+    export const getAwsKmsSigner = async (chainHandle: string) => {
+        const chainConfig = findSupportedNetwork(chainHandle);
+        if (!chainConfig) {
+            throw new Error(`Chain config not found for chain handle: ${chainHandle}`);
+        }
+
+        const awsKmsSigner = new AwsKmsSigner(
+            process.env.AWS_REGION ?? '',
+            process.env.AWS_KMS_KEY_ID ?? ''
+        );
+
+        const smartAccount = await Session.singleSigner({
+            signer: awsKmsSigner,
+            projectAccessKey: process.env.PROJECT_ACCESS_KEY ?? ''
+        });
+
+        return smartAccount.account.getSigner(chainConfig.chainId);
+    };
+    ```
+  </Step>
+</Steps>
+
+### Patrón Factory para selección de firmante
+Puede crear una función factory para seleccionar el firmante adecuado según la configuración del entorno:
+
+```typescript
+export const getSigner = async (chainHandle: string) => {
+    if (process.env.SIGNER_TYPE === 'google_kms') { 
+        return getGoogleKmsSigner(chainHandle);
+    } 
+    if (process.env.SIGNER_TYPE === 'aws_kms') {
+        return getAwsKmsSigner(chainHandle);
+    }
+    // Default to local signer
+    return getLocalSigner(chainHandle);
+};
+```
+
+Si desea aprender más sobre las librerías de KMS Signer, puede leer nuestra publicación en el blog [aquí](https://labs.sequence.xyz/secure-backend-wallets-cloud-kms/).
+
+## Envío de transacciones
+Una vez que tenga un firmante, puede usarlo para enviar transacciones.
+
+```typescript
+import { getSigner } from "./signer";
+
+async function sendTransaction(chainId: string, to: string, value: string, data: string) {
+    // Get the signer for the specified chain
+    const signer = await getSigner(chainId);
+    
+    // Send the transaction
+    const tx = await signer.sendTransaction({ to, value, data });
+    
+    // Wait for the transaction to be mined
+    const receipt = await tx.wait();
+    
+    if (receipt?.status === 0) {
+        throw new Error('Transaction reverted');
+    }
+    
+    return {
+        txHash: receipt?.hash,
+        contractAddress: receipt?.contractAddress,
+        txUrl: `https://${chainId}.etherscan.io/tx/${receipt?.hash}`
+    };
+}
+
+async function sendTransactionBatch(chainId: string, transactions: { to: string, value: string, data: string }[]) {
+    // Get the signer for the specified chain
+    const signer = await getSigner(chainId);
+    
+    // Send the transaction batch
+    const tx = await signer.sendTransaction(transactions);
+    
+    // Wait for the transaction to be mined
+    const receipt = await tx.wait();
+    
+    if (receipt?.status === 0) {
+        throw new Error('Transaction reverted');
+    }
+    
+    return {
+        txHash: receipt?.hash,
+        contractAddress: receipt?.contractAddress,
+        txUrl: `https://${chainId}.etherscan.io/tx/${receipt?.hash}`
+    };
+}
+```
+
+Con esta configuración, puede conectarse de forma segura a múltiples redes blockchain y realizar transacciones desde sus servicios backend usando Sequence.

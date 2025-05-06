@@ -1,0 +1,79 @@
+---
+title: Embedded WalletのStytch設定
+description: Embedded WalletインスタンスでStytchクライアントを設定する方法を説明します。StytchダッシュボードでPublic Tokenを作成・取得する手順に従ってください。
+sidebarTitle: Stytchセットアップ
+---
+
+Embedded WalletインスタンスにStytch認証を統合するには、[Stytch Dashboard](https://stytch.com/dashboard)でStytchアプリケーションを設定し、[Sequence Builder](https://sequence.build/)でEmbedded Walletを設定します。以下の手順から始めてください：
+
+<Warning>
+  Stytch認証は現在アーリーアクセス中です。有効化するには、[https://sequence.build/earlyaccess](https://sequence.build/earlyaccess) にアクセスし、機能をオンにしてください。
+</Warning>
+
+<Steps>
+  <Step title="サインアップ / サインイン">
+    まず[サインインページ](https://stytch.com/dashboard)にアクセスします：
+  </Step>
+
+  <Step title="プロジェクトの作成">
+    サインイン後、プロジェクト一覧のドロップダウンから`Create new project`を選択します：
+
+    <Frame>
+      ![プロジェクトの作成](/images/builder/stytch_create_new_project.png)
+    </Frame>
+
+    次に`CONSUMER AUTHENTICATION`を選択します：
+
+    <Frame>
+      ![新規プロジェクト作成](/images/builder/stytch_create_project.png)
+    </Frame>
+
+    最後に`Create project`を選択します。
+  </Step>
+
+  <Step title="Stytch Project IDとStytch Public Tokenの取得">
+    `Home`の最初の画面下部から`Stytch Project ID`と`Stytch Public Token`をコピーし、安全な場所に保存してください。
+
+    <Frame>
+      ![Project IDとStytch Public Tokenの取得](/images/builder/stytch_obtain_keys.png)
+    </Frame>
+  </Step>
+
+  <Step title="リダイレクトURLの更新">
+    ローカル開発の場合は`http://localhost:4444/authenticate`をご利用ください。
+
+    <Frame>
+      ![リダイレクトURLの更新](/images/builder/stytch_create_new_redirect_uri.png)
+    </Frame>
+
+    `Login`と`Register`を有効にし、`Set as default`を選択して`Confirm`をクリックします：
+
+    <Frame>
+      ![Project IDの取得](/images/builder/stytch_create_new_redirect_uri_confirm.png)
+    </Frame>
+  </Step>
+
+  <Step title="SDKの許可オリジンを更新">
+    ローカル開発の場合、ご自身の開発用URL（例：`http://localhost:4444`）が正しく設定されていることを確認してください。
+
+    <Frame>
+      ![SDK用URLの更新](/images/builder/stytch_add_url_to_sdk.png)
+    </Frame>
+  </Step>
+
+  <Step title="Sequence Builderでの設定">
+    次に、Sequence Builderでプロジェクトにアクセスし、Embedded Wallet設定セクションでログインプロバイダーを追加してStytch認証を有効にします：
+
+    <Frame>
+      ![ログインプロバイダーを追加](/images/builder/builder_stytch_add_provider.png)
+    </Frame>
+
+    最後に、ドロップダウンから`Stytch`を選択します。
+
+    <Frame>
+      ![Stytchを選択](/images/builder/builder_stytch_select_provider.png)
+    </Frame>
+
+    `Stytch Project ID`を入力し、`Save changes`を選択してから、紫色の`Update configuration`を選択し、パスワードを入力して設定を更新します。
+  </Step>
+</Steps>

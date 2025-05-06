@@ -1,0 +1,29 @@
+---
+title: Conectando wallets externas
+description: El contenido proporciona instrucciones detalladas sobre cómo conectar wallets externas con una wallet embebida usando una interfaz web.
+---
+
+# Conectando wallets externas
+Aunque la mayoría de las interacciones de los usuarios ocurrirán usando la wallet embebida, algunos de sus usuarios pueden tener wallets existentes que deseen conectar con sus juegos. Esto le permite validar que un usuario posee uno o más tokens sin requerir que los transfiera a su wallet embebida.
+
+Puede [conectar una wallet externa con una wallet embebida](/sdk/web/overview) a través de una interfaz web.
+
+Primero, deberá configurar un servidor para facilitar esta conexión. Por favor, [lea esta guía](/sdk/web/overview) y regrese una vez que haya configurado su servidor (puede omitir los primeros pasos sobre la configuración en Builder y la integración de la wallet embebida en una aplicación web, ya que esto ya lo hizo en Unity; de igual manera, puede omitir las secciones sobre la firma de la prueba de autenticación de sesión).
+
+Ahora que ha configurado su servidor, puede crear un `EOAWalletLinker`.
+
+```csharp
+EOAWalletLinker linker = new EOAWalletLinker(wallet, "yourServersBaseUrl/generateNonce");
+```
+
+Puede generar la url para enlazar wallets con
+
+```csharp
+string url = await linker.GenerateEOAWalletlink(chain);
+```
+
+o puede generarla y abrirla con el navegador predeterminado del dispositivo (usando [Application.OpenURL](https://docs.unity3d.com/ScriptReference/Application.OpenURL.html))
+
+```csharp
+linker.OpenEOAWalletLink(chain); // note: this is an awaitable async method.
+```

@@ -1,0 +1,120 @@
+---
+title: useCheckWaasFeeOptions
+description: Hook para verificar opciones de comisión de transacción en Sequence WaaS
+sidebarTitle: useCheckWaasFeeOptions
+---
+
+## Importar
+
+```tsx
+import { useCheckWaasFeeOptions } from '@0xsequence/connect'
+```
+
+## Uso
+
+```tsx
+import { useCheckWaasFeeOptions } from '@0xsequence/connect'
+
+function App() {
+  const checkFeeOptions = useCheckWaasFeeOptions()
+  
+  const handleTransaction = async () => {
+    // Example transaction
+    const transaction = {
+      to: '0x...',
+      value: '1000000000000000000', // 1 ETH
+      data: '0x...'
+    }
+    
+    const { isSponsored, feeOptions, feeQuote } = await checkFeeOptions({
+      transactions: [transaction],
+      chainId: 1 // Ethereum Mainnet
+    })
+    
+    if (isSponsored) {
+      console.log('Transaction is sponsored!')
+    } else if (feeOptions) {
+      console.log('Available fee options:', feeOptions)
+      console.log('Fee quote:', feeQuote)
+      // Handle fee payment selection
+    }
+  }
+  
+  return (
+    <div>
+      <button onClick={handleTransaction}>
+        Check Transaction Fees
+      </button>
+    </div>
+  )
+}
+```
+
+## Tipo de retorno
+El hook retorna una función con la siguiente firma:
+
+```tsx
+(params: {
+  transactions: Transaction[]
+  chainId: number
+}) => Promise<{
+  feeQuote: string | undefined
+  feeOptions: FeeOption[] | undefined
+  isSponsored: boolean
+}>
+```
+
+### Parámetros
+
+#### transactions
+`Transaction[]`
+
+Arreglo de transacciones para verificar opciones de comisión.
+
+```tsx
+interface Transaction {
+  to: string
+  value?: string
+  data?: string
+  // ... other transaction properties
+}
+```
+
+#### chainId
+`number`
+
+El ID de la red blockchain donde se ejecutará la transacción.
+
+### Propiedades del objeto de retorno
+
+#### isSponsored
+`boolean`
+
+Indica si la transacción será patrocinada (true) o requiere pago de comisión (false).
+
+#### feeOptions
+`FeeOption[] | undefined`
+
+Opciones de pago de comisión disponibles si la transacción no es patrocinada.
+
+```tsx
+interface FeeOption {
+  token: {
+    symbol: string
+    decimals: number
+    address: string
+  }
+  // ... other fee option properties
+}
+```
+
+#### feeQuote
+`string | undefined`
+
+La cotización de la comisión para la transacción si está disponible.
+
+## Notas
+Este hook está diseñado específicamente para usarse con Sequence WaaS (Wallet as a Service) y proporciona funcionalidad para:
+- Verificar si una transacción será patrocinada
+- Obtener opciones de comisión para transacciones no patrocinadas
+- Obtener cotizaciones de comisión para transacciones

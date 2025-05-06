@@ -1,0 +1,238 @@
+---
+title: Pagar gas en ERC20
+description: Aprenda cómo pagar gas en ERC20 usando Web SDK
+sidebar_label: Pay Gas in ERC20
+sidebar_position: 3
+---
+
+<Steps>
+  <Step title="Configurar Web SDK">
+    Asegúrese de haber completado la guía de [Primeros Pasos](/sdk/web/getting-started).
+  </Step>
+
+  <Step title="Transacción básica no patrocinada, pagando con ETH">
+    A continuación, crearemos una página simple que permite a los usuarios enviar una transacción no patrocinada usando la moneda nativa de su smart wallet, nada especial aquí.
+
+    ```typescript
+    import React from 'react';
+    import { useAccount, useSendTransaction } from 'wagmi';
+
+    export const ERC20GasPaymentExample = () => {
+        const { address } = useAccount();
+
+        const {
+            sendTransaction,
+            isPending,
+            isSuccess,
+            data: txHash
+        } = useSendTransaction();
+
+        const sendUnsponsored = () => {
+            if (!address) return;
+
+            // Send a simple 0 value transaction to yourself
+            sendTransaction({
+                to: address,
+                value: BigInt(0),
+                gas: null
+            });
+        };
+
+        return (
+            <>
+                <div>
+                    <p>Address: {address}</p>
+                    <button onClick={sendUnsponsored}>Send Unsponsored</button>
+                    {isPending && <p>Pending...</p>}
+                    {isSuccess && <p>Success! Tx Hash: {txHash}</p>}
+                </div>
+            </>
+        )
+    }
+    ```
+  </Step>
+
+  <Step title="Ahora paguemos el gas con un token ERC20">
+    Usaremos el hook `useWaasFeeOptions` para permitir que los usuarios paguen el gas en ERC20.
+    Detrás de escena, el conector WaaS intercepta esta solicitud de transacción y activa el flujo de confirmación de tarifa.
+
+    Ahora que declaramos el hook `useWaasFeeOptions`, este ha configurado un efecto que sobrescribe el `feeConfirmationHandler` predeterminado del proveedor WaaS, agregando la posibilidad de pagar con tokens ERC20.
+
+    ```typescript
+    import React, { useState, useEffect } from 'react';
+    import { useWaasFeeOptions } from '@0xsequence/connect';
+    import { useAccount, useSendTransaction } from 'wagmi';
+
+    export const ERC20GasPaymentExample = () => {
+        const { address } = useAccount();
+
+        const [pendingFeeOptionConfirmation, confirmPendingFeeOption] = useWaasFeeOptions();
+
+        const {
+            sendTransaction,
+            isPending,
+            isSuccess,
+            data: txHash
+        } = useSendTransaction();
+
+        const [selectedFeeTokenName, setSelectedFeeTokenName] = useState<string>();
+
+        useEffect(() => {
+            if (pendingFeeOptionConfirmation && pendingFeeOptionConfirmation.options.length > 0) {
+                setSelectedFeeTokenName(pendingFeeOptionConfirmation.options[0].token.name);
+            }
+        }, [pendingFeeOptionConfirmation]);
+
+        const sendUnsponsored = () => {
+            if (!address) return;
+
+            // Send a simple 0 value transaction to yourself
+            sendTransaction({
+                to: address,
+                value: BigInt(0),
+                gas: null
+            });
+        };
+
+        return (
+            <>
+                <div>
+                    <p>Address: {address}</p>
+                    <button onClick={sendUnsponsored}>Send Unsponsored</button>
+                    {isPending && <p>Pending...</p>}
+                    {isSuccess && <p>Success! Tx Hash: {txHash}</p>}
+                </div>
+            </>
+        )
+    }
+    ```
+
+    En este ejemplo, por defecto usamos la primera opción; en el siguiente paso agregaremos una interfaz para que los usuarios puedan elegir el token de tarifa con el que desean pagar.
+  </Step>
+
+  <Step title="Agregar un selector de token de tarifa (UI)">
+    A continuación, agregaremos un selector de token de tarifa para que los usuarios puedan elegir el token de tarifa con el que desean pagar.
+
+    <Note>
+      Cada opción de tarifa también contiene una propiedad booleana llamada `hasEnoughBalanceForFee` que puede usar para informar al usuario si tiene suficiente saldo para pagar la tarifa, así como una propiedad `balance` que contiene el saldo del token.
+    </Note>
+
+    ```typescript
+    import { useState, useEffect } from 'react';
+    import { useWaasFeeOptions } from '@0xsequence/connect';
+    import { formatUnits } from 'viem';
+    import { useAccount, useSendTransaction } from 'wagmi';
+
+    export const ERC20GasPaymentExample = () => {
+        const { address } = useAccount();
+
+        // 1. Set up the fee options hook
+        const [pendingFeeOptionConfirmation, confirmPendingFeeOption, rejectPendingFeeOption] = useWaasFeeOptions();
+
+        // 2. Set up transaction hook
+        const {
+            sendTransaction,
+            isPending,
+            isSuccess,
+            data: txHash
+        } = useSendTransaction();
+
+        // 3. Track selected fee token
+        const [selectedFeeTokenName, setSelectedFeeTokenName] = useState<string>();
+
+        // 4. Initialize with first option when fee options become available
+        useEffect(() => {
+            if (pendingFeeOptionConfirmation && pendingFeeOptionConfirmation.options.length > 0) {
+                setSelectedFeeTokenName(pendingFeeOptionConfirmation.options[0].token.name);
+            }
+        }, [pendingFeeOptionConfirmation]);
+
+        // 5. Function to send an unsponsored transaction
+        const sendUnsponsored = () => {
+            if (!address) return;
+
+            // Send a dummy tx
+            sendTransaction({
+                to: address,
+                value: BigInt(0),
+                gas: null
+            });
+        };
+
+        return (
+            <div className="card padding-4 flex-direction-column gap-4 max-width-500px margin-0 auto">
+                <div className="card padding-4">
+                    <p className="text-large font-bold margin-bottom-4">
+                        ERC20 Gas Payment Example
+                    </p>
+
+                    <button
+                        onClick={sendUnsponsored}
+                        className="button-primary"
+                        disabled={isPending}
+                    >
+                        {isPending ? 'Sending Transaction...' : 'Send Transaction'}
+                    </button>
+
+                    {isSuccess && txHash && (
+                        <div className="card margin-y-4 padding-3 background-positive border-radius-md">
+                            <p>Transaction successful! Hash: {txHash}</p>
+                        </div>
+                    )}
+
+                    {/* Fee selection UI appears when needed */}
+                    {pendingFeeOptionConfirmation && (
+                        <div className="card margin-top-4 flex-direction-column gap-3">
+                            <p className="font-semibold">
+                                Select Token to Pay Gas Fees
+                            </p>
+
+                            <select
+                                name="feeOption"
+                                value={selectedFeeTokenName}
+                                onChange={(e) => setSelectedFeeTokenName(e.target.value)}
+                                className="w-full p-2 rounded-lg bg-gray-700 text-white border border-gray-600"
+                            >
+                                {pendingFeeOptionConfirmation.options.map(option => (
+                                    <option key={option.token.name} value={option.token.name}>
+                                        {option.token.name} - Fee: {formatUnits(BigInt(option.value), option.token.decimals || 18)} {option.token.symbol}
+                                    </option>
+                                ))}
+                            </select>
+
+                            <div className="card flex-direction-row gap-2 justify-end">
+                                <button
+                                    className="button-secondary"
+                                    onClick={() => rejectPendingFeeOption(pendingFeeOptionConfirmation.id)}
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    className="button-primary"
+                                    onClick={() => {
+                                        const selected = pendingFeeOptionConfirmation.options.find(
+                                            option => option.token.name === selectedFeeTokenName
+                                        );
+
+                                        if (selected && selected.token.contractAddress) {
+                                            confirmPendingFeeOption(
+                                                pendingFeeOptionConfirmation.id,
+                                                selected.token.contractAddress
+                                            );
+                                        }
+                                    }}
+                                >
+                                    Confirm
+                                </button>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            </div>
+        );
+    };
+    ```
+  </Step>
+</Steps>
+
+¡Felicidades! Acaba de aprender cómo pagar gas en ERC20 usando Web SDK.

@@ -1,0 +1,82 @@
+---
+title: MOCKDATA + es-translated Federated Accounts
+---
+
+es-translated By default, the WaaS API only allows one account per email. If a user attempts to login using a different method but the same email as before, they will receive an `EmailAlreadyInUse` error.
+
+MOCKDATA + es-translated For example: if the user created their account using Google Sign In and then attempts to sign in with Email + OTP using the same method, they will receive this error.
+
+es-translated By default (if using the default `LoginPanel`), the SDK will automatically open the `FederatedAuthPopupPanel` prefab located at `SequenceFrontend > Prefabs > FederatedAuthPopupPanel`. This prefab can be customized to your linking or replaced in the `LoginPanel` prefab. This panel will explain to the user that duplicate login methods are not allowed and prompt them to return to the login screen and sign in with their associated login method (or a different email altogether).
+
+MOCKDATA + es-translated <Info>If `EnableMultipleAccountsPerEmail` is enabled in `SequenceConfig` the `FederatedAuthPopupPanel` will give the user the option to create another account associated with their email.</Info>
+
+es-translated Once the user has logged into their account; the SDK will automatically make a `FederateAccount` request (see `SequenceLogin`). This will associate the failed login method with that email as well so that the user may sign in with either in the future. Using our example above, the user would now be able to sign into their account using Google Sign In or Email + OTP.
+
+## MOCKDATA + es-translated Manually Federating Accounts
+es-translated You may want to add a button to your app allowing the user to associate an additional login method with their email (especially if you are using Guest Login). You'll want get a reference to `SequenceLogin` and then call the appropriate `FederateAccount` method for the login method.
+
+```csharp
+SequenceLogin login = SequenceLogin.GetInstance();
+
+// PlayFab
+login.FederateAccountPlayFab(titleId, sessionTicket, email, walletAddress);
+
+// OIDC (Social)
+login.FederateAccountSocial(idToken, loginMethod, walletAddress);
+
+// Guest
+login.FederateAccountGuest(walletAddress);
+
+// Email
+login.Login(email);
+// Later ... Once you've received the OTP code from the user
+login.FederateAccountEmail(email, code, walletAddress); 
+```
+
+MOCKDATA + es-translated where walletAddress is the address of the `SequenceWallet` you retrieved after authenticating the user.
+
+### es-translated Re-using the Default LoginPanel
+MOCKDATA + es-translated To allow a user to federate/link their accounts manually using the default LoginPanel, simply call `SetConnectedWalletAddress` on your `SequenceLogin` instance or call `SequenceLogin.GetInstanceToFederateAuth` with the currently authenticated wallet address provided.
+
+```csharp
+SequenceLogin login = SequenceLogin.GetInstance();
+login.SetConnectedWalletAddress(authenticatedSequenceWalletAddress);
+
+// or
+
+SequenceLogin.GetInstanceToFederateAuth(authenticatedSequenceWalletAddress);
+```
+
+es-translated This will configure your SequenceLogin instance to federate the accounts instead of creating a new session.
+
+MOCKDATA + es-translated <Tip>Once the user has logged out, don't forget to call `SetConnectedWalletAddress(null)` to re-configure SequenceLogin to create new sessions again.</Tip>
+
+es-translated e.g.
+
+```csharp
+private void OnDropSessionCompleteHandler(string sessionId) {
+    if (sessionId == Wallet.SessionId)
+    {
+        SequenceLogin.GetInstance().SetConnectedWalletAddress(null);
+        SceneManager.LoadScene("LoginScene"); // Re-open your scene or UI to allow the user to log back in and create a new session here
+    }
+}
+```
+
+## MOCKDATA + es-translated Removing Federated Accounts
+es-translated If you ever want to remove a federated account association, this can be done with the `IWallet.RemoveFederatedAccount` method.
+
+```csharp
+_wallet.OnFederatedAccountRemovedComplete += (accountIdString, success) => {
+    if (success) 
+    {
+        Debug.Log($"Successfully removed {accountIdString} as a login method");
+        // Do something
+    }else 
+    {
+        // Handle failure
+    }
+};
+
+bool success = await _wallet.RemoveFederatedAccount(account);
+```

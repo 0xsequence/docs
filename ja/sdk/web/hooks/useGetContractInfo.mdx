@@ -1,0 +1,165 @@
+---
+title: useGetContractInfo
+description: ネイティブトークンを含むトークンコントラクト情報を取得するためのフック
+sidebarTitle: useGetContractInfo
+---
+
+## インポート
+
+```tsx
+import { useGetContractInfo } from '@0xsequence/hooks'
+```
+
+## 使い方
+
+```tsx
+import { useGetContractInfo } from '@0xsequence/hooks'
+import { ZERO_ADDRESS } from '@0xsequence/utils'
+
+// Example 1: Fetch NFT Collection Info
+function NFTCollectionDetails() {
+  const {
+    data: contractInfo,
+    isLoading,
+    isError
+  } = useGetContractInfo({
+    chainID: "1", // Ethereum mainnet
+    contractAddress: "0x..." 
+  })
+
+  if (isLoading) return <div>Loading collection details...</div>
+  if (isError) return <div>Error loading collection</div>
+
+  return (
+    <div className="collection-details">
+      <img 
+        src={contractInfo?.logoURI} 
+        alt={contractInfo?.name}
+        width={64}
+        height={64}
+      />
+      <h1>{contractInfo?.name}</h1>
+      <div className="metadata">
+        <span>Type: {contractInfo?.type}</span>
+        <span>Symbol: {contractInfo?.symbol}</span>
+      </div>
+    </div>
+  )
+}
+
+// Example 2: Display Native Token Info
+function NativeTokenInfo() {
+  const { data: ethInfo } = useGetContractInfo({
+    chainID: "1",
+    contractAddress: ZERO_ADDRESS // For native ETH
+  })
+
+  return (
+    <div className="token-info">
+      <img 
+        src={ethInfo?.logoURI} 
+        alt={ethInfo?.symbol}
+        width={32}
+        height={32}
+      />
+      <div>
+        <h3>{ethInfo?.name}</h3>
+        <p>Decimals: {ethInfo?.decimals}</p>
+      </div>
+    </div>
+  )
+}
+```
+
+## 返り値の型: `UseQueryResult<ContractInfo>`
+このフックは、React Queryの`UseQueryResult`のすべてのプロパティとコントラクト情報データを返します。詳細な構造は以下の通りです:
+
+```tsx
+interface ContractInfo {
+    chainId: number;
+    address: string;
+    source: string;
+    name: string;
+    type: string;
+    symbol: string;
+    decimals?: number;
+    logoURI: string;
+    deployed: boolean;
+    bytecodeHash: string;
+    extensions: ContractInfoExtensions;
+    updatedAt: string;
+    notFound: boolean;
+    queuedAt?: string;
+    status: ResourceStatus;
+}
+```
+
+### プロパティ
+
+#### data
+`ContractInfo | undefined`
+
+コントラクト情報を含むオブジェクト:
+- `chainId`: 数値のチェーン識別子（例: Ethereumメインネットは1）
+- `address`: コントラクトのブロックチェーンアドレス（16進数形式）
+- `source`: コントラクトメタデータの出所（例: "sequence", "opensea" など）
+- `name`: コントラクトまたはトークンの人が読める名称
+- `type`: コントラクトのインターフェース種別（"ERC20", "ERC721", "ERC1155"）
+- `symbol`: トークンのシンボル/ティッカー（例: "ETH", "USDC"）
+- `decimals`: トークンの小数点以下の桁数（例：ETHの場合は18）
+- `logoURI`: トークンまたはコントラクトのロゴ画像のURL
+- `deployed`: コントラクトがオンチェーンにデプロイされているかどうかを示すブール値
+- `bytecodeHash`: デプロイされたコントラクトのバイトコードのハッシュ値
+- `extensions`: コントラクトタイプに特有の追加メタデータ項目
+- `updatedAt`: メタデータが最後に更新された日時（ISO形式）
+- `notFound`: コントラクトのメタデータが見つからなかった場合のブール値
+- `queuedAt`: メタデータのインデックス作成がキューに入った日時（ISO形式）
+- `status`: メタデータの現在の状態（"READY"、"PENDING"、"ERROR"）
+
+ネイティブトークン（`ZERO_ADDRESS`を使用する場合）については、ネットワーク固有の情報がレスポンスに追加されます。
+
+#### isLoading
+`boolean`
+
+データ取得時のローディング状態。
+
+#### isError
+`boolean`
+
+クエリが失敗した場合のエラー状態。
+
+#### エラー
+`Error | null`
+
+データ取得中に発生したエラー内容。
+
+## パラメータ
+このフックは2つのパラメータを受け取ります：
+
+### args: `GetContractInfoArgs`
+
+```tsx
+interface GetContractInfoArgs {
+  chainID: string
+  contractAddress: string
+}
+```
+
+| パラメータ             | 型        | 説明                                        |
+| ----------------- | -------- | ----------------------------------------- |
+| `chainID`         | `string` | チェーンID（例：Ethereumメインネットの場合は"1"）           |
+| `contractAddress` | `string` | コントラクトアドレス、またはネイティブトークンの場合は`ZERO_ADDRESS` |
+
+### options: `HooksOptions`
+
+```tsx
+interface HooksOptions {
+  disabled?: boolean
+  retry?: boolean
+}
+```
+
+| パラメータ      | 型         | 説明                       |
+| ---------- | --------- | ------------------------ |
+| `disabled` | `boolean` | （オプション）クエリの自動実行を無効にします   |
+| `retry`    | `boolean` | （オプション）失敗したクエリを再試行するかどうか |

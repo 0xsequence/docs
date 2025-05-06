@@ -1,0 +1,444 @@
+---
+title: Mintee coleccionables usando una API de transacciones serverless sin gas
+description: Aprenda cómo mintear coleccionables usando una API de transacciones serverless sin gas con Sequence. Implemente la API en un worker de Cloudflare para interacciones de usuario sin pagos de gas.
+sidebarTitle: Construya un servicio de minteo de coleccionables
+---
+
+Tiempo para completar: 20-30 minutos
+
+La API de transacciones de Sequence puede implementarse en un worker serverless de [Cloudflare](https://cloudflare.com/) para que la interacción de un usuario en un juego o app sea fluida, sin necesidad de firma de confirmación ni pago de gas. Además, no tendrá que preocuparse por la velocidad de transacción, el rendimiento ni los reorgs del relayer, y disfrutará de escalabilidad automática con Cloudflare.
+
+Los siguientes pasos le guiarán para construir su API de minteo alojada en 4 pasos:
+1. [Configurar el entorno de Cloudflare con Wrangler CLI y desplegar una prueba](/guides/mint-collectibles-serverless#1-setup-cloudflare-environment-with-wrangler-cli-and-deploy-a-test)
+2. [Desplegar, patrocinar y actualizar metadata para un contrato ERC1155 con Sequence Builder](/guides/mint-collectibles-serverless#2-deploy-sponsor-and-update-metadata-for-an-erc1155-contract-with-sequence-builder)
+3. [Usar EthAuthProof para prevenir DDoS de EOA](/guides/mint-collectibles-serverless#3-use-ethauthproof-to-prevent-eoa-ddos)
+4. [Mintear un coleccionable a una wallet](/guides/mint-collectibles-serverless#4-mint-a-collectible-to-wallet)
+
+El resultado: una API segura con las siguientes especificaciones:
+- HTTPS GET: devuelve blockNumber
+- HTTPS POST(proof, address): mintea un coleccionable y devuelve el hash de la transacción
+
+<Warning>
+  Necesita conocimientos básicos de wrangler cli, npm y Sequence Builder para completar esta implementación.
+</Warning>
+
+<Note>
+  [Vea el código completo aquí](https://github.com/0xsequence-demos/template-cloudflare-worker-sequence-transactions-api)
+</Note>
+
+## 1. Configurar el entorno de Cloudflare con Wrangler CLI y desplegar una prueba
+Para crear el proyecto desde cero, primero cree una carpeta con `mkdir`, ingrese a la carpeta con `cd` y ejecute `pnpm init` para crear un `package.json`.
+
+A continuación, asegúrese de tener wrangler cli instalado en su proyecto y configure la palabra clave `wrangler` como un alias en su sesión local de bash.
+
+```shell
+pnpm install wrangler --save-dev
+alias wrangler='./node_modules/.bin/wrangler'
+```
+
+Cree una cuenta en el [sitio de Cloudflare](https://cloudflare.com/) e inicie sesión en su panel de Cloudflare para conectar la plataforma Cloudflare con su entorno de desarrollo local.
+
+```shell
+wrangler login
+```
+
+Una vez que haya iniciado sesión, inicialice el proyecto en el directorio aceptando uno de los nombres de carpeta generados aleatoriamente que le guste, y siga las indicaciones para inicializar su aplicación typescript `"Hello World" Worker` con control de versiones en git.
+
+```shell
+wrangler init
+```
+
+Para completar este paso, presione enter 4 veces después de `wrangler init`, respondiendo `No` en los últimos 2 pasos para rechazar el versionado con git y el despliegue.
+
+Esto clonará un repositorio inicial que puede usar para desplegar código en la nube.
+
+<Note>
+  Pruebas locales de la API <br />
+  En cualquier momento de la guía, puede usar el comando `wrangler dev` en la carpeta del proyecto para pruebas locales
+</Note>
+
+#### Despliegue de prueba
+Finalmente, cambie al directorio del proyecto generado aleatoriamente usando `cd` y ejecute el comando `wrangler deploy`.
+
+Esto debería mostrar una URL, que puede ingresar en el navegador como `https://<app>.<account>.workers.dev` para ver el resultado `Hello World!`.
+
+## 2. Desplegar, patrocinar y actualizar metadata para un contrato ERC1155 con Sequence Builder
+
+<Warning>
+  Para usar la API de transacciones, deberá actualizar su plan de facturación a `Developer` para su proyecto en Sequence Builder, lo cual puede hacer siguiendo [esta guía](/support/builder/project-settings#5-billing-settings)
+</Warning>
+
+Primero, siga [esta guía](/solutions/collectibles/contracts/deploy-an-item-collection) para desplegar un contrato.
+
+Luego, debe actualizar el acceso por roles del contrato en el Builder para que solo reciba solicitudes desde la dirección de la wallet de minteo, lo cual puede hacerse en 2 pasos.
+
+Puede hacer esto en Sequence Builder otorgando el `minter permission` a su `Sequence Wallet Transactions API Address`.
+
+Para saber cuál es la dirección de la API de transacciones con la que está trabajando, primero debe:
+1. Generar una usando esta [app](https://sequence-ethauthproof-viewer.vercel.app/) seleccionando su red y generando una clave de wallet con el botón `generate local wallet` (solo para demostración)
+2. `Recomendado`: También puede imprimir localmente la dirección de cuenta generada a partir de una clave privada de wallet EOA usando el siguiente fragmento de código:
+
+```ts
+import { Session } from "@0xsequence/auth";
+import { ethers } from "ethers";
+
+(async () => {
+  // Generate a new EOA
+  // const wallet = ethers.Wallet.createRandom()
+  // const privateKey = wallet.privateKey
+
+  // Or, use an existing EOA private key
+  const privateKey = "";
+
+  // Open a Sequence session, this will find or create
+  // a Sequence wallet controlled by your server EOA
+  const session = await Session.singleSigner({
+    signer: privateKey,
+    projectAccessKey: "access_key",
+  });
+
+  const signer = session.account.getSigner(1);
+  console.log(`Your transactions API wallet address: ${signer.account.address}`);
+})();
+```
+
+Para hacerlo, abra su proyecto, navegue a la página de `Contracts`, seleccione sus `Linked contracts` y, en la pestaña `Write Contract`, expanda el método `grantRole`.
+
+Complete con los siguientes datos:
+
+`bytes32 role`: `0x9f2df0fed2c77648de5860a4cc508cd0818c85b8b8a1ab4ceeef8d981c8956a6`
+
+`address account`: `<Generated Sequence Transactions API Wallet Address>`
+
+<Frame>
+  <img src="/images/relayer/grant_role.png" alt="Otorgue un rol al relayer" />
+</Frame>
+
+Donde el string `role` ingresado es el resultado de `keccak256("MINTER_ROLE")` en solidity o `ethers.keccak256(ethers.toUtf8Bytes("MINTER_ROLE"))` en javascript
+
+Esto hace que solo su dirección específica pueda mintear desde el contrato; de lo contrario, dará error.
+
+Complete la actualización del rol haciendo clic en `write` y firme la transacción patrocinada.
+
+#### Actualizar metadata
+A continuación, deberá actualizar la metadata con sus medios o assets para su contrato, lo cual puede hacer [siguiendo esta guía](/solutions/collectibles/metadata/manage-metadata-builder).
+
+#### Patrocinio del contrato
+Finalmente, para patrocinar el contrato siga [esta guía](/solutions/builder/gas-tank) para patrocinar un contrato.
+
+## 3. Usar EthAuthProof para prevenir DDoS de EOA
+Ahora que tenemos un contrato desplegado, podemos volver al directorio y proyecto del worker de Cloudflare e instalar `ethers` y `0xsequence` para acceder a las APIs de sequence y realizar una validación de prueba que asegure que la solicitud proviene de una fuente confiable, una wallet de sequence.
+
+```shell
+pnpm install 0xsequence @0xsequence/network
+```
+
+Luego, debemos agregar un tipo de middleware, después de verificar si es una solicitud POST o GET. Si es POST, verifique que el `proofString` y la `address` proporcionados sean válidos, así como las variables de entorno.
+
+El esqueleto de código colocado en `src/index.ts` se vería así, con `callContract` y `getBlockNumber` simulados, usando el paso de verificación mencionado de llamar a `verify` antes de cualquier llamada al contrato.
+
+```ts
+import { sequence } from "0xsequence";
+import { networks, findSupportedNetwork } from "@0xsequence/network";
+
+export interface Env {
+  PKEY: string; // Private key for EOA wallet
+  CONTRACT_ADDRESS: string; // Deployed ERC1155 or ERC721 contract address
+  PROJECT_ACCESS_KEY: string; // From sequence.build
+  CHAIN_HANDLE: string; // Standardized chain name – See https://docs.sequence.xyz/multi-chain-support
+}
+
+// use the sequence api to verify proof came from a sequence wallet
+const verify = async (
+  chainId: string,
+  walletAddress: string,
+  ethAuthProofString: string
+): Promise<Boolean> => {
+  const api = new sequence.api.SequenceAPIClient("https://api.sequence.app");
+  const { isValid } = await api.isValidETHAuthProof({
+    chainId,
+    walletAddress,
+    ethAuthProofString,
+  });
+  return isValid;
+};
+
+async function handleRequest(
+  request: Request,
+  env: Env,
+  ctx: ExecutionContext
+): Promise<Response> {
+
+  if (request.method === "OPTIONS") {
+		return new Response(null, {
+			headers: {
+				// Allow requests from any origin - adjust this as necessary
+				"Access-Control-Allow-Origin": "*",
+				
+				// Allows the headers Content-Type, your-custom-header
+				"Access-Control-Allow-Headers": "Content-Type, your-custom-header",
+				
+				// Allow POST method - add any other methods you need to support
+				"Access-Control-Allow-Methods": "POST",
+				
+				// Optional: allow credentials
+				"Access-Control-Allow-Credentials": "true",
+				
+				// Preflight cache period
+				"Access-Control-Max-Age": "86400", // 24 hours
+			}
+		});
+	}
+
+  if (env.PKEY === undefined || env.PKEY === "") {
+    return new Response("Make sure PKEY is configured in your environment", {
+      status: 400,
+    });
+  }
+
+  if (env.CONTRACT_ADDRESS === undefined || env.CONTRACT_ADDRESS === "") {
+    return new Response(
+      "Make sure CONTRACT_ADDRESS is configured in your environment",
+      { status: 400 }
+    );
+  }
+
+  if (env.PROJECT_ACCESS_KEY === undefined || env.PROJECT_ACCESS_KEY === "") {
+    return new Response(
+      "Make sure PROJECT_ACCESS_KEY is configured in your environment",
+      { status: 400 }
+    );
+  }
+
+  if (env.CHAIN_HANDLE === undefined || env.CHAIN_HANDLE === "") {
+    return new Response(
+      "Make sure CHAIN_HANDLE is configured in your environment",
+      { status: 400 }
+    );
+  }
+
+  const chainConfig = findSupportedNetwork(env.CHAIN_HANDLE);
+
+  if (chainConfig === undefined) {
+    return new Response("Unsupported network or unknown CHAIN_HANDLE", {
+      status: 400,
+    });
+  }
+
+  // POST request
+  if (request.method === "POST") {
+    // parse the request body as JSON
+    const body = await request.json();
+    const { proof, address, tokenId }: any = body;
+    try {
+      // check that the proof is valid
+      if (await verify(env.CHAIN_HANDLE, address, proof)) {
+        try {
+          // mocked call
+          const res = await callContract(request, env, address, tokenId);
+          return new Response(`${res.hash}`, { status: 200 });
+        } catch (err: any) {
+          console.log(err);
+          return new Response(`Something went wrong: ${JSON.stringify(err)}`, {
+            status: 400,
+          });
+        }
+      } else {
+        return new Response(`Unauthorized`, { status: 401 });
+      }
+    } catch (err: any) {
+      return new Response(`Unauthorized ${JSON.stringify(err)}`, {
+        status: 401,
+      });
+    }
+  }
+  // GET request
+  else {
+    try {
+      // mocked call
+      const res = await getBlockNumber(env.CHAIN_HANDLE, request);
+      return new Response(`Block Number: ${res}`);
+    } catch (err: any) {
+      return new Response(`Something went wrong: ${JSON.stringify(err)}`, {
+        status: 500,
+      });
+    }
+  }
+}
+
+const getBlockNumber = async (
+  chainId: string,
+  request: Request
+): Promise<number> => {
+  return chainId;
+};
+
+const callContract = async (
+  request: Request,
+  env: Env,
+  address: string,
+  tokenId: number
+): Promise<ethers.providers.TransactionResponse> => {
+  return { hash: "0x" } as any;
+};
+
+export default {
+  async fetch(request: Request, env: Env, ctx: ExecutionContext) {
+    // Process the request and create a response
+    const response = await handleRequest(request, env, ctx);
+
+    // Set CORS headers
+    response.headers.set("Access-Control-Allow-Origin", "*");
+    response.headers.set(
+      "Access-Control-Allow-Methods",
+      "GET, POST, PUT, DELETE, OPTIONS"
+    );
+    response.headers.set("Access-Control-Allow-Headers", "Content-Type");
+
+    // return response
+    return response;
+  },
+};
+```
+
+#### Agregar variables de entorno de Cloudflare
+Luego, pase las variables de entorno para su build actualizando la sección `[vars]` en su `wrangler.toml`.
+
+```
+[vars]
+PKEY = "" # Private key for EOA wallet
+CONTRACT_ADDRESS = "" # // Deployed ERC1155 or ERC721 contract address
+PROJECT_ACCESS_KEY = "" # From sequence.build
+CHAIN_HANDLE = "" # // Standardized chain name – See https://docs.sequence.xyz/multi-chain-support
+```
+
+#### Implementar el objeto Window en la plantilla de Wrangler
+Debe tener en cuenta que, si intenta desplegar esto, obtendrá un error por falta del objeto `window` requerido por los módulos web3.
+
+Para evitar esto, agregue la siguiente línea a su archivo `wrangler.toml` para hacer el entorno compatible.
+
+```
+...
+node_compat = true # add this line
+...
+```
+
+#### Probando el despliegue
+Ahora puede volver a desplegar usando `wrangler deploy`
+
+Y realizar una solicitud curl para probar su endpoint así:
+
+```shell
+curl -X POST https://your-worker.your-subdomain.workers.dev \
+-H "Content-Type: application/json" \
+-d '{"proof": "<some_proof>", "address": "<some_address>", "tokenId": 0 }'
+
+... invalid proof string ...
+
+# and if you replace with actual proof (from a wallet client login) and address on polygon, it should return
+success
+```
+
+Puede obtener la prueba de dirección de su wallet usando este [dapp](https://sequence-ethauthproof-viewer.vercel.app/) y seguir los pasos a continuación.
+
+#### Usando el dapp ETHAuthProof Viewer
+Cuando llegue a la página, lo primero que debe hacer es seleccionar una red.
+
+Luego tiene la opción de conectar y generar el Proof, o bien generar un wallet local.
+
+<Frame>
+  ![Visor ETHAuthProof](/images/relayer/ethauthproof_viewer_connect.png)
+</Frame>
+
+Presione el botón `connect` y luego `copy to clipboard`.
+
+<Frame>
+  ![ETHAuthProof Viewer copiar al portapapeles](/images/relayer/ethauthproof_viewer_copy.png)
+</Frame>
+
+Cabe señalar que es mejor no compartir este `ETHAuthProof` con nadie, ya que permitiría que otra persona demuestre la propiedad de su wallet e interactúe con APIs específicas.
+
+Por último, reemplace el `url` con el de su app de [este paso](/guides/mint-collectibles-serverless#deploy-test), el `<some_proof>` con el valor generado que copió desde el dapp visor, y `<some_address>` con la dirección de su wallet. Debería devolver simplemente el string simulado `0x`.
+
+```shell
+curl -X POST https://your-worker.your-subdomain.workers.dev \
+-H "Content-Type: application/json" \
+-d '{"proof": "<some_proof>", "address": "<some_address>", "tokenId": 0 }'
+```
+
+## 4. Mintear un coleccionable al wallet
+Finalmente, para desplegar y mintear un coleccionable desde la dirección del contrato patrocinado, instalamos los siguientes paquetes
+
+```shell
+pnpm install @0xsequence/auth ethers
+```
+
+e implementamos los métodos `callContract` y `getBlockNumber` que antes estaban simulados, de la siguiente manera:
+
+```ts
+import { ethers } from 'ethers'
+import { Session, SessionSettings } from '@0xsequence/auth'
+
+...
+
+const getBlockNumber = async (chainId: string, request: Request): Promise<number> => {
+	const nodeUrl = `https://nodes.sequence.app/${chainId}`
+	const provider = new ethers.providers.JsonRpcProvider({ url: nodeUrl, skipFetchSetup: true })
+	return await provider.getBlockNumber()
+}
+
+const callContract = async (request: Request, env: Env, address: string, tokenId: number): Promise<ethers.providers.TransactionResponse> => {
+
+	const nodeUrl = `https://nodes.sequence.app/${env.CHAIN_HANDLE}`
+	const relayerUrl = `https://${env.CHAIN_HANDLE}-relayer.sequence.app`
+	const contractAddress = env.CONTRACT_ADDRESS
+
+
+	// instantiate settings
+	const settings: Partial<SessionSettings> = {
+		networks: [{
+			...networks[findSupportedNetwork(env.CHAIN_HANDLE)!.chainId],
+			rpcUrl: findSupportedNetwork(env.CHAIN_HANDLE)!.rpcUrl,
+			relayer: {
+				url: relayerUrl,
+				provider: {
+					url: findSupportedNetwork(env.CHAIN_HANDLE)!.rpcUrl
+				}
+			}
+		}],
+	}
+
+    // create a single signer sequence wallet session
+	const session = await Session.singleSigner({
+		settings: settings,
+		signer: env.PKEY,
+		projectAccessKey: env.PROJECT_ACCESS_KEY
+	})
+
+	// get signer
+	const signer = session.account.getSigner(findSupportedNetwork(env.CHAIN_HANDLE)!.chainId)
+
+	// create interface from partial abi
+	const collectibleInterface = new ethers.Interface([
+		'function mint(address to, uint256 tokenId, uint256 amount, bytes data)'
+	])
+
+	// create calldata
+	const data = collectibleInterface.encodeFunctionData(
+		'mint', [address, tokenId, 1, "0x00"]
+	)
+
+	// create transaction object
+	const txn = { to: contractAddress, data }
+
+	try {
+		return await signer.sendTransaction(txn)
+	} catch (err) {
+		throw err
+	}
+}
+```
+
+Una vez completados estos pasos, puede volver a desplegar y probar siguiendo los pasos descritos en [el paso anterior](/guides/mint-collectibles-serverless#testing). Esta vez, la solicitud POST debería devolver un hash de transacción por el minteo realizado y la solicitud GET debería devolver un número de bloque.
+
+Si quiere ver el código completo, consulte [un ejemplo de implementación aquí](https://github.com/0xsequence-demos/cloudflare-worker-sequence-transactions-api)

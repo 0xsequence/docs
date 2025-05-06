@@ -1,0 +1,307 @@
+---
+title: Usando su el Embedded Wallet
+description: El contenido proporciona instrucciones detalladas sobre el uso del Sequence WaaS SDK para la gestión de wallets y transacciones.
+sidebarTitle: Usar wallets
+---
+
+Una vez que el usuario ha sido autenticado, puede utilizar funciones web3 comunes para interactuar con la blockchain de manera completamente fluida.
+- [**Obtener dirección de wallet**](/sdk/headless-wallet/use-wallets#get-wallet-address): Acceda a la wallet vinculada a la cuenta autenticada del usuario. Esta wallet sirve como puerta de entrada a todas las funciones de la cuenta.
+- [**Firmar mensajes**](/sdk/headless-wallet/use-wallets#sign-messages): Firmar un mensaje usando el Embedded Wallet.
+- [**Enviar transacciones**](/sdk/headless-wallet/use-wallets#send-transactions): Después de autenticar al usuario, use el WaaS SDK para enviar transacciones usando calldata EVM preparado.
+
+### Obtener dirección de wallet
+La dirección de wallet de cada usuario es única, no puede cambiarse y tiene 42 caracteres, comenzando con `0x`:
+
+```ts
+import { SequenceWaaS } from "@0xsequence/waas";
+
+const sequence = new SequenceWaaS(
+  {
+    projectAccessKey: `${process.env.VITE_PROJECT_ACCESS_KEY}`,
+    waasConfigKey: `${process.env.VITE_WAAS_CONFIG_KEY}`,
+    network: "arbitrum-nova",
+  }
+);
+
+const { wallet } = await sequence.signIn({ idToken }, "Session name")
+const address = await sequence.getAddress();
+
+console.log(address == wallet) // true
+
+console.log(address)
+```
+
+```
+0xE4b10c53aa75E19E088cfDD0cff7D46a0E4206F0
+```
+
+### Firmar mensajes
+Las wallets pueden firmar mensajes, los cuales pueden validarse tanto onchain como offchain:
+
+```ts
+import { SequenceWaaS } from "@0xsequence/waas";
+
+const sequence = new SequenceWaaS(
+  {
+    projectAccessKey: `${process.env.PROJECT_ACCESS_KEY}`,
+    waasConfigKey: `${process.env.WAAS_CONFIG_KEY}`,
+    network: "arbitrum-nova",
+  }
+);
+
+await sequence.signIn({ idToken }, "Session name");
+
+const signature = await sequence.signMessage({
+  chainId: 42170,
+  message: "Hello world",
+});
+
+console.log(signature);
+```
+
+```json
+{
+  "code": "signedMessage",
+  "data": {
+    "message": "0x48656c6c6f20776f726c64",
+    "signature": "0x0100010000000002012128ff2dd168dc250dc3da93db3131f737e6961a0000fe0100030000000006010001000074000197013331090a763fc7ef2216502cfbff5d855530f977a0ee6db3615722ed9bad498781d8ed72d52b5c9717708ac757f7789c9567e5468566179bd03f72d1fc7b1c010400002c01011111b16c6268897233eddea98a041b326b0faef2010122229ce37ccfee1cbab2b743b22c314b5667cf1a06020001000074000100deb9091f5beb1ebd8d91a1b81e562a70cdb3a1cdafc5e61087b18d1c221c570754ecbe056bdef5f82c388a9bf53f074521aeaf5afdeed3a2ba70adb89362631b010400002c0101444444444444444444444444444444444444444401015555555555555555555555555555555555555555030100a5a91b133336e5ef1c7e23c13974535018fab1c0"
+  }
+}
+```
+
+## Enviar transacciones
+Todas las wallets pueden enviar transacciones inmediatamente después de su creación. No se requieren pasos adicionales para crear la wallet, ya que todos los usuarios tienen una wallet por defecto.
+
+<Note>
+  En cualquier momento al enviar una transacción que requiera una comisión en una red, puede seguir la guía de Opciones de Comisión para saber cómo enviar un objeto de comisión junto a su transacción o cubrir las comisiones de gas para sus usuarios [aquí](/sdk/headless-wallet/fee-options).
+</Note>
+
+### Transacción sin procesar
+
+- **Transacciones inmediatas:** Las wallets están listas para enviar transacciones inmediatamente después de su creación.
+- **Transacciones sin procesar:** Especifique parámetros de la transacción como destinatario, valor y datos. Los límites de gas y el nonce se gestionan automáticamente.
+- **Requisitos de red:** Las transacciones requieren especificar un **`chainId`** para la red deseada, por ejemplo `1` para Ethereum mainnet, `42161` para Arbitrum, etc.
+
+<Note>
+  Manejo de errores: Use `isSentTransactionResponse` para verificar transacciones antes de ejecutarlas y evitar fallos. WaaS comprueba que una transacción no fallará antes de ejecutarla. Si falla, recibirá un mensaje de error en lugar de un recibo de transacción. Vea más en [recibos de transacción](/sdk/headless-wallet/transaction-receipts).
+</Note>
+
+```ts
+import { Sequence, isSentTransactionResponse } from "@0xsequence/waas";
+
+const sequence = new SequenceWaaS(
+  {
+    projectAccessKey: `${process.env.PROJECT_ACCESS_KEY}`,
+    waasConfigKey: `${process.env.WAAS_CONFIG_KEY}`,
+    network: "arbitrum-nova",
+  }
+);
+
+await sequence.signIn({ idToken }, "Session name");
+
+const tx = await sequence.sendTransaction({
+  chainId: 42161,
+  transactions: [
+    {
+      to: "0x27CabC9700EE6Db2797b6AC1e1eCe81C72A2cD8D",
+      value: "200000000000000000000", // 200 ETH
+      data: "0x9fa2b3c4",
+    },
+  ],
+});
+
+if (isSentTransactionResponse(tx)) {
+  console.log(tx);
+}
+```
+
+```json
+{
+  "code": "transactionReceipt",
+  "data": {
+    "txHash": "0xf2e9f728abd65089f25efda5852e605ced377f4e2c89dbf143b124623ed09b2c",
+    "metaTxHash": "acc36ed4ef40db74137266e48d863083a5c7e85e2735d69adafcb5b362b6cfc0",
+    "nativeReceipt": { ... },
+    "receipt": { ... },
+    "request": { ... },
+    "simulations": [ ... ],
+  }
+}
+```
+
+### Enviar tokens ERC20
+Hay métodos auxiliares disponibles para operaciones comunes, como enviar tokens ERC20. Esto maneja automáticamente el campo `data` de la transacción:
+
+```ts
+import { Sequence, isSentTransactionResponse } from "@0xsequence/waas";
+
+const sequence = new SequenceWaaS(
+  {
+    projectAccessKey: `${process.env.PROJECT_ACCESS_KEY}`,
+    waasConfigKey: `${process.env.WAAS_CONFIG_KEY}`,
+    network: "mumbai",
+  },
+  defaults.TEST
+);
+
+await sequence.signIn({ idToken }, "Session name");
+
+const tx = await sequence.sendERC20({
+  chainId: 42161,
+  token: "0x6b175474e89094c44da98b954eedeac495271d0f", // DAI
+  to: "0x27CabC9700EE6Db2797b6AC1e1eCe81C72A2cD8D", // Recipient
+  value: "200000000000000000000", // 200 DAI
+});
+
+if (isSentTransactionResponse(tx)) {
+  console.log(tx);
+}
+```
+
+```json
+{
+  "code": "transactionReceipt",
+  "data": {
+    "txHash": "0x1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b3",
+    "metaTxHash": "01a087979dccbbc49a45b72d987e5651d65bd97349ccbfdd601b0b7beee9ddc4",
+    "nativeReceipt": { ... },
+    "receipt": { ... },
+    "request": { ... },
+    "simulations": [ ... ],
+  }
+}
+```
+
+### Enviar tokens ERC721
+El envío de tokens ERC721 tiene un método auxiliar. Esto maneja automáticamente el campo `data` de la transacción:
+
+```ts
+import { Sequence, isSentTransactionResponse } from "@0xsequence/waas";
+
+const sequence = new SequenceWaaS(
+  {
+    projectAccessKey: `${process.env.PROJECT_ACCESS_KEY}`,
+    waasConfigKey: `${process.env.WAAS_CONFIG_KEY}`,
+    network: "arbitrum-nova",
+  }
+);
+
+await sequence.signIn({ idToken });
+
+const tx = await sequence.sendERC721({
+  chainId: 42161,
+  token: "0xF87E31492Faf9A91B02Ee0dEAAd50d51d56D5d4d", // Decentraland LAND
+  to: "0x27CabC9700EE6Db2797b6AC1e1eCe81C72A2cD8D", // Recipient
+  id: "33347671958251969419410711528313284722562", // Asset ID
+});
+
+if (isSentTransactionResponse(tx)) {
+  console.log(tx);
+}
+```
+
+```json
+{
+  "code": "transactionReceipt",
+  "data": {
+    "txHash": "0x4936962d9972a70bffc27f376f55d9c60c12e762819fa6384fdb466664122b6e",
+    "metaTxHash": "e6513a60b63359a365f0d3f05744d89823278ec829fc5cb4d275bb815d0f5887",
+    "nativeReceipt": { ... },
+    "receipt": { ... },
+    "request": { ... },
+    "simulations": [ ... ],
+  }
+}
+```
+
+### Enviar tokens ERC1155
+El envío de tokens ERC1155 también está soportado:
+
+```ts
+import { Sequence, isSentTransactionResponse } from "@0xsequence/waas";
+
+const sequence = new SequenceWaaS(
+  {
+    projectAccessKey: `${process.env.PROJECT_ACCESS_KEY}`,
+    waasConfigKey: `${process.env.WAAS_CONFIG_KEY}`,
+    network: "arbitrum-nova",
+  }
+);
+
+await sequence.signIn({ idToken });
+
+const tx = await sequence.sendERC1155({
+  chainId: 137,
+  token: "0x631998e91476da5b870d741192fc5cbc55f5a52e", // Skyweaver assets
+  values: [
+    {
+      id: "66547", // Asset ID
+      value: "200", // Amount for this asset
+    },
+    {
+      id: "68572",
+      value: "1000",
+    },
+  ],
+});
+```
+
+### Llamar cualquier contrato
+Utilice **`callContract`** para interactuar con cualquier método de contrato, ya sea mediante una firma de función o un ABI, admitiendo argumentos tanto nombrados como posicionales.
+
+### Firma de función
+Proporcionar una firma de función es la manera más sencilla de llamar a un método de contrato, ya que no requiere un ABI. La firma de función puede incluir parámetros nombrados o posicionales.
+
+##### Argumentos nombrados
+
+```ts
+const tx = await sequence.callContract({
+  to: "0x503388C73Ca663eA34e103c11C9F47C9433af471", // Contract address
+  abi: "mint(address to, uint256 tokenId)", // Function signature
+  func: "mint", // Function name
+  args: {
+    to: "0xf439e432d54c2Bf5518A1901D3791070d4192986",
+    tokenId: "1",
+  },
+  value: 0, // Value to send
+});
+```
+
+##### Argumentos posicionales
+Tenga en cuenta que se permite pasar una firma de función nombrada con argumentos posicionales.
+
+```ts
+const tx = await sequence.callContract({
+  to: "0x503388C73Ca663eA34e103c11C9F47C9433af471", // Contract address
+  abi: "mint(address,uint256)", // Function signature
+  func: "mint", // Function name
+  args: ["0xf439e432d54c2Bf5518A1901D3791070d4192986", "1"],
+  value: 0, // Value to send
+});
+```
+
+#### ABI
+Proporcionar un ABI es más detallado, pero permite mayor flexibilidad, ya que un solo ABI puede usarse para llamar a varios métodos. Los ABI admiten argumentos nombrados y posicionales.
+
+```ts
+const abi = `[{"constant":true,"inputs":[],"name":"name","outputs":[{"name":"","type":"string"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"name":"_spender","type":"address"},{"name":"_value","type":"uint256"}],"name":"approve","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[],"name":"totalSupply","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"name":"_from","type":"address"},{"name":"_to","type":"address"},{"name":"_value","type":"uint256"}],"name":"transferFrom","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[],"name":"decimals","outputs":[{"name":"","type":"uint8"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[{"name":"_owner","type":"address"}],"name":"balanceOf","outputs":[{"name":"balance","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"symbol","outputs":[{"name":"","type":"string"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"name":"_to","type":"address"},{"name":"_value","type":"uint256"}],"name":"transfer","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[{"name":"_owner","type":"address"},{"name":"_spender","type":"address"}],"name":"allowance","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"payable":true,"stateMutability":"payable","type":"fallback"},{"anonymous":false,"inputs":[{"indexed":true,"name":"owner","type":"address"},{"indexed":true,"name":"spender","type":"address"},{"indexed":false,"name":"value","type":"uint256"}],"name":"Approval","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"name":"from","type":"address"},{"indexed":true,"name":"to","type":"address"},{"indexed":false,"name":"value","type":"uint256"}],"name":"Transfer","type":"event"}]`;
+
+const tx = await sequence.callContract({
+  to: "0x6b175474e89094c44da98b954eedeac495271d0f", // Contract address
+  abi: abi, // ABI
+  func: "transfer", // Function name
+  args: {
+    _to: "0xf439e432d54c2Bf5518A1901D3791070d4192986",
+    _value: "1",
+  },
+  value: 0, // Value to send
+});
+```
+
+<Warning>
+  **Permisos de transacción:**
+
+  - **Cuentas por correo electrónico:** Las transacciones se habilitan después de que la sesión actual se confirme mediante un enlace enviado al correo electrónico o número de teléfono.
+  - **Cuentas con inicio de sesión con redes sociales:** Cuentas como Google y Facebook pueden realizar transacciones inmediatamente después de iniciar sesión.
+  - Para más detalles, consulte la documentación sobre [validación de gestión de sesiones](/sdk/headless-wallet/manage-sessions#session-management).
+</Warning>

@@ -1,0 +1,30 @@
+---
+title: チェックアウトUI
+---
+
+SDKにはデフォルトのチェックアウトUIが付属しており、ゲームに合わせてカスタマイズしてご利用いただくことをおすすめします。
+
+## 組み込みチェックアウトUIの利用
+`CheckoutPanel`をBoilerplatesアセンブリの一部としてご用意しています。他のボイラープレート同様、`BoilerplatesFactory`からアクセスできます。詳細は[ゲームのブートストラップ](/sdk/unity/bootstrap_game)をご覧ください。
+
+概要として、`Assets/**/Resources/Checkout/CheckoutPanel`にある`CheckoutPanel`プレハブを使い、`BoilerplateFactory`を通じて簡単に開くことができます。
+
+```
+(CheckoutPanel, CheckoutPage) checkoutUi = BoilerplateFactory.OpenCheckoutPanel(parentTransform, checkoutHelperInstance, fiatCheckoutInstance, optionalOnCloseAction);
+```
+
+ここでcheckoutHelperInstanceは`ICheckoutHelper`インターフェース、fiatCheckoutInstanceは`IFiatCheckout`インターフェースを実装しています。
+
+現在、`ICheckoutHelper`には「NftCheckout」と「ERC1155SaleCheckout」の2つの実装があり、それぞれセカンダリセールスのマーケットプレイスとERC1155の一次販売に対応しています。ERC721の一次販売用実装も近日中に追加予定です。
+
+`SequenceCheckout`は現在唯一の`IFiatCheckout`実装で、セカンダリセールスのマーケットプレイスとERC1155の一次販売の両方に対応しています。ERC721の一次販売対応も今後追加予定です。
+
+## 仕組みについて
+独自のチェックアウトパネルやモーダルロジックを構築したい場合など、チェックアウトの仕組み全体を理解しておくと役立ちます。
+
+この図は、システムの構成を理解するのに役立ちます。
+
+![ERG Diagram](/images/unity/ERG_SequencePayModal.png)
+[出典](https://github.com/0xsequence/sequence-unity/blob/Feature/marketplaceCheckout/Packages/Sequence-Unity/Sequence/SequenceSDK/Marketplace/ERG_CheckoutModal.mmd)
+
+この図や`CheckoutPage`（および関連する）ソースコードは、独自のUIロジックを作成する際の参考資料としてご活用いただけます。

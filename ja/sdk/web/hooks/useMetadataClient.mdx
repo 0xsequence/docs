@@ -1,0 +1,240 @@
+---
+title: useMetadataClient
+description: トークンやコントラクトのメタデータ取得用 Sequence Metadata クライアントへのアクセスフック
+sidebarTitle: useMetadataClient
+---
+
+## インポート
+
+```tsx
+import { useMetadataClient } from '@0xsequence/hooks'
+```
+
+## 使い方
+
+```tsx
+import { useMetadataClient } from '@0xsequence/hooks'
+
+function CustomMetadataFetcher() {
+  const metadataClient = useMetadataClient()
+  const [metadata, setMetadata] = useState(null)
+  const [isLoading, setIsLoading] = useState(false)
+  
+  const fetchContractMetadata = async () => {
+    setIsLoading(true)
+    try {
+      // Fetch metadata for a specific contract
+      const response = await metadataClient.getContractInfo({
+        chainID: "1",
+        contractAddress: "0x..." 
+      })
+      
+      setMetadata(response.contractInfo)
+    } catch (error) {
+      console.error('Failed to fetch metadata:', error)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  // Example of batch token metadata fetch
+  const fetchBatchTokenMetadata = async () => {
+    setIsLoading(true)
+    try {
+      const response = await metadataClient.getTokenMetadata({
+        chainID: "1",
+        contractAddress: "0x...",
+        tokenIDs: ["1", "2", "3"]
+      })
+      
+      setMetadata(response.tokenMetadata)
+    } catch (error) {
+      console.error('Failed to fetch token metadata:', error)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  return (
+    <div>
+      <button 
+        onClick={fetchContractMetadata}
+        disabled={isLoading}
+      >
+        Fetch Contract Info
+      </button>
+      
+      <button 
+        onClick={fetchBatchTokenMetadata}
+        disabled={isLoading}
+      >
+        Fetch Token Metadata
+      </button>
+
+      {isLoading && <div>Loading...</div>}
+      
+      {metadata && (
+        <pre>
+          {JSON.stringify(metadata, null, 2)}
+        </pre>
+      )}
+    </div>
+  )
+}
+```
+
+## 返却型：`SequenceMetadata`
+このフックは設定済みの`SequenceMetadata`クライアントインスタンスを返します。詳細な構成は以下の通りです：
+
+```tsx
+interface SequenceMetadata {
+  // Service Methods
+  ping(headers?: object, signal?: AbortSignal): Promise<PingResponse>
+  version(headers?: object, signal?: AbortSignal): Promise<VersionResponse>
+  runtimeStatus(headers?: object, signal?: AbortSignal): Promise<RuntimeStatusReturn>
+  
+  // Task Management Methods
+  getTask(args: GetTaskArgs, headers?: object, signal?: AbortSignal): Promise<GetTaskReturn>
+  getTaskStatus(args: GetTaskStatusArgs, headers?: object, signal?: AbortSignal): Promise<GetTaskStatusReturn>
+  
+  // Token Metadata Methods
+  getTokenMetadata(args: GetTokenMetadataArgs, headers?: object, signal?: AbortSignal): Promise<GetTokenMetadataReturn>
+  getTokenMetadataBatch(args: GetTokenMetadataBatchArgs, headers?: object, signal?: AbortSignal): Promise<GetTokenMetadataBatchReturn>
+  searchTokenMetadata(args: SearchTokenMetadataArgs, headers?: object, signal?: AbortSignal): Promise<SearchTokenMetadataReturn>
+  searchTokenIDs(args: SearchTokenIDsArgs, headers?: object, signal?: AbortSignal): Promise<SearchTokenIDsReturn>
+  tokenCollectionFilters(args: TokenCollectionFiltersArgs, headers?: object, signal?: AbortSignal): Promise<TokenCollectionFiltersReturn>
+  
+  // Token Refresh Methods
+  refreshTokenMetadata(args: RefreshTokenMetadataArgs, headers?: object, signal?: AbortSignal): Promise<RefreshTokenMetadataReturn>
+  enqueueTokensForRefresh(args: EnqueueTokensForRefreshArgs, headers?: object, signal?: AbortSignal): Promise<EnqueueTokensForRefreshReturn>
+  getTokenRefreshStatus(args: GetTokenRefreshStatusArgs, headers?: object, signal?: AbortSignal): Promise<GetTokenRefreshStatusReturn>
+  getTokenRefreshResult(args: GetTokenRefreshResultArgs, headers?: object, signal?: AbortSignal): Promise<GetTokenRefreshResultReturn>
+  cancelRefreshJob(args: CancelRefreshJobArgs, headers?: object, signal?: AbortSignal): Promise<CancelRefreshJobReturn>
+  
+  // Contract Methods
+  getContractInfo(args: GetContractInfoArgs, headers?: object, signal?: AbortSignal): Promise<GetContractInfoReturn>
+  getContractInfoBatch(args: GetContractInfoBatchArgs, headers?: object, signal?: AbortSignal): Promise<GetContractInfoBatchReturn>
+  searchContractInfo(args: SearchContractInfoArgs, headers?: object, signal?: AbortSignal): Promise<SearchContractInfoReturn>
+  searchContractInfoBatch(args: SearchContractInfoBatchArgs, headers?: object, signal?: AbortSignal): Promise<SearchContractInfoBatchReturn>
+  refreshContractInfo(args: RefreshContractInfoArgs, headers?: object, signal?: AbortSignal): Promise<RefreshContractInfoReturn>
+  refreshContractTokens(args: RefreshContractTokensArgs, headers?: object, signal?: AbortSignal): Promise<RefreshContractTokensReturn>
+  refreshAllContractTokens(args: RefreshAllContractTokensArgs, headers?: object, signal?: AbortSignal): Promise<RefreshAllContractTokensReturn>
+  
+  // Search Methods
+  searchMetadata(args: SearchMetadataArgs, headers?: object, signal?: AbortSignal): Promise<SearchMetadataReturn>
+  searchTokens(args: SearchTokensArgs, headers?: object, signal?: AbortSignal): Promise<SearchTokensReturn>
+  searchContracts(args: SearchContractsArgs, headers?: object, signal?: AbortSignal): Promise<SearchContractsReturn>
+  
+  // Niftyswap Methods
+  getNiftyswapTokenQuantity(args: GetNiftyswapTokenQuantityArgs, headers?: object, signal?: AbortSignal): Promise<GetNiftyswapTokenQuantityReturn>
+  getNiftyswapUnitPrices(args: GetNiftyswapUnitPricesArgs, headers?: object, signal?: AbortSignal): Promise<GetNiftyswapUnitPricesReturn>
+  getNiftyswapUnitPricesWithQuantities(args: GetNiftyswapUnitPricesWithQuantitiesArgs, headers?: object, signal?: AbortSignal): Promise<GetNiftyswapUnitPricesWithQuantitiesReturn>
+  
+  // Mint Monitor Methods
+  addContractToMintMonitor(args: AddContractToMintMonitorArgs, headers?: object, signal?: AbortSignal): Promise<AddContractToMintMonitorReturn>
+  removeContractFromMintMonitor(args: RemoveContractFromMintMonitorArgs, headers?: object, signal?: AbortSignal): Promise<RemoveContractFromMintMonitorReturn>
+  mintMonitorJobStatus(args: MintMonitorJobStatusArgs, headers?: object, signal?: AbortSignal): Promise<MintMonitorJobStatusReturn>
+  mintMonitorTriggerJob(args: MintMonitorTriggerJobArgs, headers?: object, signal?: AbortSignal): Promise<MintMonitorTriggerJobReturn>
+  
+  // Contract Sync Methods
+  syncContractTokens(args: SyncContractTokensArgs, headers?: object, signal?: AbortSignal): Promise<SyncContractTokensReturn>
+  abortContractSync(args: AbortContractSyncArgs, headers?: object, signal?: AbortSignal): Promise<AbortContractSyncReturn>
+  contractSyncJobStatus(args: ContractSyncJobStatusArgs, headers?: object, signal?: AbortSignal): Promise<ContractSyncJobStatusReturn>
+  
+  // Directory Methods
+  directoryGetNetworks(args: DirectoryGetNetworksArgs, headers?: object, signal?: AbortSignal): Promise<DirectoryGetNetworksReturn>
+  directoryGetCollections(args: DirectoryGetCollectionsArgs, headers?: object, signal?: AbortSignal): Promise<DirectoryGetCollectionsReturn>
+  directorySearchCollections(args: DirectorySearchCollectionsArgs, headers?: object, signal?: AbortSignal): Promise<DirectorySearchCollectionsReturn>
+}
+```
+
+### 利用可能なメソッド
+
+#### サービスメソッド
+
+- `ping`：サービスの稼働状況を確認
+- `version`：メタデータサービスのバージョン情報を取得
+- `runtimeStatus`：サービスの現在の稼働状況を取得
+
+#### タスク管理メソッド
+
+- `getTask`：特定タスクの詳細を取得
+- `getTaskStatus`：タスクのステータスを取得
+
+#### トークンメタデータメソッド
+
+- `getTokenMetadata`：特定トークンのメタデータを取得
+- `getTokenMetadataBatch`：トークンメタデータを一括取得
+- `searchTokenMetadata`：トークンメタデータを検索
+- `searchTokenIDs`：特定トークンIDを検索
+- `tokenCollectionFilters`：トークンコレクションの利用可能なフィルターを取得
+
+#### トークンリフレッシュメソッド
+
+- `refreshTokenMetadata`：特定トークンのメタデータをリフレッシュ
+- `enqueueTokensForRefresh`：メタデータリフレッシュのためにトークンをキューに追加
+- `getTokenRefreshStatus`：トークンリフレッシュのステータスを確認
+- `getTokenRefreshResult`：トークンリフレッシュの結果を取得
+- `cancelRefreshJob`：進行中のリフレッシュジョブをキャンセル
+
+#### コントラクトメソッド
+
+- `getContractInfo`：単一コントラクトのメタデータを取得
+- `getContractInfoBatch`：コントラクトメタデータを一括取得
+- `searchContractInfo`：コントラクトメタデータを検索
+- `searchContractInfoBatch`：コントラクトメタデータを一括検索
+- `refreshContractInfo`：コントラクトメタデータをリフレッシュ
+- `refreshContractTokens`：コントラクトのトークンをリフレッシュ
+- `refreshAllContractTokens`：コントラクト内のすべてのトークンをリフレッシュ
+
+#### 検索メソッド
+
+- `searchMetadata`：すべてのメタデータを検索
+- `searchTokens`：特定トークンを検索
+- `searchContracts`：特定コントラクトを検索
+
+#### Niftyswapメソッド
+
+- `getNiftyswapTokenQuantity`：Niftyswapからトークン数量情報を取得
+- `getNiftyswapUnitPrices`：Niftyswapから単価を取得
+- `getNiftyswapUnitPricesWithQuantities`：Niftyswapから数量付き単価を取得
+
+#### ミントモニターメソッド
+
+- `addContractToMintMonitor`：コントラクトをミント監視に追加
+- `removeContractFromMintMonitor`：コントラクトをミント監視から削除
+- `mintMonitorJobStatus`：ミント監視ジョブのステータスを確認
+- `mintMonitorTriggerJob`：ミント監視ジョブをトリガー
+
+#### コントラクト同期メソッド
+
+- `syncContractTokens`：コントラクトのトークンを同期
+- `abortContractSync`：進行中のコントラクト同期を中止
+- `contractSyncJobStatus`：コントラクト同期のステータスを確認
+
+#### ディレクトリメソッド
+
+- `directoryGetNetworks`：利用可能なネットワークを取得
+- `directoryGetCollections`：コレクションディレクトリを取得
+- `directorySearchCollections`：コレクションディレクトリを検索
+
+## パラメータ
+このフックはパラメータを受け取りませんが、`useConfig`フックの設定を利用します：
+
+```tsx
+interface Config {
+  env: {
+    metadataUrl: string
+    // ... other environment settings
+  }
+  projectAccessKey: string
+  jwt?: string
+}
+```
+
+設定内容は以下を決定します:
+- メタデータサービスのURL
+- 認証のためのプロジェクトのアクセスキー
+- 認証付きリクエスト用のオプションのJWT
+
+クライアントは`projectAccessKey`と`jwt`を元にメモ化され、不要な再生成を防ぎます。

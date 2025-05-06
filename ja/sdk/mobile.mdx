@@ -1,0 +1,225 @@
+---
+title: Embedded Wallet用モバイルSDK（React Native）
+sidebarTitle: React Native
+description: このコンテンツでは、Sequence Embedded Wallet SDKをReact Nativeで統合し、ウォレットとインデクサーの完全な連携を実現する手順を詳しくご紹介します。
+---
+
+Sequence Embedded Wallet SDKは、React NativeでSequenceの[Embedded Wallet](/solutions/wallets/embedded-wallet/overview)や[Indexer](/api-references/indexer/overview)と完全に連携して利用できます。
+
+SDKの利用例やテンプレートのダウンロードは、[Embedded Wallet React Native Demo](https://github.com/0xsequence/demo-waas-react-native)リポジトリでご覧いただけます。
+
+## ビデオプレビュー
+
+<video controls className="w-full aspect-video" src="https://pub-f048362b915448c9b012a2e03c189024.r2.dev/SequenceMobileSDK.mp4" />
+
+## ご自身の認証情報／キーでのセットアップ
+プロジェクトのアクセスキーやその他の認証情報／キーの取得方法は、こちらのガイドをご参照ください：[https://docs.sequence.xyz/solutions/builder/embedded-wallet/](https://docs.sequence.xyz/solutions/builder/embedded-wallet/)
+
+### ./iosおよび./androidフォルダごとの認証情報／キーの設定手順
+
+#### iOS
+Expoを使用する場合、ios > infoPlistのapp.jsonファイルでGIDClientIDを設定できます。
+
+手動の場合は、Googleサインイン用にInfo.plistファイルでGIDClientIDを設定します。
+
+#### Android
+Expoを使用する場合、android > intentFiltersのapp.jsonファイルでintent-filterを設定できます。
+
+手動の場合は、Googleサインイン用にAndroidManifest.xmlファイルでintent-filterを設定します。
+
+## 統合の詳細
+
+<Steps>
+  <Step title="ethersやその他の暗号関連パッケージ用のshimのセットアップ">
+    まず、shimsのセットアップと`react-native-quick-crypto`から`ethers`用に`pbkdf2`を登録する方法について、[cryptoSetup.ts](https://github.com/0xsequence/demo-waas-react-native/blob/main/cryptoSetup.ts)の内容を確認しましょう。
+
+    ```ts
+    import { install } from "react-native-quick-crypto";
+    install();
+
+    import "react-native-url-polyfill/auto";
+    import { ReadableStream } from "web-streams-polyfill";
+    globalThis.ReadableStream = ReadableStream;
+
+    import crypto from "react-native-quick-crypto";
+    global.getRandomValues = crypto.getRandomValues;
+
+    export * from "@ethersproject/shims";
+
+    import * as ethers from "ethers";
+
+    ethers.pbkdf2.register(
+      (
+        password: Uint8Array,
+        salt: Uint8Array,
+        iterations: number,
+        keylen: number,
+        algo: "sha256" | "sha512"
+      ) => {
+        console.info("Using react-native-quick-crypto for pbkdf2");
+        return ethers.hexlify(
+          new Uint8Array(
+            crypto.pbkdf2Sync(
+              password,
+              salt,
+              iterations,
+              keylen,
+              algo === "sha256" ? "SHA-256" : "SHA-512"
+            )
+          )
+        );
+      }
+    );
+
+    export * from "ethers";
+    ```
+
+    次に、`cryptoSetup.ts`をアプリのライフサイクルの早い段階で必ずインポートしてください。このデモでは、[App.tsx](https://github.com/0xsequence/demo-waas-react-native/blob/main/App.tsx)の冒頭でインポート・設定されています。
+
+    次に、一部のshim用のエイリアスを`babel-plugin-module-resolver`（開発用依存）を使って`babel.config.js`で設定する必要があります。エイリアスの更新方法は、[babel.config.js](https://github.com/0xsequence/demo-waas-react-native/blob/main//babel.config.js)のコードスニペットをご覧ください。
+  </Step>
+
+  <Step title="Sequence WaaSの初期化">
+    ```ts
+    export const sequenceWaas = new SequenceWaaS(
+      {
+        network: initialNetwork,
+        projectAccessKey: projectAccessKey,
+        waasConfigKey: waasConfigKey,
+      },
+      localStorage,
+      null,
+      new KeychainSecureStoreBackend()
+    );
+    ```
+
+    （詳細は[waasSetup.ts](https://github.com/0xsequence/demo-waas-react-native/blob/main/waasSetup.ts)ファイルをご参照ください）
+  </Step>
+
+  <Step title="サインイン">
+    初期化済みのSequence WaaSインスタンスがあれば、メール、Google、Appleでサインインできます。Googleのコード例は下記をご覧いただき、詳細は[App.tsx](https://github.com/0xsequence/demo-waas-react-native/blob/main/App.tsx)ファイルをご確認ください。
+
+    ```ts
+    const redirectUri = `${iosRedirectUri}:/oauthredirect`;
+
+    const scopes = ["openid", "profile", "email"];
+    const request = new AuthRequest({
+      clientId,
+      scopes,
+      redirectUri,
+      usePKCE: true,
+      extraParams: {
+        audience: webClientId,
+        include_granted_scopes: "true",
+      },
+    });
+
+    const result = await request.promptAsync({
+      authorizationEndpoint: `https://accounts.google.com/o/oauth2/v2/auth`,
+    });
+
+    if (result.type === "cancel") {
+      return undefined;
+    }
+
+    const serverAuthCode = result?.params?.code;
+
+    const configForTokenExchange: AccessTokenRequestConfig = {
+      code: serverAuthCode,
+      redirectUri,
+      clientId: iosClientId,
+      extraParams: {
+        code_verifier: request?.codeVerifier || "",
+        audience: webClientId,
+      },
+    };
+
+    const tokenResponse = await exchangeCodeAsync(configForTokenExchange, {
+      tokenEndpoint: "https://oauth2.googleapis.com/token",
+    });
+
+    const userInfo = await fetchUserInfo(tokenResponse.accessToken);
+
+    const idToken = tokenResponse.idToken;
+
+    if (!idToken) {
+      throw new Error("No idToken");
+    }
+
+    try {
+      const signInResult = await sequenceWaas.signIn(
+        {
+          idToken: idToken,
+        },
+        randomName()
+      );
+
+      console.log("signInResult", JSON.stringify(signInResult));
+    } catch (e) {
+      console.log("error", JSON.stringify(e));
+    }
+    ```
+  </Step>
+
+  <Step title="ウォレット操作">
+    サインイン後は、`sequenceWaas`インスタンスを使ってトランザクション送信やメッセージ署名などのウォレット操作が可能です。下記のコードスニペットをご覧いただき、詳細は[App.tsx](https://github.com/0xsequence/demo-waas-react-native/blob/main/App.tsx)ファイルをご確認ください。
+
+    ```ts
+    // Signing a message
+    const signature = await sequenceWaas.signMessage({ message: "your message" });
+
+    // Sending a txn
+    const txn = await sequenceWaas.sendTransaction({
+      transactions: [
+        {
+          to: walletAddress,
+          value: 0,
+        },
+      ],
+    });
+    ```
+  </Step>
+
+  <Step title="Ethers v6アップデートの移行メモ">
+    - `react-native-quick-crypto-ethers-patch.js`や関連設定は不要になりました。ethers v6では`react-native-quick-crypto`パッケージからpbkdf2関数を直接登録できるためです。（関連コードは[cryptoSetup.ts](https://github.com/0xsequence/demo-waas-react-native/blob/main//cryptoSetup.ts)をご参照ください。）
+    - [ethers移行ガイド](https://docs.ethers.org/v6/migrating/)を参考に、コードベースをethers v6へ移行できます。
+
+    <br />
+  </Step>
+</Steps>
+
+## 依存パッケージ
+
+### 必要なSequenceパッケージ
+
+- @0xsequence/waas
+- @0xsequence/react-native
+
+### その他必要な依存／shim
+
+#### 共通
+
+-   ethers
+
+-   ethersproject/shims
+
+-   expo
+
+-   react-native-quick-crypto
+
+-   react-native-mmkv
+
+-   react-native-keychain
+
+-   babel-plugin-module-resolver（開発用依存）
+
+#### Apple・Googleログイン用
+
+- expo-web-browser
+- expo-auth-session
+- @invertase/react-native-apple-authentication
+
+#### メールログイン用
+
+- react-native-url-polyfill
+- web-streams-polyfill

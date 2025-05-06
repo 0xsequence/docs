@@ -1,0 +1,143 @@
+---
+title: useERC1155SaleContractCheckout
+description: Hook para gestionar el checkout del contrato de venta ERC-1155
+sidebarTitle: useERC1155SaleContractCheckout
+---
+
+## Importar
+
+```tsx
+import { useERC1155SaleContractCheckout } from '@0xsequence/checkout'
+```
+
+## Uso
+
+```tsx
+import { useERC1155SaleContractCheckout } from "@0xsequence/checkout"
+import { useAccount } from "wagmi"
+
+function App() {
+  const { address: userAddress } = useAccount()
+  const { openCheckoutModal } = useERC1155SaleContractCheckout({
+    chain: 80001, // chainId of the chain the collectible is on
+    contractAddress: "0x0327b2f274e04d292e74a06809bcd687c63a4ba4", // address of the contract handling the minting function
+    wallet: userAddress!, // address of the recipient
+    collectionAddress: "0x888a322db4b8033bac3ff84412738c096f87f9d0", // address of the collection contract
+    items: [
+      // array of collectibles to purchase
+      {
+        tokenId: "0",
+        quantity: "1",
+      },
+    ],
+    onSuccess: (txnHash: string) => {
+      console.log("success!", txnHash)
+    },
+    onError: (error: Error) => {
+      console.error(error)
+    },
+  })
+
+  const onClick = () => {
+    if (!userAddress) {
+      return
+    }
+    openCheckoutModal()
+  }
+
+  return <button onClick={onClick}>Buy ERC-1155 collectible!</button>
+}
+```
+
+## Tipo de retorno: `UseERC1155SaleContractCheckoutReturnType`
+El hook retorna un objeto con las siguientes propiedades:
+
+```tsx
+interface UseERC1155SaleContractCheckoutReturnType {
+  openCheckoutModal: () => void
+  closeCheckoutModal: () => void
+  selectPaymentSettings?: SelectPaymentSettings
+  isLoading: boolean
+  isError: boolean
+}
+```
+
+### Propiedades
+
+#### openCheckoutModal
+`() => void`
+
+Función para abrir el modal de checkout con la compra ERC-1155 configurada.
+
+#### closeCheckoutModal
+`() => void`
+
+Función para cerrar el modal de checkout.
+
+#### selectPaymentSettings
+`SelectPaymentSettings | undefined`
+
+```tsx
+export interface SelectPaymentSettings {
+  collectibles: Collectible[]
+  chain: number | string
+  currencyAddress: string | Hex
+  price: string
+  targetContractAddress: string | Hex
+  txData: Hex
+  collectionAddress: string | Hex
+  recipientAddress: string | Hex
+  approvedSpenderAddress?: string
+  transactionConfirmations?: number
+  onSuccess?: (txHash: string) => void
+  onError?: (error: Error) => void
+  onClose?: () => void
+  enableMainCurrencyPayment?: boolean
+  enableSwapPayments?: boolean
+  enableTransferFunds?: boolean
+  creditCardProviders?: string[]
+  copyrightText?: string
+  transakConfig?: TransakConfig
+  customProviderCallback?: (onSuccess: (txHash: string) => void, onError: (error: Error) => void, onClose: () => void) => void
+  supplementaryAnalyticsInfo?: SupplementaryAnalyticsInfo
+}
+```
+
+La configuración actual de pago para el modal.
+
+#### isLoading
+`boolean`
+
+Indica si los datos del contrato aún se están cargando.
+
+#### isError
+`boolean`
+
+Indica si hubo un error al cargar los datos del contrato.
+
+## Parámetros
+El hook acepta un objeto de configuración con las siguientes propiedades:
+
+| Parámetro           | Type                                         | Description                                                  |
+| ------------------- | -------------------------------------------- | ------------------------------------------------------------ |
+| `chain`             | `number`                                     | ID de cadena donde está desplegado el contrato de venta      |
+| `contractAddress`   | `string`                                     | Dirección del contrato de venta ERC-1155                     |
+| `wallet`            | `string`                                     | Dirección del wallet que recibirá los NFTs                   |
+| `collectionAddress` | `string`                                     | Dirección del contrato de token ERC-1155                     |
+| `items`             | `Array<{tokenId: string, quantity: string}>` | Lista de IDs de token y cantidades a comprar                 |
+| `onSuccess`         | `(txnHash: string) => void`                  | (Opcional) Función callback cuando la transacción es exitosa |
+| `onError`           | `(error: Error) => void`                     | (Opcional) Función callback cuando ocurre un error           |
+| `onClose`           | `() => void`                                 | (Opcional) Función callback cuando se cierra el modal        |
+
+## Notas
+Este hook simplifica el proceso de compra de tokens ERC-1155 al realizar automáticamente las siguientes acciones:
+- Obtener información de precios desde el contrato de venta
+- Determinar opciones de pago (cripto, tarjeta de crédito, etc.)
+- Generar los datos de transacción adecuados
+- Abrir y gestionar el modal de checkout
+
+## Aviso de Deprecación
+
+<Warning>
+  El hook `useERC1155SaleContractPaymentModal` está obsoleto. Use `useERC1155SaleContractCheckout` en su lugar.
+</Warning>

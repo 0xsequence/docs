@@ -1,0 +1,87 @@
+---
+title: useIndexerGatewayClient
+description: マルチチェーン検索用のSequence Indexer Gatewayクライアントへアクセスするためのフック
+sidebarTitle: useIndexerGatewayClient
+---
+
+## インポート
+
+```tsx
+import { useIndexerGatewayClient } from '@0xsequence/hooks'
+```
+
+## 使い方
+
+```tsx
+import { useIndexerGatewayClient } from '@0xsequence/hooks'
+import { useAccount } from 'wagmi'
+
+function MultiChainBalances() {
+  const { address } = useAccount()
+  const indexerGatewayClient = useIndexerGatewayClient()
+  
+  // Example: Fetch token balances across chains
+  const fetchBalances = async () => {
+    const response = await indexerGatewayClient.getTokenBalancesSummary({
+      chainIds: [1, 137], // Ethereum and Polygon
+      filter: {
+        accountAddresses: [address || ''],
+        omitNativeBalances: false
+      }
+    })
+    
+    return response
+  }
+
+  return (
+    <div>
+      {/* ... */}
+    </div>
+  )
+}
+```
+
+## 返却型: `SequenceIndexerGateway`
+このフックはプロジェクト設定で構成された`SequenceIndexerGateway`インスタンスを返します。このクライアントは、複数チェーンにまたがるトークンデータの一括検索メソッドを提供します。
+
+### 利用可能なメソッド
+返却されるクライアントには以下のメソッドが含まれます:
+
+```tsx
+interface SequenceIndexerGateway {
+  // Token Balance Methods
+  getNativeTokenBalance(args: GetNativeTokenBalanceArgs): Promise<GetNativeTokenBalanceReturn>
+  getTokenBalances(args: GetTokenBalancesArgs): Promise<GetTokenBalancesReturn>
+  getTokenBalancesSummary(args: GetTokenBalancesSummaryArgs): Promise<GetTokenBalancesSummaryReturn>
+  getTokenBalancesDetails(args: GetTokenBalancesDetailsArgs): Promise<GetTokenBalancesDetailsReturn>
+  getTokenBalancesByContract(args: GetTokenBalancesByContractArgs): Promise<GetTokenBalancesByContractReturn>
+  
+  // Balance Updates
+  getBalanceUpdates(args: GetBalanceUpdatesArgs): Promise<GetBalanceUpdatesReturn>
+  
+  // Service Status Methods
+  ping(): Promise<PingReturn>
+  version(): Promise<VersionReturn>
+  runtimeStatus(): Promise<RuntimeStatusReturn>
+}
+```
+
+## パラメータ
+このフックはパラメータを受け取りませんが、`useConfig`フックから設定を取得します:
+
+```tsx
+interface Config {
+  projectAccessKey: string
+  env: {
+    indexerGatewayUrl: string
+    // ... other environment settings
+  }
+}
+```
+
+設定内容は以下を決定します:
+- APIリクエスト用のゲートウェイURL
+- 認証のためのプロジェクトのアクセスキー
+- 環境ごとの設定
+
+クライアントは`projectAccessKey`を元にメモ化され、不要な再生成を防ぎます。

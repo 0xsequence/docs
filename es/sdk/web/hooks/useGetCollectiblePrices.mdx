@@ -1,0 +1,113 @@
+---
+title: useGetCollectiblePrices
+description: Hook para obtener precios de mercado actuales de NFTs/coleccionables
+sidebarTitle: useGetCollectiblePrices
+---
+
+## Importar
+
+```tsx
+import { useGetCollectiblePrices } from '@0xsequence/hooks'
+```
+
+## Uso
+
+```tsx
+import { useGetCollectiblePrices } from '@0xsequence/hooks'
+
+function NFTPriceDisplay() {
+  const tokens = [
+    {
+      chainId: 1,
+      contractAddress: '0x34d85c9CDeB23FA97cb08333b511ac86E1C4E258', // Example NFT collection
+      tokenId: '123'
+    }
+  ]
+  
+  const { 
+    data: prices, 
+    isLoading, 
+    error,
+    isError,
+    isSuccess 
+  } = useGetCollectiblePrices(tokens)
+  
+  if (isLoading) {
+    return <div>Loading prices...</div>
+  }
+  
+  if (isError) {
+    return <div>Error: {error.message}</div>
+  }
+  
+  return (
+    <div>
+      <h2>NFT Prices</h2>
+      {isSuccess && prices && (
+        <ul>
+          {prices.map((price, index) => (
+            <li key={`${tokens[index].chainId}-${tokens[index].contractAddress}-${tokens[index].tokenId}`}>
+              <div>Collection: {tokens[index].contractAddress}</div>
+              <div>Token ID: {tokens[index].tokenId}</div>
+              <div>Floor Price: {price.floorPrice.value} {price.floorPrice.currency}</div>
+              <div>Buy Price: {price.buyPrice.value} {price.buyPrice.currency}</div>
+              <div>Sell Price: {price.sellPrice.value} {price.sellPrice.currency}</div>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  )
+}
+```
+
+## Parámetros
+
+### tokens
+`Token[]`
+
+Arreglo de tokens para obtener precios. Cada token debe incluir:
+
+```tsx
+interface Token {
+  chainId: number        // The chain ID where the NFT exists
+  contractAddress: string // The NFT collection's contract address
+  tokenId: string        // The specific token ID within the collection
+}
+```
+
+### options
+`HooksOptions` (opcional)
+
+```tsx
+interface HooksOptions {
+  retry?: boolean  // Whether to retry failed requests (defaults to true)
+  disabled?: boolean // Whether to disable the query
+}
+```
+
+## Tipo de retorno
+El hook retorna un objeto resultado de React Query:
+
+```tsx
+interface Price {
+  value: number
+  currency: string
+}
+
+{
+  data: {
+    token: Token,
+    price?: Price,
+    price24hChange?: Price,
+    floorPrice?: Price,
+    buyPrice?: Price,
+    sellPrice?: Price,
+    updatedAt: string
+  }[]
+  isLoading: boolean    // Whether the initial request is in progress
+  error: Error | null   // Any error that occurred
+  isError: boolean      // Whether an error occurred
+  isSuccess: boolean    // Whether the request was successful
+}
+```

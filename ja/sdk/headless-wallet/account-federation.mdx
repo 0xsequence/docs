@@ -1,0 +1,75 @@
+---
+title: 埋め込みウォレットのアカウント連携
+description: この内容では、単一または複数のウォレットをメインの埋め込みウォレットセッションに連携・紐付けする方法について詳しく説明しています。エフェメラルなゲストウォレットと組み合わせて、恒久的なオンチェーン埋め込みウォレットへ変換する際のベストプラクティスも紹介しています。
+sidebarTitle: マルチアカウント対応
+---
+
+Sequence Embedded Walletsでは、複数のソーシャルアカウントを1つのウォレットアドレスに連携することができます。これにより、ユーザーは1つのオンチェーンアドレスで複数の認証手段からウォレットへアクセスできる体験を実現します。
+
+埋め込みウォレットのアカウント連携の重要な特徴は、最初にサインインした認証プロバイダー（ソーシャル、メール、またはゲストウォレット）に基づいてウォレットが集約される点です。つまり、ウォレットアドレスは最初にサインインしたウォレットに基づき、その後のサインインはそのウォレットに紐付けられます。
+
+連携されたアカウントがメインアカウントに接続された後、ログアウトしてそのアカウント単体で利用しても、今後も同じアドレスが利用されます。
+
+## ソーシャルプロバイダーアカウントの連携
+以下の方法で、開発者は`initAuth`を使って、[最初にサインインしたセッションの`WaaS`オブジェクトと同じパラメータ](/sdk/headless-wallet/use-wallets#authenticated-embedded-wallet)で追加のゲストまたはソーシャルプロバイダーによる認証を開始できます。このとき、プロバイダーの`challenge`が返され、それを`linkAccount`関数に渡します。
+
+```ts
+const challenge = await sequence.initAuth({/* same params as signIn function */})
+const linkResponse = await sequence.linkAccount(challenge)
+```
+
+## メールワンタイムパスワードによるアカウント連携
+ワンタイムパスワードを使ったメール認証では、ユーザーのメールに送信されたパスワードをchallengeとして渡し、`linkAccount`関数で呼び出します。
+
+```ts
+const challenge = await sequence.initAuth({ email })
+
+// if the linking account is email then you need to provide the answer (code)
+const linkResponse = await sequence.linkAccount(challenge.withAnswer(code))
+```
+
+## ゲストウォレットによるアカウント連携
+多くのゲームでは、[ゲストウォレット](/sdk/headless-wallet/authentication#guest-embedded-wallet)でアプリのバックグラウンドでサインインし、そのウォレットをSDKのキャッシュに保存しておき、後でソーシャルログインプロバイダーを使って最初のウォレットに紐付ける、という方法が一般的です。詳しくは[前述の方法](/sdk/headless-wallet/account-federation#embedded-wallet-account-federation)をご参照ください。
+
+このため、ウォレットに資産が蓄積されたり、オンチェーンで取引が行われたり、署名が保存された場合でも、ウォレットの継続性が保たれます。
+
+まずゲストウォレットを利用することで、ユーザーは認証前にゲームやサービスを気軽に体験でき、その後長期利用のために認証することでスムーズなオンボーディングが可能です。
+
+ゲストが認証された後は、上記の方法を使ってユーザーが今後もアカウントへ再アクセスできるようにできます。
+
+## アカウント一覧の取得
+`listAccounts`を呼び出すと、`accounts`オブジェクト（`id`、`type`、`issuer`を含む）の配列と、`currentAccountId`が返されます。例：`"Guest:0x0104..."`
+
+```ts
+import { SequenceWaaS } from "@0xsequence/waas";
+
+const sequence = new SequenceWaaS(
+  {
+    projectAccessKey: `${process.env.VITE_PROJECT_ACCESS_KEY}`,
+    waasConfigKey: `${process.env.VITE_WAAS_CONFIG_KEY}`,
+    network: "arbitrum-nova",
+  }
+)
+
+... // authentication
+
+const response = await sequence.listAccounts()
+
+console.log(response.accounts)
+console.log(response.currentAccountId)
+```
+
+## アカウントの削除
+設定に紐付けられていたアカウントを一覧から削除することも可能です。
+
+```ts
+// Call list accounts
+const accounts = await sequence.listAccounts();
+const accountId = accounts[0].id; // Get the ID of the first account
+
+try {
+    await sequence.removeAccount(accountId);
+} catch (error) {
+    console.error('Failed to remove account:', error);
+}
+```

@@ -1,0 +1,60 @@
+---
+title: Envío de tokens ERC-1155 (coleccionables)
+description: Documentación para Typescript 1155 con la infraestructura de Sequence para juegos web3.
+---
+
+Enviar un coleccionable ERC-1155 es similar a enviar un token ERC-20.
+La única diferencia notable está en el estándar del contrato:
+
+```ts
+const erc1155Interface = new ethers.Interface([
+  'function safeTransferFrom(address _from, address _to, uint256 _id, uint256 _value, bytes calldata _data)'
+])
+
+// Encode the transfer of the collectible to recipient
+const address = await wallet.getAddress()
+const data = erc1155Interface.encodeFunctionData(
+  'safeTransferFrom', [address, recipientAddress, tokenId, amount, '0x']
+)
+
+const transaction = {
+  to: erc1155TokenAddress,
+  data
+}
+
+const signer = wallet.getSigner()
+const txnResponse = await signer.sendTransaction(transaction)
+console.log(txnResponse)
+
+```
+
+Con la funcionalidad de agrupamiento, puede enviar múltiples transferencias de tokens en una sola transacción nativa:
+
+```ts
+const erc1155Interface = new ethers.Interface([
+  'function safeTransferFrom(address _from, address _to, uint256 _id, uint256 _value, bytes calldata _data)'
+])
+
+// Encode two different ERC-1155 token transfers
+const data1 = erc1155Interface.encodeFunctionData(
+  'safeTransferFrom', [address, recipient1Address, token1Id, amount1, '0x']
+)
+const data2 = erc1155Interface.encodeFunctionData(
+  'safeTransferFrom', [address, recipient2Address, token2Id, amount2, '0x']
+)
+
+const transaction1 = {
+  to: erc1155ContractAddress,
+  data: data1
+}
+const transaction2 = {
+  to: erc1155ContractAddress,
+  data: data2
+}
+
+// Send a multiple transactions as a single bundle which is executed as one transaction on-chain.
+const signer = wallet.getSigner()
+const txnResponse = await signer.sendTransactionBatch([transaction1, transaction2])
+console.log(txnResponse)
+
+```

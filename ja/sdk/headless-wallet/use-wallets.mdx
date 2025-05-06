@@ -1,0 +1,307 @@
+---
+title: Embedded Wallet の利用方法
+description: このコンテンツでは、Sequence WaaS SDK を使ったウォレット管理やトランザクションの詳細な手順を説明しています。
+sidebarTitle: ウォレットの利用
+---
+
+ユーザーが認証されると、一般的な web3 機能を使ってブロックチェーンとシームレスにやり取りできるようになります。
+- [**ウォレットアドレスの取得**](/sdk/headless-wallet/use-wallets#get-wallet-address)：認証済みユーザーのアカウントに紐づくウォレットにアクセスします。このウォレットがすべてのアカウント機能の入り口となります。
+- [**メッセージの署名**](/sdk/headless-wallet/use-wallets#sign-messages)：Embedded Wallet を使ってメッセージに署名します。
+- [**トランザクションの送信**](/sdk/headless-wallet/use-wallets#send-transactions)：ユーザー認証後、WaaS SDK を使って作成した EVM calldata でトランザクションを送信します。
+
+### ウォレットアドレスの取得
+各ユーザーのウォレットアドレスは一意で変更できません。42 文字で、`0x` から始まります：
+
+```ts
+import { SequenceWaaS } from "@0xsequence/waas";
+
+const sequence = new SequenceWaaS(
+  {
+    projectAccessKey: `${process.env.VITE_PROJECT_ACCESS_KEY}`,
+    waasConfigKey: `${process.env.VITE_WAAS_CONFIG_KEY}`,
+    network: "arbitrum-nova",
+  }
+);
+
+const { wallet } = await sequence.signIn({ idToken }, "Session name")
+const address = await sequence.getAddress();
+
+console.log(address == wallet) // true
+
+console.log(address)
+```
+
+```
+0xE4b10c53aa75E19E088cfDD0cff7D46a0E4206F0
+```
+
+### メッセージの署名
+ウォレットはメッセージに署名でき、オンチェーン・オフチェーンの両方で検証可能です：
+
+```ts
+import { SequenceWaaS } from "@0xsequence/waas";
+
+const sequence = new SequenceWaaS(
+  {
+    projectAccessKey: `${process.env.PROJECT_ACCESS_KEY}`,
+    waasConfigKey: `${process.env.WAAS_CONFIG_KEY}`,
+    network: "arbitrum-nova",
+  }
+);
+
+await sequence.signIn({ idToken }, "Session name");
+
+const signature = await sequence.signMessage({
+  chainId: 42170,
+  message: "Hello world",
+});
+
+console.log(signature);
+```
+
+```json
+{
+  "code": "signedMessage",
+  "data": {
+    "message": "0x48656c6c6f20776f726c64",
+    "signature": "0x0100010000000002012128ff2dd168dc250dc3da93db3131f737e6961a0000fe0100030000000006010001000074000197013331090a763fc7ef2216502cfbff5d855530f977a0ee6db3615722ed9bad498781d8ed72d52b5c9717708ac757f7789c9567e5468566179bd03f72d1fc7b1c010400002c01011111b16c6268897233eddea98a041b326b0faef2010122229ce37ccfee1cbab2b743b22c314b5667cf1a06020001000074000100deb9091f5beb1ebd8d91a1b81e562a70cdb3a1cdafc5e61087b18d1c221c570754ecbe056bdef5f82c388a9bf53f074521aeaf5afdeed3a2ba70adb89362631b010400002c0101444444444444444444444444444444444444444401015555555555555555555555555555555555555555030100a5a91b133336e5ef1c7e23c13974535018fab1c0"
+  }
+}
+```
+
+## トランザクションの送信
+すべてのウォレットは作成直後からトランザクションを送信できます。追加の手順は不要で、全ユーザーにデフォルトでウォレットが付与されます。
+
+<Note>
+  ネットワークで手数料が必要なトランザクションを送信する際は、Fee Options の手順に従って、トランザクションと一緒に fee オブジェクトを送信したり、ユーザーのガス代を肩代わりする方法をご覧ください。[詳細はこちら](/sdk/headless-wallet/fee-options)。
+</Note>
+
+### 生トランザクション
+
+- **即時トランザクション：** ウォレットは作成直後からすぐにトランザクションを送信できます。
+- **生トランザクション：** 送信先、金額、データなどのパラメータを指定します。ガスリミットやノンスは自動で管理されます。
+- **ネットワーク指定：** トランザクションには、対象ネットワークの **`chainId`** を指定する必要があります。例：Ethereum メインネットは `1`、Arbitrum は `42161` など。
+
+<Note>
+  エラー処理：実行前に `isSentTransactionResponse` を使ってトランザクションを検証し、失敗を防ぎます。WaaS はトランザクションが失敗しないことを事前に確認します。失敗する場合は、トランザクションレシートの代わりにエラーメッセージが返されます。詳細は[トランザクションレシート](/sdk/headless-wallet/transaction-receipts)をご覧ください。
+</Note>
+
+```ts
+import { Sequence, isSentTransactionResponse } from "@0xsequence/waas";
+
+const sequence = new SequenceWaaS(
+  {
+    projectAccessKey: `${process.env.PROJECT_ACCESS_KEY}`,
+    waasConfigKey: `${process.env.WAAS_CONFIG_KEY}`,
+    network: "arbitrum-nova",
+  }
+);
+
+await sequence.signIn({ idToken }, "Session name");
+
+const tx = await sequence.sendTransaction({
+  chainId: 42161,
+  transactions: [
+    {
+      to: "0x27CabC9700EE6Db2797b6AC1e1eCe81C72A2cD8D",
+      value: "200000000000000000000", // 200 ETH
+      data: "0x9fa2b3c4",
+    },
+  ],
+});
+
+if (isSentTransactionResponse(tx)) {
+  console.log(tx);
+}
+```
+
+```json
+{
+  "code": "transactionReceipt",
+  "data": {
+    "txHash": "0xf2e9f728abd65089f25efda5852e605ced377f4e2c89dbf143b124623ed09b2c",
+    "metaTxHash": "acc36ed4ef40db74137266e48d863083a5c7e85e2735d69adafcb5b362b6cfc0",
+    "nativeReceipt": { ... },
+    "receipt": { ... },
+    "request": { ... },
+    "simulations": [ ... ],
+  }
+}
+```
+
+### ERC20 トークンの送信
+ERC20 トークン送信など、よく使う操作にはヘルパーメソッドが用意されています。これにより、トランザクションの `data` フィールドは自動で処理されます。
+
+```ts
+import { Sequence, isSentTransactionResponse } from "@0xsequence/waas";
+
+const sequence = new SequenceWaaS(
+  {
+    projectAccessKey: `${process.env.PROJECT_ACCESS_KEY}`,
+    waasConfigKey: `${process.env.WAAS_CONFIG_KEY}`,
+    network: "mumbai",
+  },
+  defaults.TEST
+);
+
+await sequence.signIn({ idToken }, "Session name");
+
+const tx = await sequence.sendERC20({
+  chainId: 42161,
+  token: "0x6b175474e89094c44da98b954eedeac495271d0f", // DAI
+  to: "0x27CabC9700EE6Db2797b6AC1e1eCe81C72A2cD8D", // Recipient
+  value: "200000000000000000000", // 200 DAI
+});
+
+if (isSentTransactionResponse(tx)) {
+  console.log(tx);
+}
+```
+
+```json
+{
+  "code": "transactionReceipt",
+  "data": {
+    "txHash": "0x1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b3",
+    "metaTxHash": "01a087979dccbbc49a45b72d987e5651d65bd97349ccbfdd601b0b7beee9ddc4",
+    "nativeReceipt": { ... },
+    "receipt": { ... },
+    "request": { ... },
+    "simulations": [ ... ],
+  }
+}
+```
+
+### ERC721 トークンの送信
+ERC721 トークン送信にもヘルパーメソッドがあります。これにより、トランザクションの `data` フィールドは自動で処理されます。
+
+```ts
+import { Sequence, isSentTransactionResponse } from "@0xsequence/waas";
+
+const sequence = new SequenceWaaS(
+  {
+    projectAccessKey: `${process.env.PROJECT_ACCESS_KEY}`,
+    waasConfigKey: `${process.env.WAAS_CONFIG_KEY}`,
+    network: "arbitrum-nova",
+  }
+);
+
+await sequence.signIn({ idToken });
+
+const tx = await sequence.sendERC721({
+  chainId: 42161,
+  token: "0xF87E31492Faf9A91B02Ee0dEAAd50d51d56D5d4d", // Decentraland LAND
+  to: "0x27CabC9700EE6Db2797b6AC1e1eCe81C72A2cD8D", // Recipient
+  id: "33347671958251969419410711528313284722562", // Asset ID
+});
+
+if (isSentTransactionResponse(tx)) {
+  console.log(tx);
+}
+```
+
+```json
+{
+  "code": "transactionReceipt",
+  "data": {
+    "txHash": "0x4936962d9972a70bffc27f376f55d9c60c12e762819fa6384fdb466664122b6e",
+    "metaTxHash": "e6513a60b63359a365f0d3f05744d89823278ec829fc5cb4d275bb815d0f5887",
+    "nativeReceipt": { ... },
+    "receipt": { ... },
+    "request": { ... },
+    "simulations": [ ... ],
+  }
+}
+```
+
+### ERC1155 トークンの送信
+ERC1155 トークンの送信もサポートされています。
+
+```ts
+import { Sequence, isSentTransactionResponse } from "@0xsequence/waas";
+
+const sequence = new SequenceWaaS(
+  {
+    projectAccessKey: `${process.env.PROJECT_ACCESS_KEY}`,
+    waasConfigKey: `${process.env.WAAS_CONFIG_KEY}`,
+    network: "arbitrum-nova",
+  }
+);
+
+await sequence.signIn({ idToken });
+
+const tx = await sequence.sendERC1155({
+  chainId: 137,
+  token: "0x631998e91476da5b870d741192fc5cbc55f5a52e", // Skyweaver assets
+  values: [
+    {
+      id: "66547", // Asset ID
+      value: "200", // Amount for this asset
+    },
+    {
+      id: "68572",
+      value: "1000",
+    },
+  ],
+});
+```
+
+### 任意のコントラクト呼び出し
+**`callContract`** を使うことで、関数シグネチャや ABI を指定して、任意のコントラクトメソッドとやり取りできます。名前付き引数・位置引数の両方に対応しています。
+
+### 関数シグネチャ
+関数シグネチャを指定するのが最も簡単なコントラクト呼び出し方法です。ABI は不要で、名前付きパラメータまたは位置パラメータで指定できます。
+
+##### 名前付き引数
+
+```ts
+const tx = await sequence.callContract({
+  to: "0x503388C73Ca663eA34e103c11C9F47C9433af471", // Contract address
+  abi: "mint(address to, uint256 tokenId)", // Function signature
+  func: "mint", // Function name
+  args: {
+    to: "0xf439e432d54c2Bf5518A1901D3791070d4192986",
+    tokenId: "1",
+  },
+  value: 0, // Value to send
+});
+```
+
+##### 位置引数
+名前付き関数シグネチャに位置引数を渡すことも可能です。
+
+```ts
+const tx = await sequence.callContract({
+  to: "0x503388C73Ca663eA34e103c11C9F47C9433af471", // Contract address
+  abi: "mint(address,uint256)", // Function signature
+  func: "mint", // Function name
+  args: ["0xf439e432d54c2Bf5518A1901D3791070d4192986", "1"],
+  value: 0, // Value to send
+});
+```
+
+#### ABI
+ABI を指定すると記述量は増えますが、1つの ABI で複数のメソッドを呼び出せるなど柔軟性が高まります。ABI も名前付き引数・位置引数の両方に対応しています。
+
+```ts
+const abi = `[{"constant":true,"inputs":[],"name":"name","outputs":[{"name":"","type":"string"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"name":"_spender","type":"address"},{"name":"_value","type":"uint256"}],"name":"approve","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[],"name":"totalSupply","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"name":"_from","type":"address"},{"name":"_to","type":"address"},{"name":"_value","type":"uint256"}],"name":"transferFrom","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[],"name":"decimals","outputs":[{"name":"","type":"uint8"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[{"name":"_owner","type":"address"}],"name":"balanceOf","outputs":[{"name":"balance","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"symbol","outputs":[{"name":"","type":"string"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"name":"_to","type":"address"},{"name":"_value","type":"uint256"}],"name":"transfer","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[{"name":"_owner","type":"address"},{"name":"_spender","type":"address"}],"name":"allowance","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"payable":true,"stateMutability":"payable","type":"fallback"},{"anonymous":false,"inputs":[{"indexed":true,"name":"owner","type":"address"},{"indexed":true,"name":"spender","type":"address"},{"indexed":false,"name":"value","type":"uint256"}],"name":"Approval","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"name":"from","type":"address"},{"indexed":true,"name":"to","type":"address"},{"indexed":false,"name":"value","type":"uint256"}],"name":"Transfer","type":"event"}]`;
+
+const tx = await sequence.callContract({
+  to: "0x6b175474e89094c44da98b954eedeac495271d0f", // Contract address
+  abi: abi, // ABI
+  func: "transfer", // Function name
+  args: {
+    _to: "0xf439e432d54c2Bf5518A1901D3791070d4192986",
+    _value: "1",
+  },
+  value: 0, // Value to send
+});
+```
+
+<Warning>
+  **トランザクションの権限：**
+
+  - **メールアカウント：** 現在のセッションがメールや電話に送信されたリンクで確認されると、トランザクションが有効になります。
+  - **ソーシャルログインアカウント：** Google や Facebook などのアカウントは、サインイン直後からトランザクションが可能です。
+  - 詳細は[セッション管理の検証](/sdk/headless-wallet/manage-sessions#session-management)をご覧ください。
+</Warning>

@@ -1,0 +1,117 @@
+---
+title: オンランプとカスタムトークンへのスワップ
+description: サポートされているトークンにオンランプし、ご自身のカスタムトークンへスワップします。
+sidebarTitle: オンランプとカスタムトークンへのスワップ
+---
+
+多くの有名なトークンはすでにサポートされていますが、場合によってはユーザーがカスタムトークンへスワップできるようにしたいこともあります。
+この例では、Web SDKを使って2ステップでその方法をご紹介します。
+
+## インテグレーション
+オンランプとカスタムトークンへのスワップを組み込むには、以下の手順に従ってください。
+
+<Steps>
+  <Step title="Web SDKで接続する">
+    [はじめに](/sdk/web/getting-started)ガイドを完了してください。
+  </Step>
+
+  <Step title="サポートされているトークンにオンランプする">
+    [オンランプ](/sdk/web/guides/on-ramp)ガイドを完了してください。
+  </Step>
+
+  <Step title="オンランプが成功した後に状態を更新する">
+    オンランプが成功したら、`onOrderSuccessful`コールバックを使ってアプリの状態を更新できます。
+
+    ```tsx
+      import { useState } from 'react'
+      import { useAddFundsModal } from '@0xsequence/checkout'
+      import { useAccount } from 'wagmi'
+
+      export const OnRampAndSwap = () => {
+          const { triggerAddFunds: toggleAddFunds } = useAddFundsModal()
+          const { address: smartWalletAddress } = useAccount()
+          const [canSwap, setCanSwap] = useState(true)
+
+          const onTriggerAddFunds = () => {
+              if (smartWalletAddress) {
+                  toggleAddFunds({
+                      walletAddress: smartWalletAddress,
+                      onOrderSuccessful(data) {
+                          console.log('Order successful', data)
+                          setCanSwap(true)
+                      },
+                  })
+              }
+          }
+
+          return (
+              <>
+                  <button onClick={onTriggerAddFunds}>On Ramp</button>
+              </>
+          )
+      }
+    ```
+  </Step>
+
+  <Step title="Smart Swapsでカスタムトークンにスワップする">
+    オンランプが完了したら、`useSwapModal`フックを使って購入したトークンをカスタムトークンにスワップできます。
+
+    オンランプしたトークンがスマートウォレットで利用可能になるまで数分（1〜3分）かかるため、スワップモーダルを開く前に残高を確認してください。
+    サポートされている支払いトークンの残高が十分にあれば、モーダルで支払いオプションとして表示されます。支払いトークンを指定する必要はありません。
+
+    <Warning>
+      カスタムトークンに十分な流動性が、スワップを実行するチェーン上にあることを確認してください。
+    </Warning>
+
+    ```tsx
+      import { useState } from 'react'
+      import { SwapModalSettings, useAddFundsModal, useSwapModal } from '@0xsequence/checkout'
+      import { useAccount } from 'wagmi'
+
+      export const OnRampAndSwap = () => {
+          const { triggerAddFunds: toggleAddFunds } = useAddFundsModal()
+          const { openSwapModal } = useSwapModal()
+          const { address: smartWalletAddress, chainId } = useAccount()
+          const [canSwap, setCanSwap] = useState(true)
+
+          const buyCurrencyAmount = '10000000000' // amount in wei
+          const buyCurrencyAddress = '0x...' // custom token address
+
+          const onTriggerAddFunds = () => {
+              if (smartWalletAddress) {
+                  toggleAddFunds({
+                      walletAddress: smartWalletAddress,
+                      onOrderSuccessful(data) {
+                          console.log('Order successful', data)
+                          setCanSwap(true)
+                      },
+                  })
+              }
+          }
+
+          const onSwap = () => {
+              const swapModalSettings: SwapModalSettings = {
+                  onSuccess: () => {
+                      console.log('Swap successful')
+                  },
+                  chainId,
+                  currencyAddress: buyCurrencyAddress,
+                  currencyAmount: buyCurrencyAmount,
+                  title: `Buy our custom token`,
+                  description: 'Choose your payment method'
+              }
+
+              openSwapModal(swapModalSettings)
+          }
+
+          return (
+              <>
+                  {canSwap ? <button onClick={onSwap}>Swap</button> : <button onClick={onTriggerAddFunds}>On Ramp</button>}
+              </>
+          )
+      }
+    ```
+  </Step>
+</Steps>
+
+おめでとうございます！Web SDKを使ってオンランプし、カスタムトークンへスワップする方法を学びました。

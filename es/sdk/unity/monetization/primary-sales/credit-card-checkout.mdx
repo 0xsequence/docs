@@ -1,0 +1,27 @@
+---
+title: Pago con tarjeta de crédito
+---
+
+El pago con tarjeta de crédito en contratos de ventas primarias actualmente se facilita mediante Sardine y Transak (pronto se sumarán otros proveedores de servicios de pago).
+
+## Setup
+Una vez que haya implementado su contrato de ventas primarias, por favor comuníquese con el equipo de Sequence y proporcione la dirección de su contrato de ventas primarias, la red, la moneda de precio elegida y un informe de auditoría (si no está usando nuestros contratos de ventas primarias) para la inclusión en la lista blanca. Cuando recibamos respuesta de nuestros proveedores de servicios de pago sobre su solicitud de lista blanca, le avisaremos y le proporcionaremos cualquier información relevante (como su `TransakContractId`).
+
+<Tip>¡La inclusión de sus contratos en la lista blanca de los proveedores de servicios de pago puede tomar algo de tiempo! Por favor, planifique con anticipación y realice este proceso lo antes posible, ya que puede que no podamos acelerarlo por usted.</Tip>
+
+### Transak
+Una vez que haya recibido su `ContractId` de Transak por parte del equipo de Sequence, querrá crear una instancia de `TransakContractId`.
+
+```
+TransakContractId contractId = new TransakContractId(contractIdStringFromSequenceTeam, saleContractAddress, chain, priceTokenSymbol);
+```
+
+Deberá llamar a `ConfigureSaleContractId` en su instancia de `IFiatPay` y proporcionar su `TransakContractId` del fragmento anterior antes de `GetNftCheckoutLink`.
+
+## How it Works
+A grandes rasgos, el funcionamiento es que las APIs/contratos del proveedor de servicios de pago reciben los permisos necesarios para mintear coleccionables desde el contrato de la colección.
+
+Cuando el usuario es dirigido al flujo de pago web, se incluye el calldata de transacción necesario para que el proveedor de servicios de pago lo ejecute. Una vez que el usuario completa el pago, el proveedor de servicios de pago firma y ejecuta el calldata proporcionado, minteando el(los) coleccionable(s) para su usuario.
+
+![Diagrama de Sequence](/images/unity/SequenceDiagram-PrimarySalesCheckoutFlow.png)
+[Fuente](https://github.com/0xsequence/sequence-unity/blob/Feature/marketplaceCheckout/Packages/Sequence-Unity/Sequence/SequenceSDK/Pay/SD_PrimarySalesCheckoutFlow.mmd)

@@ -1,0 +1,220 @@
+---
+title: 接続とトランザクション送信
+description: Sequenceをバックエンドサービスと連携する方法をご紹介します
+---
+
+## 事前準備
+始める前に、以下をご用意ください：
+- [Sequence Builder](https://sequence.build)から取得したアクセスキー付きのSequenceプロジェクト
+- Node.js環境
+- 必要なパッケージのインストール：
+
+```bash
+npm install @0xsequence/auth @0xsequence/network ethers
+```
+
+### プロバイダーのセットアップ
+まず、ブロックチェーンに接続するためのプロバイダーを作成します：
+
+[Sequence Builder](https://sequence.build)からSequence RPC URLを取得してください。
+
+```typescript
+import { findSupportedNetwork } from "@0xsequence/network";
+import type { NetworkConfig } from "@0xsequence/network";
+import { ethers } from "ethers";
+
+export const getProvider = async (chainConfig: NetworkConfig) => {
+    const provider = new ethers.JsonRpcProvider(process.env.SEQUENCE_RPC_URL, chainConfig.chainId);
+    return provider;
+};
+```
+
+### 署名者オプション
+Sequenceは安全な鍵管理のために複数の署名者タイプをサポートしています。
+
+#### 1. ローカル秘密鍵署名者
+最も基本的な署名者タイプです。`ethers.Wallet`インスタンスを使ってトランザクションに署名します。
+
+```typescript
+import { Session } from "@0xsequence/auth";
+import { findSupportedNetwork } from "@0xsequence/network";
+import { ethers } from "ethers";
+
+export const getLocalSigner = async (chainHandle: string) => {
+    const chainConfig = findSupportedNetwork(chainHandle);
+    if (!chainConfig) {
+        throw new Error(`Chain config not found for chain handle: ${chainHandle}`);
+    }
+
+    const provider = await getProvider(chainConfig);
+    const walletEOA = new ethers.Wallet(process.env.EVM_PRIVATE_KEY ?? '', provider);
+    
+    const smartAccount = await Session.singleSigner({
+        signer: walletEOA,
+        projectAccessKey: process.env.PROJECT_ACCESS_KEY ?? ''
+    });
+
+    return smartAccount.account.getSigner(chainConfig.chainId);
+};
+```
+
+#### 2. Google Cloud KMS署名者
+Google Cloud KMSを利用して秘密鍵を安全に管理できます。
+
+<Steps>
+  <Step>
+    まず、`@0xsequence/google-kms-signer`パッケージをインストールします：
+
+    ```bash
+    npm install @0xsequence/google-kms-signer
+    ```
+  </Step>
+
+  <Step>
+    必要な環境変数を取得するためにGCP KMSのセットアップが必要です。
+    Sidekickソリューションを使ったガイドは[こちら](https://docs.sequence.xyz/solutions/sidekick/overview#:~:text=GCP-,KMS,-Configuration%3A)をご参照ください。
+  </Step>
+
+  <Step>
+    次に、Google Cloud KMS署名者を作成します：
+
+    ```typescript
+    import { GoogleKmsSigner } from "@0xsequence/google-kms-signer";
+    import { findSupportedNetwork } from "@0xsequence/network";
+
+    export const getGoogleKmsSigner = async (chainHandle: string) => {
+        const chainConfig = findSupportedNetwork(chainHandle);
+        if (!chainConfig) {
+            throw new Error(`Chain config not found for chain handle: ${chainHandle}`);
+        }
+
+        const googleKmsSigner = new GoogleKmsSigner({
+            project: process.env.PROJECT ?? '',
+            location: process.env.LOCATION ?? '',
+            keyRing: process.env.KEY_RING ?? '',
+            cryptoKey: process.env.CRYPTO_KEY ?? '',
+            cryptoKeyVersion: process.env.CRYPTO_KEY_VERSION ?? ''
+        });
+
+        const smartAccount = await Session.singleSigner({
+            signer: googleKmsSigner,
+            projectAccessKey: process.env.PROJECT_ACCESS_KEY ?? ''
+        });
+
+        return smartAccount.account.getSigner(chainConfig.chainId);
+    };
+    ```
+  </Step>
+</Steps>
+
+#### 3. AWS KMS署名者
+AWS KMSを利用して秘密鍵を安全に管理できます。
+
+<Steps>
+  <Step>
+    まず、`@0xsequence/aws-kms-signer`パッケージをインストールします：
+
+    ```bash
+    npm install @0xsequence/aws-kms-signer
+    ```
+  </Step>
+
+  <Step>
+    必要な環境変数を取得するためにAWS KMSのセットアップが必要です。
+    Sidekickソリューションを使ったガイドは[こちら](https://docs.sequence.xyz/solutions/sidekick/overview#:~:text=AWS-,KMS,-Configuration%3A)をご参照ください。
+  </Step>
+
+  <Step>
+    次に、AWS KMS署名者を作成します：
+
+    ```typescript
+    export const getAwsKmsSigner = async (chainHandle: string) => {
+        const chainConfig = findSupportedNetwork(chainHandle);
+        if (!chainConfig) {
+            throw new Error(`Chain config not found for chain handle: ${chainHandle}`);
+        }
+
+        const awsKmsSigner = new AwsKmsSigner(
+            process.env.AWS_REGION ?? '',
+            process.env.AWS_KMS_KEY_ID ?? ''
+        );
+
+        const smartAccount = await Session.singleSigner({
+            signer: awsKmsSigner,
+            projectAccessKey: process.env.PROJECT_ACCESS_KEY ?? ''
+        });
+
+        return smartAccount.account.getSigner(chainConfig.chainId);
+    };
+    ```
+  </Step>
+</Steps>
+
+### 署名者選択のファクトリーパターン
+環境設定に応じて適切な署名者を選択するファクトリ関数を作成できます：
+
+```typescript
+export const getSigner = async (chainHandle: string) => {
+    if (process.env.SIGNER_TYPE === 'google_kms') { 
+        return getGoogleKmsSigner(chainHandle);
+    } 
+    if (process.env.SIGNER_TYPE === 'aws_kms') {
+        return getAwsKmsSigner(chainHandle);
+    }
+    // Default to local signer
+    return getLocalSigner(chainHandle);
+};
+```
+
+KMS署名者ライブラリについてさらに知りたい方は、[こちらのブログ記事](https://labs.sequence.xyz/secure-backend-wallets-cloud-kms/)をご覧ください。
+
+## トランザクションの送信
+署名者が用意できたら、それを使ってトランザクションを送信できます。
+
+```typescript
+import { getSigner } from "./signer";
+
+async function sendTransaction(chainId: string, to: string, value: string, data: string) {
+    // Get the signer for the specified chain
+    const signer = await getSigner(chainId);
+    
+    // Send the transaction
+    const tx = await signer.sendTransaction({ to, value, data });
+    
+    // Wait for the transaction to be mined
+    const receipt = await tx.wait();
+    
+    if (receipt?.status === 0) {
+        throw new Error('Transaction reverted');
+    }
+    
+    return {
+        txHash: receipt?.hash,
+        contractAddress: receipt?.contractAddress,
+        txUrl: `https://${chainId}.etherscan.io/tx/${receipt?.hash}`
+    };
+}
+
+async function sendTransactionBatch(chainId: string, transactions: { to: string, value: string, data: string }[]) {
+    // Get the signer for the specified chain
+    const signer = await getSigner(chainId);
+    
+    // Send the transaction batch
+    const tx = await signer.sendTransaction(transactions);
+    
+    // Wait for the transaction to be mined
+    const receipt = await tx.wait();
+    
+    if (receipt?.status === 0) {
+        throw new Error('Transaction reverted');
+    }
+    
+    return {
+        txHash: receipt?.hash,
+        contractAddress: receipt?.contractAddress,
+        txUrl: `https://${chainId}.etherscan.io/tx/${receipt?.hash}`
+    };
+}
+```
+
+この構成により、複数のブロックチェーンネットワークに安全に接続し、Sequenceを使ってバックエンドサービスからトランザクションを実行できます。

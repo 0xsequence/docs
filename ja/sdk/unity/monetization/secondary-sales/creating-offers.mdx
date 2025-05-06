@@ -1,0 +1,32 @@
+---
+title: オファーの作成
+---
+
+マーケットプレイスを構築する際、ユーザーがコレクティブルの購入オファーを出せるようにしたい場合があります。その場合、マーケットプレイスで販売可能なコレクティブルをUIで表示することが多いでしょう。
+
+ユーザーが購入したいコレクティブル、数量、価格を選択したら、オファーを作成します。
+
+```
+ICheckout checkout = new Checkout(_wallet, _chain);
+Step[] steps = await checkout.GenerateOfferTransaction(collectionContractAddress, tokenId, amount, ContractType.ERC1155, currencyTokenAddress, pricePerTokenInstance, expiryDateTime);
+TransactionReturn result = await steps.SubmitAsTransactions(_wallet, _chain);
+if (result is SuccessfulTransactionReturn successTransaction) {
+    // Handle success case
+}else {
+    // Handle fail case
+}
+```
+
+Boilerplate Factoryを使って、このプロセスをすぐに始めることもできます
+
+ウォレットのトークン残高について
+
+```csharp
+            BoilerplateFactory.OpenCreateOfferPanel(Transform parent, ICheckout checkout, TokenBalance item, Action onClose = null)
+```
+
+マーケットプレイスのコレクティブル注文について
+
+```csharp
+            BoilerplateFactory. OpenCreateOfferPanel(Transform parent,ICheckout checkout, CollectibleOrder item, Action onClose = null)
+```

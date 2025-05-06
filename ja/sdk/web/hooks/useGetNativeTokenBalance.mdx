@@ -1,0 +1,134 @@
+---
+title: useGetNativeTokenBalance
+description: 複数チェーンにおけるネイティブトークン残高を取得するためのフック
+sidebarTitle: useGetNativeTokenBalance
+---
+
+## インポート
+
+```tsx
+import { useGetNativeTokenBalance } from '@0xsequence/hooks'
+```
+
+## 使い方
+
+```tsx
+import { useGetNativeTokenBalance } from '@0xsequence/hooks'
+import { useAccount } from 'wagmi'
+
+function NativeBalances() {
+  const { address } = useAccount()
+  
+  const {
+    data: balances,
+    isLoading,
+    isError,
+    error
+  } = useGetNativeTokenBalance({
+    accountAddress: address || '',
+    chainIds: [1, 137] // Fetch ETH on Ethereum and POL on Polygon
+  })
+
+  if (isLoading) return <div>Loading...</div>
+  if (isError) return <div>Error: {error.message}</div>
+
+  return (
+    <div>
+      {balances?.map(balance => (
+        <div key={balance.chainId}>
+          <h3>Chain {balance.chainId}</h3>
+          <p>Balance: {balance.balance}</p>
+          <p>Token: {balance.contractAddress}</p>
+        </div>
+      ))}
+    </div>
+  )
+}
+```
+
+## 返却型：`UseQueryResult<TokenBalance[]>`
+このフックはReact Queryの`UseQueryResult`の全プロパティと、トークン残高データを返します。詳細な構造は以下の通りです：
+
+```tsx
+interface TokenBalance {
+    contractType: ContractType;
+    contractAddress: string;
+    accountAddress: string;
+    tokenID?: string;
+    balance: string;
+    blockHash: string;
+    blockNumber: number;
+    chainId: number;
+    uniqueCollectibles: string;
+    isSummary: boolean;
+    contractInfo?: ContractInfo;
+    tokenMetadata?: TokenMetadata;
+}
+```
+
+### プロパティ
+
+#### data
+`TokenBalance[] | undefined`
+
+以下を含むトークン残高オブジェクトの配列：
+- `chainId`: 残高が取得されたチェーンID
+- `accountAddress`: 残高を照会したアドレス
+- `contractAddress`: ネイティブトークンのアドレス（通常はゼロアドレス）
+- `balance`: トークンの基準単位での残高金額
+- `contractType`: コントラクトの種類（例：ERC20、ERC721、ERC1155）
+- `contractInfo`: 追加のコントラクト情報
+- `tokenMetadata`: トークンに関するメタデータ
+- `blockHash`: 残高が記録されたブロックのハッシュ値
+- `blockNumber`: 残高が記録されたブロック番号
+- `uniqueCollectibles`: ユニークコレクティブルの数
+- `isSummary`: 残高がサマリーかどうか
+- `tokenID`: トークンID（ERC721およびERC1155トークンの場合）
+
+#### isLoading
+`boolean`
+
+データ取得時のローディング状態。
+
+#### isError
+`boolean`
+
+クエリが失敗した場合のエラー状態。
+
+#### エラー
+`Error | null`
+
+データ取得中に発生したエラー内容。
+
+## パラメータ
+このフックは2つのパラメータを受け取ります：
+
+### args: `GetNativeTokenBalanceArgs`
+
+```tsx
+interface GetNativeTokenBalanceArgs {
+    chainIds?: Array<number>;
+    networks?: Array<string>;
+    accountAddress?: string;
+}
+```
+
+| パラメータ            | 型          | 説明                |
+| ---------------- | ---------- | ----------------- |
+| `accountAddress` | `string`   | 残高を取得するアドレス       |
+| `chainIds`       | `number[]` | 残高を取得するチェーンIDの配列  |
+| `networks`       | `string[]` | 残高を取得するネットワーク名の配列 |
+
+### options: `HooksOptions`
+
+```tsx
+interface HooksOptions {
+  disabled?: boolean
+  retry?: boolean
+}
+```
+
+| パラメータ      | 型         | 説明                       |
+| ---------- | --------- | ------------------------ |
+| `disabled` | `boolean` | （オプション）クエリの自動実行を無効にします   |
+| `retry`    | `boolean` | （オプション）失敗したクエリを再試行するかどうか |

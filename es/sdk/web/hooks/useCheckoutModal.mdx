@@ -1,0 +1,130 @@
+---
+title: useCheckoutModal
+description: Hook para gestionar un modal de checkout sencillo
+sidebarTitle: useCheckoutModal
+---
+
+## Importar
+
+```tsx
+import { useCheckoutModal } from '@0xsequence/checkout'
+```
+
+## Uso
+
+```tsx
+import { useCheckoutModal } from '@0xsequence/checkout'
+import { ChainId } from '@0xsequence/network'
+
+function App() {
+  const { address } = useAccount()
+  const { triggerCheckout } = useCheckoutModal()
+  
+  const handleCheckout = () => {
+    // NFT purchase settings
+    const chainId = ChainId.POLYGON
+    const orderbookAddress = '0xfdb42A198a932C8D3B506Ffa5e855bC4b348a712'
+    const nftQuantity = '1'
+    const orderId = 'your-order-id'
+    const tokenContractAddress = '0xabcdef...' // NFT contract address
+    const tokenId = '123' // NFT token ID
+
+    triggerCheckout({
+      creditCardCheckout: {
+        chainId,
+        contractAddress: orderbookAddress,
+        recipientAddress: address || '',
+        currencyQuantity: '100000',
+        currencySymbol: 'USDC',
+        currencyAddress: '0x3c499c542cef5e3811e1192ce70d8cc03d5c3359',
+        currencyDecimals: '6',
+        nftId: tokenId,
+        nftAddress: tokenContractAddress,
+        nftQuantity,
+        approvedSpenderAddress: orderbookAddress,
+        calldata: "0x...",
+        onSuccess: (txHash) => console.log('Success!', txHash)
+      },
+      orderSummaryItems: [
+        {
+          title: 'NFT #' + tokenId,
+          subtitle: 'Your Collection',
+          imageUrl: 'https://example.com/nft.png'
+        }
+      ]
+    })
+  }
+  
+  return (
+    <button onClick={handleCheckout}>
+      Checkout
+    </button>
+  )
+}
+```
+
+## Tipo de retorno: `UseCheckoutModalReturnType`
+El hook retorna un objeto con las siguientes propiedades:
+
+```tsx
+type UseCheckoutModalReturnType = {
+  triggerCheckout: (settings: CheckoutSettings) => void
+  closeCheckout: () => void
+  settings: CheckoutSettings | undefined
+}
+```
+
+### Propiedades
+
+#### triggerCheckout
+`(settings: CheckoutSettings) => void`
+
+Abre el modal de Checkout con los parámetros especificados.
+
+**Parámetros:**
+
+El objeto `settings` puede incluir las siguientes propiedades:
+
+| Propiedad            | Type     | Description                                                |
+| -------------------- | -------- | ---------------------------------------------------------- |
+| `creditCardCheckout` | `object` | Configuración para el flujo de pago con tarjeta de crédito |
+| `orderSummaryItems`  | `array`  | Elementos a mostrar en el resumen de la orden              |
+
+El objeto `creditCardCheckout` incluye:
+
+| Parámetro                | Type                       | Description                                                       |
+| ------------------------ | -------------------------- | ----------------------------------------------------------------- |
+| `chainId`                | `number`                   | El ID de la red blockchain                                        |
+| `contractAddress`        | `string`                   | La dirección del contrato con el que interactuar                  |
+| `recipientAddress`       | `string`                   | La dirección que recibirá el artículo comprado                    |
+| `currencyQuantity`       | `string`                   | La cantidad de moneda a usar para el pago                         |
+| `currencySymbol`         | `string`                   | El símbolo de la moneda (por ejemplo, 'USDC')                     |
+| `currencyAddress`        | `string`                   | La dirección del contrato del token de la moneda                  |
+| `currencyDecimals`       | `string`                   | El número de decimales de la moneda                               |
+| `nftId`                  | `string`                   | El ID del NFT que se está comprando                               |
+| `nftAddress`             | `string`                   | La dirección del contrato NFT                                     |
+| `nftQuantity`            | `string`                   | La cantidad de NFTs a comprar                                     |
+| `approvedSpenderAddress` | `string`                   | La dirección autorizada para gastar tokens                        |
+| `calldata`               | `string`                   | Los datos codificados de la llamada a función para la transacción |
+| `onSuccess`              | `(txHash: string) => void` | Callback cuando la transacción es exitosa                         |
+
+El arreglo `orderSummaryItems` contiene objetos con:
+
+| Parámetro  | Type     | Description                   |
+| ---------- | -------- | ----------------------------- |
+| `title`    | `string` | El título del elemento        |
+| `subtitle` | `string` | El subtítulo del elemento     |
+| `imageUrl` | `string` | URL de la imagen del elemento |
+
+#### closeCheckout
+`() => void`
+
+Cierra el Checkout modal.
+
+#### settings
+`CheckoutSettings | undefined`
+
+La configuración actual del Checkout modal.
+
+## Notas
+Este hook proporciona métodos para controlar el modal de Checkout que permite a los usuarios completar compras usando varios métodos de pago. Checkout admite pagos con tarjeta de crédito y pagos cripto para la compra de activos digitales.

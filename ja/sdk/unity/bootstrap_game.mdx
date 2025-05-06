@@ -1,0 +1,201 @@
+---
+title: ゲームのブートストラップ
+description: 提供されているボイラープレートを使って、素早く統合を開始できます。
+---
+
+SequenceのUnity SDKには、ゲームのブートストラップをサポートするさまざまな機能が含まれています。
+Package Manager UIの`Setup`サンプルからボイラープレートをインポートし、
+下記のように`BoilerplateFactory`を使って作成できます。サンプル内のUIやロジックはご自由に調整してください。
+
+コードベースが`Sequence.Boilerplates.asmdef`アセンブリにアクセスできることを確認してください。
+
+より多くの統合例については`BoilerplateController.cs`をご覧ください。
+
+## ログイン
+`SequenceLoginWindow`プレハブを作成し、ゲスト・メールOTP・GoogleまたはAppleサインインでユーザー認証を行います。
+
+各ログインオプションの設定方法については、[Authenticationセクション](/sdk/unity/onboard/authentication/intro)をご覧ください。
+
+<Frame>
+  <img src="/images/unity/unity_boilerplate_login.png" />
+</Frame>
+
+```csharp
+BoilerplateFactory.OpenSequenceLoginWindow(parent);
+```
+
+<Accordion title="パラメータ">
+  **parent（Transform）**
+
+  Canvasオブジェクト内のTransform。
+</Accordion>
+
+## ゲーム内ショップ
+ゲーム内でアイテムを直接プレイヤーに販売し、成長を加速しましょう。`SequencePlayerProfile`プレハブを作成して、
+ERC1155コントラクトのゲームアイテムを利用したゲーム内ショップを表示できます。ユーザーは任意のカスタムまたは既存のERC20通貨で購入できます。
+
+[Primary Sales Contract](/solutions/collectibles/contracts/deploy-primary-sales-contract/)：プライマリーセール用コントラクトの設定とデプロイ方法を解説しています。
+
+<Frame>
+  <img src="/images/unity/unity_boilerplate_shop.png" />
+</Frame>
+
+```csharp
+BoilerplateFactory.OpenSequenceLoginWindow(parent, wallet, chain, collectionAddress, saleContractAddress, itemsForSale, onClose);
+```
+
+<Accordion title="パラメータ">
+  **parent（Transform）**
+
+  Canvasオブジェクト内のTransform。
+
+  **wallet（IWallet）**
+
+  ログイン完了後、SequenceWallet.OnWalletCreatedイベントから受け取るウォレットインスタンスです。
+
+  **chain（Chain）**
+
+  指定したコントラクトがデプロイされているチェーンタイプ（Ethereum、Sepoliaなど）。
+
+  **collectionAddress（string）**
+
+  ERC1155コントラクトアドレス。まずはBuilderでご自身のコントラクトをデプロイしてください。
+
+  **saleContractAddress（string）**
+
+  Builderで販売をデプロイした際のERC1155販売コントラクトアドレスです。
+
+  **itemsForSale（整数配列）**
+
+  プレイヤーに販売したいトークンIDの配列です。
+
+  **onClose（アクション）**
+
+  オプション。ユーザーがこのウィンドウを閉じたときに呼び出されるコールバックです。
+</Accordion>
+
+## デイリーリワード
+ゲームを連続してプレイしたユーザーにNFTやコレクティブルを報酬として付与できます。リワードを受け取るたびにミントトランザクションを実行するサーバーボイラープレートをデプロイしてください。
+
+必ず[デイリーリワードサーバーボイラープレート](https://github.com/0xsequence-demos/daily-rewards-server-boilerplate)をデプロイしてください。
+
+<Frame>
+  <img alt="img" src="/images/unity/unity_boilerplate_daily_rewards.png" />
+</Frame>
+
+```csharp
+BoilerplateFactory.OpenSequenceDailyRewards(parent, wallet, chain, apiUrl, onClose);
+```
+
+<Accordion title="パラメータ">
+  **parent（Transform）**
+
+  Canvasオブジェクト内のTransform。
+
+  **wallet（IWallet）**
+
+  ログイン完了後、SequenceWallet.OnWalletCreatedイベントから受け取るウォレットインスタンスです。
+
+  **chain（Chain）**
+
+  指定したコントラクトがデプロイされているチェーンタイプ（Ethereum、Sepoliaなど）。
+
+  **apiUrl（string）**
+
+  必要なサーバーボイラープレートをデプロイ後に受け取るAPIのURLです。
+
+  **onClose（アクション）**
+
+  オプション。ユーザーがこのウィンドウを閉じたときに呼び出されるコールバックです。
+</Accordion>
+
+## プレイヤープロフィール
+現在のプロフィールを管理するために`SequencePlayerProfile`プレハブを作成します。これにはサインアウト、外部ウォレットの連携、ネイティブトークンの送信、資金受け取り用QRコードの表示などの機能が含まれます。
+
+<Frame>
+  <img alt="img" src="/images/unity/unity_boilerplate_profile.png" />
+</Frame>
+
+```csharp
+BoilerplateFactory.OpenSequencePlayerProfile(parent, wallet, chain, onClose);
+```
+
+<Accordion title="パラメータ">
+  **parent（Transform）**
+
+  Canvasオブジェクト内のTransform。
+
+  **wallet（IWallet）**
+
+  ログイン完了後、SequenceWallet.OnWalletCreatedイベントから受け取るウォレットインスタンスです。
+
+  **chain（Chain）**
+
+  指定したコントラクトがデプロイされているチェーンタイプ（Ethereum、Sepoliaなど）。
+
+  **onClose（アクション）**
+
+  オプション。ユーザーがこのウィンドウを閉じたときに呼び出されるコールバックです。
+</Accordion>
+
+## インベントリ
+ユーザーが所有するすべてのERC1155またはERC721コントラクトのアイテムを表示するために`SequenceInventory`プレハブを作成します。
+
+<Frame>
+  <img alt="img" src="/images/unity/unity_boilerplate_inventory.png" />
+</Frame>
+
+```csharp
+BoilerplateFactory.OpenSequenceInventory(parent, wallet, chain, collections, onClose);
+```
+
+<Accordion title="パラメータ">
+  **parent（Transform）**
+
+  Canvasオブジェクト内のTransform。
+
+  **wallet（IWallet）**
+
+  ログイン完了後、SequenceWallet.OnWalletCreatedイベントから受け取るウォレットインスタンスです。
+
+  **chain（Chain）**
+
+  指定したコントラクトがデプロイされているチェーンタイプ（Ethereum、Sepoliaなど）。
+
+  **collectionAddress（文字列配列）**
+
+  ERC1155またはERC721コントラクトアドレスの配列です。まずはBuilderでご自身のコントラクトをデプロイしてください。
+
+  **onClose（アクション）**
+
+  オプション。ユーザーがこのウィンドウを閉じたときに呼び出されるコールバックです。
+</Accordion>
+
+## メッセージの署名
+指定したテキストに署名できるモーダルを表示するために`SequenceSignMessage`プレハブを作成します。
+
+<Frame>
+  <img alt="img" src="/images/unity/unity_boilerplate_signmessage.png" />
+</Frame>
+
+```csharp
+BoilerplateFactory.OpenSequenceSignMessage(parent, wallet, chain, onClose);
+```
+
+<Accordion title="パラメータ">
+  **parent（Transform）**
+
+  Canvasオブジェクト内のTransform。
+
+  **wallet（IWallet）**
+
+  ログイン完了後、SequenceWallet.OnWalletCreatedイベントから受け取るウォレットインスタンスです。
+
+  **chain（Chain）**
+
+  指定したコントラクトがデプロイされているチェーンタイプ（Ethereum、Sepoliaなど）。
+
+  **onClose（アクション）**
+
+  オプション。ユーザーがこのウィンドウを閉じたときに呼び出されるコールバックです。
+</Accordion>

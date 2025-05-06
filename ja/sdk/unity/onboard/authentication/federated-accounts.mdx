@@ -1,0 +1,82 @@
+---
+title: フェデレーテッドアカウント
+---
+
+デフォルトでは、WaaS APIはメールアドレスごとに1つのアカウントのみ許可しています。ユーザーが以前と同じメールアドレスで異なる方法でログインしようとすると、`EmailAlreadyInUse` エラーが返されます。
+
+例：ユーザーがGoogleサインインでアカウントを作成し、その後同じメールアドレスでメール＋OTPサインインを試みた場合、このエラーが発生します。
+
+デフォルト（`LoginPanel` を利用している場合）、SDKは自動的に `SequenceFrontend > Prefabs > FederatedAuthPopupPanel` にある `FederatedAuthPopupPanel` プレハブを開きます。このプレハブはカスタマイズや `LoginPanel` プレハブ内での差し替えが可能です。このパネルでは、重複したログイン方法は許可されていないことをユーザーに説明し、ログイン画面に戻って関連するログイン方法（または別のメールアドレス）でサインインするよう促します。
+
+<Info>もし `SequenceConfig` で `EnableMultipleAccountsPerEmail` が有効になっている場合、`FederatedAuthPopupPanel` でユーザーが同じメールアドレスに別のアカウントを作成できるオプションが表示されます。</Info>
+
+ユーザーがアカウントにログインすると、SDKは自動的に `FederateAccount` リクエスト（`SequenceLogin` 参照）を実行します。これにより、失敗したログイン方法もそのメールアドレスに紐付けられ、今後はどちらの方法でもサインインできるようになります。上記の例では、ユーザーはGoogleサインインまたはメール＋OTPのどちらでもアカウントにログインできるようになります。
+
+## アカウントの手動フェデレーション
+アプリにボタンを追加して、ユーザーが自身のメールアドレスに別のログイン方法を紐付けられるようにしたい場合（特にゲストログインを利用している場合など）、`SequenceLogin` の参照を取得し、該当するログイン方法の `FederateAccount` メソッドを呼び出してください。
+
+```csharp
+SequenceLogin login = SequenceLogin.GetInstance();
+
+// PlayFab
+login.FederateAccountPlayFab(titleId, sessionTicket, email, walletAddress);
+
+// OIDC (Social)
+login.FederateAccountSocial(idToken, loginMethod, walletAddress);
+
+// Guest
+login.FederateAccountGuest(walletAddress);
+
+// Email
+login.Login(email);
+// Later ... Once you've received the OTP code from the user
+login.FederateAccountEmail(email, code, walletAddress); 
+```
+
+ここで walletAddress は、ユーザー認証後に取得した `SequenceWallet` のアドレスです。
+
+### デフォルトの LoginPanel の再利用
+デフォルトの LoginPanel を使ってユーザーが手動でアカウントをフェデレート／リンクできるようにするには、`SequenceLogin` インスタンスで `SetConnectedWalletAddress` を呼び出すか、現在認証されているウォレットアドレスを指定して `SequenceLogin.GetInstanceToFederateAuth` を呼び出してください。
+
+```csharp
+SequenceLogin login = SequenceLogin.GetInstance();
+login.SetConnectedWalletAddress(authenticatedSequenceWalletAddress);
+
+// or
+
+SequenceLogin.GetInstanceToFederateAuth(authenticatedSequenceWalletAddress);
+```
+
+これにより、SequenceLogin インスタンスが新しいセッションを作成するのではなく、アカウントのフェデレーションを行うように設定されます。
+
+<Tip>ユーザーがログアウトした後は、`SetConnectedWalletAddress(null)` を呼び出して、SequenceLogin を新しいセッション作成モードに戻すのをお忘れなく。</Tip>
+
+例：
+
+```csharp
+private void OnDropSessionCompleteHandler(string sessionId) {
+    if (sessionId == Wallet.SessionId)
+    {
+        SequenceLogin.GetInstance().SetConnectedWalletAddress(null);
+        SceneManager.LoadScene("LoginScene"); // Re-open your scene or UI to allow the user to log back in and create a new session here
+    }
+}
+```
+
+## フェデレーテッドアカウントの削除
+フェデレーテッドアカウントの関連付けを削除したい場合は、`IWallet.RemoveFederatedAccount` メソッドで実行できます。
+
+```csharp
+_wallet.OnFederatedAccountRemovedComplete += (accountIdString, success) => {
+    if (success) 
+    {
+        Debug.Log($"Successfully removed {accountIdString} as a login method");
+        // Do something
+    }else 
+    {
+        // Handle failure
+    }
+};
+
+bool success = await _wallet.RemoveFederatedAccount(account);
+```

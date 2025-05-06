@@ -1,0 +1,23 @@
+---
+title: Correo electrónico + OTP
+---
+
+Disponible en todas las plataformas, el inicio de sesión por correo electrónico proporciona al usuario un desafío de contraseña de un solo uso (OTP): un código de 6 dígitos enviado por correo electrónico a la dirección ingresada para que el usuario lo introduzca en la siguiente página.
+
+Primero, debe [habilitar el inicio de sesión por correo electrónico para su proyecto en el builder](/solutions/builder/embedded-wallet/configuration).
+
+Si utiliza el `LoginPanel` integrado, la interfaz gestionará automáticamente el inicio de sesión por correo electrónico + OTP por usted.
+
+<Tip>¡No olvide suscribirse al evento `SequenceWallet.OnWalletCreated` para recibir su wallet recién creada!</Tip>
+
+## Integraciones personalizadas
+De lo contrario, deberá llamar al método asíncrono `Login(string email)` en `SequenceLogin` para iniciar la autenticación con la API; esto enviará el desafío OTP al correo electrónico especificado.
+
+Una vez que el usuario haya ingresado su código OTP, deberá llamar al método asíncrono `Login(string email, string code)` en `SequenceLogin` para finalizar la autenticación del usuario.
+
+Los eventos relevantes incluyen:
+-   `OnMFAEmailSent` - este evento incluye una cadena que especifica el correo electrónico al que se envió el OTP
+
+-   `OnMFAEmailFailedToSend` - este evento incluye dos cadenas: el correo electrónico donde se solicitó el OTP y el mensaje de error
+
+-   `OnLoginFailed` - este evento incluye: el mensaje de error, el `LoginMethod` utilizado y el correo electrónico asociado al intento de inicio de sesión

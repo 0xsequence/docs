@@ -1,0 +1,181 @@
+---
+title: useGetTokenBalancesSummary
+description: 複数チェーンにまたがるトークン残高のサマリーを取得するためのフック
+sidebarTitle: useGetTokenBalancesSummary
+---
+
+## インポート
+
+```tsx
+import { useGetTokenBalancesSummary } from '@0xsequence/hooks'
+```
+
+## 使い方
+
+```tsx
+import React from 'react'
+import { useGetTokenBalancesSummary } from '@0xsequence/hooks'
+import { ContractVerificationStatus } from '@0xsequence/connect'
+import { useAccount } from 'wagmi'
+import { formatUnits } from 'viem'
+
+function TokenBalancesList() {
+  const { address } = useAccount()
+  
+  const {
+    data: tokens,
+    isLoading,
+    isError
+  } = useGetTokenBalancesSummary({
+    chainIds: [1, 137], // Ethereum and Polygon
+    filter: {
+      accountAddresses: [address || ''],
+      omitNativeBalances: false,
+      contractStatus: ContractVerificationStatus.VERIFIED,
+      // Optional: filter specific tokens
+      contractWhitelist: [
+        '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48', // USDC
+        '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2'  // WETH
+      ]
+    }
+  })
+
+  if (isLoading) return <div>Loading balances...</div>
+  if (isError) return <div>Error loading balances</div>
+
+  return (
+    <div className="token-list">
+      {tokens?.map(token => (
+        <div 
+          key={`${token.chainId}-${token.contractAddress}`}
+          className="token-item"
+        >
+          <div className="token-info">
+            {token.contractInfo?.logoURI && (
+              <img 
+                src={token.contractInfo.logoURI}
+                alt={token.contractInfo.symbol}
+                width={32}
+                height={32}
+              />
+            )}
+            <div>
+              <h4>{token.contractInfo?.symbol || 'Unknown'}</h4>
+              <p>{token.contractInfo?.name}</p>
+            </div>
+          </div>
+          
+          <div className="token-balance">
+            <span>
+              {token.contractInfo?.decimals
+                ? formatUnits(token.balance, token.contractInfo.decimals)
+                : token.balance}
+            </span>
+            <span className="chain-badge">
+              Chain: {token.chainId}
+            </span>
+          </div>
+        </div>
+      ))}
+    </div>
+  )
+}
+```
+
+## 返却型：`UseQueryResult<TokenBalance[]>`
+このフックはReact Queryの`UseQueryResult`の全プロパティと、トークン残高データを返します。詳細な構造は以下の通りです：
+
+```tsx
+interface TokenBalance {
+  contractType: ContractType
+  contractAddress: string
+  accountAddress: string
+  balance: string
+  blockHash: string
+  blockNumber: number
+  chainId: number
+  uniqueCollectibles: string
+  isSummary: boolean
+  contractInfo?: {
+    name: string
+    symbol: string
+    decimals: number
+    logoURI: string
+  }
+}
+```
+
+### プロパティ
+
+#### data
+`TokenBalance[] | undefined`
+
+以下を含むトークン残高オブジェクトの配列：
+- `contractType`: トークンコントラクトの種類（NATIVE、ERC20、ERC721、ERC1155）
+- `contractAddress`: トークンコントラクトのアドレス
+- `accountAddress`: トークンを保有するアカウントのアドレス
+- `balance`: トークン残高（最小単位での文字列）
+- `chainId`: トークンが存在するチェーンID
+- `blockHash`: 残高が最後に更新されたブロックのハッシュ
+- `blockNumber`: 残高が最後に更新されたブロック番号
+- `uniqueCollectibles`: ユニークコレクティブルの数
+- `isSummary`: 残高がサマリーかどうか
+- `contractInfo`: トークンコントラクトの基本情報（名前、シンボル、小数点、ロゴURLなど）
+
+#### isLoading
+`boolean`
+
+データ取得時のローディング状態。
+
+#### isError
+`boolean`
+
+クエリが失敗した場合のエラー状態。
+
+#### エラー
+`Error | null`
+
+データ取得中に発生したエラー内容。
+
+## パラメータ
+このフックは2つのパラメータを受け取ります：
+
+### 引数: `GetTokenBalancesSummaryArgs`
+
+```tsx
+interface GetTokenBalancesSummaryArgs {
+  chainIds: number[]
+  filter: {
+    accountAddresses: string[]
+    contractWhitelist?: string[]
+    contractBlacklist?: string[]
+    omitNativeBalances?: boolean
+    contractStatus?: ContractVerificationStatus
+  }
+}
+```
+
+| パラメータ                       | 型                            | 説明                            |
+| --------------------------- | ---------------------------- | ----------------------------- |
+| `chainIds`                  | `number[]`                   | 残高を取得するチェーンIDの配列              |
+| `filter.accountAddresses`   | `string[]`                   | 残高を取得するアカウントアドレスの配列           |
+| `filter.contractWhitelist`  | `string[]`                   | （オプション）取得対象とするコントラクトアドレスの配列   |
+| `filter.contractBlacklist`  | `string[]`                   | （オプション）除外するコントラクトアドレスの配列      |
+| `filter.omitNativeBalances` | `boolean`                    | （オプション）trueの場合、ネイティブトークン残高を除外 |
+| `filter.contractStatus`     | `ContractVerificationStatus` | （オプション）コントラクトの認証ステータスで絞り込み    |
+
+### options: `BalanceHookOptions`
+
+```tsx
+interface BalanceHookOptions {
+  disabled?: boolean
+  retry?: boolean
+  hideCollectibles?: boolean
+}
+```
+
+| パラメータ              | 型         | 説明                                        |
+| ------------------ | --------- | ----------------------------------------- |
+| `disabled`         | `boolean` | （オプション）クエリの自動実行を無効にします                    |
+| `retry`            | `boolean` | （オプション）失敗したクエリを再試行するかどうか                  |
+| `hideCollectibles` | `boolean` | （オプション）trueの場合、ERC721およびERC1155トークンを除外します |

@@ -1,0 +1,38 @@
+---
+title: トークン
+---
+
+トークンの利用頻度が高いため、`ERC20`、`ERC721`、`ERC1155`の各トークン用に、あらかじめABIが定義された`Contract`クラスのラッパーを用意しています。トークン操作時はこれらの利用を推奨します。
+
+これらのコントラクトラッパーはいずれも、コントラクトアドレスのみを必要とする標準コンストラクタで作成できます。例：
+
+```csharp
+ERC20 erc20 = new ERC20(contractAddress);
+```
+
+デフォルトのABIを書き換える必要がある場合は独自のABIを指定することも可能ですが、その場合はコントラクトラッパー自体の修正が必要になる場合があります。
+
+クエリの例：
+
+```csharp
+string symbol = await erc20.Symbol(client);
+BigIntegar balance = await erc20.BalanceOf(client, address);
+```
+
+トランザクション送信の例：
+
+```csharp
+TransactionReceipt receipt = await erc20.Mint(toAddress, DecimalNormalizer.NormalizeAsBigInteger(1)).SendTransactionMethodAndWaitForReceipt(wallet, client);
+```
+
+`Contract`のラッパーとして、`EthTransaction`を作成せずに後で送信することも可能です。
+
+```csharp
+CallContractFunction transactionCreator = erc20.Transfer(toAddress, DecimalNormalizer.NormalizeAsBigInteger(1));
+EthTransaction transaction = await transactionCreator.Create(client, new ContractCall(wallet.GetAddress()));
+TransactionReceipt receipt = await wallet.SendTransactionAndWaitForReceipt(client, transaction);
+```
+
+# おまけ：Ownable
+トークンと同様に、[Ownable](https://docs.openzeppelin.com/contracts/2.x/access-control#ownership-and-ownable)インターフェースを実装したメソッド用に、あらかじめABIが定義された`Ownable`ラッパーも用意しています。
+`ERC20`、`ERC721`、`ERC1155`はいずれもこれを継承していますが、任意のコントラクトでOwnableメソッドを利用したい場合は、利便性と安全性のために`Ownable`の利用を推奨します。

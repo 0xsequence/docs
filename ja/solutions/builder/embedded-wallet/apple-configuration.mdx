@@ -1,0 +1,90 @@
+---
+title: Embedded ウォレットのApple認証設定
+description: Apple Developer ConsoleでAppleクライアントを作成し、Embedded ウォレットのApple認証を設定する方法をご案内します。iOSまたはウェブアプリ用のApp IdentifierおよびApp IDの作成手順を順にご確認ください。
+sidebarTitle: Appleのセットアップ
+---
+
+Embedded ウォレットでApple認証を利用するには、Apple Developer ConsoleでAppleクライアントを設定する必要があります。iOSアプリかウェブアプリかによって、適切な設定を選択してください。
+
+## App Identifierの作成
+まず[Apple Developer Console](https://developer.apple.com/account/)にアクセスし、Certificates > Identifiersに移動します。そこで`+`ボタンをクリックして新しいIdentifierを作成します。
+
+<Frame>
+  ![Apple Developer Console Identifiers](/images/embedded_wallet/apple/1.png)
+</Frame>
+
+iOSアプリ用かどうかに関わらず、App IDが必要です。App IDsを選択し、Continueをクリックしてください。
+
+<Frame>
+  ![Apple Developer Console Identifier Creation](/images/embedded_wallet/apple/7.png)
+</Frame>
+
+## App IDの作成
+フォームには以下を入力してください。
+1. Description
+2. Bundle ID：これはiOSプロジェクトの一意のバンドル識別子です。ウェブアプリ用の場合は、ダミー値でも構いません。
+
+<Frame>
+  ![Apple Developer Console App ID Creation](/images/embedded_wallet/apple/5.png)
+</Frame>
+
+続行する前に、App IDのSign In with Apple機能を有効にする必要があります。Capabilitiesセクションまでスクロールし、Sign In with Appleを有効にしてください。
+
+<Frame>
+  ![Apple Developer Console App ID Creation](/images/embedded_wallet/apple/6.png)
+</Frame>
+
+Continueをクリックし、RegisterでApp IDを作成します。
+
+この段階でiOSアプリのみを設定する場合は、次のセクションをスキップし、Sequence BuilderでClient IDとしてBundle IDを使用してください。
+
+## Web Services IDの設定
+ウェブアプリ用のClient IDを設定する場合は、Identifiersセクションの`+`をクリックし、Services IDsオプションを選択してContinueをクリックします。
+
+<Frame>
+  ![Apple Developer Console Identifier Creation](/images/embedded_wallet/apple/2.png)
+</Frame>
+
+その後、フォームに以下を入力してください。
+1. Description
+2. 識別子：これは、SDKやSequence Builderで使用するウェブアプリケーションのクライアントIDになります。
+
+「続行」をクリックし、その後「登録」をクリックして識別子を作成します。
+
+<Frame>
+  ![ウェブアプリケーション設定](/images/embedded_wallet/apple/3.png)
+</Frame>
+
+作成後、「識別子」セクションに表示されている識別子をクリックします。次に、サービスIDのドメインとリダイレクトURLを設定する必要があります。「Sign In with Apple」の横のチェックボックスをオンにし、「構成」ボタンをクリックしてください。
+
+<Frame>
+  ![ウェブアプリケーション設定](/images/embedded_wallet/apple/4.png)
+</Frame>
+
+Web認証設定のモーダルで、以下の情報を入力してください：
+1. プライマリアプリID：先ほど作成したApp IDを選択します。
+2. ドメインおよびサブドメイン：このサービスIDと連携を許可するドメインのリストです。
+3. リターンURL：認証に成功した際にユーザーがリダイレクトされるURIのリストです。Sequence SDKでは、デフォルトでSDKを読み込んだ同じページにリダイレクトされます。
+
+<Note>
+  ローカルでテストする場合、`https`がないとApple認証は動作しません。localhostアドレスを登録する場合は、[ngrok](https://ngrok.com/)などのツールを使い、ローカルサーバーへの安全なトンネルを作成し、ngrokが提供する`https`のURLを利用することをおすすめします。
+</Note>
+
+<Frame>
+  ![ウェブアプリケーション設定](/images/embedded_wallet/apple/8.png)
+</Frame>
+
+「次へ」をクリックし、「完了」で設定を終了します。変更を保存するために「続行」をクリックするのを忘れないでください。
+
+最後に、この新しいサービスIDをSequence BuilderのApple設定に追加してください。これで、バンドルID用とサービスID用の2つのエントリーが表示されます。
+
+<Frame>
+  ![ウェブアプリケーション設定](/images/embedded_wallet/apple/9.png)
+</Frame>
+
+<Note>
+  サービスIDのドメインやリダイレクトURLを更新する必要がある場合、識別子を編集するだけでは反映されません。Appleの強力なキャッシュのため、識別子を削除し、新しい値で再作成する必要があります。
+</Note>
+
+## クライアントIDの取得
+前述の通り、iOSアプリケーションの場合は作成したバンドルIDをSequence BuilderのクライアントIDとして利用できます。ウェブアプリケーションやAndroidアプリケーションの場合は、Appleで登録したサービスIDを使用してください。

@@ -1,0 +1,45 @@
+---
+title: Embedded Walletの設定
+description: BuilderでSequence Embedded Walletを設定し、OAuthアカウントを統合することで、ユーザーを簡単にゲームにオンボードできます。Google認証やApple認証などのログインプロバイダーの設定方法、セキュリティのための許可オリジン指定、リカバリーウォレットの設定、初期設定の作成方法についてご案内します。
+sidebarTitle: 設定方法
+---
+
+[Sequence Embedded Wallet](https://sequence.build/project/default/embedded-wallet?tab=config)をBuilderで設定し、ご自身のOAuthアカウントを統合することで、ゲームへのスムーズなオンボーディングが可能です。Builderの設定ページは[こちら](https://sequence.build/project/default/embedded-wallet)からご利用いただけます。
+
+以下のセクションでは、BuilderでEmbedded Walletを設定するさまざまな方法について説明します。
+- [ログインプロバイダー](/solutions/builder/embedded-wallet#login-providers)：Web2ベースの認証プロバイダー
+- [許可オリジン](/solutions/builder/embedded-wallet#allowed-origins)：Embedded Walletインスタンスへの不正な設定キー利用を防ぐため、許可するURLオリジンを指定
+- [リカバリーウォレット](/solutions/builder/embedded-wallet#recovery-wallet)：ウォレットが侵害された場合などに、信頼回復プロセス後にEmbedded Walletインスタンスの所有権を取得するためのリカバリーウォレットを指定
+- [初期設定パスワード](/solutions/builder/embedded-wallet#initial-configuration-password)：BuilderでEmbedded Walletプロジェクトインスタンスを保護するためのパスワードを作成
+- [設定変更](/solutions/builder/embedded-wallet#configuration-changes)：パスワード保護付きでいつでも設定内容を更新可能
+- [SDK連携](/solutions/builder/embedded-wallet#sdk-integrations)：開発者が各プラットフォームでEmbedded Walletを実装できるSequence SDK製品
+
+## ログインプロバイダー
+Sequence Embedded Walletは、メールや各種ソーシャルログイン、ゲストウォレットなど多様なログインプロバイダーに対応しています。ソーシャルログインの場合は、各プロバイダーの設定を行い、クライアント固有のIDを取得してSequence Builderに入力する必要があります。詳細な設定手順は、各ログインプロバイダーの設定ページをご参照ください。
+
+## 許可オリジン
+この追加のセキュリティ対策により、ホワイトリストに登録したドメイン以外でEmbedded Walletの設定が不正に利用されるのを防ぎます。開発用・本番用のURLを「許可オリジン」に追加してください。デフォルトでは、これらホスト配下のすべてのサブパスが許可されます。
+
+許可オリジンは有効なスキーム（例：`https`）で定義する必要があります。
+
+## リカバリーウォレット
+Embedded Walletには、ご自身が管理するリカバリーウォレットの公開アドレスが必要です。このリカバリーウォレットは、ウォレットが侵害された際などの災害時にユーザーウォレットを復旧するために使用されるため、必ずご自身で管理し、安全に保管してください。
+
+以下を推奨します：
+- [Gnosis Safe](https://safe.global/)などの安全なマルチシグウォレットを利用してウォレットを設定すること
+- すべての取引に対して、最低2名、理想的には3名以上の署名者を設定し、必要とすること
+- 各署名者がハードウェアウォレットで保護されていること
+
+リカバリーウォレットの設定が完了したら、その公開アドレスを入力してください。設定保存後はリカバリーウォレットの変更はできません。
+
+## 初期設定パスワード
+すべての情報が揃ったら、Embedded Walletの設定を作成しましょう。初期設定時、BuilderからEmbedded Wallet用のパスワード設定を求められます。このパスワードは今後の設定変更時にも必要となるため、安全に保管してください。
+
+## 設定変更
+Embedded Walletの設定を変更する場合は、再度Embedded Walletセクションにアクセスし、必要な変更を行ってください。その後「設定を保存」をクリックし、リカバリーウォレットのパスワードを入力して変更を反映します。
+
+## SDK連携
+Embedded Walletの設定が完了したら、SDKとの連携方法についてガイドをご参照ください：
+- [TypeScript SDK](/solutions/wallets/embedded-wallet/overview)
+- [Unity SDK](/sdk/unity/overview)
+- [Unreal SDK](/sdk/unreal/introduction)

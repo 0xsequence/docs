@@ -1,0 +1,85 @@
+---
+title: Web SDKでのカスタムコネクタ
+description: Web SDKでカスタムコネクタを作成・統合する方法をご案内します。既存のテンプレートを活用しながら、独自のコネクタを構築する手順を順を追って解説します。
+sidebarTitle: カスタムコネクタ
+---
+
+Web SDKは公式コネクタを[@0xsequence/connect-connectors](https://github.com/0xsequence/web-sdk/tree/master/packages/connect/src/connectors)パッケージで提供していますが、追加のウォレットに対応するためにカスタムコネクタも統合可能です。このガイドでは、カスタムコネクタの作成と利用方法を説明します。
+
+## カスタムコネクタの作成
+カスタムコネクタを作成する際は、既存のコネクタをベースにすることができます。例えば、[Metamask Connector](https://github.com/0xsequence/web-sdk/tree/master/packages/connect/src/connectors/metaMask)は良い出発点です。以下はカスタムコネクタ作成の例です：
+
+```tsx
+export const myCustomConnector = (options: MyCustomConnectorOptions) => ({
+  id: 'my-custom-connector',
+  name: 'My Custom Connector',
+  logoDark: MyCustomLogoDark,
+  logoLight: MyCustomLogoLight,
+  createConnector: () => {
+    const connector = myCustomConnector(options);
+    return connector;
+  },
+});
+```
+
+コネクタが他と重複しないよう、必ずユニークな`id`を設定してください。また、`name`や`logoDark`、`logoLight`などの項目をカスタマイズすることで、Web SDK上での表示も調整できます。
+
+wagmiの`createConnector`関数は初期化済みのコネクタを返す必要があります。Web SDKのコネクタはWagmiコネクタのラッパーなので、公式のWagmiコネクタがあればそれを利用し、必要に応じて独自に作成することも可能です。
+
+カスタムコネクタの詳細な作成方法については、[Wagmiのカスタムコネクタガイド](https://wagmi.sh/examples/custom-connector)もご参照ください。
+
+# カスタムコネクタの利用
+カスタムコネクタを利用する場合、`getDefaultConnectors`ユーティリティ関数は使えません。代わりに、カスタム設定をWeb SDKに渡す必要があります。
+
+まず、カスタムコネクタを含むコネクタのリストを作成し、Wagmiの設定に渡します：
+
+```tsx
+import { getConnectWallets } from '@0xsequence/connect';
+import { createConfig } from 'wagmi';
+
+const projectAccessKey = '<your-project-access-key>';
+
+const connectors = getConnectWallets(projectAccessKey, [
+  google({
+    defaultNetwork: 137,
+    connect: {
+      app: 'my-app',
+      projectAccessKey: '<access-key>'
+    }
+  }),
+  // ... other connectors
+  myCustomConnector({ appName: 'my-app' }),
+]);
+
+const config = createConfig({
+  transports,
+  connectors,
+  chains
+})
+```
+
+次に、Web SDKの設定で`socialAuthOptions`または`walletAuthOptions`フィールドに、カスタムコネクタの`id`を指定して利用します：
+
+```tsx
+const kitConfig = {
+  signIn: {
+    socialAuthOptions: ['google', 'facebook'],
+    walletAuthOptions: ['metamask', 'my-custom-connector'],
+  }
+};
+
+return (
+  <WagmiProvider config={wagmiConfig}>
+    <QueryClientProvider client={queryClient}>
+      <SequenceConnect config={connectConfig}>
+        <App />
+      </SequenceConnect>
+    </QueryClientProvider>
+  </WagmiProvider>
+);
+```
+
+# カスタムコネクタの共有
+カスタムコネクタを作成したら、[プルリクエスト](https://github.com/0xsequence/web-sdk/pulls)でぜひご共有ください。他の開発者もあなたの成果を活用でき、Sequence Web SDKとのシームレスな統合が可能になります。
+
+カスタムコネクタのエコシステムを広げて、みんなで盛り上げましょう！❤️

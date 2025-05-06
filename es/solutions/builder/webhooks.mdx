@@ -1,0 +1,97 @@
+---
+title: Webhooks en Sequence Builder
+description: Este contenido trata sobre el uso de webhooks en Sequence Builder para que los desarrolladores de juegos escuchen eventos en múltiples blockchains.
+sidebarTitle: Webhooks
+---
+
+Sequence Builder equipa a los desarrolladores de juegos con un indexador que escucha eventos a través de las muchas blockchains que ofrecemos, proporcionando un callback https.
+
+<Warning>
+  Si prefiere una forma programática de agregar webhooks usando cURL, TypeScript o Go, consulte [esta guía](/api-references/indexer/examples/webhook-listener).
+</Warning>
+
+#### ¿A qué datos puedo escuchar para mi juego?
+
+- Minteos desde un contrato
+- Transferencias de TokenID
+- Transacciones por dirección de cuenta
+- Temas de eventos emitidos por un contrato
+- Hashes de temas de eventos emitidos por un contrato
+
+## Creando Webhooks
+Los siguientes pasos le guiarán en la creación de su webhook
+1. Seleccione el proyecto y vaya a la sección Webhooks
+2. Seleccione la Red y agregue un nuevo Webhook
+3. Complete los detalles del Webhook
+
+<Steps>
+  <Step title="Seleccione el proyecto y vaya a la sección Webhooks">
+    Seleccione su proyecto en la esquina superior izquierda, seleccione la sección `Indexer` en la barra lateral y luego la pestaña `Webhooks`.
+
+    <Frame>
+      ![indexer webhooks select](/images/builder/builder_indexer_webhooks_select.png)
+    </Frame>
+  </Step>
+
+  <Step title="Seleccione la Red y agregue un nuevo Webhook">
+    En el menú desplegable debajo de la pestaña de webhooks, seleccione la red para la que desea crear un webhook según las que tenga en su proyecto. Si no ve la red que busca, siempre puede [agregar una red](/support/builder/project-settings#3-network-settings), luego haga clic en `+ Add New Webhook`
+
+    <Frame>
+      ![indexer webhooks add new webhook](/images/builder/builder_indexer_webhooks_add_new_webhook.png)
+    </Frame>
+  </Step>
+
+  <Step title="Complete los detalles del Webhook">
+    Complete los datos requeridos como la `URL` del webhook, las `Contract Address(es)` y 'Events'.
+
+    Para el campo Events, podemos analizar cualquier evento arbitrario de contrato, pero debe ingresarlo exactamente como está escrito en su smart contract. Por ejemplo, para detectar eventos de transferencia debe ingresar: `Transfer(address indexed from, address indexed to, uint256 amount)` con la palabra clave `indexed`. Puede encontrar un ejemplo de tipos generales de eventos [aquí](/api-references/indexer/examples/webhook-listener#on-chain-token-event-types) para casos de uso comunes junto con algunos específicos de Sequence.
+
+    Una vez que haya ingresado los campos deseados, seleccione `Add Webhook`.
+
+    <Note>
+      Si necesita un endpoint de webhook puede usar [webhook.site](https://webhook.site/)
+
+      O puede usar código de plantilla con una de las siguientes opciones:
+
+      [Nodejs TypeScript Webhook](https://github.com/0xsequence-demos/template-nodejs-webhook-server) (combinado con [ngrok](https://ngrok.com/))
+    </Note>
+
+    <Frame>
+      ![add a webhook with details](/images/builder/builder_indexer_webhooks_add_webhook.png)
+    </Frame>
+
+    ¡Y listo!
+  </Step>
+</Steps>
+
+## Eliminar o actualizar webhook
+Los siguientes pasos le guiarán para crear, actualizar o eliminar su webhook
+1. Seleccione el proyecto y vaya a la sección Webhooks
+2. Seleccione el engranaje para actualizar o eliminar su webhook
+3. Actualizar o eliminar webhook
+
+<Steps>
+  <Step title="Seleccione el proyecto y vaya a la sección Webhooks">
+    Seleccione su proyecto en la esquina superior izquierda, seleccione la sección `Indexer` en la barra lateral y luego la pestaña `Webhooks`.
+
+    <Frame>
+      ![indexer webhooks select](/images/builder/builder_indexer_webhooks_select.png)
+    </Frame>
+  </Step>
+
+  <Step title="Seleccione el engranaje para actualizar o eliminar su webhook">
+    En la pantalla de webhooks, seleccione el engranaje `⚙` del webhook que desea eliminar o actualizar
+
+    <Frame>
+      ![click update webhook](/images/builder/builder_indexer_webhook_select.png)
+    </Frame>
+  </Step>
+
+  <Step title="Actualizar o eliminar webhook">
+    Luego puede `Update Webhook` o `Remove` su webhook seleccionando la opción correspondiente
+
+    <Frame>
+      ![update or remove](/images/builder/builder_indexer_webhooks_update_or_remove.png)
+    </Frame>
+  </Step>
+</Steps>

@@ -1,0 +1,102 @@
+---
+title: Unity で Telegram ミニゲームを作成する
+description: このガイドでは、Sequence の Unity SDK を使った Telegram ゲームの作成方法を解説します。
+sidebarTitle: Unity で Telegram ミニゲームを作成する
+---
+
+このガイドでは、Sequence の Unity SDK を使って Telegram ミニアプリやゲームをセットアップし、EVM チェーン上で Web3 機能を提供する方法（メールやゲスト認証を含む）を説明します。
+
+ゲームロジックは Unity で開発しますが、Telegram ミニゲームとしてデプロイするために、WebGL ビルドを React プロジェクト内に組み込みます。
+
+## Telegram ボットのセットアップ
+
+<Steps>
+  <Step title="BotFatherでTelegramボットを作成">
+    1. Telegramを開き、「@BotFather」を検索します。
+    2. 「Start」をクリックするか、「/start」と入力して会話を開始してください。
+    3. 「/newbot」と入力して新しいボットを作成します。
+    4. 案内に従って進めてください：
+
+    - ボットの名前を入力します。
+    - ユーザー名を選択します（必ず「bot」で終わる必要があります）
+  </Step>
+
+  <Step title="必要なトークンの取得">
+    ボット作成後、BotFatherから以下が提供されます：
+
+    - ボットトークン（HTTP APIトークン）
+    - ボットのユーザー名
+
+    これらの認証情報は次の手順で必要になるため、必ず保存してください。
+  </Step>
+</Steps>
+
+## Unity WebGL プロジェクトの準備
+
+<Steps>
+  <Step title="Sequence の Unity SDK をインストール">
+    既存プロジェクトには[推奨インストール方法](/sdk/unity/installation)をご利用いただけます。新規プロジェクトの場合は、[Unity Boilerplate](https://github.com/0xsequence/unity-embedded-wallet-boilerplate) をご利用いただけます。
+  </Step>
+
+  <Step title="モバイルレイアウト向けのUI">
+    ゲームのUIがモバイル端末のアスペクト比に最適化されていることを確認してください。[Unity の Device Simulator](https://docs.unity3d.com/2022.3/Documentation/Manual/device-simulator.html) の利用を推奨します。また、タッチ操作に対応した入力処理も設定してください。
+  </Step>
+
+  <Step title="WebGL 用 Sequence の React テンプレートを設定">
+    Sequence の Unity SDK には、React プロジェクトとしてエクスポートするための WebGL テンプレートが含まれています。`Packages/Sequence Embedded Wallet SDK/` 内の `WebGLTemplates` フォルダをプロジェクトの `Assets/` ディレクトリにコピーしてください。`Project Settings` → `Player` → `WebGL` → `Resolution and Presentation` で `SequenceReact` テンプレートを選択します。
+  </Step>
+
+  <Step title="Cloudflare の設定">
+    React プロジェクトのルートディレクトリに `wrangler.toml` ファイルを作成し、以下の内容を記述します。
+
+    ```shell
+    name = "telegrambot"
+    compatibility_date = "2024-03-25"
+    pages_build_output_dir = "./dist"
+    [vars]
+    BOT_TOKEN = "GET_YOUR_BOT_TOKEN_FROM_BOTFATHER"
+    BOT_SECRET = "can_be_any_long_random_string_abc123_do_not_share"
+
+    [dev]
+    port = 4444
+    ```
+  </Step>
+
+  <Step title="WebGL ゲームを React プロジェクトとしてビルド">
+    React プロジェクトのルートディレクトリを CLI や Visual Studio Code などの IDE で開き、以下のコマンドを実行してブラウザでゲームをテストします。
+
+    ```
+    pnpm install
+    pnpm run dev
+    ```
+  </Step>
+</Steps>
+
+## Telegram ミニゲームをデプロイする
+
+<Steps>
+  <Step title="Cloudflareアカウントで認証する">
+    React プロジェクトのルートディレクトリから、アプリケーションおよびファンクションのロジックを Cloudflare にデプロイします。
+
+    1. `pnpm wrangler pages deploy`を実行します
+
+    Cloudflare にまだログインしていない場合は、認証を求められます。デプロイが成功したら、アプリケーションがホストされている URL をコピーしてください。
+  </Step>
+
+  <Step title="TelegramでWebhookを登録">
+    次に、アプリの `registerWebhook` エンドポイントを呼び出し、デプロイしたアプリケーションの URL で Webhook の設定を行い、Telegram API からのアクセスを有効にします。
+
+    ```shell
+    curl -X POST \
+         "<YOUR_CLOUDFLARE_DEPLOYED_URL>/api/registerWebhook"
+    ```
+  </Step>
+
+  <Step title="許可するオリジンの更新">
+    [Sequence Builder](https://sequence.build/project/default/embedded-wallet)で、ウォレット設定にデプロイ済みアプリケーションのURLが
+    許可されたオリジンとして含まれていることを確認してください。
+  </Step>
+</Steps>
+
+### Telegram ゲームをテストしてください。
+Telegram でボットにメッセージを送信して、応答があるか確認してください。ボットからシェア、プレイ、または詳細情報を得るための案内が表示されます。

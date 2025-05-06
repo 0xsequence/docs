@@ -1,0 +1,165 @@
+---
+title: useGetContractInfo
+description: Hook para obtener información de contratos de tokens, incluyendo tokens nativos
+sidebarTitle: useGetContractInfo
+---
+
+## Importar
+
+```tsx
+import { useGetContractInfo } from '@0xsequence/hooks'
+```
+
+## Uso
+
+```tsx
+import { useGetContractInfo } from '@0xsequence/hooks'
+import { ZERO_ADDRESS } from '@0xsequence/utils'
+
+// Example 1: Fetch NFT Collection Info
+function NFTCollectionDetails() {
+  const {
+    data: contractInfo,
+    isLoading,
+    isError
+  } = useGetContractInfo({
+    chainID: "1", // Ethereum mainnet
+    contractAddress: "0x..." 
+  })
+
+  if (isLoading) return <div>Loading collection details...</div>
+  if (isError) return <div>Error loading collection</div>
+
+  return (
+    <div className="collection-details">
+      <img 
+        src={contractInfo?.logoURI} 
+        alt={contractInfo?.name}
+        width={64}
+        height={64}
+      />
+      <h1>{contractInfo?.name}</h1>
+      <div className="metadata">
+        <span>Type: {contractInfo?.type}</span>
+        <span>Symbol: {contractInfo?.symbol}</span>
+      </div>
+    </div>
+  )
+}
+
+// Example 2: Display Native Token Info
+function NativeTokenInfo() {
+  const { data: ethInfo } = useGetContractInfo({
+    chainID: "1",
+    contractAddress: ZERO_ADDRESS // For native ETH
+  })
+
+  return (
+    <div className="token-info">
+      <img 
+        src={ethInfo?.logoURI} 
+        alt={ethInfo?.symbol}
+        width={32}
+        height={32}
+      />
+      <div>
+        <h3>{ethInfo?.name}</h3>
+        <p>Decimals: {ethInfo?.decimals}</p>
+      </div>
+    </div>
+  )
+}
+```
+
+## Tipo de retorno: `UseQueryResult<ContractInfo>`
+El hook retorna todas las propiedades de `UseQueryResult` de React Query con los datos de información del contrato. Esta es la estructura detallada:
+
+```tsx
+interface ContractInfo {
+    chainId: number;
+    address: string;
+    source: string;
+    name: string;
+    type: string;
+    symbol: string;
+    decimals?: number;
+    logoURI: string;
+    deployed: boolean;
+    bytecodeHash: string;
+    extensions: ContractInfoExtensions;
+    updatedAt: string;
+    notFound: boolean;
+    queuedAt?: string;
+    status: ResourceStatus;
+}
+```
+
+### Propiedades
+
+#### data
+`ContractInfo | undefined`
+
+Objeto que contiene la información del contrato:
+- `chainId`: El identificador numérico de la cadena (por ejemplo, 1 para Ethereum mainnet)
+- `address`: La dirección blockchain del contrato en formato hexadecimal
+- `source`: La fuente/origen de los metadatos del contrato (por ejemplo, "sequence", "opensea", etc)
+- `name`: El nombre legible del contrato o token
+- `type`: El tipo de interfaz del contrato ("ERC20", "ERC721", "ERC1155")
+- `symbol`: El símbolo/ticker del token (por ejemplo, "ETH", "USDC")
+- `decimals`: El número de decimales para los montos del token (por ejemplo, 18 para ETH)
+- `logoURI`: URL de la imagen del logo del token/contrato
+- `deployed`: Booleano que indica si el contrato está desplegado en la cadena
+- `bytecodeHash`: Hash del bytecode desplegado del contrato
+- `extensions`: Campos de metadatos adicionales específicos del tipo de contrato
+- `updatedAt`: Marca de tiempo ISO de la última actualización de los metadatos
+- `notFound`: Booleano que indica si no se pudo encontrar los metadatos del contrato
+- `queuedAt`: Marca de tiempo ISO de cuando se puso en cola la indexación de metadatos
+- `status`: Estado actual de los metadatos ("READY", "PENDING", "ERROR")
+
+Para tokens nativos (cuando se usa `ZERO_ADDRESS`), la respuesta se enriquece con información específica de la red.
+
+#### isLoading
+`boolean`
+
+Estado de carga para la obtención de datos.
+
+#### isError
+`boolean`
+
+Estado de error que indica si la consulta falló.
+
+#### error
+`Error | null`
+
+Cualquier error que ocurrió durante la obtención de datos.
+
+## Parámetros
+El hook acepta dos parámetros:
+
+### args: `GetContractInfoArgs`
+
+```tsx
+interface GetContractInfoArgs {
+  chainID: string
+  contractAddress: string
+}
+```
+
+| Parámetro         | Type     | Description                                                       |
+| ----------------- | -------- | ----------------------------------------------------------------- |
+| `chainID`         | `string` | ID de cadena como string (por ejemplo, "1" para Ethereum mainnet) |
+| `contractAddress` | `string` | Dirección del contrato o `ZERO_ADDRESS` para token nativo         |
+
+### options: `HooksOptions`
+
+```tsx
+interface HooksOptions {
+  disabled?: boolean
+  retry?: boolean
+}
+```
+
+| Parámetro  | Type      | Description                                                                |
+| ---------- | --------- | -------------------------------------------------------------------------- |
+| `disabled` | `boolean` | (Opcional) Deshabilitar la consulta para que no se ejecute automáticamente |
+| `retry`    | `boolean` | (Opcional) Indica si se deben reintentar las consultas fallidas            |

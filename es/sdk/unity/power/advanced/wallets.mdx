@@ -1,0 +1,79 @@
+---
+title: Wallets
+---
+
+En el contexto de SequenceEthereum, un `Wallet` se define mediante la interfaz `IWallet`. Actualmente hay 2 implementaciones de la interfaz `IWallet` en este SDK.
+
+## 1. EOAWallet
+`EOAWallet` es un [wallet EOA](https://ethereum.stackexchange.com/questions/5828/what-is-an-eoa-account) estándar para cadenas EVM.
+
+Un EOAWallet se crea fácilmente:
+
+```csharp
+IWallet eoaWallet = new EOAWallet(); // This will generate a cryptographically random private key
+IWallet eoaWallet = new EOAWallet(privateKeyString); // Create a wallet using a previously generated private key
+```
+
+## 2. SequenceWalletToEOAWalletAdapter
+`SequenceWalletToEOAWalletAdapter` es un adaptador que le permite usar un `SequenceWallet` con la misma interfaz `IWallet` que un `EOAWallet`, para que pueda utilizarse de manera intercambiable con wallets EOA en el resto de la librería SequenceEthereum.
+
+Un SequenceWalletToEOAWalletAdapter se crea fácilmente una vez que tiene un SequenceWallet:
+
+```csharp
+IWallet sequenceAdapter = new SequenceWalletToEOAWalletAdapter(sequenceWallet);
+```
+
+## Métodos
+La interfaz `IWallet` le proporciona varios métodos. Los más importantes son:
+
+### GetAddress
+Devuelve la `Address` del wallet
+
+```csharp
+Address address = wallet.GetAddress();
+```
+
+### SendTransaction
+Firma el `EthTransaction` proporcionado y lo envía mediante el cliente indicado
+
+```csharp
+string transactionHash = await wallet.SendTransaction(client, transaction);
+```
+
+### SendTransactionAndWaitForReceipt
+Firma el `EthTransaction` proporcionado, lo envía mediante el cliente indicado y luego espera el `TransactionReceipt`
+
+```csharp
+TransactionReceipt receipt = await wallet.SendTransactionAndWaitForReceipt(client, transaction);
+```
+
+### SendTransactionBatch
+Firma el arreglo de `EthTransaction[]` y los envía mediante el cliente indicado.
+Si el wallet es un `EOAWallet`, las transacciones se enviarán de forma secuencial, y cada una puede aprobarse o fallar. Si el wallet es un `SequenceWalletToEOAWalletAdapter`, las transacciones se agruparán en una sola transacción que se envía de una vez y que se aprueba o falla en conjunto.
+De igual manera, si el wallet es un `EOAWallet`, el `string[]` (hashes de transacción) que reciba tendrá la misma longitud que el `EthTransaction[]` enviado. Mientras que, si el wallet es un `SequenceWalletToEOAWalletAdapter`, solo recibirá un hash de transacción (`string[]` de longitud 1)
+
+```csharp
+string[] transactionHashes = await wallet.SendTransactionBatch(client, transactions);
+```
+
+### SendTransactionBatchAndWaitForReceipts
+Firma el arreglo de `EthTransaction[]` y los envía mediante el cliente indicado, luego espera el arreglo de `TransactionReceipt[]`.
+Si el wallet es un `EOAWallet`, las transacciones se enviarán de forma secuencial, y cada una puede aprobarse o fallar. Si el wallet es un `SequenceWalletToEOAWalletAdapter`, las transacciones se agruparán en una sola transacción que se envía de una vez y que se aprueba o falla en conjunto.
+De igual manera, si el wallet es un `EOAWallet`, el `TransactionReceipt[]` que reciba tendrá la misma longitud que el `EthTransaction[]` enviado. Mientras que, si el wallet es un `SequenceWalletToEOAWalletAdapter`, solo recibirá un recibo de transacción (`TransactionReceipt[]` de longitud 1)
+
+```csharp
+TransactionReceipt[] receipts = await wallet.SendTransactionAndWaitForReceipt(client, transactions);
+```
+
+### SignMessage
+Dado un mensaje y un chain id opcional, firmar el mensaje usando el wallet. Omitir el chain id de la firma si no se proporciona.
+
+```csharp
+string signedMessage = await wallet.SignMessage(message, chainId)
+```
+
+Nota: se espera que el chainId esté en formato hexadecimal. Si trabaja con un objeto `Chain` (recomendado), puede usar el método `AsString` para obtener el formato hexadecimal del chain id.
+
+```csharp
+string signedMessage = await wallet.SignMessage(message, Chain.Polygon.AsString());
+```

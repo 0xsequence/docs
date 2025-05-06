@@ -1,0 +1,21 @@
+---
+title: メッセージの署名
+---
+
+メッセージへの署名は[非同期Task](https://medium.com/@sonusprocks/async-await-in-c-unity-explained-in-easy-words-571ebb6a9369)です。非同期Task内で `WaaSWallet.SignMessage` を呼び出す際に `await` を使えば、`SignMessageReturn` オブジェクトを直接取得できます。もしくは、推奨される方法として、`WaaSWallet.OnSignMessageComplete` イベント用のハンドラー関数を設定し、どこからでも（awaitなしで）`WaaSWallet.SignMessage` メソッドを呼び出すこともできます。例：
+
+```csharp
+public void OnSignMessageCompleteHandler(string signature) {
+    // Do something
+}
+
+public void OnWalletCreatedHander(SequenceWallet wallet) {
+    wallet.OnSignMessageComplete += OnSignMessageCompleteHandler;
+}
+```
+
+```csharp
+_wallet.SignMessage(Chain.Polygon, "Message to sign");
+```
+
+Unityでイベントの扱いに慣れていない場合は、この素晴らしい [Reddit投稿](https://www.reddit.com/r/gamedev/comments/u3hz2v/how_to_use_events_a_supersimple_unity_example/) をご覧ください。

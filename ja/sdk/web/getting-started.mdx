@@ -1,0 +1,261 @@
+---
+title: Web SDKのはじめ方
+description: 必要なパッケージをインストールし、wagmiコネクタを使ってEmbedded WalletやネイティブEOAウォレットで認証する方法をご案内します。
+sidebarTitle: はじめに
+---
+
+# Dapp のセットアップ
+web3ウォレットをアプリケーションに接続するために`SequenceConnect`ラッパーを利用する手順は以下の通りです：
+
+<Note>
+  Web SDKはwagmiの上に構築されているため、高度な設定やトランザクション送信、コントラクト呼び出しなどについては、[wagmiのドキュメント](https://wagmi.sh/react/WagmiConfig)をご参照ください。
+</Note>
+
+<Tabs>
+  <Tab title="Viteアプリ">
+    <Steps>
+      <Step title="ViteでReactプロジェクトを作成">
+        まずは[vite](https://vitejs.dev/)を使って[React](https://react.dev/)プロジェクトを作成します：
+
+        ```sh
+        npm create vite
+        # or
+        pnpm create vite
+        # or
+        yarn create vite
+        ```
+      </Step>
+
+      <Step title="Web SDKの依存パッケージをインストール">
+        ```bash
+        npm install @0xsequence/connect wagmi ethers@6.13.0 viem 0xsequence @tanstack/react-query
+        # or
+        pnpm install @0xsequence/connect wagmi ethers@6.13.0 viem 0xsequence @tanstack/react-query
+        # or
+        yarn add @0xsequence/connect wagmi ethers@6.13.0 viem 0xsequence @tanstack/react-query
+        ```
+      </Step>
+
+      <Step title="設定ファイルの作成">
+        次に、`SequenceConnect`用の設定変数を`waas`として作成します（[Embedded Wallet](/sdk/headless-wallet/quickstart)を意味します）。
+
+        まず[Sequence BuilderからWaaS設定キー](https://sequence.build/)と[プロジェクトアクセスキー](/support/builder/project-settings#copy-your-access-key)を取得し、プロジェクトのオリジンが[Builder Embedded Wallet Configuration](https://sequence.build)でホワイトリストに登録されていることを確認してください。
+        WalletConnectを許可したい場合は[Wallet Connect ID](https://cloud.reown.com/sign-in)も必要です。
+        Googleログインの設定は[Embedded WalletのGoogle設定ガイド](../../solutions/builder/embedded-wallet/google-configuration)をご覧ください。
+
+        ```typescript [config.ts]
+        import { createConfig } from "@0xsequence/connect";
+
+        export const config: any = createConfig("waas", {
+          projectAccessKey: "<your-project-access-key>",
+          chainIds: [1, 137],
+          defaultChainId: 1,
+          appName: "Demo Dapp",
+          waasConfigKey: "<your-waas-config-key>", // for waas
+          google: {
+            clientId: "<your-google-client-id>",
+          },
+          walletConnect: {
+            projectId: "<your-wallet-connect-project-id>",
+          },
+        });
+        ```
+
+        さらにカスタマイズしたい場合は、[追加の設定パラメータ一覧](/sdk/web/custom-configuration)をご参照ください。
+      </Step>
+
+      <Step title="プロバイダーコンポーネントの設定">
+        [ステップ3](/sdk/web/getting-started#create-a-config)で作成した設定を、下記のように`main.tsx`内のプロバイダーに渡します。
+
+        ```typescript [main.tsx]
+        import React from "react";
+        import ReactDOM from "react-dom/client";
+        import "index.css";
+
+        import App from "./App";
+        import { config } from "./config";
+        import { SequenceConnect } from "@0xsequence/connect";
+
+        function Dapp() {
+          return (
+            <SequenceConnect config={config}>
+              <App />
+            </SequenceConnect>
+          );
+        }
+
+        ReactDOM.createRoot(document.getElementById("root")!).render(
+          <React.StrictMode>
+            <Dapp />
+          </React.StrictMode>
+        );
+        ```
+      </Step>
+
+      <Step title="接続モーダルの表示">
+        ```typescript [App.tsx]
+        import './App.css'
+        import { useOpenConnectModal } from '@0xsequence/connect'
+
+        function App() {
+          const {setOpenConnectModal} = useOpenConnectModal()
+          
+          return (
+            <>
+              <button onClick={() => setOpenConnectModal(true)}>Connect</button>
+            </>
+          )
+        }
+
+        export default App
+        ```
+
+        web3操作には、wagmiが提供するReactフックを使うことで、トランザクション送信などの一般的な機能を簡単に実装できます。
+      </Step>
+    </Steps>
+  </Tab>
+
+  <Tab title="NextJSアプリ">
+    <Steps>
+      <Step title="NextJSプロジェクトの作成">
+        まずは[create-next-app](https://nextjs.org/docs/getting-started)を使って[NextJS](https://nextjs.org/)プロジェクトを作成します：
+
+        ```sh
+        npx create-next-app@latest
+        # or
+        pnpm create next-app
+        # or
+        yarn create next-app
+        ```
+      </Step>
+
+      <Step title="Web SDKの依存パッケージをインストール">
+        ```bash
+        npm install @0xsequence/connect wagmi ethers@6.13.0 viem 0xsequence @tanstack/react-query
+        # or
+        pnpm install @0xsequence/connect wagmi ethers@6.13.0 viem 0xsequence @tanstack/react-query
+        # or
+        yarn add @0xsequence/connect wagmi ethers@6.13.0 viem 0xsequence @tanstack/react-query
+        ```
+      </Step>
+
+      <Step title="設定ファイルの作成">
+        次に、`SequenceConnect`用の設定変数を`waas`として作成します（[Embedded Wallet](/sdk/headless-wallet/quickstart)を意味します）。
+
+        まず[Sequence BuilderからWaaS設定キー](https://sequence.build/)と[プロジェクトアクセスキー](/support/builder/project-settings#copy-your-access-key)を取得し、プロジェクトのオリジンが[Builder Embedded Wallet Configuration](https://sequence.build)でホワイトリストに登録されていることを確認してください。
+        WalletConnectを許可したい場合は[Wallet Connect ID](https://cloud.reown.com/sign-in)も必要です。
+        Googleログインの設定は[Embedded WalletのGoogle設定ガイド](../../solutions/builder/embedded-wallet/google-configuration)をご覧ください。
+
+        ```typescript [src/app/config.ts]
+        import { createConfig } from "@0xsequence/connect";
+
+        export const config = createConfig("waas" /*or, 'universal'*/, {
+          projectAccessKey: "<your-project-access-key>",
+          chainIds: [1, 137],
+          defaultChainId: 1,
+          appName: "Demo Dapp",
+          waasConfigKey: "<your-waas-config-key>", // for waas
+          google: {
+            clientId: "<your-google-client-id>",
+          },
+          walletConnect: {
+            projectId: "<your-wallet-connect-project-id>",
+          },
+        });
+        ```
+
+        さらにカスタマイズしたい場合は、[追加の設定パラメータ一覧](/sdk/web/custom-configuration)をご参照ください。
+      </Step>
+
+      <Step title="プロバイダーコンポーネントの設定">
+        [ステップ3](/sdk/web/getting-started#create-a-config)で作成した設定をSequenceConnectプロバイダーに渡します。
+
+        アプリ全体をProvidersコンポーネントでラップするため、別途「providers.tsx」ファイルを作成します。
+
+        ```typescript [src/app/providers.tsx]
+        "use client";
+
+        import React from "react"
+        import { config } from "./config"
+        import { SequenceConnect } from "@0xsequence/connect"
+
+        const Providers = ({ children }: { children: React.ReactNode }) => {
+            return (
+                <SequenceConnect config={config}>
+                    {children}
+                </SequenceConnect>
+            )
+        }
+
+        export default Providers;
+        ```
+      </Step>
+
+      <Step title="アプリをProvidersでラップ">
+        アプリ全体をProvidersコンポーネントでラップします。
+
+        ```typescript [src/app/layout.tsx]
+        import type { Metadata } from "next";
+        import { Geist, Geist_Mono } from "next/font/google";
+        import "./globals.css";
+        import Providers from "./providers";
+
+        const geistSans = Geist({
+          variable: "--font-geist-sans",
+          subsets: ["latin"],
+        });
+
+        const geistMono = Geist_Mono({
+          variable: "--font-geist-mono",
+          subsets: ["latin"],
+        });
+
+        export const metadata: Metadata = {
+          title: "Create Next App",
+          description: "Generated by create next app",
+        };
+
+        export default function RootLayout({
+          children,
+        }: Readonly<{
+          children: React.ReactNode;
+        }>) {
+          return (
+            <html lang="en">
+              <body
+                className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+              >
+                <Providers>
+                  {children}
+                </Providers>
+              </body>
+            </html>
+          );
+        }
+        ```
+      </Step>
+
+      <Step title="接続モーダルの表示">
+        ```typescript [App.tsx]
+        "use client"
+
+        import { useOpenConnectModal } from '@0xsequence/connect'
+
+        function Home() {
+          const { setOpenConnectModal } = useOpenConnectModal()
+
+          return (
+            <>
+              <button onClick={() => setOpenConnectModal(true)}>Connect</button>
+            </>
+          )
+        }
+
+        export default Home
+        ```
+
+        web3操作には、wagmiが提供するReactフックを使うことで、トランザクション送信などの一般的な機能を簡単に実装できます。
+      </Step>
+    </Steps>
+  </Tab>
+</Tabs>

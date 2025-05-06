@@ -1,0 +1,88 @@
+---
+title: Desplegar un contrato de ventas primarias en Sequence Builder
+description: Esta guía ofrece un recorrido detallado sobre cómo configurar e implementar un contrato de ventas primarias en Builder. Explica las diferencias entre los contratos ERC721 y ERC1155, y detalla los pasos para desplegar un contrato.
+sidebarTitle: Implemente un contrato de ventas primarias
+---
+
+### Cómo implementar un contrato de ventas primarias en Sequence Builder
+Esta guía explica cómo configurar e implementar los contratos para lanzar una venta primaria, ideal para un NFT Drop, una tienda dentro del juego y más.
+
+<Steps>
+  <Step title="Paso 1: Navegue a contratos">
+    Comience seleccionando el `project` para el cual desea crear una venta y diríjase a `Contracts > Deploy`.
+  </Step>
+
+  <Step title="Paso 2: Implemente el contrato de coleccionables elegido">
+    Siga esta [guía](/solutions/collectibles/contracts/deploy-an-item-collection) para desplegar un contrato de coleccionables y cargar los metadatos de la colección para la que desea crear una venta.
+
+    <Frame>
+      ![seleccionar game item](/images/collectibles/select_web3_game_item.png)
+    </Frame>
+  </Step>
+
+  <Step title="Paso 3: Implemente su contrato de ventas primarias">
+    Una vez implementado correctamente, regrese a la página de contratos y seleccione `+ Deploy new contract` nuevamente. Luego, elija el contrato de venta ERC721 o ERC1155 que corresponda al contrato de coleccionables que desplegó en el paso 2 y haga clic en `Deploy sale contract`.
+
+    <Frame>
+      ![Implementar contrato de venta](/images/collectibles/primary-sales/docs_deploy_sale.png)
+    </Frame>
+  </Step>
+
+  <Step title="Paso 4: Configure los detalles de minteo en el contrato de ventas primarias.">
+    Vaya a la pestaña de detalles de minteo de su contrato de ventas primarias. Complete los detalles de minteo con los parámetros de venta que desee.
+
+    <Frame>
+      ![Acceso de minteo](/images/collectibles/primary-sales/docs_mint_access.png)
+    </Frame>
+
+    - `Supply Cap`: Es la cantidad máxima de tokens que los usuarios pueden mintear a través del contrato de venta.
+    - `Cost`: Es el costo en GWEI para mintear un solo token. En este ejemplo, lo configuramos en 0 para facilitar el minteo desde Builder, pero en producción debe coincidir con el precio que desea cobrar a sus usuarios.
+    - `Start and End Time`: Fecha y hora de inicio y fin de la venta. Si la hora actual está dentro del rango proporcionado, la venta estará activa. Puede configurar el rango de fechas a futuro si lo prefiere.
+    - `Payment Token`: Puede seleccionar el token nativo de la red o una moneda personalizada para la venta.
+    - `Sale Type`: Puede elegir entre un minteo público o privado. Si selecciona un minteo privado, también puede cargar una lista de participantes permitidos usando nuestra función [Audience](https://sequence.build/project/default/audience/). Es importante tener en cuenta que, para un minteo privado, deberá proporcionar una prueba de Merkle que corresponda a la raíz de Merkle agregada en los detalles de la venta para poder mintear. No se preocupe, esta lógica ya viene incluida en nuestros boilerplates por defecto.
+
+    Para este ejemplo, asumiremos que está creando un minteo público.
+  </Step>
+
+  <Step title="Paso 5: Agregue el MinterRole del contrato de ventas al contrato de la colección">
+    Copie la dirección del contrato de ventas, luego navegue al contrato específico y seleccione la configuración para ver los permisos.
+
+    <Frame>
+      ![configuración del contrato](/images/builder/builder_contract_specific_settings.png)
+    </Frame>
+
+    Cuando tenga abierta la ventana modal, seleccione la pestaña `Permissions` y podrá `Edit`, o, `+ Add Collaborator`.
+
+    <Frame>
+      ![agregar colaborador](/images/builder/builder_contract_specific_permissions.png)
+    </Frame>
+
+    Complete el formulario con la dirección del contrato de ventas para agregarlo como colaborador y seleccione en el menú desplegable el rol de `Minter`.
+
+    <Frame>
+      ![asignar rol](/images/builder/builder_contract_permissions_dropdown.png)
+    </Frame>
+
+    Finalmente, complete y firme la transacción para actualizar el control de acceso del contrato.
+  </Step>
+
+  <Step title="Paso 6: ">
+    Ahora que tiene sus contratos configurados, ¡hagamos una prueba de minteo!
+
+    Regrese a su contrato de venta desplegado y seleccione `Write contract`. Luego haga clic en la función `mint()` e ingrese los siguientes parámetros:
+
+    - `to`: esta es la dirección a la que se minteará el NFT. Generalmente será el usuario que pagó, pero puede ingresar la dirección de su Builder que aparece en la esquina superior derecha.
+    - `amount`: La cantidad de NFTs a mintear, simplemente mintearemos 1.
+    - `paymentToken`: Para una moneda personalizada, ingrese la dirección de esa moneda. Para tokens nativos, utilice `0x0000000000000000000000000000000000000000`.
+    - `maxTotal`: El monto máximo de la moneda indicada que se puede pagar.
+    - `proof`: Para un minteo público, puede dejar este campo vacío. En un minteo privado, aquí debe ingresar la prueba generada que corresponde a la dirección del usuario y la raíz de Merkle previamente proporcionada.
+
+    <Frame>
+      ![Conceder rol de Minter](/images/collectibles/primary-sales/docs_mint_sale.png)
+    </Frame>
+
+    Una vez que haya completado toda la información, haga clic en `Write` para construir la transacción y luego en `Confirm` para mintear el token.
+  </Step>
+</Steps>
+
+¿Qué sigue? Ahora puede utilizar los contratos de venta públicamente en su sitio web para un NFT drop o usarlos en su tienda dentro del juego para vender ítems a sus jugadores. También le recomendamos revisar nuestro \[boilerplate de Sequence Pay]\(([https://github.com/0xsequence-demos/sequence-pay-boilerplate](https://github.com/0xsequence-demos/sequence-pay-boilerplate)), que utiliza los contratos de venta para habilitar casos de uso como pagos con tarjeta de crédito o la posibilidad de pagar en cualquier moneda para su venta.

@@ -1,0 +1,85 @@
+---
+title: Ethers v6 移行ガイド
+description: ethers v6対応およびethers v5からv6へのコード移行ガイド
+sidebarTitle: Ethers v6対応
+---
+
+@0xsequenceパッケージv2.0以降は、最低でもEthersバージョン `ethers@6.13.0` が必要です。
+
+<Note>
+  もしethers v6へのアップグレードが難しい場合は、@0xsequenceのv1.10.5または@0xsequence/kitの3.0.0を利用できます。
+</Note>
+
+これまで `ethers@^5.0.0` で開発していた場合、以下に示すように、SequenceでのEthersの使い方が主に変わります：
+
+## 静的およびデフォルトのRPCプロバイダー
+Ethersを使ってブロックチェーンノードに接続し、[RPC](https://en.wikipedia.org/wiki/Remote_procedure_call)コールで情報を取得する場合、静的またはデフォルトの方法で違いがあります：
+
+```typescript provider.ts
+// v5
+const provider = new ethers.providers.StaticJsonRpcProvider(chainConfig.rpcUrl);
+
+// v6: If you know the network ahead of time and wish
+// to avoid even a single eth_chainId call
+const provider = new ethers.JsonRpcProvider(chainConfig.rpcUrl, undefined, {
+	staticNetwork: new ethers.Network('<CHAIN_HANDLE>', <CHAIN_ID>)
+});
+
+// v6: If you want the network automatically detected,
+// this will query eth_chainId only once
+const provider = new ethers.JsonRpcProvider(chainConfig.rpcUrl, undefined, {
+  staticNetwork: true
+});
+```
+
+## ビッグナンバー対応
+ランダムなトークンIDやノンスなど、大きな数値を扱う場合、Ethersは現代のJavaScript環境で提供されるES2020のBigIntを標準でサポートするようになりました。
+
+```typescript bigNumber.ts
+// v5
+value = BigNumber.from("1000")
+
+// v6 
+// Notice the suffix n (using literal notation).
+value = 1000n
+
+// v6 
+// Using the BigInt function for strings
+value = BigInt("1000")
+```
+
+## Ethersユーティリティの削除
+Ethersを利用する際、`ethers.utils` パスはなくなりました。そのため、すべてのパスから `utils` を外して更新する必要があります：
+
+```typescript contract_parameters.ts
+// v5
+const amountBigNumber = ethers.utils.parseUnits(String(price), 18); // currency price based on correct decimals for token contract
+const erc20Interface = new ethers.utils.Interface([
+          "function approve(address spender, uint256 amount) external returns (bool)"
+        ]);
+        
+// v6
+const amountBigNumber = ethers.parseUnits(String(price), 18); // currency price based on correct decimals for token contract
+const erc20Interface = new ethers.Interface([
+          "function approve(address spender, uint256 amount) external returns (bool)"
+        ]);
+```
+
+## ユーティリティハッシュ値のパッキング
+Ethersのユーティリティで署名作成を行い、オンチェーンで `ecrecover` を使う場合、署名作成の方法が少し変わりました：
+
+```typescript signature_creation.ts
+// v5
+const hash = ethers.utils.solidityKeccak256(['uint', 'uint'], [value1, blockNumber])
+const arr = ethers.utils.arrayify(hash)
+const signature = await wallet.signMessage(arr)
+
+// v6
+const hash = ethers.solidityPackedKeccak256(['uint', 'uint'], [value1, blockNumber])
+const arr = ethers.getBytes(hash)
+const signature = await wallet.signMessage(arr)
+```
+
+<Tip>
+  Ethersの `v5` から `v6` への違いについての詳細は、公式ドキュメントの[こちら](https://docs.ethers.org/v6/migrating/)をご覧ください。
+</Tip>

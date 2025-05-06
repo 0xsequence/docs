@@ -1,0 +1,188 @@
+---
+title: useGetMultipleContractsInfo
+description: 複数のトークンやNFTのコントラクト情報を並列で取得するためのフック
+sidebarTitle: useGetMultipleContractsInfo
+---
+
+## インポート
+
+```tsx
+import { useGetMultipleContractsInfo } from '@0xsequence/hooks'
+```
+
+## 使い方
+
+```tsx
+import { useGetMultipleContractsInfo } from '@0xsequence/hooks'
+
+function CrossChainPortfolio() {
+  const {
+    data: contractsInfo,
+    isLoading,
+    isError
+  } = useGetMultipleContractsInfo([
+    // NFTs
+    { 
+      chainID: "1",
+      contractAddress: "0x..." 
+    },
+    { 
+      chainID: "137",
+      contractAddress: "0x..."
+    },
+    // ERC20 Tokens
+    { 
+      chainID: "1",
+      contractAddress: "0x..." 
+    },
+    { 
+      chainID: "137",
+      contractAddress: "0x..."
+    }
+  ])
+
+  if (isLoading) return <div>Loading portfolio...</div>
+  if (isError) return <div>Error loading portfolio</div>
+
+  const nfts = contractsInfo?.filter(info => 
+    info.type === 'ERC721' || info.type === 'ERC1155'
+  ) || []
+
+  const tokens = contractsInfo?.filter(info => 
+    info.type === 'ERC20'
+  ) || []
+
+  return (
+    <div className="portfolio">
+      <div className="nft-collections">
+        <h2>NFT Collections</h2>
+        {nfts.map((nft, index) => (
+          <div key={index} className="collection-card">
+            <img 
+              src={nft.logoURI} 
+              alt={nft.name}
+              width={64}
+              height={64}
+            />
+            <div className="collection-info">
+              <h3>{nft.name}</h3>
+              <span>Type: {nft.type}</span>
+              <span>Chain ID: {nft.chainID}</span>
+              {nft.description && (
+                <p>{nft.description}</p>
+              )}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div className="tokens">
+        <h2>Tokens</h2>
+        {tokens.map((token, index) => (
+          <div key={index} className="token-card">
+            <img 
+              src={token.logoURI} 
+              alt={token.symbol}
+              width={32}
+              height={32}
+            />
+            <div className="token-info">
+              <h4>{token.name}</h4>
+              <span>Symbol: {token.symbol}</span>
+              <span>Decimals: {token.decimals}</span>
+              <span>Chain ID: {token.chainID}</span>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+```
+
+## 返却型：`UseQueryResult<ContractInfo[]>`
+このフックはReact Queryの`UseQueryResult`の全プロパティと、コントラクト情報の配列を返します。詳細な構造は以下の通りです：
+
+```tsx
+interface ContractInfo {
+    chainId: number;
+    address: string;
+    source: string;
+    name: string;
+    type: string;
+    symbol: string;
+    decimals?: number;
+    logoURI: string;
+    deployed: boolean;
+    bytecodeHash: string;
+    extensions: ContractInfoExtensions;
+    updatedAt: string;
+    notFound: boolean;
+    queuedAt?: string;
+    status: ResourceStatus;
+}
+```
+
+### プロパティ
+
+#### data
+`ContractInfo[] | undefined`
+
+リクエストした各コントラクトの情報を含むオブジェクトの配列：
+- `name`: コントラクトまたはトークン名
+- `symbol`: トークンシンボル
+- `decimals`: 小数点以下の桁数（ERC20トークンの場合）
+- `logoURI`: コントラクト／トークンのロゴ画像URL
+- `type`: コントラクトタイプ（ERC20、ERC721、ERC1155）
+- `verified`: コントラクトが認証済みかどうか
+- `description`: 任意のコントラクト説明
+- `websiteURL`: 任意のプロジェクトWebサイトURL
+- `imageURL`: 任意のプロジェクト画像URL
+- `bannerURL`: 任意のバナー画像URL
+- `chainID`: コントラクトが存在するチェーンID
+
+#### isLoading
+`boolean`
+
+データ取得時のローディング状態。
+
+#### isError
+`boolean`
+
+クエリが失敗した場合のエラー状態。
+
+#### エラー
+`Error | null`
+
+データ取得中に発生したエラー内容。
+
+## パラメータ
+このフックは2つのパラメータを受け取ります：
+
+### args: `GetContractInfoArgs[]`
+
+```tsx
+interface GetContractInfoArgs {
+  chainID: string
+  contractAddress: string
+}
+```
+
+| パラメータ             | 型        | 説明                              |
+| ----------------- | -------- | ------------------------------- |
+| `chainID`         | `string` | チェーンID（例：Ethereumメインネットの場合は"1"） |
+| `contractAddress` | `string` | 情報を取得するコントラクトアドレス               |
+
+### options: `HooksOptions`
+
+```tsx
+interface HooksOptions {
+  disabled?: boolean
+  retry?: boolean
+}
+```
+
+| パラメータ      | 型         | 説明                       |
+| ---------- | --------- | ------------------------ |
+| `disabled` | `boolean` | （オプション）クエリの自動実行を無効にします   |
+| `retry`    | `boolean` | （オプション）失敗したクエリを再試行するかどうか |

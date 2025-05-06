@@ -1,0 +1,109 @@
+---
+title: useAddFundsModal
+description: オンランプモーダルを管理するためのフック
+sidebarTitle: useAddFundsModal
+---
+
+## インポート
+
+```tsx
+import { useAddFundsModal } from '@0xsequence/checkout'
+```
+
+## 使い方
+
+```tsx
+import { useAddFundsModal } from '@0xsequence/checkout'
+
+function App() {
+  const { triggerAddFunds } = useAddFundsModal()
+  const walletAddress = '0x123...' // User's wallet address
+  
+  const handleAddFunds = () => {
+    triggerAddFunds({
+      walletAddress,
+      defaultFiatAmount: '50',
+      defaultCryptoCurrency: 'USDC',
+      onOrderSuccessful: (data) => {
+        console.log('Order successful!', data)
+      }
+    })
+  }
+  
+  return (
+    <button onClick={handleAddFunds}>
+      Add Funds
+    </button>
+  )
+}
+```
+
+<Warning>
+  TransakのURLを読み込もうとして403エラーが表示された場合は、ドメインのホワイトリスト登録が必要です。
+  サポートが必要な場合はご連絡ください。
+</Warning>
+
+## 戻り値の型：`UseAddFundsModalReturnType`
+このフックは以下のプロパティを持つオブジェクトを返します。
+
+```tsx
+type UseAddFundsModalReturnType = {
+  triggerAddFunds: (settings: AddFundsSettings) => void
+  closeAddFunds: () => void
+  addFundsSettings: AddFundsSettings | undefined
+}
+```
+
+### プロパティ
+
+#### triggerAddFunds
+`(settings: AddFundsSettings) => void`
+
+指定したパラメータでオンランプモーダルを開きます。
+
+**パラメータ：**
+
+| パラメータ                   | 型                     | 説明                             |                   |
+| ----------------------- | --------------------- | ------------------------------ | ----------------- |
+| `walletAddress`         | \`string              | Hex\`                          | 資金を受け取るウォレットのアドレス |
+| `fiatAmount`            | `string`              | （オプション）使用する正確な法定通貨の金額          |                   |
+| `fiatCurrency`          | `string`              | （オプション）法定通貨の種類（例：'USD', 'EUR'） |                   |
+| `defaultFiatAmount`     | `string`              | （オプション）表示するデフォルトの法定通貨金額        |                   |
+| `defaultCryptoCurrency` | `string`              | （オプション）購入するデフォルトの暗号資産          |                   |
+| `cryptoCurrencyList`    | `string`              | （オプション）利用可能な暗号資産のカンマ区切りリスト     |                   |
+| `networks`              | `string`              | （オプション）利用可能なネットワークのカンマ区切りリスト   |                   |
+| `onClose`               | `() => void`          | （オプション）モーダルが閉じられたときのコールバック     |                   |
+| `onOrderCreated`        | `(data: any) => void` | （オプション）新しい注文が作成されたときのコールバック    |                   |
+| `onOrderSuccessful`     | `(data: any) => void` | （オプション）注文が正常に完了したときのコールバック     |                   |
+| `onOrderFailed`         | `(data: any) => void` | （オプション）注文が失敗したときのコールバック        |                   |
+
+#### closeAddFunds
+`() => void`
+
+オンランプモーダルを閉じます。
+
+#### addFundsSettings
+`AddFundsSettings | undefined`
+
+**AddFundsSettings インターフェース：**
+
+```tsx
+interface AddFundsSettings {
+  walletAddress: string | Hex
+  fiatAmount?: string
+  fiatCurrency?: string
+  defaultFiatAmount?: string
+  defaultCryptoCurrency?: string
+  cryptoCurrencyList?: string
+  networks?: string
+  onClose?: () => void
+  onOrderCreated?: (data: any) => void
+  onOrderSuccessful?: (data: any) => void
+  onOrderFailed?: (data: any) => void
+}
+```
+
+オンランプモーダルの現在の設定構成です。
+
+## 補足
+このフックは、Transakが提供するオンランプモーダルを制御するメソッドを提供し、ユーザーがアプリケーション内でクレジットカードやデビットカードを使って暗号資産を直接購入できるようにします。

@@ -1,0 +1,182 @@
+---
+title: useWaasFeeOptions
+description: Hook para manejar opciones de comisión WaaS para pagos de gas
+sidebarTitle: useWaasFeeOptions
+---
+
+## Importar
+
+```tsx
+import { useWaasFeeOptions } from '@0xsequence/connect'
+```
+
+## Uso
+
+```tsx
+import { useWaasFeeOptions } from '@0xsequence/connect'
+import { useEffect, useState } from 'react'
+
+function App() {
+  // Use the hook with default balance checking
+  // This will return the wallet balance for each fee option
+  const [
+    pendingFeeOptionConfirmation,
+    confirmPendingFeeOption,
+    rejectPendingFeeOption
+  ] = useWaasFeeOptions()
+  
+  // Or skip balance checking if needed
+  // const [pendingFeeOptionConfirmation, confirmPendingFeeOption, rejectPendingFeeOption] =
+  //   useWaasFeeOptions({ skipFeeBalanceCheck: true })
+  
+  const [selectedFeeOptionTokenName, setSelectedFeeOptionTokenName] = useState<string>()
+  
+  // Initialize with first option when fee options become available
+  useEffect(() => {
+    if (pendingFeeOptionConfirmation) {
+      console.log('Pending fee options: ', pendingFeeOptionConfirmation.options)
+      
+      // You could select the first fee option by default
+      if (pendingFeeOptionConfirmation.options.length > 0) {
+        const firstOption = pendingFeeOptionConfirmation.options[0]
+        setSelectedFeeOptionTokenName(firstOption.token.symbol)
+      }
+    }
+  }, [pendingFeeOptionConfirmation])
+  
+  // Handle fee option selection and confirmation
+  const handleConfirmFee = (tokenAddress: string | null) => {
+    if (pendingFeeOptionConfirmation) {
+      confirmPendingFeeOption(pendingFeeOptionConfirmation.id, tokenAddress)
+    }
+  }
+  
+  // Handle fee option rejection
+  const handleRejectFee = () => {
+    if (pendingFeeOptionConfirmation) {
+      rejectPendingFeeOption(pendingFeeOptionConfirmation.id)
+    }
+  }
+  
+  // Render fee options UI
+  if (pendingFeeOptionConfirmation) {
+    return (
+      <div>
+        <h2>Select Fee Payment Token</h2>
+        <div>
+          {pendingFeeOptionConfirmation.options.map((option) => (
+            <div key={option.token.symbol || option.token.contractAddress}>
+              <input
+                type="radio"
+                name="feeOption"
+                checked={selectedFeeOptionTokenName === option.token.symbol}
+                onChange={() => setSelectedFeeOptionTokenName(option.token.symbol)}
+              />
+              <label>
+                {option.token.symbol} - {option.token.contractAddress ? 
+                  option.token.contractAddress : 'Native Token'}
+                {/* Display balance info if extended with balance data */}
+                {'balanceFormatted' in option && 
+                  ` (Balance: ${option.balanceFormatted} ${option.token.symbol})`}
+              </label>
+            </div>
+          ))}
+        </div>
+        <div>
+          <button onClick={() => handleConfirmFee(
+            pendingFeeOptionConfirmation.options.find(
+              opt => opt.token.symbol === selectedFeeOptionTokenName
+            )?.token.contractAddress || null
+          )}>
+            Confirm
+          </button>
+          <button onClick={handleRejectFee}>Cancel</button>
+        </div>
+      </div>
+    )
+  }
+  
+  return <div>No pending fee confirmation</div>
+}
+```
+
+## Parámetros
+El hook acepta un objeto de configuración opcional con las siguientes propiedades:
+
+```tsx
+interface WaasFeeOptionsConfig {
+  skipFeeBalanceCheck?: boolean
+}
+```
+
+| Parámetro             | Type      | Description                                                                     |
+| --------------------- | --------- | ------------------------------------------------------------------------------- |
+| `skipFeeBalanceCheck` | `boolean` | Indica si se omite la verificación de balances de tokens (por defecto: `false`) |
+
+## Tipo de retorno: `UseWaasFeeOptionsReturnType`
+El hook retorna una tupla con los siguientes elementos:
+
+```tsx
+type UseWaasFeeOptionsReturnType = [
+  pendingFeeOptionConfirmation: WaasFeeOptionConfirmation | undefined,
+  confirmPendingFeeOption: (id: string, feeTokenAddress: string | null) => void,
+  rejectPendingFeeOption: (id: string) => void
+]
+```
+
+### Propiedades
+
+#### pendingFeeOptionConfirmation
+`WaasFeeOptionConfirmation | undefined`
+
+Objeto que contiene los detalles actuales de confirmación de tarifa si hay una transacción pendiente, o `undefined` si no hay ninguna transacción pendiente de confirmación.
+
+```tsx
+type WaasFeeOptionConfirmation = {
+  id: string                                // Unique identifier for the fee confirmation
+  options: FeeOptionExtended[] | FeeOption[] // Available fee options with balance information
+  chainId: number                           // Chain ID where the transaction will be executed
+}
+```
+
+Cuando `skipFeeBalanceCheck` es `false`, las opciones serán de tipo `FeeOptionExtended`, que incluye información de saldo:
+
+```tsx
+type FeeOptionExtended = FeeOption & {
+  balance: string               // Raw balance string
+  balanceFormatted: string      // Formatted balance with proper decimals
+  hasEnoughBalanceForFee: boolean // Indicates if wallet has enough balance
+}
+```
+
+#### confirmPendingFeeOption
+`(id: string, feeTokenAddress: string | null) => void`
+
+Función para confirmar la opción de tarifa seleccionada.
+
+| Parámetro         | Type     | Description                     |                                                                                                 |
+| ----------------- | -------- | ------------------------------- | ----------------------------------------------------------------------------------------------- |
+| `id`              | `string` | El ID de confirmación de tarifa |                                                                                                 |
+| `feeTokenAddress` | \`string | null\`                          | La dirección del token que se usará para el pago de la tarifa (use `null` para el token nativo) |
+
+#### rejectPendingFeeOption
+`(id: string) => void`
+
+Función para rechazar la selección de la opción de tarifa actual.
+
+| Parámetro | Type     | Description                                |
+| --------- | -------- | ------------------------------------------ |
+| `id`      | `string` | El ID de confirmación de tarifa a rechazar |
+
+## Notas
+Este hook proporciona funcionalidad para manejar las opciones de tarifa de WaaS (Wallet as a Service) para transacciones no patrocinadas.
+
+Características principales:
+- Obtener las opciones de tarifa disponibles para una transacción en Native Token y tokens ERC20
+- Obtener automáticamente los saldos del wallet del usuario para cada opción de tarifa (a menos que `skipFeeBalanceCheck` sea `true`)
+- Permitir que los usuarios seleccionen su token de tarifa preferido
+- Confirmar o rechazar selecciones de tarifa
+
+El hook se integra con el proveedor WaaS de Sequence para interceptar solicitudes de confirmación de tarifa y presenta una interfaz de usuario para permitir la selección del token de tarifa.
+
+Para una guía detallada sobre cómo usar el hook, consulte la guía [Pagar gas en ERC20](/sdk/web/guides/pay-gas-in-erc20).

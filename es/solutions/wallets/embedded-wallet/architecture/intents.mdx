@@ -1,0 +1,38 @@
+---
+title: Intenciones
+description: Aprenda cómo las intenciones son acciones específicas que se utilizan para interactuar con su cuenta, sesiones y wallet. Básicamente, son objetos JSON firmados con su clave de sesión, que representan acciones como firmar un mensaje.
+sidebarTitle: Intenciones
+---
+
+Las "intenciones" son acciones que puede usar para interactuar con su cuenta, sesiones y wallet. Este documento explica cómo funcionan internamente. No se preocupe por la complejidad: los SDK se encargan de todo eso.
+
+Piense en una intención como un objeto JSON. Representa la acción que desea realizar y está firmada con su clave de sesión. Por ejemplo, si quiere firmar un mensaje, enviaría una intención a la API de WaaS.
+
+## ¿Qué son?
+A grandes rasgos, una intención es simplemente un objeto JSON que especifica la acción que el usuario desea realizar y está firmada usando su clave de sesión. Por ejemplo, para firmar un mensaje, el cliente enviaría la siguiente intención a la API de WaaS:
+
+```
+{
+    "version": "0.0.0",
+    "issuedAt": 1712775116,
+    "expiresAt": 1712775416,
+    "name": "signMessage",
+    "data": {
+      "wallet": "0x7B7D7BA79542584f9AeF539F6696c070a4e1Ced6",
+      "network": "1",
+      "message": "0x48656c6c6f2c20686176652061206e69636520646179"
+    },
+    "signatures": [
+      {
+        "sessionId": "0x01047de46debeeb83e1270b80ae65996ea64ad2c033e330cfffe9b725bf078423140124dce0cfe0cab9a61b385ca74fe77cd5e8a7147bfd87052f334cfbadc45c79a",
+        "signature": "0x28ec6ddcdbc0987a99dde19792ff0c9be69ad2be873fb9351353171b74d2df3380f0ffcae2b8cb37a0659e374859420500b4399a2aab0209ee7919aaea575ac7"
+      }
+    ]
+}
+```
+
+Analicemos la estructura de una intención.
+- **Firmas:** Normalmente, una sola firma representa su sesión. Una sesión es un par de claves creado localmente; la clave pública forma parte del `sessionId` y la clave privada permanece en su dispositivo. Asegúrese de almacenar su clave de sesión, que da acceso a su wallet, de forma segura, idealmente en un enclave seguro en el dispositivo. Antes de poder usar la sesión, debe registrarla en la API de WaaS.
+- La firma es un EIP-191 de la representación canónica de la intención. Esto significa que es un JSON con las claves ordenadas alfabéticamente, sin espacios en blanco y excluyendo el campo `signatures`.
+- **Nombre y datos:** El nombre y los datos cambiarán con cada intención. El nombre identifica el tipo de intención y los datos asociados a ella.
+- **Timestamps:** La API verifica los timestamps unix para determinar el periodo de validez de la intención y evitar que intenciones antiguas se reutilicen en el futuro.

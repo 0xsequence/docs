@@ -1,0 +1,153 @@
+---
+title: クライアント
+---
+
+SequenceEthereumにおける `Client` は、[`IEthClient` インターフェース](https://github.com/0xsequence/sequence-unity/blob/master/Assets/SequenceSDK/Ethereum/Provider/IEthClient.cs)によって定義されています。
+
+クライアントの作成には `Chain` が必要です。これにより、Builderで設定したAPIキーを使って、RPCリクエスト用の高可用性・高応答性のNode Gatewayサービスを利用できます。独自のRPC URLを使いたい場合は、URL文字列をパラメータとして `SequenceEthClient` を作成することも可能です。
+
+クライアントは以下のスニペットで作成できます。
+
+```csharp
+IEthClient client = new SequenceEthClient(Chain.Polygon);
+```
+
+## メソッド一覧
+Ethereumノードへの接続ポイントとして、クライアントで実行できるさまざまなメソッドがあります。これらは `IEthClient` インターフェースに記載されており、`SequenceEthClient` で実装されています。
+
+注意：BalanceAt（場合によっては）を除き、ほとんどのユーザーはこれらのメソッドを利用する必要はありませんが、完全性のためにドキュメントに記載しています。
+
+### BalanceAt
+指定したウォレットの、指定したブロック番号（16進数文字列）時点でのガス通貨残高を取得します。
+
+```csharp
+BigIntegar balance = await client.BalanceAt(wallet.GetAddress()); // By default, if no blockNumber string is provided, check the latest block
+BigIntegar balance = await client.BalanceAt(wallet.GetAddress(), blockNumber);
+```
+
+注意：blockNumberには特別な値が2つあります。"earliest"はチェーンの最初のブロック時点の残高、"latest"は最新ブロック時点の残高（デフォルト）を取得します。それ以外の場合は、16進数形式のblockNumber文字列を指定してください。
+
+<Warning><b><u>仕組みの詳細に<i>本当に</i>興味がある場合を除き、この時点で次のドキュメントページへ進むことを強く推奨します</u></b></Warning>
+
+### BlockByNumber
+指定したブロック番号の `Block` を取得します。
+
+```csharp
+Block block = await client.BlockByNumber(blockNumber);
+```
+
+注意：上記と同様に、blockNumberは16進数形式または特別な値 "earliest"、"latest" を指定してください。
+
+### BlockByHash
+指定したブロックハッシュ（文字列）で `Block` を取得します。
+
+```csharp
+Block block = await client.BlockByHash(blockHash);
+```
+
+### BlockNumber
+最新のブロック番号を16進数形式で取得します。
+
+```csharp
+string blockNumber = await client.BlockNumber();
+```
+
+### BlockRange
+指定したblockNumberの範囲に含まれるブロックの `List<Block>` を取得します。
+
+```csharp
+List<Block> blockRange = await client.BlockRange(startingBlockNumber, endingBlockNumber);
+```
+
+注意：上記と同様に、blockNumberは16進数形式または特別な値 "earliest"、"latest" を指定してください。
+
+### ChainID
+クライアントが接続しているチェーンのチェーンIDを16進数形式で取得します。
+
+```csharp
+string chainId = await client.ChainID();
+```
+
+### CodeAt
+指定したアドレスのスマートコントラクトのバイトコードを、指定したblockNumber（16進数形式）時点で取得します。
+
+```csharp
+string code = await client.CodeAt(contractAddress, blockNumber);
+```
+
+注意：上記と同様に、blockNumberは16進数形式または特別な値 "earliest"、"latest" を指定してください。
+
+### EstimateGas
+`TransactionCall` をもとに、そのトランザクションに必要なガス量を見積もります。
+
+```csharp
+BigIntegar gas = await client.EstimateGas(transactionCall);
+```
+
+### FeeHistory
+最新ブロック（blockNumber）からblockCount分遡ったガス手数料の `FeeHistoryResult` を取得します。
+
+```csharp
+FeeHistoryResult feeHistory = await client.FeeHistory(blockCount, newestBlock, new int[] { });
+```
+
+注意：上記と同様に、blockNumberは16進数形式または特別な値 "earliest"、"latest" を指定してください。
+
+### NetworkId
+クライアントが接続しているチェーンのチェーンIDを整数形式（文字列）で取得します。
+
+```csharp
+string networkId = await client.NetworkId();
+```
+
+### NonceAt
+指定した `Address` の推奨nonceを、指定したblockNumber（デフォルトは"latest"）で取得します。
+
+```csharp
+BigInteger nonce = await client.NonceAt(wallet.GetAddress()); // Nonce at latest
+BigIntegar nonce = await client.NonceAt(wallet.GetAddress(), blockNumber);
+```
+
+注意：上記と同様に、blockNumberは16進数形式または特別な値 "earliest"、"latest" を指定してください。
+
+### SendRawTransaction
+署名済みトランザクション文字列をネットワークに送信し、トランザクションハッシュを返します。
+
+```csharp
+string transactionHash = await client.SendRawTransaction(signedTransactionString);
+```
+
+### SuggestGasPrice
+推奨ガス価格を取得します。
+
+```csharp
+BigIntegar gasPrice = await client.SuggestGasPrice();
+```
+
+### SuggestGasTipCap
+ガスの最大推奨優先手数料を取得します。
+
+```csharp
+BigIntegar gasTipCap = await client.SuggestGasTipCap();
+```
+
+### TransactionByHash
+トランザクションハッシュで `Transaction` を取得します。
+
+```csharp
+Transaction transaction = await client.TransactionByHash(transactionHash);
+```
+
+### TransactionCount
+指定したブロックハッシュのブロック内トランザクション数を取得します。
+
+```csharp
+BigIntegar transactionCount = await client.TransactionCount(blockHash);
+```
+
+### WaitForTransactionReceipt
+トランザクションハッシュを指定して、`TransactionReceipt` を待機・取得します。
+
+```csharp
+TransactionReceipt receipt = await client.WaitForTransactionReceipt(transactionHash);
+```
