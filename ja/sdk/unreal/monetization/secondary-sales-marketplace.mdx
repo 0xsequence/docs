@@ -1,0 +1,290 @@
+---
+title: Secondary Sales Marketplace
+description: Sequenceインフラストラクチャスタックを用いたweb3ゲーム向けUnreal SDK概要のドキュメントです。
+---
+
+## 一般
+
+### 通貨一覧の取得
+
+<Tabs>
+  <Tab title="ブループリント">
+    <Frame>
+      <img src="/images/unreal/marketplace/list_currencies.png" />
+    </Frame>
+  </Tab>
+
+  <Tab title="C++">
+    ```cpp
+    const TSuccessCallback<FSeqListCurrenciesReturn> OnApiSuccess = [this, OnSuccess](const FSeqListCurrenciesReturn& Response) { };
+    const FFailureCallback OnApiFailure = [this, OnFailure](const FSequenceError& Error) { };
+
+    USequenceMarketplace* Marketplace = NewObject<USequenceMarketplace>();
+    Marketplace->ListCurrencies(SequenceSdk::GetChainId(), OnApiSuccess, OnApiFailure);
+    ```
+  </Tab>
+</Tabs>
+
+### フロア注文の取得
+
+<Tabs>
+  <Tab title="ブループリント">
+    <Frame>
+      <img src="/images/unreal/marketplace/get_floor_order.png" />
+    </Frame>
+  </Tab>
+
+  <Tab title="C++">
+    ```cpp
+    const TSuccessCallback<FSeqCollectibleOrder> OnApiSuccess = [this, OnSuccess](const FSeqCollectibleOrder& Response) { };
+    const FFailureCallback OnApiFailure = [this, OnFailure](const FSequenceError& Error) { };
+
+    USequenceMarketplace* Marketplace = NewObject<USequenceMarketplace>();
+    Marketplace->GetFloorOrder(SequenceSdk::GetChainId(), ContractAddress, Filter, OnApiSuccess, OnApiFailure);
+    ```
+  </Tab>
+</Tabs>
+
+## リスティング
+
+### コレクティブルの全リスティング一覧
+
+<Tabs>
+  <Tab title="ブループリント">
+    <Frame>
+      <img src="/images/unreal/marketplace/list_all_listings.png" />
+    </Frame>
+  </Tab>
+
+  <Tab title="C++">
+    ```cpp
+    const TSuccessCallback<TArray<FSeqCollectibleOrder>> OnApiSuccess = [this, OnSuccess](const TArray<FSeqCollectibleOrder>& Response) { };
+    const FFailureCallback OnApiFailure = [this, OnFailure](const FSequenceError& Error) { };
+
+    USequenceMarketplace* Marketplace = NewObject<USequenceMarketplace>();
+    Marketplace->ListAllListingsForCollectible(SequenceSdk::GetChainId(), ContractAddress, TokenID, Filter, OnApiSuccess, OnApiFailure);
+    ```
+  </Tab>
+</Tabs>
+
+### コレクティブルの最安値リスティング順一覧の取得
+
+<Tabs>
+  <Tab title="ブループリント">
+    <Frame>
+      <img src="/images/unreal/marketplace/get_all_collectibles_with_lowest_listings_first.png" />
+    </Frame>
+  </Tab>
+
+  <Tab title="C++">
+    ```cpp
+    const TSuccessCallback<TArray<FSeqCollectibleOrder>> OnApiSuccess = [this, OnSuccess](const TArray<FSeqCollectibleOrder>& Response) { };
+    const FFailureCallback OnApiFailure = [this, OnFailure](const FSequenceError& Error) { };
+
+    USequenceMarketplace* Marketplace = NewObject<USequenceMarketplace>();
+    Marketplace->GetAllCollectiblesWithLowestListingsFirst(SequenceSdk::GetChainId(), ContractAddress, Filter, OnApiSuccess, OnApiFailure);
+    ```
+  </Tab>
+</Tabs>
+
+### 最安値リスティング順でコレクティブルを取得
+
+<Tabs>
+  <Tab title="ブループリント">
+    <Frame>
+      <img src="/images/unreal/marketplace/get_collectibles_with_lowest_listings_first.png" />
+    </Frame>
+  </Tab>
+
+  <Tab title="C++">
+    ```cpp
+    const TSuccessCallback<FSeqListCollectiblesReturn> OnApiSuccess = [this, OnSuccess](const FSeqListCollectiblesReturn& Response) { };
+    const FFailureCallback OnApiFailure = [this, OnFailure](const FSequenceError& Error) { };
+
+    USequenceMarketplace* Marketplace = NewObject<USequenceMarketplace>();
+    Marketplace->GetCollectiblesWithLowestListingsFirst(SequenceSdk::GetChainId(), ContractAddress, Filter, Page, OnApiSuccess, OnApiFailure);
+    ```
+  </Tab>
+</Tabs>
+
+### コレクティブルの最高価格リスティングの取得
+
+<Tabs>
+  <Tab title="ブループリント">
+    <Frame>
+      <img src="/images/unreal/marketplace/get_highest_price_listing_for_collectible.png" />
+    </Frame>
+  </Tab>
+
+  <Tab title="C++">
+    ```cpp
+    const TSuccessCallback<FSeqCollectibleOrder> OnApiSuccess = [this, OnSuccess](const FSeqCollectibleOrder& Response) { };
+    const FFailureCallback OnApiFailure = [this, OnFailure](const FSequenceError& Error) { };
+
+    USequenceMarketplace* Marketplace = NewObject<USequenceMarketplace>();
+    Marketplace->GetHighestPriceListingForCollectible(SequenceSdk::GetChainId(), ContractAddress, TokenID, Filter, OnApiSuccess, OnApiFailure);
+    ```
+  </Tab>
+</Tabs>
+
+### コレクティブルの最安値リスティングの取得
+
+<Tabs>
+  <Tab title="ブループリント">
+    <Frame>
+      <img src="/images/unreal/marketplace/get_lowest_price_listing_for_collectible.png" />
+    </Frame>
+  </Tab>
+
+  <Tab title="C++">
+    ```cpp
+    const TSuccessCallback<FSeqCollectibleOrder> OnApiSuccess = [this, OnSuccess](const FSeqCollectibleOrder& Response) { };
+    const FFailureCallback OnApiFailure = [this, OnFailure](const FSequenceError& Error) { };
+
+    USequenceMarketplace* Marketplace = NewObject<USequenceMarketplace>();
+    Marketplace->GetLowestPriceListingForCollectible(SequenceSdk::GetChainId(), ContractAddress, TokenID, Filter, OnApiSuccess, OnApiFailure);
+    ```
+  </Tab>
+</Tabs>
+
+### コレクティブルのリスティング一覧
+
+<Tabs>
+  <Tab title="ブループリント">
+    <Frame>
+      <img src="/images/unreal/marketplace/list_listings_for_collectible.png" />
+    </Frame>
+  </Tab>
+
+  <Tab title="C++">
+    ```cpp
+    const TSuccessCallback<FSeqListCollectibleListingsReturn> OnApiSuccess = [this, OnSuccess](const FSeqListCollectibleListingsReturn& Response) { };
+    const FFailureCallback OnApiFailure = [this, OnFailure](const FSequenceError& Error) { };
+
+    USequenceMarketplace* Marketplace = NewObject<USequenceMarketplace>();
+    Marketplace->ListListingsForCollectible(SequenceSdk::GetChainId(), ContractAddress, TokenID, Filter, Page, OnApiSuccess, OnApiFailure);
+    ```
+  </Tab>
+</Tabs>
+
+## オファー
+
+### コレクティブルのオファー一覧
+
+<Tabs>
+  <Tab title="ブループリント">
+    <Frame>
+      <img src="/images/unreal/marketplace/list_offers_for_collectible.png" />
+    </Frame>
+  </Tab>
+
+  <Tab title="C++">
+    ```cpp
+    const TSuccessCallback<FSeqListCollectibleOffersReturn> OnApiSuccess = [this, OnSuccess](const FSeqListCollectibleOffersReturn& Response) { };
+    const FFailureCallback OnApiFailure = [this, OnFailure](const FSequenceError& Error) { };
+
+    USequenceMarketplace* Marketplace = NewObject<USequenceMarketplace>();
+    Marketplace->ListOffersForCollectible(SequenceSdk::GetChainId(), ContractAddress, TokenID, Filter, Page, OnApiSuccess, OnApiFailure);
+    ```
+  </Tab>
+</Tabs>
+
+### コレクティブルの全オファー一覧
+
+<Tabs>
+  <Tab title="ブループリント">
+    <Frame>
+      <img src="/images/unreal/marketplace/list_all_offers_for_collectible.png" />
+    </Frame>
+  </Tab>
+
+  <Tab title="C++">
+    ```cpp
+    const TSuccessCallback<TArray<FSeqCollectibleOrder>> OnApiSuccess = [this, OnSuccess](const TArray<FSeqCollectibleOrder>& Response) { };
+    const FFailureCallback OnApiFailure = [this, OnFailure](const FSequenceError& Error) { };
+
+    USequenceMarketplace* Marketplace = NewObject<USequenceMarketplace>();
+        Marketplace->ListAllOffersForCollectible(SequenceSdk::GetChainId(), ContractAddress, TokenID, Filter, OnApiSuccess, OnApiFailure);
+    ```
+  </Tab>
+</Tabs>
+
+### 最高価格オファー順で全コレクティブルを取得
+
+<Tabs>
+  <Tab title="ブループリント">
+    <Frame>
+      <img src="/images/unreal/marketplace/get_all_collectibles_with_highest_priced_offer_first.png" />
+    </Frame>
+  </Tab>
+
+  <Tab title="C++">
+    ```cpp
+    const TSuccessCallback<TArray<FSeqCollectibleOrder>> OnApiSuccess = [this, OnSuccess](const TArray<FSeqCollectibleOrder>& Response) { };
+    const FFailureCallback OnApiFailure = [this, OnFailure](const FSequenceError& Error) { };
+
+    USequenceMarketplace* Marketplace = NewObject<USequenceMarketplace>();
+    Marketplace->ListAllCollectibleOffersWithHighestPricedOfferFirst(SequenceSdk::GetChainId(), ContractAddress, Filter, OnApiSuccess, OnApiFailure);
+    ```
+  </Tab>
+</Tabs>
+
+### 最高価格オファー順でコレクティブルを取得
+
+<Tabs>
+  <Tab title="ブループリント">
+    <Frame>
+      <img src="/images/unreal/marketplace/get_collectibles_with_highest_priced_offers_first.png" />
+    </Frame>
+  </Tab>
+
+  <Tab title="C++">
+    ```cpp
+    const TSuccessCallback<FSeqListCollectiblesReturn> OnApiSuccess = [this, OnSuccess](const FSeqListCollectiblesReturn& Response) { };
+    const FFailureCallback OnApiFailure = [this, OnFailure](const FSequenceError& Error) { };
+
+    USequenceMarketplace* Marketplace = NewObject<USequenceMarketplace>();
+    Marketplace->GetCollectiblesWithHighestPricedOffersFirst(SequenceSdk::GetChainId(), ContractAddress, Filter, Page, OnApiSuccess, OnApiFailure);
+    ```
+  </Tab>
+</Tabs>
+
+### コレクティブルの最高価格オファーの取得
+
+<Tabs>
+  <Tab title="ブループリント">
+    <Frame>
+      <img src="/images/unreal/marketplace/get_highest_price_offer_for_collectible.png" />
+    </Frame>
+  </Tab>
+
+  <Tab title="C++">
+    ```cpp
+    const TSuccessCallback<FSeqCollectibleOrder> OnApiSuccess = [this, OnSuccess](const FSeqCollectibleOrder& Response) { };
+    const FFailureCallback OnApiFailure = [this, OnFailure](const FSequenceError& Error) { };
+
+    USequenceMarketplace* Marketplace = NewObject<USequenceMarketplace>();
+    Marketplace->GetHighestPriceOfferForCollectible(SequenceSdk::GetChainId(), ContractAddress, TokenID, Filter, OnApiSuccess, OnApiFailure);
+    ```
+  </Tab>
+</Tabs>
+
+### コレクティブルの最安値オファーの取得
+
+<Tabs>
+  <Tab title="ブループリント">
+    <Frame>
+      <img src="/images/unreal/marketplace/get_lowest_price_offer_for_collectible.png" />
+    </Frame>
+  </Tab>
+
+  <Tab title="C++">
+    ```cpp
+    const TSuccessCallback<FSeqCollectibleOrder> OnApiSuccess = [this, OnSuccess](const FSeqCollectibleOrder& Response) { };
+    const FFailureCallback OnApiFailure = [this, OnFailure](const FSequenceError& Error) { };
+
+    USequenceMarketplace* Marketplace = NewObject<USequenceMarketplace>();
+    Marketplace->GetLowestPriceOfferForCollectible(SequenceSdk::GetChainId(), ContractAddress, TokenID, Filter, OnApiSuccess, OnApiFailure);
+    ```
+  </Tab>
+</Tabs>

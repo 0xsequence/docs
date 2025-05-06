@@ -27,6 +27,8 @@ En compilaciones Web, utilizamos [IndexedDB](https://developer.mozilla.org/en-US
 ## Android
 En compilaciones Android, utilizamos el [Android Keystore](https://developer.android.com/privacy-and-security/keystore).
 
+El primer paso es importar el plugin `AndroidKeyBridge.java` en su carpeta Assets. Esto se hace fácilmente desde Samples en el package manager; simplemente importe el sample titulado `Android Secure Storage`.
+
 Nuestro plugin Keystore para Unity (incluido en el SDK) requiere una Plantilla Gradle Principal personalizada. Por favor, vaya a la configuración de su proyecto y, en `Player > Publishing Settings`, habilite `Custom Main Gradle Template`. Esto creará un archivo `Assets/Plugins/Android/mainTemplate.gradle` (o similar; el editor le mostrará la ruta) si aún no tiene uno. Aquí tiene un ejemplo de archivo `mainTemplate.gradle`; por favor, copie/pegue (o incorpore en su archivo existente).
 
 ```
@@ -85,6 +87,17 @@ unityStreamingAssets=**STREAMING_ASSETS**
 
 android.enableR8=**MINIFY_WITH_R_EIGHT**
 ```
+
+### Solución de problemas
+Si tiene problemas con el almacenamiento seguro o Google Sign-In en Android, siga estos pasos de solución de problemas.
+- **Google Sign-In:** Asegúrese de que el valor `data android:scheme` en su archivo `AndroidManifest.xml` coincida con el `Url Scheme` en su archivo
+  `SequenceConfig.asset`. Verifique que esté todo en minúsculas.
+- **Almacenamiento seguro:** Asegúrese de que su `mainTemplate.gradle` defina correctamente el plugin `androidx.security:security-crypto` y que no sea
+  sobrescrito por otro plugin o por el Android Plugin Resolver.
+- **Pruebe nuestra demo:** [Instale nuestra build de demostración](https://drive.google.com/file/d/1rAvnPu56Hj3yDRL32_lr887xt-xMQoYK/view?usp=sharing)
+  y asegúrese de que funcione correctamente en su dispositivo.
+  - Compare la configuración de su proyecto Unity (AndroidManifest, archivos gradle, configuración del reproductor de Android) con nuestro [proyecto sdk.](https://github.com/0xsequence/sequence-unity)
+- **Ideas adicionales:** Desinstale la app antes de instalar una nueva build, cambie su esquema de URL o el bundle id.
 
 ## Editor
 En el editor, usamos PlayerPrefs para el almacenamiento de claves privadas. También deberá habilitar 'EditorStoreSessionPrivateKeyInSecureStorage' en SequenceConfig para poder usar el almacenamiento seguro y recuperar sesiones desde el editor. Esta opción separada le facilita probar ambos flujos sin modificar el comportamiento de sus builds. El almacenamiento seguro en el editor es solo para fines de desarrollo y no debe considerarse seguro para almacenamiento a largo plazo.

@@ -1,0 +1,55 @@
+---
+title: Google & Appleでのサインイン
+description: Social Sign Inの使い方や、Browser PluginとSequenceのUnreal SDKを使ってIdトークンを取得する方法をご紹介します。
+---
+
+<Steps>
+  <Step title="GoogleまたはAppleのIdトークンを取得">
+    まずは`Get Google Token Id`関数を呼び出します。iOSやAndroidの場合は、ネイティブプラグインを利用してidトークンを管理し、処理完了後に`IdTokenReceived`イベントが呼ばれます。MacやWindowsで開発・ビルドする場合は、Browser PluginでSign In Urlを処理する必要があります。
+
+    <Frame>
+      <img src="/images/unreal/guides/social_signin/get_token.png" />
+    </Frame>
+  </Step>
+
+  <Step title="Browser pluginでURLを読み込む">
+    Browserオブジェクトを作成し、`Sign In Url`を読み込みます。
+
+    <Frame>
+      <img src="/images/unreal/guides/social_signin/load_url.png" />
+    </Frame>
+  </Step>
+
+  <Step title="URLの変化を監視する">
+    AppleやGoogleからIdトークンを取得するには、Url文字列の変化を監視する必要があります。
+    サインイン処理中にidトークンがUrl内に含まれるため、これを抽出するための追加関数が必要です。
+
+    <Frame>
+      <img src="/images/unreal/guides/social_signin/listen_to_url_changes.png" />
+    </Frame>
+  </Step>
+
+  <Step title="URLからidトークンを抽出">
+    Urlからidトークンを抽出するためのヘルパー関数をいくつか統合しましょう。
+
+    **Url to Map:** Urlのクエリパラメータを文字列-to-文字列のマップに変換します。
+
+    <Frame>
+      <img src="/images/unreal/guides/social_signin/url_to_map.png" />
+    </Frame>
+
+    **Token from Url:** マップを使って`id_token`値が存在するか確認し、あれば返します。
+
+    <Frame>
+      <img src="/images/unreal/guides/social_signin/token_from_url.png" />
+    </Frame>
+  </Step>
+
+  <Step title="セッションの作成">
+    最後に、idトークンが取得できたか確認し、その値を使って`Start Oidc Session`でセッションを作成します。
+
+    <Frame>
+      <img src="/images/unreal/guides/social_signin/start_session.png" />
+    </Frame>
+  </Step>
+</Steps>

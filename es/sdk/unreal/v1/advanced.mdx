@@ -1,0 +1,35 @@
+---
+title: Advanced Blockchain Interactions
+description: Documentación para el SDK de Unreal sobre interacciones avanzadas con blockchain para la infraestructura de Sequence orientada a juegos web3.
+---
+
+La mayoría de los usuarios del SDK de Sequence no necesitarán interactuar directamente con funciones criptográficas.
+
+## Datos binarios
+Encapsulamos los datos binarios usando los structs `FBinaryData`, que son un contenedor alrededor de un puntero a un arreglo de bytes compartido `TSharedPtr<TArray<uint8>>`. Los datos binarios se subdividen en `FUnsizedData`, que representa datos de tamaño variable, y `TSizedData<TSize>`, que representa datos de una longitud de bytes fija **TSize**.
+
+Los tipos criptográficos importantes de tamaño fijo, como las claves privadas de 32 bytes, se definen como subtipos de TSizedData; por ejemplo, definimos `FPrivateKey : TSizedData<32>`. Estos también pueden cargarse desde cadenas hexadecimales usando `From(FString Str)`, como `FPrivateKey::From("0x0...0");`. Asegúrese de que la cadena de entrada tenga el tamaño correcto.
+
+## El ABI
+Para llamar contratos en la blockchain, deberá codificar cualquier dato que desee pasar como argumento usando el **ABI**. Para leer más sobre el ABI y su especificación, consulte la documentación de [_solidity_](https://docs.soliditylang.org/en/latest/abi-spec.html).
+
+Nuestra implementación de ABI se centra en la clase ABI en `ABI/ABI.h`, que proporciona funciones para convertir los siguientes tipos: **UInt32**, **Int32**, **Bool**, **FAddress** y **FString**. Cualquier otro dato puede transformarse directamente en **TFixedABIArray** o **TDynamicABIArray** para arreglos de longitud fija o dinámica, respectivamente, o en **TFixedABIData** y `TDynamicABIData` para datos binarios de longitud fija o dinámica.
+
+Una vez que tenga sus datos almacenados en tipos **ABIEncodeable**, puede proporcionar al ABI un arreglo del tipo `TArray<ABIEncodeable*>` a `ABI::Encode` para recibir la codificación binaria de los argumentos. Vea `**TestABI.cpp**` para un ejemplo.
+
+## Funciones criptográficas
+**Eth/Crypto.h** proporciona algunas funciones importantes de ethereum para interactuar directamente con la blockchain:
+
+```cpp
+// Derives a public key from a private key
+FPublicKey GetPublicKey(FPrivateKey PrivateKey);
+// Derives an address from the public key
+FAddress GetAddress(FPublicKey PublicKey);
+// Finds a keccak hash for some binary data
+FHash256 GetKeccakHash(FBinaryData &Data);
+// Derives contract address from a given sending address and nonce
+FAddress GetContractAddress(FAddress Sender, FBlockNonce Nonce);
+```
+
+## Transacciones crudas de Ethereum
+**EthTransaction.h** contiene un struct diseñado para gestionar transacciones crudas de ethereum, incluyendo funciones para firmarlas y calcular su hash. Tenga en cuenta que normalmente las transacciones deben gestionarse a través de la interfaz de wallet de Sequence, que las envía mediante Sequence WAAS.

@@ -1,0 +1,57 @@
+---
+title: Inicio de sesión con Google y Apple
+description: Aprenda cómo usar el inicio de sesión con redes sociales y obtener un Id Token usando el Browser Plugin y el SDK de Unreal de Sequence.
+---
+
+<Steps>
+  <Step title="Obtener un Id Token de Google o Apple">
+    Comience llamando la función `Get Google Token Id`. Cuando desarrolle para iOS y Android, se usarán plugins nativos
+    para gestionar el id token y se llamará al evento `IdTokenReceived` una vez finalizado el proceso. Cuando desarrolle y compile
+    para Mac y Windows, debe manejar la Sign In Url con el Browser Plugin.
+
+    <Frame>
+      <img src="/images/unreal/guides/social_signin/get_token.png" />
+    </Frame>
+  </Step>
+
+  <Step title="Cargar la URL usando el Browser plugin">
+    Cree un objeto Browser y cargue la `Sign In Url`.
+
+    <Frame>
+      <img src="/images/unreal/guides/social_signin/load_url.png" />
+    </Frame>
+  </Step>
+
+  <Step title="Escuchar cambios en la URL">
+    Para obtener el id token de Apple y Google, necesitamos escuchar los cambios en la cadena de la Url.
+    El id token está dentro de la Url durante el proceso de inicio de sesión y necesitamos funciones adicionales para extraerlo de la Url.
+
+    <Frame>
+      <img src="/images/unreal/guides/social_signin/listen_to_url_changes.png" />
+    </Frame>
+  </Step>
+
+  <Step title="Extraer el id token de la URL">
+    Integre algunas funciones auxiliares para extraer el id token de la Url.
+
+    **Url a Mapa:** Convierte los parámetros de consulta de la Url en un mapa de string a string.
+
+    <Frame>
+      <img src="/images/unreal/guides/social_signin/url_to_map.png" />
+    </Frame>
+
+    **Token desde Url:** Use el mapa para verificar si existe el valor `id_token` y retórnelo.
+
+    <Frame>
+      <img src="/images/unreal/guides/social_signin/token_from_url.png" />
+    </Frame>
+  </Step>
+
+  <Step title="Crear la sesión">
+    Finalmente, verificamos si obtuvimos el id token y usamos ese valor para crear una sesión usando `Start Oidc Session`.
+
+    <Frame>
+      <img src="/images/unreal/guides/social_signin/start_session.png" />
+    </Frame>
+  </Step>
+</Steps>

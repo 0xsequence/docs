@@ -1,0 +1,250 @@
+---
+title: Checkout
+description: Documentación general del SDK de Unreal para la infraestructura Sequence orientada a juegos web3.
+---
+
+## Creación de transacciones
+
+### Generar transacción de listado
+
+<Tabs>
+  <Tab title="Blueprint">
+    <Frame>
+      <img src="/images/unreal/checkout/generate_listing_transaction.png" />
+    </Frame>
+  </Tab>
+
+  <Tab title="C++">
+    ```cpp
+    const TSuccessCallback<FGenerateTransactionResponse> OnApiSuccess = [this, OnSuccess](const FGenerateTransactionResponse& Response) { };
+    const FFailureCallback OnApiFailure = [this, OnFailure](const FSequenceError& Error) { };
+
+    USequenceCheckout* Checkout = NewObject<USequenceCheckout>();
+    Checkout->GenerateListingTransaction(SequenceSdk::GetChainId(), WalletAddress, CollectionAddress, TokenId, Amount, ContractType, CurrencyTokenAddress, PricePerToken, Expiry, OrderbookKind, WalletKind, OnApiSuccess, OnApiFailure);
+    ```
+  </Tab>
+</Tabs>
+
+### Generar transacción de oferta
+
+<Tabs>
+  <Tab title="Blueprint">
+    <Frame>
+      <img src="/images/unreal/checkout/generate_offer_transaction.png" />
+    </Frame>
+  </Tab>
+
+  <Tab title="C++">
+    ```cpp
+    const TSuccessCallback<FGenerateTransactionResponse> OnApiSuccess = [this, OnSuccess](const FGenerateTransactionResponse& Response) { };
+    const FFailureCallback OnApiFailure = [this, OnFailure](const FSequenceError& Error) { };
+
+    USequenceCheckout* Checkout = NewObject<USequenceCheckout>();
+    Checkout->GenerateOfferTransaction(SequenceSdk::GetChainId(), WalletAddress, CollectionAddress, TokenId, Amount, ContractType, CurrencyTokenAddress, PricePerToken, Expiry, OrderbookKind, WalletKind, OnApiSuccess, OnApiFailure);
+    ```
+  </Tab>
+</Tabs>
+
+### Generar transacción de compra
+
+<Tabs>
+  <Tab title="Blueprint">
+    <Frame>
+      <img src="/images/unreal/checkout/generate_buy_transaction.png" />
+    </Frame>
+  </Tab>
+
+  <Tab title="C++">
+    ```cpp
+    const TSuccessCallback<FGenerateTransactionResponse> OnApiSuccess = [this, OnSuccess](const FGenerateTransactionResponse& Response) { };
+    const FFailureCallback OnApiFailure = [this, OnFailure](const FSequenceError& Error) { };
+
+    USequenceCheckout* Checkout = NewObject<USequenceCheckout>();
+    Checkout->GenerateBuyTransaction(SequenceSdk::GetChainId(), WalletAddress, Order, Amount, AdditionalFee, WalletKind, OnApiSuccess, OnApiFailure);
+    ```
+  </Tab>
+</Tabs>
+
+### Generar transacción de venta
+
+<Tabs>
+  <Tab title="Blueprint">
+    <Frame>
+      <img src="/images/unreal/checkout/generate_sell_transaction.png" />
+    </Frame>
+  </Tab>
+
+  <Tab title="C++">
+    ```cpp
+    const TSuccessCallback<FGenerateTransactionResponse> OnApiSuccess = [this, OnSuccess](const FGenerateTransactionResponse& Response) { };
+    const FFailureCallback OnApiFailure = [this, OnFailure](const FSequenceError& Error) { };
+
+    USequenceCheckout* Checkout = NewObject<USequenceCheckout>();
+    Checkout->GenerateSellTransaction(SequenceSdk::GetChainId(), WalletAddress, Order, Amount, AdditionalFee, WalletKind, OnApiSuccess, OnApiFailure);
+    ```
+  </Tab>
+</Tabs>
+
+### Generar transacción de cancelación
+
+<Tabs>
+  <Tab title="Blueprint">
+    <Frame>
+      <img src="/images/unreal/checkout/generate_cancel_transaction.png" />
+    </Frame>
+  </Tab>
+
+  <Tab title="C++">
+    ```cpp
+    const TSuccessCallback<FGenerateTransactionResponse> OnApiSuccess = [this, OnSuccess](const FGenerateTransactionResponse& Response) { };
+    const FFailureCallback OnApiFailure = [this, OnFailure](const FSequenceError& Error) { };
+
+    USequenceCheckout* Checkout = NewObject<USequenceCheckout>();
+    Checkout->GenerateCancelTransaction(SequenceSdk::GetChainId(), WalletAddress, CollectionAddress, OrderId, MarketplaceKind, OnApiSuccess, OnApiFailure);
+    ```
+  </Tab>
+</Tabs>
+
+### Generar transacción de cancelación por orden
+
+<Tabs>
+  <Tab title="Blueprint">
+    <Frame>
+      <img src="/images/unreal/checkout/generate_cancel_transaction_by_order.png" />
+    </Frame>
+  </Tab>
+
+  <Tab title="C++">
+    ```cpp
+    const TSuccessCallback<FGenerateTransactionResponse> OnApiSuccess = [this, OnSuccess](const FGenerateTransactionResponse& Response) { };
+    const FFailureCallback OnApiFailure = [this, OnFailure](const FSequenceError& Error) { };
+
+    USequenceCheckout* Checkout = NewObject<USequenceCheckout>();
+    Checkout->GenerateCancelTransactionByOrder(SequenceSdk::GetChainId(), WalletAddress, CollectionAddress, Order, MarketplaceKind, OnApiSuccess, OnApiFailure);
+    ```
+  </Tab>
+</Tabs>
+
+### Pasos para la transacción
+
+<Tabs>
+  <Tab title="Blueprint">
+    <Frame>
+      <img src="/images/unreal/checkout/steps_to_transaction.png" />
+    </Frame>
+  </Tab>
+
+  <Tab title="C++">
+    ```cpp
+    UTransactions* Transactions = NewObject<UTransactions>();
+
+    for (const FTransactionStep& Step : Steps)
+    {
+        FRawTransaction RawTransaction = FRawTransaction(Step.To, Step.Data, Step.Value.IsEmpty() ? TEXT("0") : Step.Value);
+        Transactions->AddRaw(RawTransaction);
+    }
+    ```
+  </Tab>
+</Tabs>
+
+## Opciones de checkout
+
+### Obtener opciones de checkout
+
+<Tabs>
+  <Tab title="Blueprint">
+    <Frame>
+      <img src="/images/unreal/checkout/get_checkout_options.png" />
+    </Frame>
+  </Tab>
+
+  <Tab title="C++">
+    ```cpp
+    const TSuccessCallback<FGetCheckoutOptionsResponse> OnApiSuccess = [this, OnSuccess](const FGetCheckoutOptionsResponse& Response) { };
+    const FFailureCallback OnApiFailure = [this, OnFailure](const FSequenceError& Error) { };
+
+    USequenceCheckout* Checkout = NewObject<USequenceCheckout>();
+    Checkout->GetCheckoutOptions(SequenceSdk::GetChainId(), WalletAddress, Orders, AdditionalFeeBps, OnApiSuccess, OnApiFailure);
+    ```
+  </Tab>
+</Tabs>
+
+### Obtener opciones de checkout por órdenes
+
+<Tabs>
+  <Tab title="Blueprint">
+    <Frame>
+      <img src="/images/unreal/checkout/get_checkout_options_by_orders.png" />
+    </Frame>
+  </Tab>
+
+  <Tab title="C++">
+    ```cpp
+    const TSuccessCallback<FGetCheckoutOptionsResponse> OnApiSuccess = [this, OnSuccess](const FGetCheckoutOptionsResponse& Response) { };
+    const FFailureCallback OnApiFailure = [this, OnFailure](const FSequenceError& Error) { };
+
+    USequenceCheckout* Checkout = NewObject<USequenceCheckout>();
+    Checkout->GetCheckoutOptionsByOrders(SequenceSdk::GetChainId(), WalletAddress, Orders, AdditionalFeeBps, OnApiSuccess, OnApiFailure);
+    ```
+  </Tab>
+</Tabs>
+
+### Obtener opciones de checkout por venta ERC1155
+
+<Tabs>
+  <Tab title="Blueprint">
+    <Frame>
+      <img src="/images/unreal/checkout/get_checkout_options_by_erc1155.png" />
+    </Frame>
+  </Tab>
+
+  <Tab title="C++">
+    ```cpp
+    const TSuccessCallback<FGetCheckoutOptionsResponse> OnApiSuccess = [this, OnSuccess](const FGetCheckoutOptionsResponse& Response) { };
+    const FFailureCallback OnApiFailure = [this, OnFailure](const FSequenceError& Error) { };
+
+    USequenceCheckout* Checkout = NewObject<USequenceCheckout>();
+    Checkout->GetCheckoutOptionsByERC1155Contract(SequenceSdk::GetChainId(), WalletAddress, SaleContract, CollectionAddress, TokenId, Amount, OnApiSuccess, OnApiFailure);
+    ```
+  </Tab>
+</Tabs>
+
+### Obtener opciones de checkout por venta ERC721
+
+<Tabs>
+  <Tab title="Blueprint">
+    <Frame>
+      <img src="/images/unreal/checkout/get_checkout_options_by_erc721.png" />
+    </Frame>
+  </Tab>
+
+  <Tab title="C++">
+    ```cpp
+    const TSuccessCallback<FGetCheckoutOptionsResponse> OnApiSuccess = [this, OnSuccess](const FGetCheckoutOptionsResponse& Response) { };
+    const FFailureCallback OnApiFailure = [this, OnFailure](const FSequenceError& Error) { };
+
+    USequenceCheckout* Checkout = NewObject<USequenceCheckout>();
+    Checkout->GetCheckoutOptionsByERC721Contract(SequenceSdk::GetChainId(), WalletAddress, SaleContract, CollectionAddress, TokenId, Amount, OnApiSuccess, OnApiFailure);
+    ```
+  </Tab>
+</Tabs>
+
+### Obtener opciones de checkout por cantidades de Token Id
+
+<Tabs>
+  <Tab title="Blueprint">
+    <Frame>
+      <img src="/images/unreal/checkout/get_checkout_options_by_token_id_amounts.png" />
+    </Frame>
+  </Tab>
+
+  <Tab title="C++">
+    ```cpp
+    const TSuccessCallback<FGetCheckoutOptionsResponse> OnApiSuccess = [this, OnSuccess](const FGetCheckoutOptionsResponse& Response) { };
+    const FFailureCallback OnApiFailure = [this, OnFailure](const FSequenceError& Error) { };
+
+    USequenceCheckout* Checkout = NewObject<USequenceCheckout>();
+    Checkout->GetCheckoutOptionsByTokenIdAmounts(SequenceSdk::GetChainId(), WalletAddress, SaleContract, CollectionAddress, AmountsByTokenId, OnApiSuccess, OnApiFailure);
+    ```
+  </Tab>
+</Tabs>

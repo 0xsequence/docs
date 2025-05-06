@@ -1,0 +1,176 @@
+---
+title: Ejemplos de Analytics para Marketplace
+sidebarTitle: Marketplaces
+---
+
+Además, puede obtener información detallada sobre el rendimiento de su Sequence Marketplace para reportar, hacer seguimiento y optimizar sus ingresos.
+
+<Note>
+  Reemplace las variables PROJECT\_ID y SECRET\_API\_ACCESS\_KEY con el ID de su proyecto y el token secreto de Sequence Builder.
+</Note>
+
+## Obtener transacciones en su Marketplace
+Obtener la cantidad de eventos de transacción en el Sequence marketplace; estos pueden consultarse como total o por un intervalo de tiempo fijo.
+
+### Total
+
+<CodeGroup>
+  ```sh cURL
+  curl 'https://api.sequence.build/rpc/Analytics/MarketTxnEventTotal' \
+    -H 'accept: */*' \
+    -H 'authorization: BEARER <SECRET_API_ACCESS_KEY>' \
+    -H 'content-type: application/json' \
+    --data-raw '{"filter":{"projectId":<PROJECT_ID>,"startDate":"2024-04-23","endDate":"2024-05-23"}}'
+  ```
+
+  ```ts TypeScript
+  // Works in both a Webapp (browser) or Node.js by importing cross-fetch:
+  // import fetch from "cross-fetch";
+  (async () => {
+    const res = await fetch(
+      "https://api.sequence.build/rpc/Analytics/MarketTxnEventTotal",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          filter: {
+            projectId: 4859,
+            startDate: "2024-01-23",
+            endDate: "2024-05-23",
+            dateInterval: "DAY"
+          }
+        })
+      }
+    );
+    console.log("res", await res.json());
+  })();
+  ```
+</CodeGroup>
+
+### Intervalo de tiempo
+
+<CodeGroup>
+  ```sh cURL
+  curl 'https://api.sequence.build/rpc/Analytics/MarketTxnEventDaily' \
+    -H 'accept: */*' \
+    -H 'authorization: BEARER <SECRET_API_ACCESS_KEY>' \
+    -H 'content-type: application/json' \
+    --data-raw '{"filter":{"projectId":<PROJECT_ID>,"startDate":"2024-04-23","endDate":"2024-05-23", "dateInterval":"DAY"}}'
+  ```
+
+  ```ts TypeScript
+  // Works in both a Webapp (browser) or Node.js by importing cross-fetch:
+  // import fetch from "cross-fetch";
+  (async () => {
+    const res = await fetch(
+      "https://api.sequence.build/rpc/Analytics/MarketTxnEventDaily",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          filter: {
+            projectId: 4859,
+            startDate: "2024-01-23",
+            endDate: "2024-05-23",
+            dateInterval: "DAY"
+          }
+        })
+      }
+    );
+    console.log("res", await res.json());
+  })();
+  ```
+</CodeGroup>
+
+## Obtener wallets en su Marketplace
+Obtener los wallets que han interactuado con su marketplace, ya sea el total en todo el tiempo o desglosado por días, semanas o meses.
+
+### Total
+
+<CodeGroup>
+  ```sh cURL
+  curl 'https://api.sequence.build/rpc/Analytics/MarketWalletsTotal' \
+    -H 'accept: */*' \
+    -H 'authorization: BEARER <SECRET_API_ACCESS_KEY>' \
+    -H 'content-type: application/json' \
+    --data-raw '{"filter":{"projectId":<PROJECT_ID>,"startDate":"2024-04-23","endDate":"2024-05-23"}}'
+  ```
+
+  ```ts TypeScript
+  // Works in both a Webapp (browser) or Node.js by importing cross-fetch:
+  // import fetch from "cross-fetch";
+  (async () => {
+    const res = await fetch("https://api.sequence.build/rpc/Analytics/MarketWalletsTotal", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        filter: {
+          projectId: 4859,
+          startDate: "2024-01-23",
+          endDate: "2024-05-23",
+          dateInterval: "DAY"
+        }
+      })
+    });
+    console.log("res", await res.json());
+  })();
+  ```
+</CodeGroup>
+
+### Intervalo de tiempo
+
+<CodeGroup>
+  ```sh cURL
+  curl 'https://api.sequence.build/rpc/Analytics/MarketWalletsDaily' \
+    -H 'accept: */*' \
+    -H 'authorization: BEARER <SECRET_API_ACCESS_KEY>' \
+    -H 'content-type: application/json' \
+    --data-raw '{"filter":{"projectId":<PROJECT_ID>,"startDate":"2024-04-23","endDate":"2024-05-23", "dateInterval":"DAY"}}'
+  ```
+
+  ```ts TypeScript
+  // Works in both a Webapp (browser) or Node.js by importing cross-fetch:
+  // import fetch from "cross-fetch";
+  (async () => {
+    const res = await fetch("https://api.sequence.build/rpc/Analytics/MarketWalletsDaily", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        filter: {
+          projectId: 4859,
+          startDate: "2024-01-23",
+          endDate: "2024-05-23",
+          dateInterval: "DAY"
+        }
+      })
+    });
+    console.log("res", await res.json());
+  })();
+  ```
+</CodeGroup>
+
+## Esquema
+Todos los endpoints de analytics de wallet siguen un esquema de solicitud similar
+- Solicitud: POST
+- Content-Type: application/json
+- Cuerpo (en JSON):
+  - `projectId` (uint64) -- projectID de su proyecto, puede encontrarlo en la URL del proyecto en Builder.
+  - `startDate` (timestamp) -- fecha de inicio de la consulta en formato YYYY--MM--DD
+  - `endDate` (timestamp) -- fecha de fin de la consulta en formato YYYY--MM--DD
+  - `dateInterval` (string (opcional)) -- intervalo de fechas para la consulta, las opciones son "DAY", "WEEK" o "MONTH"
+- Respuesta (en JSON):
+  - `marketStats` (marketStats\[])
+    \[
+    - `value`
+      - `buyItems` (uint64) -- número de ítems comprados.
+      - `sellItems` (uint64) -- número de ítems vendidos
+    - `label` (string) -- etiqueta asociada al endpoint correspondiente
+      ]

@@ -1,0 +1,67 @@
+---
+title: 通貨スワップ
+description: Sequenceインフラストラクチャスタックを用いたweb3ゲーム向けUnreal SDK概要のドキュメントです。
+---
+
+## スワップ価格の取得
+指定したトークンペアのスワップ価格を取得します。
+
+<Tabs>
+  <Tab title="ブループリント">
+    <Frame>
+      <img src="/images/unreal/swap_price.png" />
+    </Frame>
+  </Tab>
+
+  <Tab title="C++">
+    ```cpp
+    const TSuccessCallback<FSeqSwapPrice> OnApiSuccess = [this, OnSuccess](const FSeqSwapPrice& Response) { };
+    const FFailureCallback OnApiFailure = [this, OnFailure](const FSequenceError& Error) { };
+
+    USequencePay* Pay = NewObject<USequencePay>();
+    Pay->GetSwapPrice(SequenceSdk::GetChainId(), SellCurrency, BuyCurrency, BuyAmount, OnApiSuccess, OnApiFailure, SlippagePercentage);
+    ```
+  </Tab>
+</Tabs>
+
+## スワップ価格の取得
+ユーザーが受け取りたいトークンのスワップ価格を取得します。
+
+<Tabs>
+  <Tab title="ブループリント">
+    <Frame>
+      <img src="/images/unreal/swap_prices.png" />
+    </Frame>
+  </Tab>
+
+  <Tab title="C++">
+    ```cpp
+    const TSuccessCallback<TArray<FSeqSwapPrice>> OnApiSuccess = [this, OnSuccess](const TArray<FSeqSwapPrice>& Response) { };
+    const FFailureCallback OnApiFailure = [this, OnFailure](const FSequenceError& Error) { };
+
+    USequencePay* Pay = NewObject<USequencePay>();
+    Pay->GetSwapPrices(SequenceSdk::GetChainId(), UserWallet, BuyCurrency, BuyAmount, OnApiSuccess, OnApiFailure, SlippagePercentage);
+    ```
+  </Tab>
+</Tabs>
+
+## スワップ見積もりの取得
+スワップ価格を確認後、承認およびトランザクション作成に必要なデータを取得します。
+
+<Tabs>
+  <Tab title="ブループリント">
+    <Frame>
+      <img src="/images/unreal/swap_quote.png" />
+    </Frame>
+  </Tab>
+
+  <Tab title="C++">
+    ```cpp
+    const TSuccessCallback<FSeqSwapQuote> OnApiSuccess = [this, OnSuccess](const FSeqSwapQuote& Response) { };
+    const FFailureCallback OnApiFailure = [this, OnFailure](const FSequenceError& Error) { };
+
+    USequencePay* Pay = NewObject<USequencePay>();
+    Pay->GetSwapQuote(SequenceSdk::GetChainId(), UserWallet, BuyCurrency, SellCurrency, BuyAmount, IncludeApprove, OnApiSuccess, OnApiFailure, SlippagePercentage);
+    ```
+  </Tab>
+</Tabs>

@@ -11,52 +11,52 @@ sidebarTitle: Unity IAPを使ったNFT販売
 ## スマートコントラクトをデプロイする
 まだの場合は、まず[スマートコントラクトをデプロイ](/solutions/collectibles/contracts/deploy-an-item-collection)し、販売したいNFTを定義し、ゲーム内で表示できるようにしましょう。
 
-スマートコントラクトをデプロイしたら、[「Gas Sponsoring」ページ](/solutions/builder/gas-tank#gas-tank-in-builder)でコントラクトアドレスをSponsored Addressとして追加するのを忘れずに！これにより、ユーザーがゲームのスマートコントラクトとやり取りする際、ガス代が自動的にコンピュートクレジットで負担されます。
+スマートコントラクトをデプロイしたら、[「Gas Sponsoring」ページ](/solutions/builder/gas-tank#gas-tank-in-builder)でコントラクトアドレスを Sponsored Address として追加するのを忘れずに！これにより、ゲームのスマートコントラクトとやりとりする際、ユーザーのガス代が自動的にあなたのコンピュートクレジットで肩代わりされます。
 
 ## リモートミンターをデプロイする
 デフォルトでは、Builder Console を使ってデプロイされた ERC1155/721 コントラクトは、トークンをミントするためにコールする側に適切な権限が必要です。一見面倒に思えるかもしれませんが、これはとても重要な仕組みです。これがなければ、誰でもあなたのコントラクトの mint メソッドを呼び出して、自分に無限にゲーム内アイテムを付与できてしまいます。
 
-Sequenceウォレット（または他のウォレット）を持つサーバーをデプロイし、builderでミント権限を付与しましょう。
+Sequence ウォレット（または他のウォレット）を持つサーバーをデプロイし、Builder でミント権限を付与しましょう。
 
-### Jelly Forestでの実装例
-Jelly Forestでは、ゲームプレイ中に集めたコインはすべてERC1155トークンとしてミントされます。実際の手順は以下の通りです。
-1. [Cloudflare](https://www.cloudflare.com/)にサインアップします。ここでミントサービスのコードをホストしますが、他の方法を利用しても問題ありません。
-2. ターミナルやコマンドラインを開きます。
-3. `git clone https://github.com/0xsequence-demos/cloudflare-worker-sequence-relayer.git` を実行し、その後 `cd cloudflare-worker-sequence-relayer`
+### Jelly Forest での実装例
+Jelly Forest では、ゲームプレイ中に集めたコインがすべて ERC1155 トークンとしてミントされます。実装方法は以下の通りです：
+1. [Cloudflare](https://www.cloudflare.com/) に登録します（ミントサービスのコードをホストするためですが、他の方法でも構いません）
+2. ターミナルやコマンドラインを開きます
+3. `git clone https://github.com/0xsequence-demos/cloudflare-worker-sequence-relayer.git` を実行し、続いて `cd cloudflare-worker-sequence-relayer`
 4. `git checkout permissionedMinter`
-5. `pnpm install` で依存関係をインストールします。
-6. wranglerをインストールします。
+5. `pnpm install` で依存関係をインストールします
+6. wrangler をインストールします
 
 ```
 pnpm install wrangler --save-dev
 alias wrangler='./node_modules/.bin/wrangler'
 ```
 
-ログインします。
+そしてログインします
 
 ```
 wrangler login
 ```
 
-7. `wrangler.toml` を開きます。
-   1. `name` の文字列を変更してサーバー名を設定します。
-   2. 新しい[EOAウォレット](https://ethereum.stackexchange.com/questions/5828/what-is-an-eoa-account)を作成し、秘密鍵をエクスポートします。どのEOAウォレットでも構いません。Metamaskを使って[ウォレットを作成](https://support.metamask.io/hc/en-us/articles/360015489531-Getting-started-with-MetaMask)し、[秘密鍵をエクスポート](https://support.metamask.io/hc/en-us/articles/360015289632-How-to-export-an-account-s-private-key)することもできます。秘密鍵の取り扱いには十分ご注意ください。秘密鍵をパソコンに平文で保存したり、バージョン管理にコミットしないようにしてください。この秘密鍵を `PKEY` に設定してください。
-   3. `CONTRACT_ADDRESS` を設定します。
-   4. `PROJECT_ACCESS_KEY` を設定します。これは、先ほど `SequenceConfig` スクリプタブルオブジェクトを設定した際にBuilder Consoleから取得した本番APIキーです。
-   5. `CHAIN_HANDLE` を設定します。不明な場合は、Builder ConsoleのNode Gatewayページで各ネットワークの `CHAIN_HANDLE` を確認できます。
-8. `pnpm dev` でサーバーをローカルにデプロイします。コマンドラインにデプロイ先のlocalhostが表示されます。
+7. `wrangler.toml` を開きます
+   1. `name` の文字列を変更してサーバー名を設定します
+   2. 新しい[EOAウォレット](https://ethereum.stackexchange.com/questions/5828/what-is-an-eoa-account)を作成し、秘密鍵をエクスポートします。どのEOAウォレットでも構いません。Metamaskを使えば簡単に[ウォレットのセットアップ](https://support.metamask.io/hc/en-us/articles/360015489531-Getting-started-with-MetaMask)や[秘密鍵のエクスポート](https://support.metamask.io/hc/en-us/articles/360015289632-How-to-export-an-account-s-private-key)ができます。秘密鍵の取り扱いには十分ご注意ください。パソコンに平文で保存したり、バージョン管理にコミットしたりしないでください！この秘密鍵を`PKEY`に設定します。
+   3. `CONTRACT_ADDRESS`を設定します。
+   4. `PROJECT_ACCESS_KEY`を設定します。これは、先ほどBuilder Consoleで`SequenceConfig`スクリプタブルオブジェクトをセットアップした際に取得した本番用APIキーです。
+   5. `CHAIN_HANDLE`を設定します。これが何かわからない場合は、Builder ConsoleのNode Gatewayページで各ネットワークの`CHAIN_HANDLE`を確認できます。
+8. `pnpm dev` - これでサーバーがローカルにデプロイされます。どのlocalhostでデプロイされたかはコマンドラインに表示されます。
 9. 別のコマンドラインウィンドウを開きます。
-10. `curl http://localhost:8787`（与えられたlocalhostに置き換えてください）でサーバーにリクエストを送信します。
-11. ローカルサーバーが稼働しているコマンドラインで、ミンターのウォレットアドレスがログに表示されているはずです。
+10. `curl http://localhost:8787` - 表示されたlocalhostに置き換えてください。これでサーバーにリクエストを送ります。
+11. ローカルサーバーが動作しているコマンドライン上で、ミンターのウォレットアドレスがログに表示されるはずです。
 12. このアドレスにBuilder Consoleでミント権限を付与します。
-    1. `Contracts` から該当コントラクトを探し、クリックして開きます。
-    2. `Write Contract` をクリックします。
-    3. `grantRole` を展開します。
-    4. `role` には `0x9f2df0fed2c77648de5860a4cc508cd0818c85b8b8a1ab4ceeef8d981c8956a6` を入力します。これは `MINTER_ROLE` のKeccak-256ハッシュです。
-    5. `account` にはミンターのウォレットアドレスを貼り付けます。
-13. `wrangler deploy` でコードを[Cloudflare Worker](https://developers.cloudflare.com/workers/)にデプロイし、ミンティング用URLが発行されます。
+    1. `Contracts`から該当するコントラクトを探し、クリックして開きます。
+    2. `Write Contract`をクリックします。
+    3. `grantRole`を展開します。
+    4. `role`には`0x9f2df0fed2c77648de5860a4cc508cd0818c85b8b8a1ab4ceeef8d981c8956a6`を入力します。これは`MINTER_ROLE`のKeccak-256ハッシュ値です。
+    5. `account`にはミンターのウォレットアドレスを貼り付けます。
+13. `wrangler deploy` - これで[Cloudflare Worker](https://developers.cloudflare.com/workers/)にコードがデプロイされ、ミント用のURLが発行されます。
 
-これで準備完了です。クライアントがミンティングリクエストを送信する際に生成した `proof` を含む、[C#で定義されたボディ](https://github.com/0xsequence/sequence-unity/blob/master/Packages/Sequence-Unity/Sequence/SequenceSDK/Relayer/MintingRequestProver.cs#L103)でサーバーにPOSTリクエストを送信します。Unity SDKでは、[MintingRequestProver](https://github.com/0xsequence/sequence-unity/blob/master/Packages/Sequence-Unity/Sequence/SequenceSDK/Relayer/MintingRequestProver.cs#L27)がこの処理を実装しています。
+これで準備完了です！サーバーにPOSTリクエストを送るときは、[C#で定義された](https://github.com/0xsequence/sequence-unity/blob/master/Packages/Sequence-Unity/Sequence/SequenceSDK/Relayer/MintingRequestProver.cs#L103)ボディを使います。`proof`はミントリクエストを送るクライアント側で生成されます。Unity SDKでは、[MintingRequestProver](https://github.com/0xsequence/sequence-unity/blob/master/Packages/Sequence-Unity/Sequence/SequenceSDK/Relayer/MintingRequestProver.cs#L27)によって実装されています。
 
 ### リモートミンターで IAP 購入トークンを処理する
 上記では、ゲーム内アクションで獲得できるトークンをミントするためのリモートミンターをデプロイしました。ここでは、このサーバーを活用して、IAP（アプリ内課金）で購入できるトークンもミントできるようにする方法を見ていきます。

@@ -1,0 +1,80 @@
+---
+title: Instalación del Indexer
+sidebarTitle: Instalación
+---
+
+Sequence Indexer es una API sencilla para consultar cualquier dato de tokens y NFTs en blockchain. A continuación se indican instrucciones para integrar la API de Sequence Indexer en aplicaciones web, juegos y backends. Si se lo perdiste, también puedes consultar la [Descripción general del Indexer](/api-references/indexer/overview).
+
+## Instalación
+Sequence Indexer está construido como una API HTTP con endpoints RPC a la que puede acceder directamente desde su aplicación web, juego o backend de servidor. Más abajo encontrará información sobre el esquema de endpoints RPC con ejemplos de comandos curl, junto con ejemplos en Javascript/Typescript y Go.
+
+Ofrecemos SDKs para [Web / node.js](https://github.com/0xsequence/sequence.js) y [Go](https://github.com/0xsequence/go-sequence). O si desea integrar el Indexer con otro lenguaje, simplemente siga la referencia de la API a continuación para implementar las solicitudes HTTP. Además, puede leer el código fuente del cliente Typescript como [implementación de referencia del cliente de la API del Indexer](https://github.com/0xsequence/sequence.js/blob/master/packages/indexer/src/indexer.gen.ts).
+
+### Instalación en Web / node.js
+
+<CodeGroup>
+  ```bash npm
+  npm install 0xsequence ethers
+  ```
+
+  o
+
+  ```bash pnpm
+  pnpm install 0xsequence ethers
+  ```
+
+  o
+
+  ```bash yarn
+  yarn add 0xsequence ethers
+  ```
+</CodeGroup>
+
+<Note>
+  Este código requiere una clave de acceso API de [Sequence Builder](https://sequence.build).
+</Note>
+
+```ts
+import { SequenceIndexer } from '@0xsequence/indexer'
+
+// see https://docs.sequence.xyzhttps://status.sequence.info for list of
+// indexer hosts for the chain you'd like to query
+const indexer = new SequenceIndexer('https://mainnet-indexer.sequence.app', 'AQAAAAAAAF_JvPALhBthL7VGn6jV0YDqaFY')
+
+// see examples below for the kinds of queries you can make
+const tokenBalances = await indexer.getTokenBalances(...)
+```
+
+**NOTA:** si está usando `@0xsequence/indexer` desde node.js, recomendamos usar node v18.x o superior.
+
+<br />
+
+### Instalación en Go
+
+```bash Terminal
+go get -u github.com/0xsequence/go-sequence@latest
+```
+
+luego, en su aplicación,
+
+```go Go
+import (
+	"github.com/0xsequence/go-sequence/indexer"
+)
+
+// see https://docs.sequence.xyzhttps://status.sequence.info for list of
+// indexer hosts for the chain you'd like to query
+seqIndexer := indexer.NewIndexer("https://polygon-indexer.sequence.app", "AQAAAAAAAF_JvPALhBthL7VGn6jV0YDqaFY")
+
+// see examples below for the kinds of queries you can make
+accountAddress := "ACCOUNT_ADDRESS"
+includeMetadata := true
+metadataOptions := indexer.MetadataOptions{
+	VerifiedOnly: true,
+}
+
+_, tokenBalances, err := seqIndexer.GetTokenBalances(context.Background(), &accountAddress, nil, nil, &includeMetadata, &metadataOptions, nil, nil)
+```
+
+### Instalación en Unity o Unreal
+El Sequence Indexer está integrado directamente en los respectivos \[Sequence Unity SDK] y \[Sequence Unreal SDK].

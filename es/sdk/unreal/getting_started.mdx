@@ -1,0 +1,58 @@
+---
+title: Primeros pasos
+description: Documentación de inicio rápido para el SDK de Unreal de Sequence.
+---
+
+<Steps>
+  <Step title="Instale el SDK de Unreal">
+    Descargue el SDK desde el [Epic Games Marketplace](https://www.unrealengine.com/marketplace/en-US/product/sequence-embedded-wallets)
+
+    Como alternativa, tiene las siguientes opciones:
+
+    1. [GitHub Release](sdk/unreal/installation#using-the-latest-github-release): Instalación manual. Esta versión siempre está actualizada.
+    2. [Project Boilerplate](https://github.com/0xsequence/unreal-embedded-wallet-boilerplate): Inicie un proyecto desde cero.
+  </Step>
+
+  <Step title="Configure el SDK">
+    Cree un proyecto en [Sequence Builder](https://sequence.build) y descargue su archivo de configuración como se muestra a continuación.
+
+    <Frame>
+      <img src="/images/unreal/builder_config_file.png" />
+    </Frame>
+  </Step>
+
+  <Step>
+    En el archivo `Build.cs` de su proyecto ([dónde encontrarlo](https://forums.unrealengine.com/t/where-are-build-cs-and-target-cs/302665)), verifique que el módulo de dependencia privada incluya "SequencePlugin":
+
+    ```cpp
+    public SequenceTest(ReadOnlyTargetRules Target) : base(Target)
+    {
+        PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
+        PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore" });
+        PrivateDependencyModuleNames.AddRange(new string[] { "SequencePlugin" });
+    }
+    ```
+  </Step>
+
+  <Step title="Integrar inicio de sesión">
+    Comience creando el widget [Sequence Login Window](/sdk/unreal/bootstrap_game#login). Esto le da acceso rápido
+    a nuestros métodos de inicio de sesión. Consulte la sección de [autenticación](/sdk/unreal/onboarding/authentication#requirements) para saber cómo
+    configurar cada método de inicio de sesión.
+
+    Aprenda cómo [integrar manualmente métodos de inicio de sesión](/sdk/unreal/onboarding/authentication) como Google, Apple o PlayFab.
+
+    <Frame>
+      <img src="/images/unreal/boilerplate_login.png" />
+    </Frame>
+  </Step>
+
+  <Step title="Inicie su juego">
+    El SDK de Unreal de Sequence incluye varios Boilerplates para ayudarle a iniciar su juego rápidamente.
+    Una vez que todo esté configurado, puede crear widgets para mostrar un inventario, vista de wallet o tienda dentro del juego.
+    Consulte [cómo integrar un perfil de jugador](/sdk/unreal/bootstrap_game#player-profile) usando solo tres nodos Blueprint para ver y enviar fondos.
+
+    <Frame>
+      <img src="/images/unreal/boilerplate_profile.png" />
+    </Frame>
+  </Step>
+</Steps>

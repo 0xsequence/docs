@@ -1,0 +1,56 @@
+---
+title: はじめに
+description: SequenceのUnreal SDKクイックスタートドキュメント
+---
+
+<Steps>
+  <Step title="Unreal SDKのインストール">
+    [Epic Games Marketplace](https://www.unrealengine.com/marketplace/en-US/product/sequence-embedded-wallets)からSDKをダウンロードしてください。
+
+    また、以下の方法もご利用いただけます：
+
+    1. [GitHub Release](sdk/unreal/installation#using-the-latest-github-release)：手動インストール。常に最新版が提供されます。
+    2. [Project Boilerplate](https://github.com/0xsequence/unreal-embedded-wallet-boilerplate)：ゼロからプロジェクトを開始できます。
+  </Step>
+
+  <Step title="SDK の設定">
+    [Sequence Builder](https://sequence.build)でプロジェクトを作成し、下記のように設定ファイルをダウンロードしてください。
+
+    <Frame>
+      <img src="/images/unreal/builder_config_file.png" />
+    </Frame>
+  </Step>
+
+  <Step>
+    プロジェクトの`Build.cs`ファイル（[場所はこちら](https://forums.unrealengine.com/t/where-are-build-cs-and-target-cs/302665)）で、private Dependencyモジュールに"SequencePlugin"が含まれていることをご確認ください。
+
+    ```cpp
+    public SequenceTest(ReadOnlyTargetRules Target) : base(Target)
+    {
+        PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
+        PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore" });
+        PrivateDependencyModuleNames.AddRange(new string[] { "SequencePlugin" });
+    }
+    ```
+  </Step>
+
+  <Step title="ログインの統合">
+    まずは[Sequence Login Window](/sdk/unreal/bootstrap_game#login)ウィジェットを作成しましょう。これにより、各種ログイン方法へ素早くアクセスできます。[認証](/sdk/unreal/onboarding/authentication#requirements)セクションで各ログイン方法の設定方法をご確認ください。
+
+    Google、Apple、PlayFabなどの[ログイン方法を手動で統合する方法](/sdk/unreal/onboarding/authentication)もご覧いただけます。
+
+    <Frame>
+      <img src="/images/unreal/boilerplate_login.png" />
+    </Frame>
+  </Step>
+
+  <Step title="ゲームのブートストラップ">
+    SequenceのUnreal SDKには、ゲームを素早く開始できる様々なBoilerplateが含まれています。
+    設定が完了したら、インベントリ、ウォレットビュー、ゲーム内ストアを表示するウィジェットを作成できます。
+    [プレイヤープロファイルの統合方法](/sdk/unreal/bootstrap_game#player-profile)もご確認ください。3つのBlueprintノードだけで資金の表示や送信が可能です。
+
+    <Frame>
+      <img src="/images/unreal/boilerplate_profile.png" />
+    </Frame>
+  </Step>
+</Steps>

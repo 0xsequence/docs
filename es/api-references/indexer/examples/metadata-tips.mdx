@@ -1,0 +1,25 @@
+---
+title: Consejos sobre metadatos y notas sobre spam
+sidebarTitle: Consejos sobre metadatos
+---
+
+Los servicios Sequence Indexer y Sequence Metadata capturan todo lo que se publica en una blockchain.
+Nuestros servicios están diseñados para proporcionar datos en tiempo real
+conforme se minan los bloques, y cumplen con todos los estándares populares de metadatos ERC20, ERC721 y ERC1155
+para que todo _simplemente funcione_.
+
+Esto es muy útil para que sus aplicaciones tengan acceso al conjunto completo de datos
+on-chain, pero también significa que se incluirán tokens spam al consultar con la configuración predeterminada.
+
+Para combatir el spam, introdujimos los argumentos `metadataOptions` que pueden pasarse a las llamadas RPC de Indexer
+para controlar los resultados devueltos.
+
+El servicio Sequence Metadata lleva un registro de los contratos "verificados" consultando fuentes populares
+como Coingecko, OpenSea, Sequence Builder ([https://sequence.build](https://sequence.build)) y el Sequence Token
+Directory ([https://github.com/0xsequence/token-directory](https://github.com/0xsequence/token-directory)). Al llamar a los métodos RPC de Indexer con
+`"metadataOptions": { "verifiedOnly": true }`, cualquier dirección de contrato que no esté verificada
+será omitida de los resultados. Recomendamos usar esta opción siempre, pero la desventaja es que
+si los contratos de su proyecto no están verificados, también serán omitidos. Para ayudarle
+con esto, sus opciones son verificar sus contratos en alguna de las fuentes mencionadas, o en sus llamadas RPC pasar
+`"metadataOptions": { "verifiedOnly": true, "includeContracts": ["0x631998e91476DA5B870D741192fc5Cbc55F5a52E", "0x8bb759bb68995343ff1e9d57ac85ff5c5fb79334"] }`
+como ejemplo.
