@@ -32,16 +32,12 @@ Either you can start from a great foundation with our [Marketplace Boilerplate](
 Start by creating a project in a folder of your name choosing:
 
 ```bash npm
-npm create vite
+npm create vite --template react-ts
 # or
-pnpm create vite
+pnpm create vite --template react-ts
 # or
-yarn create vite
+yarn create vite --template react-ts
 ```
-
-*Recommended options*
-* React
-* Typescript
 
 Then, begin by installing the required packages in the `<project_name> folder`
 
@@ -183,29 +179,13 @@ import type { SdkConfig } from '@0xsequence/marketplace-sdk';
 
 const projectAccessKey = import.meta.env.VITE_PROJECT_ACCESS_KEY;
 const projectId = import.meta.env.VITE_PROJECT_ID!;
-const waasConfigKey = import.meta.env.VITE_WAAS_CONFIG_KEY;
-const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
-const appleClientId = import.meta.env.VITE_APPLE_CLIENT_ID;
-const appleRedirectURI = window.location.origin + window.location.pathname;
 const walletConnectId = import.meta.env.VITE_WALLET_CONNECT_ID;
 
 export function getConfig() {
-  const embedded = waasConfigKey
-    ? ({
-        waasConfigKey,
-        googleClientId,
-        appleClientId,
-        appleRedirectURI,
-      } satisfies NonNullable<SdkConfig["wallet"]>["embedded"])
-    : undefined;
-
   const config = {
     projectId,
     projectAccessKey,
-    wallet: {
-      walletConnectProjectId: walletConnectId,
-      embedded,
-    },
+    walletConnectProjectId: walletConnectId
   } satisfies SdkConfig;
 
   return config;
@@ -286,16 +266,23 @@ export const Collection = ({
   }
 
   return (
-		<div onClick={handleOnSelectCollection} className="flex flex-col gap-2 border rounded-lg cursor-pointer w-[400px]">
-			<h2>
-				{name} {symbol && <span>({symbol})</span>}
-			</h2>
-			<p>{collection.address}</p>
-			<p>Chain ID: {collection.chainId}</p>
-			<img src={image} alt={collection.address} className="w-[200px] h-[200px] object-cover object-center"/>
-			<p>Contract type: {contractType}</p>
-			<p>{description}</p>
-		</div>
+    <div
+      onClick={handleOnSelectCollection}
+      className="flex flex-col gap-2 border rounded-lg cursor-pointer w-[400px]"
+    >
+      <h2>
+        {name} {symbol && <span>({symbol})</span>}
+      </h2>
+      <p>{collection.address}</p>
+      <p>Chain ID: {collection.chainId}</p>
+      <img
+        src={image}
+        alt={collection.address}
+        className="w-[200px] h-[200px] object-cover object-center"
+      />
+      <p>Contract type: {contractType}</p>
+      <p>{description}</p>
+    </div>
   );
 };
 ```
@@ -479,6 +466,7 @@ export const Collectible = ({
 }) => {
   const { name, image, tokenId } = collectible.metadata;
 
+  // @ts-ignore: unused variable 'isBalanceLoading'
   const { data: userBalanceResp, isLoading: isBalanceLoading } =
     useBalanceOfCollectible({
       chainId: Number(chainId),
@@ -579,7 +567,9 @@ export const Collectibles = ({
   const { address, isConnected } = useAccount();
   const {
     data: collectibles,
+    // @ts-ignore: unused variable 'collectiblesLoading'
     isLoading: collectiblesLoading,
+    // @ts-ignore: unused variable 'fetchNextCollectibles'
     fetchNextPage: fetchNextCollectibles,
   } = useListCollectibles({
     chainId: Number(chainId),
@@ -710,9 +700,3 @@ export default App;
 ### Run and test
 
 You’ve successfully added the items to your new page, and they should now be visible in the UI. To see them in action, run pnpm dev. From the landing page, select any of your collections to view the NFTs it contains. Make sure everything works as expected by testing key flows like listing, purchasing, making offers, and accepting offers on an NFT.
-
-## 6. Inventory (Optional)
-
-To access the user's inventory, you can refer to the following documentation: [Sequence Inventory Modal](https://docs.sequence.xyz/solutions/wallets/sequence-kit/quickstart_examples/inventory). Everything is set up, and you only need to invoke the inventory modal.
-
-If you prefer to build a custom UI using APIs, you can retrieve token balances through the following endpoint: [Get Token Balances API](https://docs.sequence.xyz/api/indexer/endpoints#tag/public/POST/rpc/Indexer/GetTokenBalances).
