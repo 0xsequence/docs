@@ -1,0 +1,293 @@
+---
+title: ユーザー認証
+description: Sequence インフラスタックを用いた web3 ゲーム向け Unreal SDK API のセッション管理に関するドキュメントです。
+---
+
+## 必要環境
+
+- 必要なログイン方法を [Sequence Builder](https://sequence.build/) で有効にしていることを確認してください。
+- [プラットフォーム要件](/sdk/unreal/advanced/platforms) ページで、選択した認証方法がUnrealプロジェクトで正しく設定されているかの詳細をご確認ください。
+
+## メールログインの開始
+任意のメールアドレスでユーザーをサインインさせると、ワンタイムパスワードが受信箱に届きます。
+Email Requires Code イベントをリッスンしてください。
+
+<Tabs>
+  <Tab title="ブループリント">
+    <Frame>
+      <img src="/images/unreal/start_email_login.png" />
+    </Frame>
+  </Tab>
+
+  <Tab title="C++">
+    ```cpp
+    const TFunction<void()> OnApiSuccess = [] { };
+    const FFailureCallback OnApiFailure = [](const FSequenceError& Error) { };
+
+    USequenceSessions* Sessions = NewObject<USequenceSessions>();
+    Sessions->StartEmailLogin(Email, OnApiSuccess, OnApiFailure);
+    ```
+  </Tab>
+</Tabs>
+
+## メールログインのコード確認
+任意のメールアドレスでユーザーをサインインさせると、ワンタイムパスワードが受信箱に届きます。
+Email Requires Code イベントをリッスンしてください。
+
+<Tabs>
+  <Tab title="ブループリント">
+    <Frame>
+      <img src="/images/unreal/confirm_email_login.png" />
+    </Frame>
+  </Tab>
+
+  <Tab title="C++">
+    ```cpp
+    const FString Code = "123456";
+
+    const TFunction<void()> OnApiSuccess = [] { };
+    const FFailureCallback OnApiFailure = [](const FSequenceError& Error) { };
+    const TFunction<void(FFederationSupportData)> OnApiFederationRequired = [this](const FFederationSupportData& FederationData) { };
+
+    USequenceSessions* Sessions = NewObject<USequenceSessions>();
+    Sessions->ConfirmEmailLoginWithCode(Code, OnApiSuccess, OnApiFailure, OnApiFederationRequired);
+    ```
+  </Tab>
+</Tabs>
+
+## ゲストとしてサインイン
+ゲストとしてユーザーをサインインさせることができます。ただし、アプリをアンインストールまたはサインアウトするとウォレットへのアクセスが失われます。
+ウォレットへのアクセスを維持するために、[アカウント連携機能](/sdk/unreal/onboarding/authentication#account-federation)を活用して、他のメールやソーシャルアカウントとウォレットを連携しましょう。
+
+<Tabs>
+  <Tab title="ブループリント">
+    <Frame>
+      <img src="/images/unreal/start_guest_session.png" />
+    </Frame>
+  </Tab>
+
+  <Tab title="C++">
+    ```cpp
+    const TFunction<void()> OnApiSuccess = [] { };
+    const FFailureCallback OnApiFailure = [](const FSequenceError& Error) { };
+
+    USequenceSessions* Sessions = NewObject<USequenceSessions>();
+    Sessions->StartGuestSession(OnApiSuccess, OnApiFailure);
+    ```
+  </Tab>
+</Tabs>
+
+## ソーシャルサインイン
+デスクトップで SSO 認証を開始するには、必要な id\_token を取得するためにブラウザへ遷移する必要があります。
+モバイルでは、統合プラグインを使って SDK がこの処理を自動で行います。
+
+デスクトッププラットフォームでは、`Sign in Web View Required` イベントをリッスンし、返された `Sign In URL` を開いてください。
+モバイルプラットフォームでは、`Id Token Received` イベントをリッスンしてください。
+
+`Sign In` 関数を呼び出したら、`SequenceSessionsBP` サブシステムで `Session Established` イベントをリッスンし、サインインが成功したか確認します。問題が発生した場合は `Session Creation Failure` をリッスンしてください。
+
+### Google Id トークンを取得
+
+<Tabs>
+  <Tab title="ブループリント">
+    <Frame>
+      <img src="/images/unreal/get_google_token.png" />
+    </Frame>
+  </Tab>
+
+  <Tab title="C++">
+    ```cpp
+    USequenceSessions* Sessions = NewObject<USequenceSessions>();
+    if (Sessions->IsBrowserRequired)
+        const FString Url = this->Sessions->GetGoogleSignInUrl();
+    else
+        Sessions->GetGoogleTokenId(this);
+    ```
+  </Tab>
+</Tabs>
+
+### Apple Id トークンを取得
+
+<Tabs>
+  <Tab title="ブループリント">
+    <Frame>
+      <img src="/images/unreal/get_apple_token.png" />
+    </Frame>
+  </Tab>
+
+  <Tab title="C++">
+    ```cpp
+    USequenceSessions* Sessions = NewObject<USequenceSessions>();
+    if (Sessions->IsBrowserRequired)
+        const FString Url = this->Sessions->GetAppleSignInUrl();
+    else
+        Sessions->GetAppleTokenId(this);
+    ```
+  </Tab>
+</Tabs>
+
+### Google でサインイン
+有効なGoogle Idトークンでサインインします。[Google Idトークンの取得方法](/sdk/unreal/onboarding/authentication#get-google-id-token)ノードをご参照ください。
+
+<Tabs>
+  <Tab title="ブループリント">
+    <Frame>
+      <img src="/images/unreal/signin_google.png" />
+    </Frame>
+  </Tab>
+
+  <Tab title="C++">
+    ```cpp
+    const FString IdToken = "ey1234";
+
+    const TFunction<void()> OnApiSuccess = []() { };
+    const FFailureCallback OnApiFailure = [](const FSequenceError& Error) { };
+    const TFunction<void(FFederationSupportData)> OnApiFederationRequired = [](const FFederationSupportData& FederationData) { };
+
+    USequenceSessions* Sessions = NewObject<USequenceSessions>();
+    Sessions->StartOidcSession(IdToken, OnApiSuccess, OnApiFailure, OnApiFederationRequired);
+    ```
+  </Tab>
+</Tabs>
+
+### Apple でサインイン
+有効なApple Idトークンでサインインします。[Apple Idトークンの取得方法](/sdk/unreal/onboarding/authentication#get-apple-id-token)ノードをご参照ください。
+
+<Tabs>
+  <Tab title="ブループリント">
+    <Frame>
+      <img src="/images/unreal/signin_apple.png" />
+    </Frame>
+  </Tab>
+
+  <Tab title="C++">
+    ```cpp
+    const FString IdToken = "ey1234";
+
+    const TFunction<void()> OnApiSuccess = []() { };
+    const FFailureCallback OnApiFailure = [](const FSequenceError& Error) { };
+    const TFunction<void(FFederationSupportData)> OnApiFederationRequired = [](const FFederationSupportData& FederationData) { };
+
+    USequenceSessions* Sessions = NewObject<USequenceSessions>();
+    Sessions->StartOidcSession(IdToken, OnApiSuccess, OnApiFailure, OnApiFederationRequired);
+    ```
+  </Tab>
+</Tabs>
+
+### Epic でサインイン
+有効な Epic Games Id トークンでサインインします。[Unreal 用 EOS プラグイン](https://dev.epicgames.com/documentation/en-us/unreal-engine/online-subsystem-eos-plugin-in-unreal-engine) を参照してください。
+
+<Tabs>
+  <Tab title="ブループリント">
+    <Frame>
+      <img src="/images/unreal/signin_epic.png" />
+    </Frame>
+  </Tab>
+
+  <Tab title="C++">
+    ```cpp
+    const FString IdToken = "ey1234";
+
+    const TFunction<void()> OnApiSuccess = []() { };
+    const FFailureCallback OnApiFailure = [](const FSequenceError& Error) { };
+    const TFunction<void(FFederationSupportData)> OnApiFederationRequired = [](const FFederationSupportData& FederationData) { };
+
+    USequenceSessions* Sessions = NewObject<USequenceSessions>();
+    Sessions->StartOidcSession(IdToken, OnApiSuccess, OnApiFailure, OnApiFederationRequired);
+    ```
+  </Tab>
+</Tabs>
+
+### OIDC Id トークンでセッション開始
+Google、Apple、Epic Games から取得した有効な Id トークンを使ってセッションを開始する場合にこの方法を利用します。
+
+<Tabs>
+  <Tab title="ブループリント">
+    <Frame>
+      <img src="/images/unreal/signin_oidc.png" />
+    </Frame>
+  </Tab>
+
+  <Tab title="C++">
+    ```cpp
+    const FString IdToken = "ey1234";
+
+    const TFunction<void()> OnApiSuccess = []() { };
+    const FFailureCallback OnApiFailure = [](const FSequenceError& Error) { };
+    const TFunction<void(FFederationSupportData)> OnApiFederationRequired = [](const FFederationSupportData& FederationData) { };
+
+    USequenceSessions* Sessions = NewObject<USequenceSessions>();
+    Sessions->StartOidcSession(IdToken, OnApiSuccess, OnApiFailure, OnApiFederationRequired);
+    ```
+  </Tab>
+</Tabs>
+
+## PlayFab
+[設定](/sdk/unreal/getting_started)時に `SequenceConfig.ini` ファイルへPlayFabタイトルIDを記載し、[BuilderでPlayFabの設定](/solutions/builder/embedded-wallet/playfab-configuration)も行ってください。
+
+### PlayFab登録
+
+<Tabs>
+  <Tab title="ブループリント">
+    <Frame>
+      <img src="/images/unreal/playfab_registration.png" />
+    </Frame>
+  </Tab>
+
+  <Tab title="C++">
+    ```cpp
+    const TFunction<void()> OnApiSuccess = [this, OnSuccess]() { };
+    const FFailureCallback OnApiFailure = [this, OnFailure](const FSequenceError& Error) { };
+    const TFunction<void (FFederationSupportData)> OnApiFederationRequired = [this](const FFederationSupportData& FederationData) { };
+
+    USequenceSessions* Sessions = NewObject<USequenceSessions>();
+    Sessions->PlayFabRegistration(UsernameIn, EmailIn, PasswordIn, OnApiSuccess, OnApiFailure, OnApiFederationRequired);
+    ```
+  </Tab>
+</Tabs>
+
+### PlayFabログイン
+
+<Tabs>
+  <Tab title="ブループリント">
+    <Frame>
+      <img src="/images/unreal/playfab_login.png" />
+    </Frame>
+  </Tab>
+
+  <Tab title="C++">
+    ```cpp
+    const TFunction<void()> OnApiSuccess = [this, OnSuccess]() { };
+    const FFailureCallback OnApiFailure = [this, OnFailure](const FSequenceError& Error) { };
+    const TFunction<void (FFederationSupportData)> OnApiFederationRequired = [this](const FFederationSupportData& FederationData) { };
+
+    USequenceSessions* Sessions = NewObject<USequenceSessions>();
+    Sessions->PlayFabLogin(UsernameIn, PasswordIn, OnApiSuccess, OnApiFailure, OnApiFederationRequired);
+    ```
+  </Tab>
+</Tabs>
+
+### PlayFabセッションチケットによる認証
+
+<Tabs>
+  <Tab title="ブループリント">
+    <Frame>
+      <img src="/images/unreal/playfab_session_ticket.png" />
+    </Frame>
+  </Tab>
+
+  <Tab title="C++">
+    ```cpp
+    const TFunction<void()> OnApiSuccess = [this, OnSuccess]() { };
+    const FFailureCallback OnApiFailure = [this, OnFailure](const FSequenceError& Error) { };
+    const TFunction<void (FFederationSupportData)> OnApiFederationRequired = [this](const FFederationSupportData& FederationData) { };
+
+    USequenceSessions* Sessions = NewObject<USequenceSessions>();
+    Sessions->PlayFabAuthenticateWithSessionTicket(SessionTicket, OnApiSuccess, OnApiFailure, OnApiFederationRequired);
+    ```
+  </Tab>
+</Tabs>
+
+## アカウントフェデレーション
+別のアカウントをウォレットに連携するには、同じ認証方法を再利用するだけです。
+SDKは[既存のセッションが保存されているか](/sdk/unreal/onboarding/manage_sessions#check-existing-session)を確認し、自動的にそのアカウントとの連携を試みます。

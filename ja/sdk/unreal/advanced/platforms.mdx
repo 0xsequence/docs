@@ -1,0 +1,68 @@
+---
+title: パッケージング
+sidebarTitle: プラットフォーム要件
+description: Sequenceインフラストラクチャスタックを用いたweb3ゲーム向けUnrealパッケージングのドキュメントです。
+---
+
+パッケージングの設定については、以下のリンクを参照してください：
+- [WindowsおよびMacOS](https://dev.epicgames.com/documentation/en-us/unreal-engine/packaging-unreal-engine-projects?application_version=5.3)
+- [Android](https://dev.epicgames.com/documentation/en-us/unreal-engine/packaging-android-projects-in-unreal-engine?application_version=5.3)
+- [iOS](https://dev.epicgames.com/documentation/en-us/unreal-engine/packaging-ios-projects-in-unreal-engine?application_version=5.3)
+- [Mac固有のソフトウェア要件](https://dev.epicgames.com/documentation/en-us/unreal-engine/hardware-and-software-specifications-for-unreal-engine)
+- [WindowsでのUnreal用Visual Studioセットアップ](https://dev.epicgames.com/documentation/en-us/unreal-engine/setting-up-visual-studio-development-environment-for-cplusplus-projects-in-unreal-engine)
+
+## セキュリティ
+データの改ざんを防ぐため、Unrealのパッケージング設定でパッケージ化したプロジェクトを暗号化する必要があります。詳細は[こちらのドキュメント](https://dev.epicgames.com/documentation/en-us/unreal-engine/packaging-unreal-engine-projects?application_version=5.3)をご参照ください。
+
+## ハードウェア要件
+Unrealのハードウェア要件については[こちらのドキュメント](https://dev.epicgames.com/documentation/en-us/unreal-engine/hardware-and-software-specifications-for-unreal-engine?application_version=5.3)をご覧ください。
+
+## iOS向けパッケージング
+
+### プロビジョニング
+iOSアプリの場合は、[こちらのドキュメント](https://dev.epicgames.com/documentation/en-us/unreal-engine/setting-up-ios-tvos-and-ipados-provisioning-profiles-and-signing-certificates-for-unreal-engine-projects?application_version=5.3)に従ってプロビジョニングの設定も必要です。
+
+### ソーシャルサインイン
+**Google**：適切な\[GoogleClientID]が `[YourProject/Config/SequenceConfig.ini]` に設定されていることをご確認ください。
+
+**Apple**：適切な\[AppleClientID]が `[YourProject/Config/SequenceConfig.ini]` に設定されていること、またアプリ用のバンドルIDを正しく登録・設定していることをご確認ください。
+
+_Apple固有の要件_
+
+Appleサインインを利用する場合は、\[RedirectUrl] を `[YourProject/Config/SequenceConfig.ini]` にアプリに合わせて正しく登録してください。
+
+## Android向けパッケージング
+
+### Android SDK / NDK
+Android向けにプロジェクトをビルドする際は、以下の設定を更新してください：
+ProjectSettings/Android SDK にて
+SDK API Level を Android-34 に設定
+NDK API Level を \[26,33] の範囲で設定（android-32 を推奨）
+
+### ソーシャルサインイン
+**Google:** Google認証を正しく利用するために、[こちらの手順](https://dev.epicgames.com/documentation/en-us/unreal-engine/signing-android-projects-for-release-on-the-google-play-store-with-unreal-engine?application_version=5.1)に従ってKeystoreファイルを作成し、配置してください。
+
+また、アプリ用に\[Android client ID]と\[Web Application client ID]を生成する必要があります。\[Web Application client ID]は `[YourProject/Config/SequenceConfig.ini]` の \[GoogleClientID] フィールドに入力してください。
+
+[こちらのドキュメント](https://developers.google.com/identity/one-tap/android/get-started#api-console)を参照して、\[Android client ID] と \[Web Application client ID] を生成してください。
+
+[このガイド](https://https://developers.google.com/android/guides/client-auth?hl=es-419)では、\[Android client ID] 用のSHA-1キーのフィンガープリントの取得方法が説明されています。
+
+**Apple:** 適切な\[AppleClientID]が `[YourProject/Config/SequenceConfig.ini]` に設定されていることをご確認ください。
+
+## UnrealおよびXcodeに関する詳細
+Unrealでパッケージ作成中にコード署名エラーが発生した場合、XCode内で以下の手順を実行することでパッケージ化された.appファイルを取得できます。
+1. Unrealでプロジェクトをパッケージ化した後、Xcodeプロジェクト（Sequence-unrealフォルダ → Intermediate → ProjectFilesIOS → SequenceUnreal.xcodeproj）を開きます。
+2. 左側のプロジェクト名をクリックしてプロジェクト設定を開きます。
+3. Build Phaseタブをクリックします。
+4. 左上の「+」アイコンをクリックします。
+5. Run Scriptを選択します。
+6. 新しく追加されたRun Scriptを、フェーズリストの一番下から一つ上の位置にドラッグします。
+7. Run Scriptを展開します。
+8. スクリプトボックスに、次のコマンドを追加します： `xattr -cr /[path-to-your-project]/[your-project-name]/Binaries/IOS/Payload/[your-project-name.app]`
+9. Build Settingsタブをクリックします。
+10. Architecturesヘッダーの下にあるmacOSを含む各項目をクリックし、deleteキーで削除します。
+11. Generalタブをクリックします。
+12. サポート対象デスティネーションの中からMacおよびApplevision Proをクリックし、deleteキーで削除します。
+13. これでプロジェクトのビルドが可能になります（ビルドが最初に失敗した場合は、少し待ってから再度お試しください。Run Scriptの登録に時間がかかることがあります）。
+14. プロジェクトの実行が終わり、コードを変更したい場合は、再度パッケージ化する際に新しいxcodeprojが作成されるよう、sequence-unrealフォルダ内のこのxcodeprojファイルを必ず削除してください。

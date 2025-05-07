@@ -1,54 +1,94 @@
 # ------------------------------------------------------------------------------
 # Frenglish Translation GitHub Action
 #
-# Core Workflow:
-# - Triggered on branch push, skipping merge commits.
-# - Fetches translation configuration (source/target languages).
-# - Detects renamed/deleted source files and mirrors these changes in target language directories.
-# - Runs scripts to translate and format files.
-# - Stages, commits, and pushes updates only if changes exist.
+# Workflow summary
+# - PRs - Internal: always translate the diff to the PR base.
+#     • Example 1: Open PR => feature_1 → main
+#     • Example 2: Open PR => feature_1_fix → feature_1
+#
+# - PRs - External: Only translate when external PR is merged
+#     • Example: merge PR => fork → main (from a contributor fork)
+#
+# - Default‑branch pushes: translate unless
+#     a) author is github‑actions[bot], or
+#     b) the push includes a commit with “chore(i18n): update translations”
+#     • Example: Hotfix push → main
+#
+# - Diff logic: compares to fork-point for PRs, or previous commit on main for direct pushes.
+# - If changes are found: handles file renames/deletes, runs translation and formatting,
+#   then commits and pushes a single update from the bot.
 # ------------------------------------------------------------------------------
 
 name: Frenglish Translation
 on:
+  # Run once per pull‑request (feature → any target)
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+  # Run again only when commits land on the default branch (e.g. master/main)
   push:
     branches:
-      - '**' # Trigger on push to any branch
-permissions: # <-- Control what the automatic GITHUB_TOKEN can do
+      - '**' # We filter below
+
+permissions:
   contents: read
 
 jobs:
   translate_and_format:
-    # Run on push events, but skip if the commit message indicates it's a merge commit
-    if: github.event_name == 'push' && !contains(github.event.head_commit.message, 'Merge pull request')
+    # Run if (a) it’s a PR  OR  (b) it’s a push *and* the ref equals the repo’s default branch
+    if: >-
+      github.event_name == 'pull_request' ||
+      (
+        github.event_name == 'push' &&
+        github.ref == format('refs/heads/{0}', github.event.repository.default_branch) &&
+        !contains(github.event.head_commit.author.name, 'github-actions[bot]') &&
+        !startsWith(github.event.head_commit.message, 'Merge ')
+      )
     runs-on: ubuntu-latest
     permissions:
       contents: write
       pull-requests: write
     steps:
+      # We check if commit message include `chore(i18n): update translations` and assume it's been fully translated if so
+      - name: Detect translation commit in push range 
+        id: detect
+        if: github.event_name == 'push' # PRs always run
+        run: | 
+          echo "Looking for 'chore(i18n): update translations' between ${{ github.event.before }}..${{ github.sha }}"
+          if git log --format=%B ${{ github.event.before }}..${{ github.sha }} | grep -qF 'chore(i18n): update translations'; then
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Checkout code
+        if: steps.detect.outputs.skip != 'true'
         uses: actions/checkout@v4
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          fetch-depth: 0 # Fetch all history for git diff to work reliably
+          fetch-depth: 0
 
       - name: Setup Node.js
+        if: steps.detect.outputs.skip != 'true'
         uses: actions/setup-node@v3
         with:
           node-version: '18' # Or your preferred Node.js version >= 16
 
       - name: Install dependencies
+        if: steps.detect.outputs.skip != 'true'
         run: |
           # Ensure you have a package.json and package-lock.json
           # Add @frenglish/sdk to your package.json: npm install @frenglish/sdk --save
           npm install
 
       - name: Setup Git User
+        if: steps.detect.outputs.skip != 'true'
         run: |
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git config --global user.name "github-actions[bot]"
 
       - name: Get Language Configuration
+        if: steps.detect.outputs.skip != 'true'
         id: get_lang_config
         run: node .github/scripts/fetch-frenglish-configuration.js
         env:
@@ -57,6 +97,7 @@ jobs:
 
       # --- Step to Handle Renamed/Deleted Files ---
       - name: Handle Renamed and Deleted Source Files
+        if: steps.detect.outputs.skip != 'true'
         id: handle_changes
         run: |
           set -e # Exit immediately if a command exits with a non-zero status.
@@ -92,6 +133,7 @@ jobs:
             'package.json'
             'package-lock.json'
             'node_modules/'
+            'frenglish.config.json'
             '.github/'
             '.git/'
             '.gitignore'
@@ -182,20 +224,20 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Run translation script (Writes/Updates files)
+        if: steps.detect.outputs.skip != 'true'
         env:
           FRENGLISH_API_KEY: ${{ secrets.FRENGLISH_API_KEY }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: node .github/scripts/translate.js
 
-      - name: Run formatting script
-        run: node .github/scripts/format-locales.js
-
       - name: Stage ALL changes (new, modified, deleted, renamed)
+        if: steps.detect.outputs.skip != 'true'
         run: |
           echo "Staging all tracked changes (adds, modifications, deletes, renames)..."
           git add . # This stages all changes in the working directory
 
       - name: Commit changes
+        if: steps.detect.outputs.skip != 'true'
         id: commit
         run: |
           # Check index status after all operations (add, rm, mv)
@@ -214,9 +256,11 @@ jobs:
           fi
 
       - name: Push changes
-        # Only run if the commit step actually committed something
-        if: steps.commit.outputs.changes_committed == 'true'
+        # run only when we actually committed something
+        if: steps.detect.outputs.skip != 'true' && steps.commit.outputs.changes_committed == 'true'
+        env:
+          # use head branch for PRs, ref_name for normal pushes
+          TARGET_REF: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.ref || github.ref_name }}
         run: |
-          echo "Pushing changes to origin/${{ github.ref_name }}..."
-          # Use --atomic for safety if supported, otherwise standard push
-          git push origin HEAD:${{ github.ref_name }}
+          echo "Pushing changes to origin/${TARGET_REF}..."
+          git push origin HEAD:${TARGET_REF}

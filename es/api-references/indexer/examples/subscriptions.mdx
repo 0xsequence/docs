@@ -1,0 +1,98 @@
+---
+title: Suscripciones
+sidebarTitle: Suscripciones
+---
+
+## Suscribirse a eventos de Blockchain
+Puede suscribirse a diferentes eventos de blockchain en tiempo real usando
+endpoints de suscripción. Use filtros para escuchar direcciones de contrato
+específicas, direcciones de cuenta y/o IDs de token.
+
+### Suscribirse a eventos
+_Método `SubscribeEvents` de Sequence Indexer:_
+- Solicitud: `POST /rpc/Indexer/SubscribeEvents`
+- Content-Type: `application/json`
+- Cuerpo (en JSON):
+  - `Filters` (\[]object) -- un arreglo de filtros
+    - `contractAddresses` (\[]string) -- una dirección de contrato ERC20 / ERC721 / ERC1155
+    - `accounts` (\[]string) -- direcciones de wallet
+    - `tokenIDs` (\[]int) _opcional_ -- un arreglo de IDs de token
+    - `events` (\[]string) -- un arreglo de nombres de eventos
+    - `topicHashes` (\[]string) -- un arreglo de hashes de tópico
+
+Debe proporcionar al menos uno de `contractAddresses` o `accounts` en el filtro.
+
+### Suscribirse a actualizaciones de balance
+_Método `SubscribeBalanceUpdates` de Sequence Indexer:_
+
+### Suscribirse a recibos
+_Método `SubscribeBalanceUpdates` de Sequence Indexer:_
+
+Ejemplo `SubscribeEvents`
+
+<CodeGroup>
+  ```bash cURL
+  curl -X POST \
+    -H 'Content-type: application/json' \
+    -H "X-Access-Key: c3bgcU3LkFR9Bp9jFssLenPAAAAAAAAAA" \
+    https://polygon-indexer.sequence.app/rpc/Indexer/SubscribeBalanceUpdates \
+    -d '{"contractAddress":"0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359"}'
+  ```
+
+  ```go Go
+  import (
+    "context"
+    "log"
+
+    "github.com/0xsequence/go-sequence/indexer"
+    "github.com/0xsequence/go-sequence/lib/prototyp"
+  )
+
+  func SubscribeEvents() {
+    seqIndexer := indexer.NewIndexer("https://polygon-indexer.sequence.app", "c3bgcU3LkFR9Bp9jFssLenPAAAAAAAAAA")
+
+    reader, err := seqIndexer.SubscribeEvents(
+      context.Background(),
+      &indexer.EventFilter{
+        ContractAddresses: []prototyp.Hash{prototyp.HashFromString("0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359")},
+      },
+    )
+    if err != nil {
+      log.Fatalf("SubscribeEvents: %v", err)
+    }
+
+    for {
+      event, err := reader.Read()
+      if err != nil {
+        log.Fatalf("Read: %v", err)
+      }
+
+      log.Println("Event", event)
+    }
+  }
+  ```
+
+  ```typescript [TypeScript]
+  // Works in both a Webapp (browser) or Node.js:
+  import { SequenceIndexer, WebrpcError } from '@0xsequence/indexer'
+
+  const indexer = new SequenceIndexer('https://polygon-indexer.sequence.app', 'c3bgcU3LkFR9Bp9jFssLenPAAAAAAAAAA')
+
+  const req = {
+      filter: {
+        contractAddresses: ['0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359'],
+      },
+  }
+
+  const options = {
+    onMessage: (msg: any) => {
+      console.log('msg', msg)
+    },
+    onError: (err: WebrpcError) => {
+      console.error('err', err)
+    }
+  }
+
+  await indexer.subscribeEvents(req, options)
+  ```
+</CodeGroup>

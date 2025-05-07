@@ -1,0 +1,38 @@
+---
+title: v1からv2への移行
+---
+
+Sequence Unreal SDK v2では多くの構造的な改善が加えられています。1.x.xバージョンからの移行方法について、知っておくべきことをまとめました。ご不明な点があればお気軽にお問い合わせください。
+
+### 設定ファイル
+
+- `SequenceConfig.ini`ファイルに`DefaultChain`変数を追加してください。
+- `RedirectUrl`の値を削除してください。カスタム値を指定していた場合は、`SequenceSdk::SetRedirectUrl`を呼び出して変更できます。
+  Blueprint連携の場合は、`SequenceSdkBP`サブシステムで同じ関数を呼び出してください。
+
+### サインイン UI
+旧サインインウィジェットとそのPawn依存性のサポートは終了しました。
+以前に`BP_CustomSpectatorPawn`、`GM_Sequence`、その他のウィジェットを使用していた場合は、プロジェクトディレクトリにファイルを保存してください。
+SDKにはこれらのファイルが含まれなくなったため、変更内容が失われる可能性があります。
+- 統合型ログインUIには、[Login Boilerplate](/sdk/unreal/bootstrap_game#login)への切り替えを推奨します。
+- `SequenceAuthenticator`や`SequenceBackendManager`を使用しているPawn内のすべての参照を削除してください。
+- 既存の関数呼び出しは、次のセクションで説明するサブシステムへの呼び出しに置き換えてください。
+
+### アカウントフェデレーション
+フェデレーション用の個別関数は廃止されました。`ConfirmEmailFederationWithCode`の代わりに、
+通常の`ConfirmEmailLoginWithCode`ノードを呼び出してください。既存のセッションを利用してフェデレーションが行われます。
+
+### Blueprint連携
+Blueprintサブシステムには個別のイベントノードがなくなり、関数パラメータとして統合されました。
+`GetTokenBalances`などの非同期ノードでは‘OnSuccess’や‘OnFailure’イベントが表示されます。既存ノードは新しい構造に切り替えてください。
+
+Examples:
+- `Assign OnApiSendTransaction`などのデリゲート割り当ては削除してください。
+- `SendTransaction`ノードから直接イベントリスナーを作成してください。
+- インデクサーの呼び出し（例：`GetTokenBalances`）を `SequenceWalletBP` から `SequenceIndexerBP` に切り替えてください。
+
+### C++ 連携
+一貫性を保つため、いくつかのクラス名を変更しました。下記のクラスを使用している場合は、参照先を必ず変更してください。
+- `UTransak` → `USequencePay`
+- `USequenceAuthenticator` → `USequenceSessions`
+- インデクサーの呼び出しの場合：`USequenceWallet` → `USequenceIndexer`

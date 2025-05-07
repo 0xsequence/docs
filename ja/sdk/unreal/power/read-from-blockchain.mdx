@@ -1,0 +1,341 @@
+---
+title: ブロックチェーンからのデータ取得
+description: Sequence インフラスタックを用いた web3 ゲーム向け Unreal SDK API のブロックチェーン読み取りに関するドキュメントです。
+---
+
+## チェーンIDの設定
+デフォルトでは、チェーンIDはSequenceConfig.iniファイルで定義されています。この関数を使うと、実行時にチェーンIDを変更できます。
+
+<Tabs>
+  <Tab title="ブループリント">
+    <Frame>
+      <img src="/images/unreal/set_chain_by_id.png" />
+    </Frame>
+  </Tab>
+
+  <Tab title="C++">
+    ```cpp
+    SequenceSdk::SetChainId(NewChainId);
+    ```
+  </Tab>
+</Tabs>
+
+<Accordion title="パラメータ">
+  **NewChainId (int64)**
+
+  新しいチェーンID（例：Arbitrum Sepoliaの場合は421614）
+</Accordion>
+
+## ネイティブトークン残高の取得
+Indexer APIを利用して、指定したウォレットアドレス（例：ローカルユーザーのアドレス）のEther残高を取得します。
+
+<Tabs>
+  <Tab title="ブループリント">
+    <Frame>
+      <img src="/images/unreal/get_native_token_balance.png" />
+    </Frame>
+  </Tab>
+
+  <Tab title="C++">
+    ```cpp
+    const TSuccessCallback<FSeqEtherBalance> OnApiSuccess = [this, OnSuccess](const FSeqEtherBalance& EtherBalance) { };
+    const FFailureCallback OnApiFailure = [this, OnFailure](const FSequenceError& Error) { };
+
+    USequenceIndexer* Indexer = NewObject<USequenceIndexer>();
+    Indexer->GetNativeTokenBalance(SequenceSdk::GetChainId(), WalletAddress, OnApiSuccess, OnApiFailure);
+    ```
+  </Tab>
+</Tabs>
+
+<Accordion title="パラメータ">
+  **ウォレットアドレス（FString）**
+
+  データを取得したいウォレットアドレスを指定します。
+</Accordion>
+
+<Accordion title="返却型">
+  **残高（Integer64）**
+
+  指定したウォレットアドレスが保有するEtherの量です。
+</Accordion>
+
+## トークン残高の取得
+ERC20、ERC721、ERC1155トークンのユーザー残高を取得します。これにより、ユーザーが所有するすべてのトークンの配列が返されます。
+
+<Tabs>
+  <Tab title="ブループリント">
+    <Frame>
+      <img src="/images/unreal/get_token_balances.png" />
+    </Frame>
+  </Tab>
+
+  <Tab title="C++">
+    ```cpp
+    const TSuccessCallback<FSeqGetTokenBalancesReturn> OnApiSuccess = [this, OnSuccess](const FSeqGetTokenBalancesReturn& Balances) { };
+    const FFailureCallback OnApiFailure = [this, OnFailure](const FSequenceError& Error) { };
+
+    FSeqGetTokenBalancesArgs Args;
+    Args.accountAddress = WalletAddress;
+    Args.contractAddress = ContractAddress;
+    Args.includeMetaData = IncludeMetadata;
+
+    USequenceIndexer* Indexer = NewObject<USequenceIndexer>();
+    Indexer->GetTokenBalances(SequenceSdk::GetChainId(), Args, OnApiSuccess, OnApiFailure);
+    ```
+  </Tab>
+</Tabs>
+
+<Accordion title="パラメータ">
+  **コントラクトアドレス（FString）**
+
+  データを取得したいERC20、ERC721、またはERC1155のコントラクトアドレスです。
+
+  **ウォレットアドレス（FString）**
+
+  指定したコントラクトアドレス上でトークンを所有しているウォレットアドレスです。
+
+  **メタデータを含める（Boolean）**
+
+  レスポンスにトークンのメタデータを含めたい場合は、このフラグを有効にしてください。
+</Accordion>
+
+<Accordion title="返却型">
+  **残高（SeqGetTokenBalancesReturn Struct）**
+
+  指定したウォレットアドレスが所有するすべてのトークンIDをリスト化したSeqTokenBalance配列が含まれます。'メタデータを含める'がtrueの場合、トークンのメタデータも含まれます。
+</Accordion>
+
+## トークン供給量の取得
+ERC20、ERC721、ERC1155トークンの供給量を取得します。
+
+<Tabs>
+  <Tab title="ブループリント">
+    <Frame>
+      <img src="/images/unreal/get_token_supplies.png" />
+    </Frame>
+  </Tab>
+
+  <Tab title="C++">
+    ```cpp
+    const TSuccessCallback<FSeqGetTokenSuppliesReturn> OnApiSuccess = [this, OnSuccess](const FSeqGetTokenSuppliesReturn& Supplies) { };
+    const FFailureCallback OnApiFailure = [this, OnFailure](const FSequenceError& Error) { };
+
+    FSeqGetTokenSuppliesArgs Args;
+    Args.contractAddress = ContractAddress;
+    Args.includeMetaData = IncludeMetadata;
+
+    USequenceIndexer* Indexer = NewObject<USequenceIndexer>();
+    Indexer->GetTokenSupplies(SequenceSdk::GetChainId(), Args, OnApiSuccess, OnApiFailure);
+    ```
+  </Tab>
+</Tabs>
+
+<Accordion title="パラメータ">
+  **コントラクトアドレス（FString）**
+
+  トークン供給量を取得したいERC20、ERC721、またはERC1155のコントラクトアドレスです。
+
+  **メタデータを含める（Boolean）**
+
+  レスポンスにトークンのメタデータを含めたい場合は、このフラグを有効にしてください。
+</Accordion>
+
+<Accordion title="返却型">
+  **供給量（SeqGetTokenSuppliesReturn Struct）**
+
+  指定したコントラクトアドレス上で利用可能なすべてのトークンIDをリスト化したSeqTokenSupply配列が含まれます。各要素には'supply'値が含まれます。'メタデータを含める'がtrueの場合、トークンのメタデータも含まれます。
+</Accordion>
+
+## トークン供給量マップの取得
+ERC20、ERC721、ERC1155トークンの供給量コレクションを取得します。
+
+<Tabs>
+  <Tab title="ブループリント">
+    <Frame>
+      <img src="/images/unreal/get_token_supplies_map.png" />
+    </Frame>
+  </Tab>
+
+  <Tab title="C++">
+    ```cpp
+    const TSuccessCallback<FSeqGetTokenSuppliesMapReturn> OnApiSuccess = [this, OnSuccess](const FSeqGetTokenSuppliesMapReturn& SuppliesMap) { };
+    const FFailureCallback OnApiFailure = [this, OnFailure](const FSequenceError& Error) { };
+
+    FSeqGetTokenSuppliesMapArgs Args;
+    Args.tokenMap = TokenMap;
+    Args.includeMetaData = IncludeMetadata;
+
+    USequenceIndexer* Indexer = NewObject<USequenceIndexer>();
+    Indexer->GetTokenSupplies(SequenceSdk::GetChainId(), Args, OnApiSuccess, OnApiFailure);
+    ```
+  </Tab>
+</Tabs>
+
+<Accordion title="パラメータ">
+  **トークンマップ（FString->FSeqTokenList Map）**
+
+  データを取得したいトークンIDのマップです。
+
+  **メタデータを含める（Boolean）**
+
+  レスポンスにトークンのメタデータを含めたい場合は、このフラグを有効にしてください。
+</Accordion>
+
+<Accordion title="返却型">
+  **供給量（SeqGetTokenSuppliesMapReturn Struct）**
+
+  'トークンマップ'で指定した各IDごとにSeqTokenSupply配列が含まれます。各要素には'supply'値が含まれます。'メタデータを含める'がtrueの場合、トークンのメタデータも含まれます。
+</Accordion>
+
+## トランザクション履歴の取得
+ウォレットアドレスまたはトークンアドレスのトランザクション履歴を取得します。
+例えば、現在のユーザーのすべてのトランザクションを取得できます。
+
+<Tabs>
+  <Tab title="ブループリント">
+    <Frame>
+      <img src="/images/unreal/get_transaction_history.png" />
+    </Frame>
+  </Tab>
+
+  <Tab title="C++">
+    ```cpp
+    const TSuccessCallback<FSeqGetTransactionHistoryReturn> OnApiSuccess = [this, OnSuccess](const FSeqGetTransactionHistoryReturn& TransactionHistory) { };
+    const FFailureCallback OnApiFailure = [this, OnFailure](const FSequenceError& Error) { };
+
+    FSeqGetTransactionHistoryArgs Args;
+    Args.filter = Filter;
+    Args.page = Page;
+    Args.includeMetaData = IncludeMetadata;
+
+    USequenceIndexer* Indexer = NewObject<USequenceIndexer>();
+    Indexer->GetTransactionHistory(SequenceSdk::GetChainId(), Args, OnApiSuccess, OnApiFailure);
+    ```
+  </Tab>
+</Tabs>
+
+<Accordion title="パラメータ">
+  **アカウントアドレス（FString）**
+
+  特定ユーザーの履歴を取得したい場合はウォレットアドレスを指定します。
+
+  **コントラクトアドレス（FString）**
+
+  特定トークンの履歴を取得したい場合はERC20、ERC721、またはERC1155のコントラクトアドレスを指定します。
+
+  **メタデータを含める（Boolean）**
+
+  レスポンスにトークンのメタデータを含めたい場合は、このフラグを有効にしてください。
+</Accordion>
+
+<Accordion title="返却型">
+  **トランザクション履歴（SeqGetTransactionHistoryReturn Struct）**
+
+  すべてのトランザクションをリスト化したSeqTransaction配列が含まれます。
+</Accordion>
+
+## ランタイムステータス
+現在のチェーンのランタイムステータスを取得します。
+例えば、最新のブロック番号を取得する際にこの関数を使用します。
+
+<Tabs>
+  <Tab title="ブループリント">
+    <Frame>
+      <img src="/images/unreal/runtime_status.png" />
+    </Frame>
+  </Tab>
+
+  <Tab title="C++">
+    ```cpp
+    const TSuccessCallback<FSeqRuntimeStatus> OnApiSuccess = [this, OnSuccess](const FSeqRuntimeStatus& Status) { };
+    const FFailureCallback OnApiFailure = [this, OnFailure](const FSequenceError& Error) { };
+
+    USequenceIndexer* Indexer = NewObject<USequenceIndexer>();
+    Indexer->RuntimeStatus(SequenceSdk::GetChainId(), OnApiSuccess, OnApiFailure);
+    ```
+  </Tab>
+</Tabs>
+
+<Accordion title="返却型">
+  **Status (SeqRuntimeStatus Struct)**
+
+  インデクサーのステータスに関するすべての詳細を含むオブジェクトです。
+
+  **Error (FString)**
+
+  リクエストが失敗した理由の詳細を含むエラーメッセージです。
+</Accordion>
+
+## バージョン
+現在のチェーンのバージョンを取得します。
+
+<Tabs>
+  <Tab title="ブループリント">
+    <Frame>
+      <img src="/images/unreal/version.png" />
+    </Frame>
+  </Tab>
+
+  <Tab title="C++">
+    ```cpp
+    const TSuccessCallback<FSeqVersion> OnApiSuccess = [this, OnSuccess](const FSeqVersion& Status) { };
+    const FFailureCallback OnApiFailure = [this, OnFailure](const FSequenceError& Error) { };
+
+    USequenceIndexer* Indexer = NewObject<USequenceIndexer>();
+    Indexer->Version(SequenceSdk::GetChainId(), OnApiSuccess, OnApiFailure);
+    ```
+  </Tab>
+</Tabs>
+
+<Accordion title="返却型">
+  **Web Rpc Version (FString)**
+
+  未定。
+
+  **Schema Version (FString)**
+
+  未定。
+
+  **Schema Hash (FString)**
+
+  未定。
+
+  **App Version (FString)**
+
+  未定。
+
+  **Error (FString)**
+
+  リクエストが失敗した理由の詳細を含むエラーメッセージです。
+</Accordion>
+
+## Ping
+インデクサーにPingを送り、エンドポイントが稼働中かどうかを確認します。
+
+<Tabs>
+  <Tab title="ブループリント">
+    <Frame>
+      <img src="/images/unreal/ping.png" />
+    </Frame>
+  </Tab>
+
+  <Tab title="C++">
+    ```cpp
+    const TSuccessCallback<bool> OnApiSuccess = [this, OnSuccess](const bool Status) { };
+    const FFailureCallback OnApiFailure = [this, OnFailure](const FSequenceError& Error) { };
+
+    USequenceIndexer* Indexer = NewObject<USequenceIndexer>();
+    Indexer->Ping(SequenceSdk::GetChainId(), OnApiSuccess, OnApiFailure);
+    ```
+  </Tab>
+</Tabs>
+
+<Accordion title="返却型">
+  **Success (bool)**
+
+  インデクサーが稼働していればTrueになります。
+
+  **Error (FString)**
+
+  リクエストが失敗した理由の詳細を含むエラーメッセージです。
+</Accordion>

@@ -27,6 +27,8 @@ Web ビルドでは、[PlayerPrefs](https://docs.unity3d.com/ScriptReference/Pla
 ## Android
 Android ビルドでは、[Android Keystore](https://developer.android.com/privacy-and-security/keystore) を利用しています。
 
+まず最初に、`AndroidKeyBridge.java` プラグインを Assets フォルダにインポートします。これはパッケージマネージャーのサンプルから行うのが最も簡単です。`Android Secure Storage` というサンプルをインポートしてください。
+
 Unity 用の Keystore プラグイン（SDK に含まれています）には、カスタム Main Gradle テンプレートが必要です。Project Settings で `Player > Publishing Settings` に進み、`Custom Main Gradle Template` を有効にしてください。これにより、`Assets/Plugins/Android/mainTemplate.gradle`（または類似のパス、エディターで確認可能）が作成されます。まだファイルがない場合は、以下のサンプル `mainTemplate.gradle` ファイルをコピー＆ペーストしてください（既存ファイルに組み込んでも構いません）。
 
 ```
@@ -85,6 +87,14 @@ unityStreamingAssets=**STREAMING_ASSETS**
 
 android.enableR8=**MINIFY_WITH_R_EIGHT**
 ```
+
+### Troubleshooting
+Android でセキュアストレージや Google サインインに問題が発生した場合は、以下のトラブルシューティング手順をお試しください。
+- **Google サインイン:** `AndroidManifest.xml` ファイル内の `data android:scheme` の値が、`SequenceConfig.asset` ファイルの `Url Scheme` と一致しているか確認してください。すべて小文字で記載されていることもご確認ください。
+- **セキュアストレージ:** `mainTemplate.gradle` で `androidx.security:security-crypto` プラグインが正しく定義されており、他のプラグインや Android Plugin Resolver によって上書きされていないことを確認してください。
+- **デモをお試しください:** [デモビルドをインストール](https://drive.google.com/file/d/1rAvnPu56Hj3yDRL32_lr887xt-xMQoYK/view?usp=sharing) し、お使いのデバイスで正常に動作するかご確認ください。
+  - Unity プロジェクトの設定（AndroidManifest、gradle ファイル、Android プレイヤー設定）を、弊社の [SDK プロジェクト](https://github.com/0xsequence/sequence-unity) と比較してください。
+- **追加のアイデア:** 新しいビルドをインストールする前にアプリをアンインストールする、URL スキームやバンドル ID を変更する、などもお試しください。
 
 ## エディター
 エディター上では、秘密鍵の保存に PlayerPrefs を使用しています。エディター内でセキュアストレージを利用しセッションを復元するには、SequenceConfig で 'EditorStoreSessionPrivateKeyInSecureStorage' を有効にしてください。このフラグを分けていることで、ビルドの挙動を変更せずに両方のフローをテストできます。エディターでのセキュアストレージは開発用途のみであり、長期保存には適していません。

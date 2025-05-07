@@ -1,0 +1,105 @@
+---
+title: セッションの管理
+description: Sequence インフラスタックを用いた web3 ゲーム向け Unreal SDK API のセッション管理に関するドキュメントです。
+---
+
+## IDトークンの取得
+よくあるユースケースとして、アプリクライアントでログイン処理が完了した後、バックエンドでユーザーの本人確認を行う場合があります。
+ユーザーから Sequence Id トークンを取得し、任意の JWKS ライブラリでバックエンド検証用に送信してください。
+詳細は [バックエンド検証ガイド](/sdk/headless-wallet/verification) をご覧ください。
+
+<Tabs>
+  <Tab title="ブループリント">
+    <Frame>
+      <img src="/images/unreal/get_id_token.png" />
+    </Frame>
+  </Tab>
+
+  <Tab title="C++">
+    ```cpp
+    const TFunction<void (FSeqIdTokenResponse_Data)> OnApiSuccess = [OnSuccess](const FSeqIdTokenResponse_Data& Data) { };
+    const TFunction<void (FSequenceError)> OnApiFailure = [OnFailure](const FSequenceError& Err) { };
+
+    USequenceWallet* Wallet = NewObject<USequenceWallet>();
+    Wallet->GetIdToken(Nonce, OnApiSuccess, OnApiFailure);
+    ```
+  </Tab>
+</Tabs>
+
+## 既存セッションの確認
+クライアントに既存のセッションが保存されているか確認します。
+
+<Tabs>
+  <Tab title="ブループリント">
+    <Frame>
+      <img src="/images/unreal/check_existing_session.png" />
+    </Frame>
+  </Tab>
+
+  <Tab title="C++">
+    ```cpp
+    USequenceSessions* Sessions = NewObject<USequenceSessions>();
+    const bool Exists = Sessions->CheckExistingSession();
+    ```
+  </Tab>
+</Tabs>
+
+## サインアウト
+認証情報キャッシュをクリアし、現在のユーザーをサインアウトします。
+
+<Tabs>
+  <Tab title="ブループリント">
+    <Frame>
+      <img src="/images/unreal/sign_out.png" />
+    </Frame>
+  </Tab>
+
+  <Tab title="C++">
+    ```cpp
+    USequenceWallet* Wallet = NewObject<USequenceWallet>();
+    Wallet->SignOut();
+    ```
+  </Tab>
+</Tabs>
+
+## セッション一覧取得
+アクティブなセッションを一覧表示します。
+
+<Tabs>
+  <Tab title="ブループリント">
+    <Frame>
+      <img src="/images/unreal/list_sessions.png" />
+    </Frame>
+  </Tab>
+
+  <Tab title="C++">
+    ```cpp
+    const TFunction<void (TArray<FSeqListSessions_Session>)> OnApiSuccess = [OnSuccess](const TArray<FSeqListSessions_Session>& Sessions) { };
+    const TFunction<void (FSequenceError)> OnApiFailure = [OnFailure](const FSequenceError& Err) { };
+
+    USequenceWallet* Wallet = NewObject<USequenceWallet>();
+    Wallet->GetIdToken(Nonce, OnApiSuccess, OnApiFailure);
+    ```
+  </Tab>
+</Tabs>
+
+## アカウント一覧の取得
+アカウント一覧の取得
+
+<Tabs>
+  <Tab title="ブループリント">
+    <Frame>
+      <img src="/images/unreal/list_accounts.png" />
+    </Frame>
+  </Tab>
+
+  <Tab title="C++">
+    ```cpp
+    const TFunction<void (FSeqListAccountsResponse_Data)> OnApiSuccess = [OnSuccess](const FSeqListAccountsResponse_Data& Sessions) { };
+    const TFunction<void (FSequenceError)> OnApiFailure = [OnFailure](const FSequenceError& Err) { };
+
+    USequenceWallet* Wallet = NewObject<USequenceWallet>();
+    Wallet->GetIdToken(Nonce, OnApiSuccess, OnApiFailure);
+    ```
+  </Tab>
+</Tabs>
