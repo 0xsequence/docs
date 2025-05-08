@@ -1,6 +1,6 @@
 ---
 title: "useGetSwapQuote"
-description: Hook for fetching executable swap quotes with transaction data
+description: Hook for fetching quotes for a swap
 sidebarTitle: useGetSwapQuote
 ---
 
@@ -17,12 +17,15 @@ import { useGetSwapQuote } from '@0xsequence/hooks'
 
 function SwapComponent() {
   const { data: swapQuote, isLoading } = useGetSwapQuote({
-    userAddress: '0x123...',
-    buyCurrencyAddress: '0x456...',
-    sellCurrencyAddress: '0x789...',
-    buyAmount: '1000000000000000000', 
-    chainId: 1,
-    includeApprove: true
+    params: {
+      walletAddress: '0x123...',
+      fromTokenAddress: '0x456...',
+      toTokenAddress: '0x789...',
+      toTokenAmount: '1000000000000000000', // amount to buy in wei
+      chainId: 1,
+      includeApprove: true,
+      slippageBps: 100 // 1% slippage
+    }
   })
 
   if (isLoading) return <div>Loading...</div>
@@ -31,10 +34,10 @@ function SwapComponent() {
     <div>
       {swapQuote && (
         <div>
-          Currency: {swapQuote.currencyAddress}
           Price: {swapQuote.price}
           Max Price: {swapQuote.maxPrice}
           Transaction Value: {swapQuote.transactionValue}
+          <button onClick={() => executeSwap(swapQuote)}>Swap</button>
         </div>
       )}
     </div>
@@ -42,20 +45,22 @@ function SwapComponent() {
 }
 ```
 
-## Return Type: `UseQueryResult<SwapQuote>`
+## Return Type: `UseQueryResult<LifiSwapQuote>`
 
-The hook returns all properties from React Query's `UseQueryResult` with swap quote data. Here's the detailed structure:
+The hook returns all properties from React Query's `UseQueryResult` with swap quote data. Here's the detailed structure of the swapQuote.
 
 ```tsx
-interface SwapQuote {
-  currencyAddress: string
-  currencyBalance: string
-  price: string
-  maxPrice: string
-  to: string
-  transactionData: string
-  transactionValue: string
-  approveData: string
+interface LifiSwapQuote {
+    currencyAddress: string;
+    currencyBalance: string;
+    price: string;
+    maxPrice: string;
+    to: string;
+    transactionData: string;
+    transactionValue: string;
+    approveData: string;
+    amount: string;
+    amountMin: string;
 }
 ```
 
@@ -71,10 +76,12 @@ The swap quote object containing:
 - `currencyBalance`: Balance of the currency in the user's wallet
 - `price`: The current price for the swap
 - `maxPrice`: Maximum price allowed for the swap (includes slippage)
-- `to`: The target contract address for the swap
+- `to`: The target contract address that handles the swap
 - `transactionData`: Encoded transaction data for executing the swap
-- `transactionValue`: The value to be sent with the transaction
-- `approveData`: Encoded approval transaction data (if includeApprove is true)
+- `transactionValue`: The value to be sent with the transaction (for native tokens)
+- `approveData`: Encoded approval transaction data (if includeApprove is true and needed)
+- `amount`: The amount of currency to be received
+- `amountMin`: The minimum amount to be received after slippage
 
 #### isLoading
 
@@ -98,29 +105,37 @@ Any error that occurred during data fetching.
 
 The hook accepts two parameters:
 
-### args: `UseGetSwapQuoteArgs`
+### args: `GetLifiSwapQuoteArgs`
 
 ```tsx
-interface UseGetSwapQuoteArgs {
-  userAddress: string
-  buyCurrencyAddress: string
-  sellCurrencyAddress: string
-  buyAmount: string
-  chainId: number
-  includeApprove?: boolean
-  slippagePercentage?: number
+interface GetLifiSwapQuoteArgs {
+  params: GetLifiSwapQuoteParams
+}
+
+interface GetLifiSwapQuoteParams {
+    chainId: number;
+    walletAddress: string;
+    fromTokenAddress: string;
+    toTokenAddress: string;
+    fromTokenAmount?: string;
+    toTokenAmount?: string;
+    includeApprove: boolean;
+    slippageBps: number;
 }
 ```
 
 | Parameter | Type | Description |
 | --------- | ---- | ----------- |
-| `userAddress` | `string` | The address of the user's wallet |
-| `buyCurrencyAddress` | `string` | The address of the currency to buy |
-| `sellCurrencyAddress` | `string` | The address of the currency to sell |
-| `buyAmount` | `string` | The amount of currency to buy (in base units) |
-| `chainId` | `number` | The chain ID where the swap will occur |
-| `includeApprove` | `boolean` | (Optional) Whether to include approval transaction data |
-| `slippagePercentage` | `number` | (Optional) Maximum allowed slippage percentage |
+| `params.chainId` | `number` | The chain ID where the swap will occur |
+| `params.walletAddress` | `string` | The address of the user's wallet |
+| `params.fromTokenAddress` | `string` | The address of the token to sell |
+| `params.toTokenAddress` | `string` | The address of the token to buy |
+| `params.fromTokenAmount` | `string` | (Optional) The amount of token to sell (in wei) |
+| `params.toTokenAmount` | `string` | (Optional) The amount of token to buy (in wei) |
+| `params.includeApprove` | `boolean` | Whether to include approval transaction data |
+| `params.slippageBps` | `number` | Maximum allowed slippage in basis points (100 = 1%) |
+
+**Note**: You must provide either `fromTokenAmount` or `toTokenAmount`, but not both.
 
 ### options: `HooksOptions`
 
@@ -134,4 +149,4 @@ interface HooksOptions {
 | Parameter | Type | Description |
 | --------- | ---- | ----------- |
 | `disabled` | `boolean` | (Optional) Disable the query from automatically running |
-| `retry` | `boolean` | (Optional) Whether to retry failed queries |
+| `retry` | `boolean` | (Optional) Whether to retry failed queries (defaults to true) |

@@ -1,6 +1,6 @@
 ---
 title: useGetSwapQuote
-description: 実行可能なスワップ見積もりとトランザクションデータを取得するためのフック
+description: スワップの見積もりを取得するためのフック
 sidebarTitle: useGetSwapQuote
 ---
 
@@ -17,12 +17,15 @@ import { useGetSwapQuote } from '@0xsequence/hooks'
 
 function SwapComponent() {
   const { data: swapQuote, isLoading } = useGetSwapQuote({
-    userAddress: '0x123...',
-    buyCurrencyAddress: '0x456...',
-    sellCurrencyAddress: '0x789...',
-    buyAmount: '1000000000000000000', 
-    chainId: 1,
-    includeApprove: true
+    params: {
+      walletAddress: '0x123...',
+      fromTokenAddress: '0x456...',
+      toTokenAddress: '0x789...',
+      toTokenAmount: '1000000000000000000', // amount to buy in wei
+      chainId: 1,
+      includeApprove: true,
+      slippageBps: 100 // 1% slippage
+    }
   })
 
   if (isLoading) return <div>Loading...</div>
@@ -31,10 +34,10 @@ function SwapComponent() {
     <div>
       {swapQuote && (
         <div>
-          Currency: {swapQuote.currencyAddress}
           Price: {swapQuote.price}
           Max Price: {swapQuote.maxPrice}
           Transaction Value: {swapQuote.transactionValue}
+          <button onClick={() => executeSwap(swapQuote)}>Swap</button>
         </div>
       )}
     </div>
@@ -42,19 +45,21 @@ function SwapComponent() {
 }
 ```
 
-## 返却型：`UseQueryResult<SwapQuote>`
-このフックはReact Queryの`UseQueryResult`の全プロパティと、スワップ見積もりデータを返します。詳細な構造は以下の通りです：
+## 返り値の型: `UseQueryResult<LifiSwapQuote>`
+このフックは、React Query の `UseQueryResult` すべてのプロパティとスワップ見積もりデータを返します。swapQuote の詳細な構造は以下の通りです。
 
 ```tsx
-interface SwapQuote {
-  currencyAddress: string
-  currencyBalance: string
-  price: string
-  maxPrice: string
-  to: string
-  transactionData: string
-  transactionValue: string
-  approveData: string
+interface LifiSwapQuote {
+    currencyAddress: string;
+    currencyBalance: string;
+    price: string;
+    maxPrice: string;
+    to: string;
+    transactionData: string;
+    transactionValue: string;
+    approveData: string;
+    amount: string;
+    amountMin: string;
 }
 ```
 
@@ -68,10 +73,12 @@ interface SwapQuote {
 - `currencyBalance`: ユーザーのウォレット内の通貨残高
 - `price`: 現在のスワップ価格
 - `maxPrice`: スリッページを含むスワップの最大許容価格
-- `to`: スワップの送信先コントラクトアドレス
+- `to`: スワップを処理する対象コントラクトのアドレス
 - `transactionData`: スワップ実行用のエンコード済みトランザクションデータ
-- `transactionValue`: トランザクションとともに送信する金額
-- `approveData`: 承認トランザクションのエンコードデータ（includeApproveがtrueの場合）
+- `transactionValue`: トランザクションと一緒に送信される値（ネイティブトークンの場合）
+- `approveData`: 承認トランザクションのエンコード済みデータ（includeApprove が true かつ必要な場合）
+- `amount`: 受け取る通貨の数量
+- `amountMin`: スリッページ後に受け取る最小数量
 
 #### isLoading
 `boolean`
@@ -91,29 +98,37 @@ interface SwapQuote {
 ## パラメータ
 このフックは2つのパラメータを受け取ります：
 
-### 引数: `UseGetSwapQuoteArgs`
+### 引数: `GetLifiSwapQuoteArgs`
 
 ```tsx
-interface UseGetSwapQuoteArgs {
-  userAddress: string
-  buyCurrencyAddress: string
-  sellCurrencyAddress: string
-  buyAmount: string
-  chainId: number
-  includeApprove?: boolean
-  slippagePercentage?: number
+interface GetLifiSwapQuoteArgs {
+  params: GetLifiSwapQuoteParams
+}
+
+interface GetLifiSwapQuoteParams {
+    chainId: number;
+    walletAddress: string;
+    fromTokenAddress: string;
+    toTokenAddress: string;
+    fromTokenAmount?: string;
+    toTokenAmount?: string;
+    includeApprove: boolean;
+    slippageBps: number;
 }
 ```
 
-| パラメータ                 | 型         | 説明                           |
-| --------------------- | --------- | ---------------------------- |
-| `userAddress`         | `string`  | ユーザーのウォレットアドレス               |
-| `buyCurrencyAddress`  | `string`  | 購入する通貨のアドレス                  |
-| `sellCurrencyAddress` | `string`  | 売却する通貨のアドレス                  |
-| `buyAmount`           | `string`  | 購入する通貨の金額（基準単位）              |
-| `chainId`             | `number`  | スワップが行われるチェーンID              |
-| `includeApprove`      | `boolean` | （オプション）承認トランザクションデータを含めるかどうか |
-| `slippagePercentage`  | `number`  | （オプション）許容される最大スリッページ率        |
+| パラメータ                     | 型         | 説明                                 |
+| ------------------------- | --------- | ---------------------------------- |
+| `params.chainId`          | `number`  | スワップが行われるチェーンID                    |
+| `params.walletAddress`    | `string`  | ユーザーのウォレットアドレス                     |
+| `params.fromTokenAddress` | `string`  | 売却するトークンのアドレス                      |
+| `params.toTokenAddress`   | `string`  | 購入するトークンのアドレス                      |
+| `params.fromTokenAmount`  | `string`  | （オプション）売却するトークンの数量（wei単位）          |
+| `params.toTokenAmount`    | `string`  | （オプション）購入するトークンの数量（wei単位）          |
+| `params.includeApprove`   | `boolean` | 承認トランザクションデータを含めるかどうか              |
+| `params.slippageBps`      | `number`  | 許容される最大スリッページ（ベーシスポイント単位、100 = 1%） |
+
+**注意**: `fromTokenAmount` または `toTokenAmount` のいずれか一方を必ず指定してください。両方同時には指定できません。
 
 ### options: `HooksOptions`
 
@@ -124,7 +139,7 @@ interface HooksOptions {
 }
 ```
 
-| パラメータ      | 型         | 説明                       |
-| ---------- | --------- | ------------------------ |
-| `disabled` | `boolean` | （オプション）クエリの自動実行を無効にします   |
-| `retry`    | `boolean` | （オプション）失敗したクエリを再試行するかどうか |
+| パラメータ      | 型         | 説明                                    |
+| ---------- | --------- | ------------------------------------- |
+| `disabled` | `boolean` | （オプション）クエリの自動実行を無効にします                |
+| `retry`    | `boolean` | （オプション）失敗したクエリを再試行するかどうか（デフォルトは true） |
