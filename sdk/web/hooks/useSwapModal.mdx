@@ -23,8 +23,8 @@ function App() {
   const handleSwap = () => {
     // Target token information
     const chainId = 137 // Polygon
-    const currencyAddress = '0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359' // USDC on Polygon
-    const currencyAmount = '20000' // 0.02 USDC (in smallest units)
+    const toTokenAddress = '0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359' // USDC on Polygon
+    const toTokenAmount = '20000' // 0.02 USDC (in smallest units)
     
     // Optional: Transaction to execute after swap is completed
     const data = encodeFunctionData({ 
@@ -39,8 +39,8 @@ function App() {
         console.log('swap successful!')
       },
       chainId,
-      currencyAddress,
-      currencyAmount,
+      toTokenAddress,
+      toTokenAmount,
       postSwapTransactions: [
         {
           to: '0x37470dac8a0255141745906c972e414b1409b470',
@@ -87,8 +87,8 @@ The `settings` object can include the following properties:
 | Parameter | Type | Description |
 | --------- | ---- | ----------- |
 | `chainId` | `number` | Blockchain network ID where the swap will occur |
-| `currencyAddress` | `string` | Address of the target token contract |
-| `currencyAmount` | `string` | Amount of the target token in smallest units |
+| `toTokenAddress` | `string` | Address of the target token contract |
+| `toTokenAmount` | `string` | Amount of the target token in smallest units |
 | `postSwapTransactions` | `Array<{to: string, data: string}>` | (Optional) Transactions to execute after the swap completes |
 | `disableMainCurrency` | `boolean` | (Optional) If true, disables swapping using the main currency of the chain |
 | `title` | `string` | (Optional) Custom title for the swap modal |
@@ -113,8 +113,8 @@ The current settings configuration for the Swap modal.
 ```tsx
 export interface SwapModalSettings {
   chainId: number
-  currencyAddress: string
-  currencyAmount: string
+  toTokenAddress: string
+  toTokenAmount: string
   title?: string
   description?: string
   disableMainCurrency?: boolean
