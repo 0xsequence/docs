@@ -1,0 +1,167 @@
+---
+title: useGetSwapRoutes
+description: スワップで利用可能なルートを取得するためのフック
+sidebarTitle: useGetSwapRoutes
+---
+
+## インポート
+
+```tsx
+import { useGetSwapRoutes } from '@0xsequence/hooks'
+```
+
+<Warning>
+  このフックは、v5.2.3 で削除された `useGetSwapPrices` フックの代替です。
+</Warning>
+
+## 使い方
+
+```tsx
+import { useGetSwapRoutes } from '@0xsequence/hooks'
+import { useState } from 'react'
+
+function SwapList() {
+    const [selectedCurrency, setSelectedCurrency] = useState('')
+
+    const toTokenAddress = '0x...'
+    const toTokenAmount = '1000000000'
+    const walletAddress = '0x...'
+    const chainId = 137
+
+    const {
+        data: swapRoutes = [],
+        isLoading,
+        isError
+    } = useGetSwapRoutes({
+        walletAddress,
+        toTokenAddress,
+        toTokenAmount,
+        chainId
+    })
+
+    if (isLoading) return <div>Loading swap options...</div>
+
+    if (isError) return <div>Error loading swap options</div>
+
+    const noOptionsFound = swapRoutes.flatMap(route => route.fromTokens).length === 0
+
+    if (noOptionsFound) return <div>No swap options found</div>
+
+    return (
+        <div>
+            {swapRoutes.flatMap(route => route.fromTokens).map(token => (
+                <div
+                    key={token.address}
+                    onClick={() => setSelectedCurrency(token.address)}
+                    style={{
+                        border: selectedCurrency === token.address ? '2px solid blue' : '1px solid gray',
+                        padding: '10px',
+                        margin: '5px',
+                        cursor: 'pointer'
+                    }}
+                >
+                    <img src={token.logoUri} alt={token.symbol} width="24" height="24" />
+                    <span>{token.symbol}: {token.name}</span>
+                    <div>Required: {token.price}</div>
+                </div>
+            ))}
+        </div>
+    )
+}
+
+export default SwapList
+```
+
+## 返り値の型: `UseQueryResult<LifiSwapRoute[]>`
+このフックは、React Query の `UseQueryResult` すべてのプロパティとスワップルートデータを返します。`LifiSwapRoute` オブジェクトの詳細な構造は以下の通りです。
+
+```tsx
+interface LifiToken {
+    chainId: number;
+    address: string;
+    symbol: string;
+    name: string;
+    decimals: number;
+    priceUsd: number;
+    price?: string;
+    coinKey: string;
+    logoUri: string;
+}
+
+interface LifiSwapRoute {
+    fromChainId: number;
+    toChainId: number;
+    fromTokens: Array<LifiToken>;
+    toTokens: Array<LifiToken>;
+}
+```
+
+### プロパティ
+
+#### data
+`LifiSwapRoute[] | undefined`
+
+以下を含むスワップルートオブジェクトの配列:
+
+##### route
+
+- `fromChainId`: 売却するトークンのチェーンID
+- `toChainId`: 購入するトークンのチェーンID
+- `fromTokens`: スワップの支払いに利用できるトークンの配列
+- `toTokens`: スワップで受け取れるトークンの配列
+
+#### isLoading
+`boolean`
+
+データ取得時のローディング状態。
+
+#### isError
+`boolean`
+
+クエリが失敗した場合のエラー状態。
+
+#### エラー
+`Error | null`
+
+データ取得中に発生したエラー内容。
+
+## パラメータ
+このフックは2つのパラメータを受け取ります：
+
+### 引数: `UseGetSwapRoutesArgs`
+
+```tsx
+interface UseGetSwapRoutesArgs {
+  walletAddress: string
+  toTokenAddress: string
+  chainId: number
+  toTokenAmount: string
+}
+```
+
+| パラメータ            | 型        | 説明                 |
+| ---------------- | -------- | ------------------ |
+| `walletAddress`  | `string` | ユーザーのウォレットアドレス     |
+| `toTokenAddress` | `string` | 購入するトークンのアドレス      |
+| `chainId`        | `number` | スワップが行われるチェーンID    |
+| `toTokenAmount`  | `string` | 購入するトークンの数量（wei単位） |
+
+### options: `HooksOptions`
+
+```tsx
+interface HooksOptions {
+  disabled?: boolean
+  retry?: boolean
+}
+```
+
+| パラメータ      | 型         | 説明                                    |
+| ---------- | --------- | ------------------------------------- |
+| `disabled` | `boolean` | （オプション）クエリの自動実行を無効にします                |
+| `retry`    | `boolean` | （オプション）失敗したクエリを再試行するかどうか（デフォルトは true） |
+
+## 補足事項
+
+- このフックは React Query を使って Sequence API からスワップルートを取得・キャッシュします。
+- ユーザーが取引を完了する間に見積もりが更新されないよう、デフォルトでキャッシュの有効期間は1時間に設定されています。
+- このフックは、ユーザーのウォレットに存在しない "fromTokens" は返しません。

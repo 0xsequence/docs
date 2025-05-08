@@ -1,6 +1,6 @@
 ---
 title: useGetSwapQuote
-description: Hook para obtener cotizaciones ejecutables de swap con datos de transacción
+description: Hook para obtener cotizaciones para un swap
 sidebarTitle: useGetSwapQuote
 ---
 
@@ -17,12 +17,15 @@ import { useGetSwapQuote } from '@0xsequence/hooks'
 
 function SwapComponent() {
   const { data: swapQuote, isLoading } = useGetSwapQuote({
-    userAddress: '0x123...',
-    buyCurrencyAddress: '0x456...',
-    sellCurrencyAddress: '0x789...',
-    buyAmount: '1000000000000000000', 
-    chainId: 1,
-    includeApprove: true
+    params: {
+      walletAddress: '0x123...',
+      fromTokenAddress: '0x456...',
+      toTokenAddress: '0x789...',
+      toTokenAmount: '1000000000000000000', // amount to buy in wei
+      chainId: 1,
+      includeApprove: true,
+      slippageBps: 100 // 1% slippage
+    }
   })
 
   if (isLoading) return <div>Loading...</div>
@@ -31,10 +34,10 @@ function SwapComponent() {
     <div>
       {swapQuote && (
         <div>
-          Currency: {swapQuote.currencyAddress}
           Price: {swapQuote.price}
           Max Price: {swapQuote.maxPrice}
           Transaction Value: {swapQuote.transactionValue}
+          <button onClick={() => executeSwap(swapQuote)}>Swap</button>
         </div>
       )}
     </div>
@@ -42,19 +45,21 @@ function SwapComponent() {
 }
 ```
 
-## Tipo de retorno: `UseQueryResult<SwapQuote>`
-El hook retorna todas las propiedades de `UseQueryResult` de React Query con los datos de la cotización de swap. Esta es la estructura detallada:
+## Tipo de retorno: `UseQueryResult<LifiSwapQuote>`
+El hook retorna todas las propiedades de `UseQueryResult` de React Query con los datos de la cotización del swap. Aquí está la estructura detallada de swapQuote.
 
 ```tsx
-interface SwapQuote {
-  currencyAddress: string
-  currencyBalance: string
-  price: string
-  maxPrice: string
-  to: string
-  transactionData: string
-  transactionValue: string
-  approveData: string
+interface LifiSwapQuote {
+    currencyAddress: string;
+    currencyBalance: string;
+    price: string;
+    maxPrice: string;
+    to: string;
+    transactionData: string;
+    transactionValue: string;
+    approveData: string;
+    amount: string;
+    amountMin: string;
 }
 ```
 
@@ -68,10 +73,12 @@ El objeto de cotización de swap contiene:
 - `currencyBalance`: Balance de la moneda en el wallet del usuario
 - `price`: El precio actual para el swap
 - `maxPrice`: Precio máximo permitido para el swap (incluye slippage)
-- `to`: Dirección del contrato destino para el swap
+- `to`: La dirección del contrato de destino que gestiona el swap
 - `transactionData`: Datos codificados de la transacción para ejecutar el swap
-- `transactionValue`: Valor a enviar con la transacción
-- `approveData`: Datos codificados de la transacción de aprobación (si includeApprove es verdadero)
+- `transactionValue`: El valor que se enviará con la transacción (para tokens nativos)
+- `approveData`: Datos codificados de la transacción de aprobación (si includeApprove es true y es necesario)
+- `amount`: La cantidad de moneda a recibir
+- `amountMin`: La cantidad mínima a recibir después del slippage
 
 #### isLoading
 `boolean`
@@ -91,29 +98,37 @@ Cualquier error que ocurrió durante la obtención de datos.
 ## Parámetros
 El hook acepta dos parámetros:
 
-### args: `UseGetSwapQuoteArgs`
+### args: `GetLifiSwapQuoteArgs`
 
 ```tsx
-interface UseGetSwapQuoteArgs {
-  userAddress: string
-  buyCurrencyAddress: string
-  sellCurrencyAddress: string
-  buyAmount: string
-  chainId: number
-  includeApprove?: boolean
-  slippagePercentage?: number
+interface GetLifiSwapQuoteArgs {
+  params: GetLifiSwapQuoteParams
+}
+
+interface GetLifiSwapQuoteParams {
+    chainId: number;
+    walletAddress: string;
+    fromTokenAddress: string;
+    toTokenAddress: string;
+    fromTokenAmount?: string;
+    toTokenAmount?: string;
+    includeApprove: boolean;
+    slippageBps: number;
 }
 ```
 
-| Parámetro             | Type      | Description                                                                     |
-| --------------------- | --------- | ------------------------------------------------------------------------------- |
-| `userAddress`         | `string`  | La dirección del wallet del usuario                                             |
-| `buyCurrencyAddress`  | `string`  | La dirección de la moneda a comprar                                             |
-| `sellCurrencyAddress` | `string`  | La dirección de la moneda a vender                                              |
-| `buyAmount`           | `string`  | La cantidad de moneda a comprar (en unidades base)                              |
-| `chainId`             | `number`  | El chain ID donde se realizará el swap                                          |
-| `includeApprove`      | `boolean` | (Opcional) Indica si se deben incluir los datos de la transacción de aprobación |
-| `slippagePercentage`  | `number`  | (Opcional) Porcentaje máximo de slippage permitido                              |
+| Parámetro                 | Type      | Description                                                          |
+| ------------------------- | --------- | -------------------------------------------------------------------- |
+| `params.chainId`          | `number`  | El chain ID donde se realizará el swap                               |
+| `params.walletAddress`    | `string`  | La dirección del wallet del usuario                                  |
+| `params.fromTokenAddress` | `string`  | La dirección del token a vender                                      |
+| `params.toTokenAddress`   | `string`  | La dirección del token a comprar                                     |
+| `params.fromTokenAmount`  | `string`  | (Opcional) La cantidad de token a vender (en wei)                    |
+| `params.toTokenAmount`    | `string`  | (Opcional) La cantidad de token a comprar (en wei)                   |
+| `params.includeApprove`   | `boolean` | Indica si se deben incluir los datos de la transacción de aprobación |
+| `params.slippageBps`      | `number`  | Slippage máximo permitido en puntos base (100 = 1%)                  |
+
+**Nota**: Debe proporcionar `fromTokenAmount` o `toTokenAmount`, pero no ambos.
 
 ### options: `HooksOptions`
 
@@ -124,7 +139,7 @@ interface HooksOptions {
 }
 ```
 
-| Parámetro  | Type      | Description                                                                |
-| ---------- | --------- | -------------------------------------------------------------------------- |
-| `disabled` | `boolean` | (Opcional) Deshabilitar la consulta para que no se ejecute automáticamente |
-| `retry`    | `boolean` | (Opcional) Indica si se deben reintentar las consultas fallidas            |
+| Parámetro  | Type      | Description                                                                           |
+| ---------- | --------- | ------------------------------------------------------------------------------------- |
+| `disabled` | `boolean` | (Opcional) Deshabilitar la consulta para que no se ejecute automáticamente            |
+| `retry`    | `boolean` | (Opcional) Indica si se deben reintentar las consultas fallidas (por defecto es true) |
