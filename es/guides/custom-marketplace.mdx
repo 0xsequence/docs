@@ -1,6 +1,6 @@
 ---
-title: Transacciones de Orderbook
-description: Esta guía cubre la creación de un marketplace personalizado usando herramientas del stack de Sequence. Incluye pasos para mintear tokens, autenticación de wallet, consultas a la blockchain, tipos de wallets múltiples, creación de solicitudes, aceptación de órdenes y la integración opcional de un wallet integrado.
+title: Cree un Marketplace Personalizado
+description: Esta guía le guía paso a paso para crear un marketplace personalizado utilizando el stack de Sequence. Cubre el minteo de tokens, la autenticación de wallet, la visualización de colecciones, la creación y compra de listados, la realización y aceptación de ofertas, y la gestión de inventario, todo integrado de forma fluida con un wallet embebido y el Web SDK.
 sidebarTitle: Cree un Marketplace Personalizado
 ---
 
@@ -9,17 +9,9 @@ En esta guía repasaremos el proceso de crear un marketplace personalizado usand
 Estas herramientas le permitirán realizar:
 1. [Minteo](/guides/custom-marketplace#1-minting): Minteo de tokens a su wallet desde el Sequence Builder
 2. [Autenticación de Wallet](/guides/custom-marketplace#2-wallet-authentication): Uso del Web SDK para autenticar a un usuario
-3. [Consultas a la Blockchain](/guides/custom-marketplace#3-blockchain-queries): Consultar balances de tokens usando el Indexer
-4. [Tipos de Wallets Múltiples](/guides/custom-marketplace#4-multi-wallet-types): Permitir que los usuarios utilicen un Sequence Wallet o un EOA
-5. [Creación de Solicitudes](/guides/custom-marketplace#5-request-creation): Crear solicitudes de venta en el Sequence Market Protocol
-6. [Aceptación de Órdenes](/guides/custom-marketplace#6-order-accepting): Aceptar las mejores órdenes del Marketplace
-7. [(Opcional) Habilitar Wallet Embebido](/guides/custom-marketplace#7-optional-integrate-embedded-wallet-into-sequence-kit): Agregue una experiencia de usuario aún más fluida con transacciones sin confirmación
-
-<Note>
-  Vea un ejemplo de [dapp de marketplace simplificado](https://simple-marketplace-boilerplate.pages.dev/) que permite a los usuarios mintear coleccionables, venderlos con el Sequence Marketplace Protocol y realizar compras con USDC en `base-sepolia` obteniendo la mejor orden del Marketplace.
-
-  El código se puede encontrar [aquí](https://github.com/0xsequence-demos/simple-marketplace-boilerplate)
-</Note>
+3. [Configuración del Marketplace SDK](/guides/custom-marketplace#3-marketplace-sdk-set-up): Guía básica para configurar el Marketplace SDK
+4. [Visualización de colecciones](/guides/custom-marketplace#4-displaying-collections): Obtener y mostrar las colecciones disponibles en el marketplace.
+5. [Publicaciones y Ofertas](/guides/custom-marketplace#5-listings-and-offers): Permita que los usuarios publiquen tokens en venta o realicen ofertas
 
 ## 1. Minteo
 El primer paso es crear un coleccionable desde el Sequence Builder y mintear algunos tokens, lo cual puede lograrse con esta [guía](/solutions/collectibles/contracts/deploy-an-item-collection) y usar el `tokenId` que minteó en los siguientes pasos para consultar y cumplir órdenes.
@@ -27,125 +19,113 @@ El primer paso es crear un coleccionable desde el Sequence Builder y mintear alg
 ## 2. Autenticación de Wallet
 Para su proyecto, necesitará una forma de autenticar a su usuario con un wallet.
 
-Su opción dentro del stack de Sequence es usar un [Embedded Wallet](/sdk/headless-wallet/quickstart) para una experiencia headless y similar a web2, o un [Ecosystem Wallet](/solutions/wallets/ecosystem/overview) con [Web SDK](/solutions/wallets/overview) para llegar a más tipos de wallets.
-
-Para esta guía usaremos un `Universal Sequence Wallet` con conector `Web SDK` (con opción de un `Embedded Wallet`), que puede autenticar usuarios usando Google o Apple, además de wallets traídos por el usuario como Coinbase o Metamask.
+Para esta guía usaremos un `Embedded Wallet` con conector `Web SDK`, que puede autenticar usuarios usando inicio de sesión con redes sociales de Google o Apple, además de wallets traídas por el usuario como Coinbase o Metamask.
 
 ### Instalar Paquetes
-Puede crear un proyecto vanilla js/html/css desde un [template como este](https://github.com/moskalyk/vanilla-js-sequence-kit-starter) para una configuración rápida, o aquí le mostraremos cómo usar React desde cero.
+Puede comenzar con una excelente base usando nuestro [Marketplace Boilerplate](/solutions/marketplaces/custom-marketplace/getting-started), que ya incluye todo esto integrado con una gran interfaz, o aquí le mostraremos cómo usar React desde cero.
 
 Comience creando un proyecto en una carpeta con el nombre que prefiera:
 
-```
-mkdir <project_name>
-cd <project_name>
-npx create-react-app . --template=typescript
+```bash npm
+npm create vite --template react-ts
+# or
+pnpm create vite --template react-ts
+# or
+yarn create vite --template react-ts
 ```
 
 Luego, instale los paquetes requeridos en la carpeta `<project_name>`
 
+```bash pnpm
+npm install @0xsequence/connect wagmi ethers@6.13.0 viem 0xsequence @tanstack/react-query
+# or
+pnpm install @0xsequence/connect wagmi ethers@6.13.0 viem 0xsequence @tanstack/react-query
+# or
+yarn add @0xsequence/connect wagmi ethers@6.13.0 viem 0xsequence @tanstack/react-query
 ```
-pnpm install @0xsequence/kit @0xsequence/kit-connectors wagmi ethers viem 0xsequence @tanstack/react-query
-```
 
-Después, en `src`, junto a `index.tsx`, cree un archivo `config.ts` con el siguiente contenido:
+### Cree una configuración
 
-```js
-import { arbitrumSepolia, Chain } from 'wagmi/chains'
-import { getDefaultConnectors } from '@0xsequence/kit-connectors'
-import { createConfig, http } from 'wagmi'
+```ts config.ts
+import { createConfig } from "@0xsequence/connect";
 
-const chains = [arbitrumSepolia] as [Chain, ...Chain[]]
+const projectAccessKey = import.meta.env.VITE_PROJECT_ACCESS_KEY;
+const waasConfigKey = import.meta.env.VITE_WAAS_CONFIG_KEY;
+const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+const walletConnectId = import.meta.env.VITE_WALLET_CONNECT_ID;
 
-const projectAccessKey = process.env.REACT_APP_PROJECTACCESSKEY!;
-const walletConnectProjectId = process.env.REACT_APP_WALLETCONNECTID!;
-
-const connectors = getDefaultConnectors( "universal", {
-    walletConnectProjectId: walletConnectProjectId,
-    defaultChainId: 421614,
-    appName: 'demo app',
-    projectAccessKey
-})
-
-const transports: any = {}
-
-chains.forEach(chain => {
-    transports[chain.id] = http()
-})
-
-const config = createConfig({
-    transports,
-    connectors,
-    chains
-})
-
-export { config }
-
+export const config: any = createConfig("waas", {
+  projectAccessKey,
+  chainIds: [1, 137],
+  defaultChainId: 1,
+  appName: "Demo Dapp",
+  waasConfigKey, // for waas
+  google: {
+    clientId: googleClientId,
+  },
+  walletConnect: {
+    projectId: walletConnectId,
+  },
+});
 ```
 
 <Warning>
-  Asegúrese de incluir un archivo `.env` en la raíz de su proyecto para agregar los secretos de cliente
+  Asegúrese de agregar todos los chainIds que va a utilizar
 </Warning>
 
-Luego, importe el `config` para que sea consumido por el `WagmiProvider` en el `index.tsx`
+### Cree un layout en el main.tsx
 
-```js
-import ReactDOM from "react-dom/client";
-import { KitProvider } from "@0xsequence/kit";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { WagmiProvider } from "wagmi";
-import App from './App'
-
+```ts main.tsx
+import { StrictMode } from 'react'
+import { createRoot } from 'react-dom/client'
+import App from './App.tsx'
+import "./index.css";
 import { config } from "./config";
-
-const root = ReactDOM.createRoot(
-  document.getElementById("root") as HTMLElement,
-);
-
-const queryClient = new QueryClient();
+import { SequenceConnect } from "@0xsequence/connect";
 
 function Dapp() {
   return (
-    <WagmiProvider config={config}>
-      <QueryClientProvider client={queryClient}>
-        <KitProvider config={{ defaultTheme: "light", signIn: { showEmailInput: false } }}>
-          <App />
-        </KitProvider>
-      </QueryClientProvider>
-    </WagmiProvider>
+    <SequenceConnect config={config}>
+      <App />
+    </SequenceConnect>
   );
 }
 
-root.render(
-      <Dapp />
-);
+createRoot(document.getElementById('root')!).render(
+  <StrictMode>
+    <Dapp />
+  </StrictMode>,
+)
 ```
 
-Y finalmente, agregue un botón en el `App.tsx` para que aparezca el modal del Web SDK
+### Componente de Autenticación
+Para completar la autenticación, necesitará el componente de autenticación
 
-```js
-import { useOpenConnectModal, useKitWallets } from "@0xsequence/kit";
+```ts App.tsx
+import { useAccount, useDisconnect } from "wagmi";
+import "./App.css";
+import { useOpenConnectModal } from "@0xsequence/connect";
 
 function App() {
-  const { address } = useAccount();
   const { setOpenConnectModal } = useOpenConnectModal();
-  const {
-    wallets, // Array of connected wallets
-    linkedWallets, // Array of linked wallets (for embedded wallets)
-    setActiveWallet, // Function to set a wallet as active
-    disconnectWallet, // Function to disconnect a wallet
-  } = useKitWallets();
+  const { isConnected, address } = useAccount();
+  const { disconnect } = useDisconnect();
 
-  const isConnected = wallets.length;
+  function handleDisconnect() {
+    disconnect();
+  }
 
-  const connect = async () => {
-    setOpenConnectModal(true);
-  };
+  if (isConnected && address)
+    return (
+      <>
+        <p>User Address: {address}</p>
+        <button onClick={handleDisconnect}>Disconnect</button>
+      </>
+    );
 
   return (
     <>
-      {!isConnected && <button onClick={() => connect()}>Connect</button>}
-      {address && address}
+      <button onClick={() => setOpenConnectModal(true)}>Connect</button>
     </>
   );
 }
@@ -153,581 +133,558 @@ function App() {
 export default App;
 ```
 
-¡Listo! Ahora debería tener una aplicación que puede autorizar a un usuario y devolver una dirección de wallet.
+## 3. Configuración del Marketplace SDK
+Marketplace SDK es un conjunto de herramientas completo que integra fácilmente nuestros Marketplaces en aplicaciones. Más información sobre [Marketplace SDK](/sdk/marketplace-sdk/overview)
 
-Ahora puede probarlo con:
-
+```bash
+npm install @0xsequence/connect @0xsequence/checkout @0xsequence/wallet-widget @0xsequence/marketplace-sdk @0xsequence/design-system @0xsequence/network @0xsequence/indexer @0xsequence/metadata wagmi ethers@^6 viem 0xsequence @tanstack/react-query @tanstack/react-query-devtools @legendapp/state framer-motion pino-pretty tailwindcss @tailwindcss/vite
+# or
+pnpm add @0xsequence/connect @0xsequence/checkout @0xsequence/wallet-widget @0xsequence/marketplace-sdk @0xsequence/design-system @0xsequence/network @0xsequence/indexer @0xsequence/metadata wagmi ethers@^6 viem 0xsequence @tanstack/react-query @tanstack/react-query-devtools @legendapp/state framer-motion pino-pretty tailwindcss @tailwindcss/vite
+# or
+yarn add @0xsequence/connect @0xsequence/checkout @0xsequence/wallet-widget @0xsequence/marketplace-sdk @0xsequence/design-system @0xsequence/network @0xsequence/indexer @0xsequence/metadata wagmi ethers@^6 viem 0xsequence @tanstack/react-query @tanstack/react-query-devtools @legendapp/state framer-motion pino-pretty tailwindcss @tailwindcss/vite
 ```
-pnpm run start
+
+### Agregue las importaciones CSS requeridas a su archivo principal de estilos
+
+```ts index.css
+@import 'tailwindcss';
+@import '@0xsequence/marketplace-sdk/styles/preset';
+@import '@0xsequence/design-system/preset';
 ```
 
-## 3. Consultas a la Blockchain
-Una vez que tenga uno o varios coleccionables minteados, puede consultar los datos desde la dirección del contrato de su despliegue, que puede encontrar aquí:
+### Configure el plugin de Tailwind CSS en vite.config.ts
 
-<Frame>
-  ![copiar dirección del contrato](/images/marketplace/copy_contract.png)
-</Frame>
+```ts vite.config.ts
+import { defineConfig } from "vite";
+import react from "@vitejs/plugin-react";
+import tailwindcss from "@tailwindcss/vite";
 
-Puede consultar datos usando el indexer, con este código donde una dirección de cuenta y la dirección del contrato (obtenidas del contrato desplegado desde el Sequence Builder) se ingresan en la API del indexer.
-
-Esto será importante cuando esté determinando un `tokenID` para crear una solicitud en el marketplace; para este demo, asumiremos que está trabajando con un solo `tokenID`.
-
-```js
-// Works in both a Webapp (browser) or Node.js:
-import { SequenceIndexer } from "@0xsequence/indexer";
-
-const indexer = new SequenceIndexer(
-  "https://arbitrum-sepolia-indexer.sequence.app",
-  "<access-key>"
-);
-
-// try any contract and account address you'd like :), as an example
-const contractAddress = "<your_deploy_contract_address"; // "0x1693ffc74edbb50d6138517fe5cd64fd1c917709";
-const accountAddress = address; // "0xc2be9cf6d9ee4fd211f88620760e829792659b16";
-
-// query Sequence Indexer for all nft balances of the account on Polygon
-const nftBalances = await indexer.getTokenBalances({
-  contractAddress: contractAddress,
-  accountAddress: accountAddress,
-  includeMetadata: true,
+// https://vite.dev/config/
+export default defineConfig({
+  plugins: [react(), tailwindcss()],
 });
-
-console.log("collection of items:", nftBalances);
 ```
 
-Donde la respuesta de la llamada al indexador arroja los siguientes datos:
+### Cree una configuración
 
-<Accordion title="Respuesta de ejemplo">
-  - `contractType` (string): el tipo de contrato (por ejemplo, ERC20, ERC721 o ERC1155)
-  - `contractAddress` (string): la dirección del contrato del token
-  - `accountAddress` (string): la dirección de la cuenta que desplegó el contrato
-  - `tokenID` (string): el tokenID del token (siempre 0 si es ERC20)
-  - `balance` (string): el balance del token
-  - `blockHash` (string): el hash de merkle de la transacción del bloque donde se desplegó el token
-  - `blockNumber` (number): el número de bloque donde se desplegó el token
-  - `chainId` (number): el id de la red del token
-  - `contractType`
-    - `chainId` (number): el id de la red del token
-    - `address` (string): la dirección del token
-    - `name` (string): nombre a nivel de contrato del token
-    - `type` (string): el tipo de contrato (por ejemplo, ERC20, ERC721 o ERC1155)
-    - `symbol` (string): el símbolo del token
-    - `decimals` (number): la cantidad de decimales que tiene el token
-    - `logoURI` (string): el logo del token mostrado en sequence.app
-    - `deployed` (boolean): si el token está desplegado
-    - `bytecodeHash` (string): hash del bytecode de un smart contract desplegado en la blockchain
-    - `extensions`
-      - `link` (string): el sitio web asociado para enlazar al proyecto
-      - `description` (string): la descripción de metadatos del token
-      - `ogImage` (string): la imagen de banner del token, mostrada en sequence.app
-      - `originChainId` (number): el id de la red de origen que representa el token
-      - `originAddress` (string): la dirección del contrato de origen que representa el token
-      - `verified` (boolean): si el token está verificado y es confiable
-      - `verifiedBy` (string): la fuente de verificación que indica por qué esto no es spam
-  - `updatedAt` (date): la última vez que se actualizó el indexador
-  - `tokenMetadata`
-    - `tokenId` (string): el tokenID del token (siempre 0 si es ERC20)
-    - `contractAddress` (string): la dirección del contrato del token
-    - `name` (string): nombre a nivel de token
-    - `description` (string): la descripción del token
-    - `image` (string): la imagen como url del token
-    - `decimals` (string): la cantidad de decimales del token
-    - `properties` (object): un objeto que contiene las propiedades de los metadatos del token
-    - `external_url` (string): una url externa donde encontrar el token o más detalles
-    - `updatedAt` (date): la última vez que se actualizaron los metadatos del token
-</Accordion>
+```ts config.ts
+import type { SdkConfig } from '@0xsequence/marketplace-sdk';
 
-## 4. Tipos de Multi-wallet
-Debido a que en este ejemplo usamos `Web SDK`, que le permite usar una Sequence wallet además de su propia `EOA wallet`, el envío de transacciones a la blockchain será diferente. Con una Sequence wallet puede enviar transacciones en lote para optimizar el costo de gas, mientras que con `wagmi` usando una EOA solo puede enviar una transacción a la vez.
+const projectAccessKey = import.meta.env.VITE_PROJECT_ACCESS_KEY;
+const projectId = import.meta.env.VITE_PROJECT_ID!;
+const walletConnectId = import.meta.env.VITE_WALLET_CONNECT_ID;
 
-Para lograr esto, seguimos algunos pasos para crear una variable de estado local que verifica cuál wallet está autorizada.
+export function getConfig() {
+  const config = {
+    projectId,
+    projectAccessKey,
+    walletConnectProjectId: walletConnectId
+  } satisfies SdkConfig;
 
-```ts
-import { useEffect } from "react";
-import { useConnect, useAccount } from "wagmi";
-
-function App() {
-  const { isConnected } = useAccount();
-  const { connectors } = useConnect();
-  const [isSequence, setIsSequence] = useState<boolean>(false);
-
-  useEffect(() => {
-    connectors.map(async (connector) => {
-      if ((await connector.isAuthorized()) && connector.id === "sequence") {
-        setIsSequence(true);
-      }
-    });
-  }, [isConnected]);
+  return config;
 }
 ```
 
-<Note>
-  En el protocolo Sequence Market, cuando crea una listing, se le llama
-  `request`, y cuando acepta un request se le llama `order`.
-</Note>
+### Agregue los proveedores de Marketplace SDK junto con los proveedores de su Web SDK
 
-## 5. Creación de Request
-Para este ejemplo, usaremos `Arbitrum Sepolia USDC` del [faucet de la comunidad](https://faucet.circle.com/)
+```ts App.tsx
+import { StrictMode } from 'react'
+import { createRoot } from 'react-dom/client'
+import App from './App.tsx'
+import "./index.css";
+import { config } from "./config";
+import { SequenceConnect } from "@0xsequence/connect";
+import {
+  MarketplaceProvider,
+  ModalProvider,
+} from "@0xsequence/marketplace-sdk/react";
+import { getConfig } from "./config";
+import { ThemeProvider, ToastProvider } from '@0xsequence/design-system';
 
-Vaya allí primero para obtener algunos tokens, así podrá crear una listing con su request.
+const sdkConfig = getConfig();
 
----
-
-Luego, para crear un request para el orderbook, primero debemos asegurarnos de habilitar el contrato del orderbook del marketplace con aprobación para transferir sus tokens.
-
-Primero, verificamos que el marketplace esté aprobado para el contrato, con algo de lógica.
-
-```js
-const ERC1155Contract = '0x1693ffc74edbb50d6138517fe5cd64fd1c917709'
-const MarketPlaceContract = '0xfdb42A198a932C8D3B506Ffa5e855bC4b348a712'
-
-function App() {
-
-  async function checkERC1155Approval(ownerAddress: string, operatorAddress: string) {
-    const abi = [
-      "function isApprovedForAll(address account, address operator) external view returns (bool)"
-    ];
-    const provider = new ethers.providers.JsonRpcProvider(`https://nodes.sequence.app/arbitrum-sepolia/${process.env.REACT_APP_PROJECT_ACCESSKEY}`);
-    const contract = new ethers.Contract(ERC1155Contract, abi, provider);
-    return await contract.isApprovedForAll(ownerAddress, operatorAddress);
-  }
-
-  const createRequest = async () => {
-      ...
-    if(await checkERC1155Approval(address!,MarketPlaceContract)){
-      // is approved and only requires a single transaction
-      ...
-    } else { // is not approved, so requires multiple transactions
-
-      if(isSequence) { .. perform multi-batch transactions
-        ...
-      } else { // is not a sequence wallet
-        ...
-      }
-    }
-  };
-
+function Dapp() {
+  return (
+    <ThemeProvider>
+      <ToastProvider>
+        <SequenceConnect config={config}>
+          <MarketplaceProvider config={sdkConfig}>
+            <App />
+            <ModalProvider />
+          </MarketplaceProvider>
+        </SequenceConnect>
+      </ToastProvider>
+    </ThemeProvider>
+  );
 }
+
+createRoot(document.getElementById('root')!).render(
+  <StrictMode>
+    <Dapp />
+  </StrictMode>,
+)
 ```
 
-Después, necesitaremos armar la transacción con el ABI correcto para generar el calldata esperado según los distintos caminos: no estar aprobado versus estar aprobado, y si es una Sequence wallet o no.
+## 4. Visualización de colecciones
+Para mostrar las colecciones del marketplace, necesitamos crear una carpeta llamada `Collections` dentro del directorio `src/app/components`. Dentro de esta carpeta, crearemos dos archivos: `index.tsx` y `Collection.tsx`.
 
-```ts
-const [requestData, setRequestData] = useState<any>(null);
+```ts Collection.tsx
+import type { MarketplaceCollection } from "@0xsequence/marketplace-sdk";
+import { useCollection } from "@0xsequence/marketplace-sdk/react";
 
-const createRequest = async () => {
-  const sequenceMarketInterface = new ethers.Interface([
-    "function createRequest(tuple(bool isListing, bool isERC1155, address tokenContract, uint256 tokenId, uint256 quantity, uint96 expiry, address currency, uint256 pricePerToken)) external nonReentrant returns (uint256 requestId)",
-  ]);
+export const Collection = ({
+  collection,
+  onSelectCollection,
+}: {
+  collection: MarketplaceCollection;
+  onSelectCollection: (value: MarketplaceCollection) => void;
+}) => {
+  const { data } = useCollection({
+    chainId: collection.chainId,
+    collectionAddress: collection.address,
+  });
 
-  const amountBigNumber = ethers.parseUnits(String("0.01"), 6); // ensure to use the proper decimals
+  // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+  const logoURI = data?.logoURI;
+  // You can add a placeholder image to improve the UX
+  const image = data?.extensions.ogImage || collection.bannerUrl || logoURI;
+  const description = data?.extensions.description;
+  const name = data?.name;
+  const symbol = data?.symbol;
+  const contractType = data?.type;
 
-  const request = {
-    isListing: true,
-    isERC1155: true,
-    tokenContract: ERC1155Contract,
-    tokenId: 1,
-    quantity: 1,
-    expiry: Date.now() + 7 * 24 * 60 * 60 * 1000, // 1 day
-    currency: ArbSepoliaUSDCContract,
-    pricePerToken: amountBigNumber,
-  };
-
-  const data = sequenceMarketInterface.encodeFunctionData("createRequest", [
-    request,
-  ]);
-
-  setRequestData(data); // we'll need this in the next step
-
-  if (await checkERC1155Approval(address!, MarketPlaceContract)) {
-    // is approved and only requires a single transaction
-
-    sendTransaction({
-      to: MarketPlaceContract,
-      data: `0x${data.slice(2, data.length)}`,
-      gas: null,
-    });
-  } else {
-    // is not approved, so requires multiple transactions
-
-    const erc1155Interface = new ethers.Interface([
-      "function setApprovalForAll(address _operator, bool _approved) returns ()",
-    ]);
-
-    // is not approved
-    const dataApprove = erc1155Interface.encodeFunctionData(
-      "setApprovalForAll",
-      ["0xfdb42A198a932C8D3B506Ffa5e855bC4b348a712", true]
-    );
-
-    const txApprove = {
-      to: ERC1155Contract,
-      data: dataApprove,
-    };
-
-    const tx = {
-      to: MarketPlaceContract,
-      data: data,
-    };
-
-    if (isSequence) {
-      const wallet = sequence.getWallet();
-      const signer = wallet.getSigner(421614);
-
-      try {
-        const res = signer.sendTransaction([txApprove, tx]);
-        console.log(res);
-      } catch (err) {
-        console.log(err);
-        console.log("user closed the wallet, or, an error occured");
-      }
-    } else {
-      // is not a sequence wallet
-      // todo: implement mutex
-
-      sendTransaction({
-        to: ERC1155Contract,
-        data: `0x${dataApprove.slice(2, data.length)}`,
-        gas: null,
-      });
-      // still need to send acceptRequest transaction
-    }
+  function handleOnSelectCollection() {
+    onSelectCollection(collection);
   }
+
+  return (
+    <div
+      onClick={handleOnSelectCollection}
+      className="flex flex-col gap-2 border rounded-lg cursor-pointer w-[400px]"
+    >
+      <h2>
+        {name} {symbol && <span>({symbol})</span>}
+      </h2>
+      <p>{collection.address}</p>
+      <p>Chain ID: {collection.chainId}</p>
+      <img
+        src={image}
+        alt={collection.address}
+        className="w-[200px] h-[200px] object-cover object-center"
+      />
+      <p>Contract type: {contractType}</p>
+      <p>{description}</p>
+    </div>
+  );
 };
 ```
 
-Finalmente, en el caso donde la transacción no se realiza desde una Sequence wallet y no está aprobada, debemos enviar una transacción una vez que haya un recibo de transacción del hook `useSendTransaction` usando un mutex para confirmar de qué transacción proviene el hash. Esto se hace en una función `useEffect` de React.
+```ts index.tsx
+import type { MarketplaceCollection } from "@0xsequence/marketplace-sdk";
+import { Collection } from "./Collection";
+import { useMarketplaceConfig } from "@0xsequence/marketplace-sdk/react";
 
-<Note>
-  En programación, una exclusión mutua (mutex) es un objeto de programa que
-  previene que múltiples hilos accedan al mismo recurso compartido
-  simultáneamente.
-</Note>
+export const Collections = ({ onSelectCollection } : { onSelectCollection: (value: MarketplaceCollection) => void }) => {
+	const { data } = useMarketplaceConfig();
+
+	const collections: MarketplaceCollection[] = data?.collections || [];
+  return (
+    <div>
+      {collections?.map((collection) => (
+        <Collection key={collection.address} collection={collection} onSelectCollection={onSelectCollection}/>
+      ))}
+    </div>
+  );
+};
+```
+
+Para finalizar, agregaremos el componente Collections en el App.tsx
 
 ```ts
-import { useSendTransaction } from 'wagmi'
-import { useMutex } from 'react-context-mutex';
+import { useAccount, useDisconnect } from "wagmi";
+import "./App.css";
+import { useOpenConnectModal } from "@0xsequence/connect";
+import { Collections } from "./components/Collections";
+import type { MarketplaceCollection } from "@0xsequence/marketplace-sdk";
+import { useState } from "react";
+import { Collectibles } from "./components/Collectibles";
+import type { Address } from "viem";
 
 function App() {
-  ...
-  const [requestData, setRequestData] = useState<any>(null)
-  const { data: hash, sendTransaction } = useSendTransaction()
-  const MutexRunner = useMutex();
-  const mutexApproveERC1155 = new MutexRunner('sendApproveERC1155');
+  const { setOpenConnectModal } = useOpenConnectModal();
+  const { isConnected, address } = useAccount();
+  const { disconnect } = useDisconnect();
+  const [collectionSelected, setCollectionSelected] =
+    useState<MarketplaceCollection | null>(null);
 
-  const createRequest = async () => {
-    ...
-    if(await checkERC1155Approval(address!,MarketPlaceContract)){
-      ...
-    } else {
-      if (isSequence) { // is a sequence wallet
-        ...
-      } else { // is not a sequence wallet
-        mutexApproveERC1155.lock()
-        sendTransaction({
-          to: ERC1155Contract,
-          data: `0x${dataApprove.slice(2,data.length)}`,
-          gas: null
-        })
-      }
-    }
+  function handleDisconnect() {
+    disconnect();
+  }
+  
+  function onSelectCollection(value: MarketplaceCollection) {
+    setCollectionSelected(value);
+  }
+
+  function onRestartSelectedCollectionValue() {
+    setCollectionSelected(null);
+  }
+
+  if (!isConnected && !address) {
+    return (
+      <>
+        <button onClick={() => setOpenConnectModal(true)}>Connect</button>
+      </>
+    );
+  }
+
+  return (
+    <>
+      <p>User Address: {address}</p>
+      <button onClick={handleDisconnect}>Disconnect</button>
+      {!collectionSelected ? (
+        <Collections onSelectCollection={onSelectCollection} />
+      ) : (
+        <>
+          <button onClick={onRestartSelectedCollectionValue}>Show Collections</button>
+          <div>{JSON.stringify(collectionSelected)}</div>
+        </>
+      )}
+    </>
+  );
+}
+
+export default App;
+```
+
+## 5. Listados y Ofertas
+Esta sección es para integrar las publicaciones y ofertas de nuestro marketplace en la interfaz de usuario.
+
+### Cree un archivo de tipos
+Antes de comenzar esto, necesitamos un archivo con algunos tipos para nuestros componentes dentro de `src/utils`. Usaremos esto para tipar nuestras funciones y mantener el código consistente y fácil de mantener.
+
+```ts types.ts
+import type {
+  MarketplaceKind,
+  Order,
+  OrderbookKind,
+  Step,
+} from "@0xsequence/marketplace-sdk";
+import type { Address, Hash, Hex } from "viem";
+
+type ModalCallbacks = {
+  onSuccess?: ({ hash, orderId }: { hash?: Hash; orderId?: string }) => void;
+  onError?: (error: Error) => void;
+  onBuyAtFloorPrice?: () => void;
+};
+
+export type ShowBuyModalArgs = {
+  orderId: string;
+  chainId: number;
+  collectionAddress: Address;
+  collectibleId: string;
+  marketplace: MarketplaceKind;
+  customCreditCardProviderCallback?: (buyStep: Step) => void;
+  skipNativeBalanceCheck?: boolean;
+  nativeTokenAddress?: Address;
+};
+
+export type ShowCreateListingModalArgs = {
+  collectionAddress: Hex;
+  chainId: number;
+  collectibleId: string;
+  orderbookKind?: OrderbookKind;
+  callbacks?: ModalCallbacks;
+};
+export type ShowMakeOfferModalArgs = {
+  collectionAddress: Hex;
+  chainId: number;
+  collectibleId: string;
+  orderbookKind?: OrderbookKind;
+  callbacks?: ModalCallbacks;
+};
+
+export type ShowSellModalArgs = {
+  collectionAddress: Hex;
+  chainId: number;
+  tokenId: string;
+  order: Order;
+  callbacks?: ModalCallbacks;
+};
+```
+
+### Configure los componentes de coleccionables
+Para crear la página de Items y sus componentes, necesitamos agregar una nueva carpeta llamada Collectibles dentro del directorio src/app/components. Dentro de esta carpeta, crearemos dos archivos: `index.tsx` y `Collectible.tsx`.
+
+```ts Collectible.tsx
+import type {
+  ShowBuyModalArgs,
+  ShowCreateListingModalArgs,
+  ShowMakeOfferModalArgs,
+  ShowSellModalArgs,
+} from "../../utils/types";
+import type {
+  CollectibleOrder,
+  MarketplaceKind,
+  OrderbookKind,
+} from "@0xsequence/marketplace-sdk";
+import { useBalanceOfCollectible } from "@0xsequence/marketplace-sdk/react";
+import type { Address } from "viem";
+
+export const Collectible = ({
+  collectible,
+  chainId,
+  collectionAddress,
+  showBuyModal,
+  showListModal,
+  showOfferModal,
+  showSellModal,
+  address,
+  isConnected,
+  orderbookKind,
+}: {
+  collectible: CollectibleOrder;
+  chainId: string;
+  collectionAddress: Address;
+  showBuyModal: (args: ShowBuyModalArgs) => void;
+  showListModal: (args: ShowCreateListingModalArgs) => void;
+  showOfferModal: (args: ShowMakeOfferModalArgs) => void;
+  showSellModal: (args: ShowSellModalArgs) => void;
+  address?: Address;
+  isConnected: boolean;
+  orderbookKind: OrderbookKind;
+}) => {
+  const { name, image, tokenId } = collectible.metadata;
+
+  // @ts-ignore: unused variable 'isBalanceLoading'
+  const { data: userBalanceResp, isLoading: isBalanceLoading } =
+    useBalanceOfCollectible({
+      chainId: Number(chainId),
+      collectionAddress,
+      collectableId: tokenId,
+      userAddress: address,
+      query: {
+        enabled: !!isConnected && !!address,
+      },
+    });
+
+  const tokenBalance = userBalanceResp?.balance;
+
+  const onClickBuy = () =>
+    showBuyModal({
+      chainId: Number(chainId),
+      collectionAddress,
+      collectibleId: tokenId,
+      orderId: collectible!.order!.orderId,
+      marketplace: orderbookKind as unknown as MarketplaceKind,
+    });
+
+  const onClickList = () => {
+    showListModal({
+      collectionAddress,
+      chainId: Number(chainId),
+      collectibleId: tokenId,
+      orderbookKind,
+    });
   };
 
-  useEffect(() => {
-    if (mutexApproveERC1155.isLocked() && hash) {
-      sendTransaction({
-        to: MarketPlaceContract,
-        data: `0x${requestData.slice(2, requestData.length)}`,
-        gas: null,
-      });
-      mutexApproveERC1155.unlock();
-    }
-  }, [requestData, hash]);
+  const onClickOffer = () => {
+    showOfferModal({
+      collectionAddress,
+      chainId: Number(chainId),
+      collectibleId: tokenId,
+      orderbookKind,
+    });
+  };
+
+  const onAcceptOffer = () => {
+    showSellModal({
+      collectionAddress,
+      chainId: Number(chainId),
+      tokenId,
+      order: collectible!.offer!,
+    });
+  };
+
+  const hasOffer = Boolean(collectible?.offer);
+  const sellDisabled = !isConnected || !hasOffer || !tokenBalance;
+  const showActionButtons = address && isConnected;
+
+  return (
+    <div className="flex flex-col justify-center items-center border border-white">
+      <h2>{name}</h2>
+      <img
+        src={image}
+        alt={name}
+        className="w-[200px] h-[200px] object-cover object-center"
+      />
+      {showActionButtons && (
+        <>
+          {collectible.order && <button onClick={onClickBuy}>Buy</button>}
+          {tokenBalance && <button onClick={onClickList}>List</button>}
+          <button onClick={onClickOffer}>Make offer</button>
+          {!sellDisabled && (
+            <button onClick={onAcceptOffer}>Accept Offer</button>
+          )}
+        </>
+      )}
+    </div>
+  );
+};
 ```
 
-¡Listo! Ya terminó de crear requests para el protocolo Sequence Market, ahora puede implementar un botón y probar el flujo.
+```ts index.tsx
+import { OrderbookKind, OrderSide } from "@0xsequence/marketplace-sdk";
+import {
+  useBuyModal,
+  useCreateListingModal,
+  useListCollectibles,
+  useMakeOfferModal,
+  useMarketplaceConfig,
+  useSellModal,
+} from "@0xsequence/marketplace-sdk/react";
+import { Collectible } from "./Collectible";
+import type { Address } from "viem";
+import { useAccount } from "wagmi";
 
-## 6. Aceptar Orders
-Ahora que tenemos un order en el marketplace, debemos hacer algunas cosas:
-- `Consultar el Marketplace`: consultar el marketplace para obtener un `orderId` correspondiente a la orden que desea aceptar
-- `Balance de Moneda`: verificar el balance de la moneda usando el indexador
-- `Aprobación de Token`: verificar la aprobación del token para que el marketplace pueda transferir tokens
+export const Collectibles = ({
+  collectionId,
+  chainId,
+}: {
+  collectionId: Address;
+  chainId: number;
+}) => {
+  const { address, isConnected } = useAccount();
+  const {
+    data: collectibles,
+    // @ts-ignore: unused variable 'collectiblesLoading'
+    isLoading: collectiblesLoading,
+    // @ts-ignore: unused variable 'fetchNextCollectibles'
+    fetchNextPage: fetchNextCollectibles,
+  } = useListCollectibles({
+    chainId: Number(chainId),
+    collectionAddress: collectionId,
+    filter: {
+      // # Optional filters
+      includeEmpty: true,
+      // searchText: text,
+      // properties,
+    },
+    side: OrderSide.listing,
+  });
 
-#### Consultar el Marketplace
-Consultemos el orderbook del marketplace para obtener el `pricePerToken` y el `orderId` de la orden que queremos aceptar.
+  const { data } = useMarketplaceConfig();
 
-```ts
-  const getTopOrder = async (tokenID: string) => {
-    const res = await fetch(
-      "https://marketplace-api.sequence.app/arbitrum-sepolia/rpc/Marketplace/GetTopOrders",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          collectionAddress: ERC1155Contract,
-          currencyAddresses: [ArbSepoliaUSDCContract],
-          orderbookContractAddress: MarketPlaceContract,
-          tokenIDs: [tokenID],
-          isListing: true,
-          priceSort: "DESC", // descending based on price to get lowest offer first
-        }),
-      },
+  const onError = (error: Error) => {
+    console.error(error.message);
+  };
+
+  const { show: showBuyModal } = useBuyModal({
+    onSuccess(hash) {
+      console.log("Buy transaction sent with hash: ", hash);
+    },
+    onError,
+  });
+
+  const { show: showListModal } = useCreateListingModal({ onError });
+  const { show: showOfferModal } = useMakeOfferModal({
+    onError,
+  });
+  const { show: showSellModal } = useSellModal({ onError });
+
+  const collectiblesFlat =
+    collectibles?.pages.flatMap((p) => p.collectibles) ?? [];
+  const collectionData =
+    data?.collections?.find(
+      (collection) => collection.address === collectionId
+    ) || null;
+  const orderbookKind: OrderbookKind =
+    (collectionData?.destinationMarketplace || "") as unknown as OrderbookKind;
+
+  return (
+    <div>
+      <h1 className="text-[32px] font-semibold">Collectibles</h1>
+      {collectiblesFlat?.map((collectible) => (
+        <Collectible
+          key={collectible.metadata.tokenId}
+          collectible={collectible}
+          chainId={String(chainId)}
+          collectionAddress={collectionId}
+          showBuyModal={showBuyModal}
+          showListModal={showListModal}
+          showOfferModal={showOfferModal}
+          showSellModal={showSellModal}
+          address={address}
+          isConnected={isConnected}
+          orderbookKind={orderbookKind}
+        />
+      ))}
+    </div>
+  );
+};
+```
+
+Finalmente, agregue el componente de Publicaciones y Ofertas en nuestro archivo `App.tsx`
+
+```ts App.tsx
+import { useAccount, useDisconnect } from "wagmi";
+import "./App.css";
+import { useOpenConnectModal } from "@0xsequence/connect";
+import { Collections } from "./components/Collections";
+import type { MarketplaceCollection } from "@0xsequence/marketplace-sdk";
+import { useState } from "react";
+import { Collectibles } from "./components/Collectibles";
+import type { Address } from "viem";
+
+function App() {
+  const { setOpenConnectModal } = useOpenConnectModal();
+  const { isConnected, address } = useAccount();
+  const { disconnect } = useDisconnect();
+  const [collectionSelected, setCollectionSelected] =
+    useState<MarketplaceCollection | null>(null);
+
+  function handleDisconnect() {
+    disconnect();
+  }
+
+  function onSelectCollection(value: MarketplaceCollection) {
+    setCollectionSelected(value);
+  }
+
+  function onRestartSelectedCollectionValue() {
+    setCollectionSelected(null);
+  }
+
+  if (!isConnected && !address) {
+    return (
+      <>
+        <button onClick={() => setOpenConnectModal(true)}>Connect</button>
+      </>
     );
-    const result = await res.json();
-    return result.orders[0] // getting the first order from the list
   }
 
-  const acceptOrder = async () => {
-    const tokenID = '1'
-    const topOrder: any = await getTopOrder(tokenID)
-    const requiredAmount = topOrder.pricePerToken
-    ...
-    if(await checkERC20Balance(requiredAmount)){
-      ...
-    } else {
-      ...
-    }
-  }
-```
-
-#### Balance de Moneda
-Usaremos el indexador para consultar el balance y ver si el usuario tiene suficientes tokens para pagar la orden. Esto se puede hacer con el siguiente código:
-
-<Warning>
-  Debe asegurarse de que al realizar una comparación de igualdad en la dirección del contrato del token, la dirección esté en minúsculas.
-</Warning>
-
-```js
-import { SequenceIndexer } from '@0xsequence/indexer'
-...
-const checkERC20Balance = async (requiredAmount: any) => {
-    const indexer = new SequenceIndexer('https://arbitrum-sepolia-indexer.sequence.app', process.env.REACT_APP_PROJECT_ACCESSKEY)
-
-    const contractAddress = ArbSepoliaUSDCContract
-    const accountAddress = address
-
-    const tokenBalances = await indexer.getTokenBalances({
-      contractAddress: contractAddress,
-      accountAddress: accountAddress,
-    })
-
-    let hasEnoughBalance = false
-
-    tokenBalances.balances.map((token) => {
-      const tokenBalanceBN = ethers.BigNumber.from(token.balance);
-      const requiredAmountBN = ethers.BigNumber.from(requiredAmount);
-      if(token.contractAddress == ArbSepoliaUSDCContract && tokenBalanceBN.gte(requiredAmountBN)){
-        hasEnoughBalance = true
-      }
-    })
-
-    return hasEnoughBalance
-
+  return (
+    <>
+      <p>User Address: {address}</p>
+      <button onClick={handleDisconnect}>Disconnect</button>
+      {!collectionSelected ? (
+        <Collections onSelectCollection={onSelectCollection} />
+      ) : (
+        <>
+          <button onClick={onRestartSelectedCollectionValue}>
+            Show Collections
+          </button>
+          <Collectibles
+            chainId={collectionSelected.chainId}
+            collectionId={collectionSelected.address as Address}
+          />
+        </>
+      )}
+    </>
+  );
 }
 
-const acceptOrder = async () => {
-  const tokenID = '1'
-  const topOrder: any = await getTopOrder(tokenID)
-  const requiredAmount = topOrder.pricePerToken
-  ...
-  if(await checkERC20Balance(requiredAmount)){
-  ...
-  } else {
-  ... // provide prompt on screen that user does not have balance
-  }
-}
-
+export default App;
 ```
 
-#### Aprobación de Token
-Luego, verificaremos la aprobación del token para que el Marketplace pueda transferir la moneda.
-
-```ts
-  const checkERC20Approval = async (ownerAddress: string, spenderAddress: string, tokenContractAddress: string, requiredAmount: string) => {
-    const abi = [
-      "function allowance(address owner, address spender) external view returns (uint256)"
-    ];
-
-    const provider = new ethers.providers.JsonRpcProvider(`https://nodes.sequence.app/arbitrum-sepolia/${process.env.REACT_APP_PROJECT_ACCESSKEY}`);
-    const contract = new ethers.Contract(tokenContractAddress, abi, provider);
-    const allowance = await contract.allowance(ownerAddress, spenderAddress);
-
-    const requiredAmountBN = ethers.BigNumber.from(requiredAmount);
-    const allowanceBN = ethers.BigNumber.from(allowance);
-
-    return allowanceBN.gte(requiredAmountBN);
-  }
-
-  const acceptOrder = async () => {
-    const tokenID = '1'
-    const topOrder: any = await getTopOrder(tokenID)
-    const requiredAmount = topOrder.pricePerToken
-
-    if(await checkERC20Balance(requiredAmount)){
-      if(!(await checkERC20Approval(address!,MarketPlaceContract,ArbSepoliaUSDCContract,requiredAmount))){
-        ...
-      } else {
-
-      }
-      else {
-
-      }
-    }
-  }
-```
-
-Finalmente, completaremos la lógica necesaria enviando realmente una transacción a la blockchain.
-
-Comenzamos con el mismo flujo de antes, considerando el envío de transacciones en lote si es una Sequence wallet y no está aprobada, o, si el Marketplace ya está aprobado para gastar sus tokens, solo enviando una transacción.
-
-```ts
-  ...
-  const mutexApproveERC20 = new MutexRunner('sendApproveERC20');
-  ...
-  const acceptOrder = async () => {
-    const topOrder: any = await getTopOrder('1')
-    const requiredAmount = topOrder.pricePerToken
-
-    const sequenceMarketInterface = new ethers.Interface([
-      "function acceptRequest(uint256 requestId, uint256 quantity, address recipient, uint256[] calldata additionalFees, address[] calldata additionalFeeRecipients)",
-    ]);
-
-    const quantity = 1
-    const data = sequenceMarketInterface.encodeFunctionData(
-      "acceptRequest",
-      [topOrder.orderId, quantity, address, [], []],
-    );
-
-    setAcceptData(data) // we'll need this later, only for Web SDK enabled transactions
-
-    const tx = {
-      to: MarketPlaceContract, // 0xfdb42A198a932C8D3B506Ffa5e855bC4b348a712
-      data: data
-    }
-
-    if(await checkERC20Balance(requiredAmount)){
-      if((await checkERC20Approval(address!,MarketPlaceContract,ArbSepoliaUSDCContract,requiredAmount))){
-        sendTransaction({
-          to: MarketPlaceContract,
-          data: `0x${data.slice(2,data.length)}`,
-          gas: null
-        })
-      } else {
-        ...
-        const erc20Interface = new ethers.Interface([
-          "function approve(address spender, uint256 amount) external returns (bool)"
-        ]);
-
-        const spenderAddress = "0xfdb42A198a932C8D3B506Ffa5e855bC4b348a712";
-        const maxUint256 = ethers.constants.MaxUint256;
-        const dataApprove = erc20Interface.encodeFunctionData("approve", [spenderAddress, maxUint256]);
-
-        if(isSequence){
-          const wallet = sequence.getWallet()
-          const signer = wallet.getSigner(421614)
-
-          const txApprove = {
-            to: ArbSepoliaUSDCContract, // The contract address of the ERC-20 token, replace with actual contract address
-            data: dataApprove
-          };
-
-          try {
-            const res = await signer.sendTransaction([txApprove, tx])
-            console.log(res)
-          } catch (err) {
-            console.log(err)
-            console.log('user closed the wallet, or, an error occured')
-          }
-        } else {
-          mutexApproveERC20.lock()
-
-          sendTransaction({
-            to: ArbSepoliaUSDCContract,
-            data: `0x${dataApprove.slice(2,dataApprove.length)}`,
-            gas: null
-          })
-        }
-      }
-    }
-```
-
-Luego, en el flujo donde no es una Sequence wallet y requiere aprobación, incluiremos otro `useEffect` con la verificación del mutex como antes.
-
-```ts
-  ...
-  const { data: hash, sendTransaction } = useSendTransaction()
-  ...
-  useEffect(() => {
-    if (acceptData && mutexApproveERC20.isLocked()) {
-      sendTransaction({
-        to: MarketPlaceContract,
-        data: `0x${acceptData.slice(2, acceptData.length)}`,
-        gas: null,
-      });
-      mutexApproveERC20.unlock();
-    }
-  }, [hash, acceptData]);
-```
-
-¡Perfecto! Todo está listo si agrega el manejador de clic de la función a un botón.
-
-## 7. (Opcional) Integrar Embedded Wallet en Web SDK
-Para que su conector de Web SDK sea compatible con [Embedded Wallet](/sdk/headless-wallet/quickstart), necesitaremos instalar algunas versiones de paquetes y actualizar nuestro `config.ts` que usamos al inicio de la guía.
-
-La función Embedded Wallet permite transacciones sin confirmación, lo que puede crear una experiencia de usuario más fluida.
-
-```
-pnpm i @0xsequence/kit@2.0.5-beta.9 @0xsequence/kit-connectors@2.0.5-beta.9
-```
-
-```ts
-// config.ts
-import { arbitrumSepolia, Chain } from "wagmi/chains";
-import { getDefaultWaasConnectors } from "@0xsequence/kit-connectors"; // updated
-import { createConfig, http } from "wagmi";
-import { getKitConnectWallets } from "@0xsequence/kit"; // updated
-
-const chains = [arbitrumSepolia] as [Chain, ...Chain[]];
-
-// added environment variables
-const projectAccessKey = process.env.REACT_APP_PROJECTACCESSKEY!;
-const waasConfigKey = process.env.REACT_APP_WAASCONFIGKEY!;
-const googleClientId = process.env.REACT_APP_GOOGLECLIENTID!;
-const appleClientId = process.env.REACT_APP_APPLECLIENTID!;
-const walletConnectProjectId = process.env.REACT_APP_WALLETCONNECTID!;
-const appleRedirectURI = "https://" + window.location.host; // note: update slug to include correct homepage
-
-const connectors = [
-  ...getDefaultWaasConnectors({
-    // updated connector type
-    walletConnectProjectId: walletConnectProjectId,
-    defaultChainId: 421614,
-    waasConfigKey,
-    googleClientId,
-    appleClientId,
-    appleRedirectURI,
-    appName: "demo app",
-    projectAccessKey,
-    enableConfirmationModal: false,
-  }),
-  ...getKitConnectWallets(projectAccessKey, []),
-];
-
-const transports: any = {};
-
-chains.forEach((chain) => {
-  transports[chain.id] = http();
-});
-
-const config = createConfig({
-  transports,
-  connectors,
-  chains,
-});
-
-export { config };
-```
-
-El último paso es asegurarse de actualizar a nuestro equipo con las URLs autorizadas de Google y Apple (por ejemplo, [http://localhost:3000](http://localhost:3000)) para poder llamar al flujo de inicio de sesión de Embedded Wallet.
+### Ejecute y pruebe
+Ha agregado exitosamente los artículos a su nueva página y ahora deberían ser visibles en la interfaz. Para verlos en acción, ejecute pnpm dev. Desde la página principal, seleccione cualquiera de sus colecciones para ver los NFTs que contiene. Asegúrese de que todo funcione correctamente probando los flujos clave como publicar, comprar, hacer ofertas y aceptar ofertas en un NFT.
