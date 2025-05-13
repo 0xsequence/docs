@@ -139,6 +139,22 @@ Para utilizar el wrapper `SequenceConnect` y conectar wallets web3 a su aplicaci
         ```
       </Step>
 
+      <Step title="Configurar la configuración de NextJS">
+        Por razones de compatibilidad con wagmi y los paquetes de [@walletconnect](https://docs.reown.com/appkit/next/core/installation#extra-configuration), necesitamos agregar lo siguiente a nuestro archivo next.config.js:
+
+        ```bash
+        // Path: next.config.js
+        const nextConfig = {
+          webpack: (config) => {
+            config.externals.push("pino-pretty", "lokijs", "encoding");
+            return config;
+          },
+        };
+        ```
+
+        Esto eliminará las advertencias relacionadas con `pino-pretty`.
+      </Step>
+
       <Step title="Crear una configuración">
         A continuación, deberá crear una variable de configuración para `SequenceConnect` como `waas` (es decir, un [Embedded Wallet](/sdk/headless-wallet/quickstart)).
 
