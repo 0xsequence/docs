@@ -153,6 +153,25 @@ yarn add @0xsequence/connect @0xsequence/hooks wagmi ethers viem 0xsequence @tan
 ```
 
 </Step>
+
+<Step title="Setup NextJS Config">
+
+For compatibility reasons with wagmi and [@walletconnect](https://docs.reown.com/appkit/next/core/installation#extra-configuration) packages, we need to add the following to our next.config.js file:
+
+```bash
+// Path: next.config.js
+const nextConfig = {
+  webpack: (config) => {
+    config.externals.push("pino-pretty", "lokijs", "encoding");
+    return config;
+  },
+};
+```
+
+This will get rid of the warnings related to `pino-pretty`.
+
+</Step>
+
 <Step title="Create a Config">
 
 Next, a configuration variable for `SequenceConnect` will need to be created as `waas` (meaning an [Embedded Wallet](/sdk/headless-wallet/quickstart)).

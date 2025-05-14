@@ -139,6 +139,22 @@ web3ウォレットをアプリケーションに接続するために`SequenceC
         ```
       </Step>
 
+      <Step title="Next.jsの設定を行う">
+        wagmiや[@walletconnect](https://docs.reown.com/appkit/next/core/installation#extra-configuration)パッケージとの互換性を保つため、next.config.jsファイルに以下の設定を追加してください。
+
+        ```bash
+        // Path: next.config.js
+        const nextConfig = {
+          webpack: (config) => {
+            config.externals.push("pino-pretty", "lokijs", "encoding");
+            return config;
+          },
+        };
+        ```
+
+        これにより、`pino-pretty`に関する警告が解消されます。
+      </Step>
+
       <Step title="設定ファイルの作成">
         次に、`SequenceConnect`用の設定変数を`waas`として作成します（[Embedded Wallet](/sdk/headless-wallet/quickstart)を意味します）。
 
