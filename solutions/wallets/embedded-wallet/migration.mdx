@@ -1,15 +1,22 @@
 ---
-
-title: "Migration Guide: Moving to Sequence Embedded Wallets"
+title: Migration Guide - Moving to Sequence Embedded Wallets
 description: Migrating from another wallet to a sequence embedded wallet
 sidebarTitle: Migrating Sequence
 ---
 
-
-
 ## Overview
 
 This document provides guidance for users migrating from other providers (such as Thirdweb, Venly, etc.) to Sequence's Embedded Wallets. The primary recommended approach is a Just-In-Time (JIT) migration pattern, which occurs when users log in for the first time after the migration.
+
+<CardGroup cols={2}>
+  <Card title="Just-In-Time Migration Process" icon="book" href="/solutions/wallets/embedded-wallet/migration#just-in-time-migration-process">
+    Follow this guide after completing custom migrations. These are general steps to properly do a migration.
+  </Card>
+
+  <Card title="Migrate from ThirdWeb to Sequence" icon="book" href="/solutions/wallets/embedded-wallet/migration#how-to-migrate-from-thirdweb-to-sequence">
+    Follow this guide to migrate from ThirdWeb to Sequence
+  </Card>
+</CardGroup>
 
 ## Just-In-Time Migration Process
 
@@ -18,7 +25,42 @@ The JIT migration process is designed to smoothly transition users from their ex
 1. **User Authentication**
    - When a user attempts to log in, user authenticates with their desired social provider or email using the Sequence Embedded Wallets SDK.
    - Once the user is authenticated, the authenticated user data such as email address, username, or other unique user identifier along with the sequence wallet address is passed to your backend.
-   
+  
+    To do this possible can you send the `idToken` identifier from Sequence Embedded Wallet to your backend and get the user email and address from there to link it in your backend.
+    You can use this code snippet as your base code for the frontend. Modify this to call to your backend when it's needed to save the user data
+  
+    ```ts GetIdToken.tsx
+    import { useConnect } from "wagmi";
+
+    export function GetIdToken() {
+      const { connectors } = useConnect();
+
+      const handleClick = async () => {
+        if (!connectors) return;
+
+        const waasConnector = connectors.find(
+          (connector) => !!(connector as any).sequenceWaas
+        );
+        const waas = (waasConnector as any)?.sequenceWaas;
+
+        if (waas) {
+          const idToken: string = await waas.getIdToken();
+          console.log("idToken", idToken);
+        }
+      };
+
+      return (
+        <div>
+          <button onClick={handleClick}>Print IdToken</button>
+        </div>
+      );
+    }
+    ```
+
+    To validate the idToken provided by the Sequence Embedded Wallet, you can follow the [Official Sequence Guide](https://docs.sequence.xyz/sdk/headless-wallet/verification) to verify session, starting from Step 2.
+    The `getIdToken` should already be handled on the frontend side. 
+
+
 2. **Database Lookup and Update**
    - Update your user database with a 'sequenceWallet' column.
    - The database is queried with the unique user identifier to retrieve the corresponding user's record.
@@ -35,3 +77,112 @@ The JIT migration process is designed to smoothly transition users from their ex
 
 
 Please get in touch with any questions if your migration is more complex and we are happy to help.
+
+# How to Migrate from ThirdWeb to Sequence
+
+## User Authentication
+
+Thirdweb offers its own providers and authentication methods. To begin the migration process, it's important to identify where these are used in your codebase.
+
+Once you know where these are located you will be be able to switch to the Sequence technology.
+
+### Sequence dependencies installation
+
+```bash pnpm
+npm install @0xsequence/connect wagmi ethers@6.13.0 viem 0xsequence @tanstack/react-query
+# or
+pnpm install @0xsequence/connect wagmi ethers@6.13.0 viem 0xsequence @tanstack/react-query
+# or
+yarn add @0xsequence/connect wagmi ethers@6.13.0 viem 0xsequence @tanstack/react-query
+```
+
+### Migrating from ThirdWeb Providers to Sequence Providers
+
+<CodeGroup>
+
+```diff diff
+
+- import { ThirdwebProvider } from "thirdweb/react";
++ import React from "react";
++ import ReactDOM from "react-dom/client";
++ import "./index.css";
+
++ import App from "./App";
++ import { config } from "./config";
++ import { SequenceConnect } from "@0xsequence/connect";
+
+function MainLayout() {
+  return (
+-		<ThirdwebProvider>
++			<SequenceConnect config={config}>
++				<App />
++			</SequenceConnect>
+-		</ThirdwebProvider>
+  );
+}
+```
+
+```ts MainLayout.tsx
+import React from "react";
+import ReactDOM from "react-dom/client";
+import "./index.css";
+
+import App from "./App";
+import { config } from "./config";
+import { SequenceConnect } from "@0xsequence/connect";
+
+function Dapp() {
+  return (
+    <SequenceConnect config={config}>
+      <App />
+    </SequenceConnect>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")!).render(
+  <React.StrictMode>
+    <Dapp />
+  </React.StrictMode>
+);
+```
+
+</CodeGroup>
+
+Now you are ready to replace ThirdWeb login functions with Sequence Login Functions, allowing users to log in and automatically create an Embedded Wallet for each user
+
+### Migrating from ThirdWeb Login Functions to Sequence Login Functions
+
+<CodeGroup>
+
+```diff diff
+- import { ConnectButton } from "thirdweb/react";
+- import { client } from "../client";
++ import { useOpenConnectModal } from '@0xsequence/connect'
+
+export function Landing() {
++ const { setOpenConnectModal } = useOpenConnectModal()
+  
+  return (
+-   <ConnectButton client={client} />
++   <button onClick={() => setOpenConnectModal(true)}>Connect</button>
+  )
+}
+```
+
+```ts Connect.tsx
+import { useOpenConnectModal } from '@0xsequence/connect'
+
+export function Landing() {
+  const { setOpenConnectModal } = useOpenConnectModal()
+  
+  return (
+    <button onClick={() => setOpenConnectModal(true)}>Connect</button>
+  )
+}
+```
+
+</CodeGroup>
+
+<Info>
+Now the authentication should function properly. Please proceed to [1. User Authentication](/solutions/wallets/embedded-wallet/migration#just-in-time-migration-process) to continue the migration.
+</Info>
