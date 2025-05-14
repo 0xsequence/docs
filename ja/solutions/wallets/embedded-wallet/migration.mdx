@@ -1,5 +1,5 @@
 ---
-title: 移行ガイド：Sequence Embedded Wallets への移行
+title: 移行ガイド - Sequence Embedded Wallets への移行方法
 description: 他のウォレットから Sequence Embedded Wallet への移行
 sidebarTitle: Sequence の移行
 ---
@@ -7,11 +7,55 @@ sidebarTitle: Sequence の移行
 ## 概要
 このドキュメントは、Thirdweb や Venly など他のプロバイダーから Sequence Embedded Wallets への移行を検討している方へのガイドです。推奨される主な方法は、Just-In-Time（JIT）移行パターンで、これはユーザーが移行後に初めてログインした際に行われます。
 
+<CardGroup cols={2}>
+  <Card title="Just-In-Time 移行プロセス" icon="book" href="/solutions/wallets/embedded-wallet/migration#just-in-time-migration-process">
+    カスタムマイグレーションを完了した後に、このガイドに従ってください。これはマイグレーションを正しく行うための一般的な手順です。
+  </Card>
+
+  <Card title="ThirdWeb から Sequence への移行" icon="book" href="/solutions/wallets/embedded-wallet/migration#how-to-migrate-from-thirdweb-to-sequence">
+    このガイドに従って、ThirdWeb から Sequence への移行を行ってください。
+  </Card>
+</CardGroup>
+
 ## Just-In-Time 移行プロセス
 JIT 移行プロセスは、既存のウォレットプロバイダーから Sequence Embedded Wallets へユーザーをスムーズに移行させるために設計されています。このプロセスは、移行が実施された後、ユーザーが初めてログインした際に自動的に行われ、以下のような流れになります。
 1.  **ユーザー認証**
     - ユーザーがログインしようとすると、Sequence Embedded Wallets SDK を使って希望するソーシャルプロバイダーやメールで認証します。
     - ユーザーが認証されると、メールアドレスやユーザー名、その他の一意なユーザー識別子とともに、Sequence ウォレットアドレスがバックエンドに渡されます。
+
+    これを実現するには、Sequence Embedded Wallet から `idToken` 識別子をバックエンドに送信し、そこでユーザーのメールアドレスとアドレスを取得してバックエンドに紐付けてください。
+    以下のコードスニペットはフロントエンドのベースコードとしてご利用いただけます。必要に応じて、ユーザーデータを保存する際にバックエンドを呼び出すように修正してください。
+
+    ```ts GetIdToken.tsx
+    import { useConnect } from "wagmi";
+
+    export function GetIdToken() {
+      const { connectors } = useConnect();
+
+      const handleClick = async () => {
+        if (!connectors) return;
+
+        const waasConnector = connectors.find(
+          (connector) => !!(connector as any).sequenceWaas
+        );
+        const waas = (waasConnector as any)?.sequenceWaas;
+
+        if (waas) {
+          const idToken: string = await waas.getIdToken();
+          console.log("idToken", idToken);
+        }
+      };
+
+      return (
+        <div>
+          <button onClick={handleClick}>Print IdToken</button>
+        </div>
+      );
+    }
+    ```
+
+    Sequence Embedded Wallet から提供された `idToken` を検証するには、[公式 Sequence ガイド](https://docs.sequence.xyz/sdk/headless-wallet/verification)のステップ2から始めてセッションを検証してください。
+    `getIdToken` はフロントエンド側ですでに処理されているはずです。
 
 2.  **データベースの検索と更新**
     - ユーザーデータベースに`sequenceWallet`カラムを追加します。
@@ -28,3 +72,107 @@ JIT 移行プロセスは、既存のウォレットプロバイダーから Seq
     - 資産移行をスムーズに行うため、Sequence の Indexer を使って関連資産とその数量をユーザーに表示することをおすすめします。
 
 移行がより複雑な場合は、お気軽にご相談ください。サポートいたします。
+
+# ThirdWebからSequenceへの移行方法
+
+## ユーザー認証
+Thirdweb は独自のプロバイダーや認証方法を提供しています。移行を始めるには、これらがコードベースのどこで使われているかを特定することが重要です。
+
+場所を把握できたら、Sequence の技術に切り替えることができます。
+
+### Sequenceの依存関係のインストール
+
+```bash pnpm
+npm install @0xsequence/connect wagmi ethers@6.13.0 viem 0xsequence @tanstack/react-query
+# or
+pnpm install @0xsequence/connect wagmi ethers@6.13.0 viem 0xsequence @tanstack/react-query
+# or
+yarn add @0xsequence/connect wagmi ethers@6.13.0 viem 0xsequence @tanstack/react-query
+```
+
+### ThirdWebプロバイダーからSequenceプロバイダーへの移行
+
+<CodeGroup>
+  ```diff diff
+
+  - import { ThirdwebProvider } from "thirdweb/react";
+  + import React from "react";
+  + import ReactDOM from "react-dom/client";
+  + import "./index.css";
+
+  + import App from "./App";
+  + import { config } from "./config";
+  + import { SequenceConnect } from "@0xsequence/connect";
+
+  function MainLayout() {
+    return (
+  -		<ThirdwebProvider>
+  +			<SequenceConnect config={config}>
+  +				<App />
+  +			</SequenceConnect>
+  -		</ThirdwebProvider>
+    );
+  }
+  ```
+
+  ```ts MainLayout.tsx
+  import React from "react";
+  import ReactDOM from "react-dom/client";
+  import "./index.css";
+
+  import App from "./App";
+  import { config } from "./config";
+  import { SequenceConnect } from "@0xsequence/connect";
+
+  function Dapp() {
+    return (
+      <SequenceConnect config={config}>
+        <App />
+      </SequenceConnect>
+    );
+  }
+
+  ReactDOM.createRoot(document.getElementById("root")!).render(
+    <React.StrictMode>
+      <Dapp />
+    </React.StrictMode>
+  );
+  ```
+</CodeGroup>
+
+これで、ThirdWebのログイン機能をSequenceのログイン機能に置き換える準備ができました。これにより、ユーザーはログインし、それぞれにEmbedded Walletが自動的に作成されます。
+
+### ThirdWebのログイン機能からSequenceのログイン機能への移行
+
+<CodeGroup>
+  ```diff diff
+  - import { ConnectButton } from "thirdweb/react";
+  - import { client } from "../client";
+  + import { useOpenConnectModal } from '@0xsequence/connect'
+
+  export function Landing() {
+  + const { setOpenConnectModal } = useOpenConnectModal()
+    
+    return (
+  -   <ConnectButton client={client} />
+  +   <button onClick={() => setOpenConnectModal(true)}>Connect</button>
+    )
+  }
+  ```
+
+  ```ts Connect.tsx
+  import { useOpenConnectModal } from '@0xsequence/connect'
+
+  export function Landing() {
+    const { setOpenConnectModal } = useOpenConnectModal()
+    
+    return (
+      <button onClick={() => setOpenConnectModal(true)}>Connect</button>
+    )
+  }
+  ```
+</CodeGroup>
+
+<Info>
+  これで認証が正しく動作するはずです。続けて、[1. ユーザー認証](/solutions/wallets/embedded-wallet/migration#just-in-time-migration-process) に進み、マイグレーションを続けてください。
+</Info>
