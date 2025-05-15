@@ -19,10 +19,12 @@ It's completely headless.
 - When no code is present, Sign-In using **Epic's Account Portal**
 - Get the Epic Account **Access Token** and use it to authenticate with Sequence's Unreal SDK
 
-## Steps
+## Learn how to integrate it
 
 The native EOS SDK only supports C++ integrations, so we will focus on that in this guide. However, to use them in
 your Blueprint setup, simply convert the following functions to a `UFUNCTION`.
+
+[Checkout our example integration.](https://github.com/0xsequence/sequence-unreal/blob/master/Source/SequenceUnreal/Private/EOSManager.cpp)
 
 ### 1. Install Required SDKs
 
@@ -100,6 +102,8 @@ void UEOSManager::Tick()
 
 ### 5. Create an EOS Login function
 
+Login with EOS by calling the `EOS_Auth_Login` function.
+
 ```cpp
 // .h
 void LoginWithEpicAccountServices(const EOS_ELoginCredentialType Type, TFunction<void()> OnSuccess, TFunction<void()> OnFailure);
@@ -150,73 +154,85 @@ void UEOSManager::LoginWithEpicAccountServices(const EOS_ELoginCredentialType Ty
 
 ### 6. Get the Epic Account Access Token
 
+Let's integrate a function to access the Epic account's access token. This is a OIDC compatible Id Token.
+
 ```cpp
-        // .h
-        FString CopyEpicAccountAccessToken();
+// .h
+FString CopyEpicAccountAccessToken();
 
-        // .cpp
-        FString UEOSManager::CopyEpicAccountAccessToken()
-        {
-            if (!this->EpicAccountId)
-            {
-                UE_LOG(LogTemp, Error, TEXT("Failed to get Access Token. Epic Account Id is null."));
-                return TEXT("");
-            }
+// .cpp
+FString UEOSManager::CopyEpicAccountAccessToken()
+{
+    if (!this->EpicAccountId)
+    {
+        UE_LOG(LogTemp, Error, TEXT("Failed to get Access Token. Epic Account Id is null."));
+        return TEXT("");
+    }
 
-            EOS_Auth_CopyUserAuthTokenOptions TokenOptions
-            {
-                EOS_AUTH_COPYUSERAUTHTOKEN_API_LATEST
-            };
+    EOS_Auth_CopyUserAuthTokenOptions TokenOptions
+    {
+        EOS_AUTH_COPYUSERAUTHTOKEN_API_LATEST
+    };
 
-            EOS_Auth_Token* AuthToken = nullptr;
-            const EOS_EResult Result = EOS_Auth_CopyUserAuthToken(this->EosAuth, &TokenOptions, this->EpicAccountId, &AuthToken);
+    EOS_Auth_Token* AuthToken = nullptr;
+    const EOS_EResult Result = EOS_Auth_CopyUserAuthToken(this->EosAuth, &TokenOptions, this->EpicAccountId, &AuthToken);
 
-            if (Result == EOS_EResult::EOS_Success && AuthToken)
-            {
-                const FString AccessToken = FString(AuthToken->AccessToken);
-                UE_LOG(LogTemp, Log, TEXT("Epic Account Services Access Token: %s"), *AccessToken);
+    if (Result == EOS_EResult::EOS_Success && AuthToken)
+    {
+        const FString AccessToken = FString(AuthToken->AccessToken);
+        UE_LOG(LogTemp, Log, TEXT("Epic Account Services Access Token: %s"), *AccessToken);
 
-                EOS_Auth_Token_Release(AuthToken);
-                return AccessToken;
-            }
+        EOS_Auth_Token_Release(AuthToken);
+        return AccessToken;
+    }
 
-            UE_LOG(LogTemp, Error, TEXT("Failed to copy user auth token: %s"), *FString(EOS_EResult_ToString(Result)));
-            return TEXT("");
-        }
+    UE_LOG(LogTemp, Error, TEXT("Failed to copy user auth token: %s"), *FString(EOS_EResult_ToString(Result)));
+    return TEXT("");
+}
 ```
 
 ### 7. Create a Wallet with Sequence
 
+Now that we can Sign-In with Epic and access the account's Access Token, let's use it with Sequence's Unreal SDK
+to create a non-custodial wallet.
+
+Calling this function using the `EOS_ELoginCredentialType::EOS_LCT_ExchangeCode` option needs to happen at the start
+of the game. The code which is given by the Epic Games Launcher is a short-lived token and we need to access it quickly.
+
 ```cpp
-        // .h
-        void SignInWithEpic();
-        void CreateWallet();
+// .h
+void SignInWithEpic();
+void CreateWallet();
 
-        // .cpp
-        void EOSManager::SignInWithEpic()
-        {
-            this->LoginWithEpicAccountServices(EOS_ELoginCredentialType::EOS_LCT_ExchangeCode, [this]() => {
-                // Success after starting the game from Epic's Game Launcher
-                this->CreateWallet();
-            }, []() => {
-                // No exchange code, let's fallback using Epic's Account Portal
-                this->LoginWithEpicAccountServices(EOS_ELoginCredentialType::EOS_LCT_AccountPortal, [this]() => {
-                    this->CreateWallet();
-                }, []() => {
-                    // Failed or user canceled the Sign-In process
-                });
-            });
-        }
+// .cpp
+void EOSManager::SignInWithEpic()
+{
+    this->LoginWithEpicAccountServices(EOS_ELoginCredentialType::EOS_LCT_ExchangeCode, [this]() => {
+        // Success after starting the game from Epic's Game Launcher
+        this->CreateWallet();
+    }, [this]() => {
+        // No exchange code, let's fallback using Epic's Account Portal
+        this->LoginWithEpicAccountServices(EOS_ELoginCredentialType::EOS_LCT_AccountPortal, [this]() => {
+            this->CreateWallet();
+        }, []() => {
+            // Failed or user canceled the Sign-In process
+        });
+    });
+}
 
-        void EOSManager::CreateWallet()
-        {
-            const FString Token = this->CopyEpicAccountAccessToken();
+void EOSManager::CreateWallet()
+{
+    const FString Token = this->CopyEpicAccountAccessToken();
 
-            USequenceSessions* Sessions = NewObject<USequenceSessions>();
-            Sessions->StartOidcSession(Token, OnApiSuccess, OnApiFailure, OnApiFederationRequired);
-        }
+    USequenceSessions* Sessions = NewObject<USequenceSessions>();
+    Sessions->StartOidcSession(Token, OnApiSuccess, OnApiFailure, OnApiFederationRequired);
+}
 ```
 
 ### 8. Let's try it out!
 
-TBD
+We are done! Now create an instance of your `UEOSManager` class and do the following.
+
+- Call `Initialize()` at the start of your game.
+- Call `Tick()` every frame or at another rate.
+- Call `SignInWithEpic()`
