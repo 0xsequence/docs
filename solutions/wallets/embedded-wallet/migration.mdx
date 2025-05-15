@@ -1,90 +1,96 @@
 ---
 title: Migration Guide - Moving to Sequence Embedded Wallets
-description: Migrating from another wallet to a sequence embedded wallet
+description: Migrating to Sequence Embedded Wallets from another provider.
 sidebarTitle: Migrating Sequence
 ---
 
 ## Overview
 
 This document provides guidance for users migrating from other providers (such as Thirdweb, Venly, etc.) to Sequence's Embedded Wallets. The primary recommended approach is a Just-In-Time (JIT) migration pattern, which occurs when users log in for the first time after the migration.
-
-<CardGroup cols={2}>
-  <Card title="Just-In-Time Migration Process" icon="book" href="/solutions/wallets/embedded-wallet/migration#just-in-time-migration-process">
-    Follow this guide after completing custom migrations. These are general steps to properly do a migration.
-  </Card>
-
-  <Card title="Migrate from ThirdWeb to Sequence" icon="book" href="/solutions/wallets/embedded-wallet/migration#how-to-migrate-from-thirdweb-to-sequence">
-    Follow this guide to migrate from ThirdWeb to Sequence
+<CardGroup>
+  <Card title="ThirdWeb to Sequence" icon="book" href="/solutions/wallets/embedded-wallet/migration#how-to-migrate-from-thirdweb-to-sequence">
+    Follow this guide to migrate from ThirdWeb In-App Wallets to Sequence.
   </Card>
 </CardGroup>
 
-## Just-In-Time Migration Process
+## Recommended Migration Process
 
-The JIT migration process is designed to smoothly transition users from their existing wallet provider to Sequence Embedded Wallets with minimal disruption to their experience. This process occurs automatically when a user logs in for the first time after the migration has been implemented where the process looks like the following:
+The migration process is designed to smoothly transition users from their existing wallet provider to Sequence Embedded Wallets with minimal disruption to their experience. This process occurs automatically when a user logs in for the first time after the migration has been implemented where the process looks like the following generally:
+
+```mermaid
+sequenceDiagram
+    actor User
+    participant Frontend
+    participant SequenceSDK as Sequence Web-SDK
+    participant Backend
+    participant UserDB as User Database
+    participant PreviousProvider as Previous Wallet Provider
+
+    %% Step 1: User Authentication
+    User->>Frontend: Attempts to log in
+    Frontend->>SequenceSDK: Authenticate user via social/email
+    SequenceSDK-->>Frontend: call getidToken()
+    Frontend->>Backend: Send idToken for linking
+
+    %% Step 2: Database Lookup and Update
+    Backend->>UserDB: Query user by email
+    alt User record found
+        Backend->>UserDB: If 'sequenceWallet' not set, update with Sequence wallet
+        UserDB-->>Backend: Update status (e.g., success/already_set)
+    else User record not found
+        Backend->>UserDB: Create new user with identifier & Sequence wallet
+        UserDB-->>Backend: Creation status (e.g., success)
+    end
+    Backend-->>Frontend: Sequence Login / Account Provisioned
+
+    %% Step 3: Asset Migration
+    Frontend->>Backend: Check asset migration status post-login
+    Backend-->>Frontend: Migration status (e.g., pending / complete)
+    opt Migration is Pending
+        Frontend->>User: Prompt: "Migrate assets from old wallet?"
+        User->>Frontend: Confirms asset migration
+        Frontend->>User: Log into Previous Provider via Migration page
+        User->>PreviousProvider: Transfers assets to new Sequence Wallet
+        PreviousProvider-->>User: Asset transfer confirmation
+        User->>Frontend: Confirms completion of asset transfer
+        Frontend->>Backend: Update migration status to 'complete'
+    end
+```
 
 1. **User Authentication**
-   - When a user attempts to log in, user authenticates with their desired social provider or email using the Sequence Embedded Wallets SDK.
-   - Once the user is authenticated, the authenticated user data such as email address, username, or other unique user identifier along with the sequence wallet address is passed to your backend.
+   - When a user attempts to log in, user authenticates with their desired social provider or email using a Sequence SDK.
+   - Once the user is authenticated, the user data such as email address or other unique user identifier along with the Sequence wallet address is passed to your backend.
   
-    To do this possible can you send the `idToken` identifier from Sequence Embedded Wallet to your backend and get the user email and address from there to link it in your backend.
-    You can use this code snippet as your base code for the frontend. Modify this to call to your backend when it's needed to save the user data
-  
-    ```ts GetIdToken.tsx
-    import { useConnect } from "wagmi";
+    You can request a Sequence-specific `idToken` from the Sequence SDK and pass it to your backend to verify the user email and address from there to link it in your backend.
 
-    export function GetIdToken() {
-      const { connectors } = useConnect();
-
-      const handleClick = async () => {
-        if (!connectors) return;
-
-        const waasConnector = connectors.find(
-          (connector) => !!(connector as any).sequenceWaas
-        );
-        const waas = (waasConnector as any)?.sequenceWaas;
-
-        if (waas) {
-          const idToken: string = await waas.getIdToken();
-          console.log("idToken", idToken);
-        }
-      };
-
-      return (
-        <div>
-          <button onClick={handleClick}>Print IdToken</button>
-        </div>
-      );
-    }
-    ```
-
-    To validate the idToken provided by the Sequence Embedded Wallet, you can follow the [Official Sequence Guide](https://docs.sequence.xyz/sdk/headless-wallet/verification) to verify session, starting from Step 2.
-    The `getIdToken` should already be handled on the frontend side. 
-
+   [Here's](https://docs.sequence.xyz/sdk/headless-wallet/verification) the guide to request the token from your frontend and verify it from your backend.
 
 2. **Database Lookup and Update**
+Now that we have verified credentials in your backend, we can modify your user database to track if a Sequence wallet exists for the user already.
    - Update your user database with a 'sequenceWallet' column.
    - The database is queried with the unique user identifier to retrieve the corresponding user's record.
-   - The system checks if a 'sequenceWallet' already exists for this user. If so, no actoin is taken.
+   - The system checks if a 'sequenceWallet' already exists for this user. If so, no action is taken.
    - If no Sequence wallet address is found:
      a. The passed sequence wallet is inserted in the 'sequenceWallet' column.
    - If a user doesn't exist in the database, insert the passed information as a net-new user.
 
 3. **Asset Migration**
    - After the user is successfully logged in, the system checks if asset migration has already occurred.
-   - If not, a prompt is displayed to the user, explaining the need to migrate their assets from their old wallet to the new Sequence Embedded Wallet.
-   - The user logs in to the previous provider as a one-time event, and migrates the desired assets to their new sequence wallet. 
+   - If not, a prompt is displayed to the user, explaining the need to migrate their assets from their old wallet to the new Sequence wallet.
+   - The user logs in to the previous provider as a one-time event via a specific migration page, and moves their desired assets to their new Sequence wallet. 
    - We suggest using Sequence's Indexer to query the relevant assets to display these along with amounts to the user for ease of migration.
 
+Please get in touch with any questions if your migration differs significantly.
 
-Please get in touch with any questions if your migration is more complex and we are happy to help.
+We'll outline below guides on migrating from specific providers below.
 
-# How to Migrate from ThirdWeb to Sequence
+# Migrating from ThirdWeb to Sequence
 
 ## User Authentication
 
 Thirdweb offers its own providers and authentication methods. To begin the migration process, it's important to identify where these are used in your codebase.
 
-Once you know where these are located you will be be able to switch to the Sequence technology.
+Once you know where these are located you will be be able to switch to the Sequence.
 
 ### Sequence dependencies installation
 
