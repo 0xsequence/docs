@@ -1,4 +1,218 @@
 ---
-title: Epic Authを使ったサイレントサインイン
-description: Sequence インフラスタックを用いた web3 ゲーム向け Unreal SDK API のブロックチェーン読み取りに関するドキュメントです。
+title: Epic Gamesでサインイン
 ---
+
+SequenceのUnreal SDKは、Epic Games Authを利用したウォレットの作成に対応しています。始めるには、プロジェクトにEOS SDKを統合し、[EOS Epic Account Services](https://dev.epicgames.com/docs/epic-account-services/getting-started)でログインできるようにしてください。
+
+Epic認証の大きな利点は、Epic Games Launcherからゲームを起動した場合に発揮されます。この方法なら、サインイン画面を表示せずに、Sequenceで認証し、ユーザーのためにノンカストディアルウォレットを作成できます。
+完全にヘッドレスで動作します。
+
+## ロードマップ
+
+- **Epic Games Launcher**から**Exchange Code**を使ったEpicサインイン
+- コードがない場合は、**Epicのアカウントポータル**を使ってサインイン
+- Epicアカウントの**アクセストークン**を取得し、それを使ってSequenceのUnreal SDKで認証
+
+## 統合方法を学びましょう
+ネイティブのEOS SDKはC++での統合のみをサポートしているため、本ガイドではC++を中心に解説します。ただし、Blueprintで利用したい場合は、`UFUNCTION`に変換することで対応できます。また、[Redpoint EOS SDK](https://docs.redpoint.games/eos-online-subsystem/docs/)のようなサードパーティライブラリを利用する方法もあります。
+
+[統合例をチェックしてください。](https://github.com/0xsequence/sequence-unreal/blob/master/Source/SequenceUnreal/Private/EOSManager.cpp)
+
+### 1. 必要なSDKのインストール
+Unrealプロジェクトに以下のSDKがインストールされていることを確認してください。
+- SequenceのUnreal SDK
+- Online Services EOS
+- Online Subsystem EOS
+
+### 2. プロジェクトで参照設定
+`.Build.cs`ファイルのPublic Dependency Modulesに追加してください。
+
+```csharp
+PublicDependencyModuleNames.AddRange(new string[] { "SequencePlugin", "EOSSDK", "OnlineServicesEOS" });
+```
+
+### 3. EOS SDKの初期化
+[Epic Games Dev Portal](https://dev.epicgames.com/portal/)から取得したプロジェクト認証情報で`EOS_Platform_Create`を実行します。
+セキュリティのため、これらの認証情報は`EosConfig.ini`などの設定ファイルから読み込むことを推奨し、`.gitignore`に追加してください。
+
+```cpp
+// .h
+void Initialize();
+
+// .cpp
+void UEOSManager::Initialize()
+{
+    const FString CacheDirectory = FPaths::ConvertRelativePathToFull(FPaths::Combine(FPaths::ProjectSavedDir(), TEXT("EOSCache")));
+
+    EOS_Platform_Options PlatformOptions = {};
+    PlatformOptions.ApiVersion = EOS_PLATFORM_OPTIONS_API_LATEST;
+    PlatformOptions.ProductId = "ProductId";
+    PlatformOptions.SandboxId = "SandboxId";
+    PlatformOptions.DeploymentId = "DeploymentId";
+    PlatformOptions.ClientCredentials.ClientId = "ClientId";
+    PlatformOptions.ClientCredentials.ClientSecret = "ClientSecret";
+    PlatformOptions.EncryptionKey = "EncryptionKey";
+    PlatformOptions.TickBudgetInMilliseconds = 0;
+    PlatformOptions.CacheDirectory = TCHAR_TO_UTF8(*CacheDirectory);
+    PlatformOptions.OverrideCountryCode = nullptr;
+    PlatformOptions.OverrideLocaleCode = nullptr;
+    PlatformOptions.Flags = 0;
+
+    this->EosPlatform = EOS_Platform_Create(&PlatformOptions);
+    if (!this->EosPlatform)
+    {
+        UE_LOG(LogTemp, Error, TEXT("Failed to create EOS platform."));
+        return;
+    }
+
+    UE_LOG(LogTemp, Display, TEXT("EOS Platform initialized successfully."));
+}
+```
+
+### 4. EOSプラットフォームのティック処理
+サインイン処理中にEOS SDKを更新するため、手動でティック処理を行う必要があります。
+プラットフォームハンドル`EOS_HPlatform`を使い、`EOS_Platform_Tick`を呼び出してください。
+
+```cpp
+// .h
+void Tick();
+
+// .cpp
+void UEOSManager::Tick()
+{
+    if (this->EosPlatform)
+    {
+        EOS_Platform_Tick(this->EosPlatform);
+    }
+}
+```
+
+### 5. EOSログイン関数の作成
+`EOS_Auth_Login` 関数を呼び出して、EOSでログインします。
+
+```cpp
+// .h
+void LoginWithEpicAccountServices(const EOS_ELoginCredentialType Type, TFunction<void()> OnSuccess, TFunction<void()> OnFailure);
+
+// .cpp
+void UEOSManager::LoginWithEpicAccountServices(const EOS_ELoginCredentialType Type, TFunction<void()> OnSuccess, TFunction<void()> OnFailure)
+{
+    if (!this->EosPlatform)
+    {
+        UE_LOG(LogTemp, Error, TEXT("Failed to login. EOS Platform is null, please Initialize."));
+        OnFailure();
+        return;
+    }
+
+    this->EosAuth = EOS_Platform_GetAuthInterface(this->EosPlatform);
+
+    EOS_Auth_Credentials Credentials = {};
+    Credentials.ApiVersion = EOS_AUTH_CREDENTIALS_API_LATEST;
+    Credentials.Type = Type;
+
+    EOS_Auth_LoginOptions LoginOptions = {};
+    LoginOptions.ApiVersion = EOS_AUTH_LOGIN_API_LATEST;
+    LoginOptions.Credentials = &Credentials;
+    LoginOptions.ScopeFlags = EOS_EAuthScopeFlags::EOS_AS_NoFlags;
+
+    FEosLoginContext* ClientData = new FEosLoginContext;
+    ClientData->Self = this;
+    ClientData->OnSuccess = [OnSuccess]() { OnSuccess(); };
+    ClientData->OnFailure = [OnFailure]() { OnFailure(); };
+
+    EOS_Auth_Login(this->EosAuth, &LoginOptions, ClientData,[](const EOS_Auth_LoginCallbackInfo* Data)
+    {
+        const FEosLoginContext* Context = static_cast<FEosLoginContext*>(Data->ClientData);
+        if (Data->ResultCode == EOS_EResult::EOS_Success)
+        {
+            const EOS_EpicAccountId EpicId = Data->LocalUserId;
+            Context->Self->EpicAccountId = EpicId;
+            Context->OnSuccess();
+        }
+        else
+        {
+            UE_LOG(LogTemp, Error, TEXT("Epic Account login failed: %s"), *FString(EOS_EResult_ToString(Data->ResultCode)));
+            Context->OnFailure();
+        }
+    });
+}
+```
+
+### 6. Epicアカウントのアクセストークンを取得
+Epicアカウントのアクセストークンにアクセスする関数を実装しましょう。これはOIDC互換のIDトークンです。
+
+```cpp
+// .h
+FString CopyEpicAccountAccessToken();
+
+// .cpp
+FString UEOSManager::CopyEpicAccountAccessToken()
+{
+    if (!this->EpicAccountId)
+    {
+        UE_LOG(LogTemp, Error, TEXT("Failed to get Access Token. Epic Account Id is null."));
+        return TEXT("");
+    }
+
+    EOS_Auth_CopyUserAuthTokenOptions TokenOptions
+    {
+        EOS_AUTH_COPYUSERAUTHTOKEN_API_LATEST
+    };
+
+    EOS_Auth_Token* AuthToken = nullptr;
+    const EOS_EResult Result = EOS_Auth_CopyUserAuthToken(this->EosAuth, &TokenOptions, this->EpicAccountId, &AuthToken);
+
+    if (Result == EOS_EResult::EOS_Success && AuthToken)
+    {
+        const FString AccessToken = FString(AuthToken->AccessToken);
+        UE_LOG(LogTemp, Log, TEXT("Epic Account Services Access Token: %s"), *AccessToken);
+
+        EOS_Auth_Token_Release(AuthToken);
+        return AccessToken;
+    }
+
+    UE_LOG(LogTemp, Error, TEXT("Failed to copy user auth token: %s"), *FString(EOS_EResult_ToString(Result)));
+    return TEXT("");
+}
+```
+
+### 7. Sequenceでウォレットを作成
+Epicでサインインし、アカウントのアクセストークンにアクセスできるようになったら、SequenceのUnreal SDKを使ってノンカストディアルウォレットを作成しましょう。
+
+この関数は、`EOS_ELoginCredentialType::EOS_LCT_ExchangeCode` オプションを使って、ゲーム開始時に呼び出す必要があります。Epic Games Launcherから提供されるコードは有効期限が短いため、すぐに取得する必要があります。
+
+```cpp
+// .h
+void SignInWithEpic();
+void CreateWallet();
+
+// .cpp
+void EOSManager::SignInWithEpic()
+{
+    this->LoginWithEpicAccountServices(EOS_ELoginCredentialType::EOS_LCT_ExchangeCode, [this]() => {
+        // Success after starting the game from Epic's Game Launcher
+        this->CreateWallet();
+    }, [this]() => {
+        // No exchange code, let's fallback using Epic's Account Portal
+        this->LoginWithEpicAccountServices(EOS_ELoginCredentialType::EOS_LCT_AccountPortal, [this]() => {
+            this->CreateWallet();
+        }, []() => {
+            // Failed or user canceled the Sign-In process
+        });
+    });
+}
+
+void EOSManager::CreateWallet()
+{
+    const FString Token = this->CopyEpicAccountAccessToken();
+
+    USequenceSessions* Sessions = NewObject<USequenceSessions>();
+    Sessions->StartOidcSession(Token, OnApiSuccess, OnApiFailure, OnApiFederationRequired);
+}
+```
+
+### 8. 実際に試してみましょう！
+これで完了です！次に、`UEOSManager` クラスのインスタンスを作成し、以下の手順を行ってください。
+- ゲーム開始時に `Initialize()` を呼び出してください。
+- 毎フレーム、または別のタイミングで `Tick()` を呼び出してください。
+- `SignInWithEpic()` を呼び出してください。
