@@ -15,7 +15,7 @@ This document provides guidance for users migrating from other providers (such a
 
 ## Recommended Migration Process
 
-The migration process is designed to smoothly transition users from their existing wallet provider to Sequence Embedded Wallets with minimal disruption to their experience. This process occurs automatically when a user logs in for the first time after the migration has been implemented where the process looks like the following generally:
+The migration process is designed to smoothly transition users from their existing wallet provider to Sequence Embedded Wallets with minimal disruption to their experience. Our Web-SDK leverages wagmi methods under the hood, so most existing logic in your application will be compatible. This process occurs automatically when a user logs in for the first time after the migration has been implemented where the process looks like the following generally:
 
 ```mermaid
 sequenceDiagram
@@ -189,6 +189,11 @@ export function Landing() {
 
 </CodeGroup>
 
-<Info>
-Now the authentication should function properly. Please proceed to [1. User Authentication](/solutions/wallets/embedded-wallet/migration#just-in-time-migration-process) to continue the migration.
-</Info>
+You will have to as well set Sequence specific configuration variables via the Web-SDK which you can find out more [here](https://docs.sequence.xyz/sdk/web/getting-started#setting-up-your-dapp).
+
+Then request the Sequence idToken once a user is authenticated and pass it to your backend via this [guide](https://docs.sequence.xyz/sdk/headless-wallet/verification).
+
+From here, continue with [Step 2](https://docs.sequence.xyz/solutions/wallets/embedded-wallet/migration#recommended-migration-process) depending on your backend and user database to track the migration process for your users.
+
+Lastly, once a user successfully has a sequence wallet and your backend updated to track the status - prompt the user to migrate their assets via a dedicated migration page. The user would simply login with their ThirdWeb credentials and transfer their assets to their Sequence wallet to complete the flow.
+
