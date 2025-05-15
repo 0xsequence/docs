@@ -14,7 +14,7 @@ Este documento brinda orientación para usuarios que migran desde otros proveedo
 </CardGroup>
 
 ## Proceso de migración recomendado
-El proceso de migración está diseñado para que los usuarios pasen de su proveedor de wallet actual a Sequence Embedded Wallets sin afectar su experiencia. Este proceso ocurre automáticamente cuando el usuario inicia sesión por primera vez después de implementar la migración, siguiendo generalmente estos pasos:
+El proceso de migración está diseñado para facilitar la transición de los usuarios desde su proveedor de wallet actual hacia Sequence Embedded Wallets, con una mínima interrupción en su experiencia. Nuestro Web-SDK utiliza métodos de wagmi internamente, por lo que la mayoría de la lógica existente en su aplicación será compatible. Este proceso ocurre automáticamente cuando un usuario inicia sesión por primera vez después de que se haya implementado la migración, siguiendo generalmente el siguiente flujo:
 
 ```mermaid
 sequenceDiagram
@@ -183,6 +183,10 @@ Ahora puede reemplazar las funciones de inicio de sesión de ThirdWeb por las de
   ```
 </CodeGroup>
 
-<Info>
-  Ahora la autenticación debería funcionar correctamente. Por favor, continúe a [1. Autenticación de usuario](/solutions/wallets/embedded-wallet/migration#just-in-time-migration-process) para seguir con la migración.
-</Info>
+También deberá configurar variables específicas de Sequence a través del Web-SDK, sobre lo cual puede obtener más información [aquí](https://docs.sequence.xyz/sdk/web/getting-started#setting-up-your-dapp).
+
+Luego, solicite el idToken de Sequence una vez que el usuario esté autenticado y envíelo a su backend siguiendo esta [guía](https://docs.sequence.xyz/sdk/headless-wallet/verification).
+
+A partir de aquí, continúe con el [Paso 2](https://docs.sequence.xyz/solutions/wallets/embedded-wallet/migration#recommended-migration-process) según su backend y base de datos de usuarios para hacer seguimiento al proceso de migración de sus usuarios.
+
+Por último, una vez que el usuario tenga exitosamente una wallet de Sequence y su backend esté actualizado para rastrear el estado, indíquele que migre sus activos mediante una página de migración dedicada. El usuario simplemente iniciará sesión con sus credenciales de ThirdWeb y transferirá sus activos a su wallet de Sequence para completar el proceso.
