@@ -1,30 +1,188 @@
 ---
-title: 移行ガイド：Sequence Embedded Wallets への移行
-description: 他のウォレットから Sequence Embedded Wallet への移行
+title: 移行ガイド - Sequence Embedded Wallets への移行方法
+description: 他社プロバイダーからSequence Embedded Walletsへ移行する
 sidebarTitle: Sequence の移行
 ---
 
 ## 概要
 このドキュメントは、Thirdweb や Venly など他のプロバイダーから Sequence Embedded Wallets への移行を検討している方へのガイドです。推奨される主な方法は、Just-In-Time（JIT）移行パターンで、これはユーザーが移行後に初めてログインした際に行われます。
 
-## Just-In-Time 移行プロセス
-JIT 移行プロセスは、既存のウォレットプロバイダーから Sequence Embedded Wallets へユーザーをスムーズに移行させるために設計されています。このプロセスは、移行が実施された後、ユーザーが初めてログインした際に自動的に行われ、以下のような流れになります。
-1.  **ユーザー認証**
-    - ユーザーがログインしようとすると、Sequence Embedded Wallets SDK を使って希望するソーシャルプロバイダーやメールで認証します。
-    - ユーザーが認証されると、メールアドレスやユーザー名、その他の一意なユーザー識別子とともに、Sequence ウォレットアドレスがバックエンドに渡されます。
+<CardGroup>
+  <Card title="ThirdWebからSequenceへの移行" icon="book" href="/solutions/wallets/embedded-wallet/migration#how-to-migrate-from-thirdweb-to-sequence">
+    このガイドに従って、ThirdWeb In-App WalletsからSequenceへの移行を行ってください。
+  </Card>
+</CardGroup>
 
-2.  **データベースの検索と更新**
+## 推奨される移行手順
+この移行プロセスは、ユーザーの体験にほとんど影響を与えずに、既存のウォレットプロバイダーからSequence Embedded Walletsへスムーズに移行できるよう設計されています。このプロセスは、移行が実施された後、ユーザーが初めてログインした際に自動的に行われ、一般的には以下のような流れになります。
+
+```mermaid
+sequenceDiagram
+    actor User
+    participant Frontend
+    participant SequenceSDK as Sequence Web-SDK
+    participant Backend
+    participant UserDB as User Database
+    participant PreviousProvider as Previous Wallet Provider
+
+    %% Step 1: User Authentication
+    User->>Frontend: Attempts to log in
+    Frontend->>SequenceSDK: Authenticate user via social/email
+    SequenceSDK-->>Frontend: call getidToken()
+    Frontend->>Backend: Send idToken for linking
+
+    %% Step 2: Database Lookup and Update
+    Backend->>UserDB: Query user by email
+    alt User record found
+        Backend->>UserDB: If 'sequenceWallet' not set, update with Sequence wallet
+        UserDB-->>Backend: Update status (e.g., success/already_set)
+    else User record not found
+        Backend->>UserDB: Create new user with identifier & Sequence wallet
+        UserDB-->>Backend: Creation status (e.g., success)
+    end
+    Backend-->>Frontend: Sequence Login / Account Provisioned
+
+    %% Step 3: Asset Migration
+    Frontend->>Backend: Check asset migration status post-login
+    Backend-->>Frontend: Migration status (e.g., pending / complete)
+    opt Migration is Pending
+        Frontend->>User: Prompt: "Migrate assets from old wallet?"
+        User->>Frontend: Confirms asset migration
+        Frontend->>User: Log into Previous Provider via Migration page
+        User->>PreviousProvider: Transfers assets to new Sequence Wallet
+        PreviousProvider-->>User: Asset transfer confirmation
+        User->>Frontend: Confirms completion of asset transfer
+        Frontend->>Backend: Update migration status to 'complete'
+    end
+```
+
+1.  **ユーザー認証**
+    - ユーザーがログインしようとすると、Sequence SDKを使って希望するソーシャルプロバイダーやメールで認証を行います。
+    - ユーザーが認証されると、メールアドレスやその他の一意のユーザー識別子とSequenceウォレットアドレスなどのユーザーデータがバックエンドに渡されます。
+
+    Sequence SDKからSequence専用の`idToken`を取得し、それをバックエンドに渡すことで、ユーザーのメールアドレスやアドレスをバックエンド側で確認し、紐付けることができます。
+
+    [こちら](https://docs.sequence.xyz/sdk/headless-wallet/verification)のガイドで、フロントエンドからトークンをリクエストし、バックエンドで検証する方法をご覧いただけます。
+
+2.  **データベースの照合と更新**
+    バックエンドで認証情報が確認できたら、ユーザーデータベースを修正し、そのユーザーにSequenceウォレットが既に存在するかどうかを管理できるようにします。
     - ユーザーデータベースに`sequenceWallet`カラムを追加します。
     - データベースは一意なユーザー識別子で検索され、該当ユーザーのレコードを取得します。
-    - このユーザーに「sequenceWallet」が既に存在するか確認します。存在する場合は何も行いません。
+    - システムは、そのユーザーに'sequenceWallet'が既に存在するかどうかを確認します。存在する場合は、特に何も行いません。
     - Sequence ウォレットアドレスが見つからない場合：
       a. 渡された Sequence ウォレットを`sequenceWallet`カラムに挿入します。
     - データベースにユーザーが存在しない場合は、渡された情報を新規ユーザーとして登録します。
 
 3.  **資産の移行**
     - ユーザーが正常にログインした後、資産の移行が既に行われているかシステムが確認します。
-    - まだの場合、旧ウォレットから新しい Sequence Embedded Wallet への資産移行が必要であることを説明する案内がユーザーに表示されます。
-    - ユーザーは一度だけ以前のプロバイダーにログインし、希望する資産を新しい Sequence ウォレットに移行します。
+    - 存在しない場合は、旧ウォレットから新しいSequenceウォレットへ資産を移行する必要があることをユーザーに説明する案内が表示されます。
+    - ユーザーは一度だけ、特定の移行ページから以前のプロバイダーにログインし、希望する資産を新しいSequenceウォレットへ移動します。
     - 資産移行をスムーズに行うため、Sequence の Indexer を使って関連資産とその数量をユーザーに表示することをおすすめします。
 
-移行がより複雑な場合は、お気軽にご相談ください。サポートいたします。
+もし移行方法が大きく異なる場合は、ご質問があればお気軽にご連絡ください。
+
+以下に、特定のプロバイダーからの移行ガイドをまとめています。
+
+# ThirdWebからSequenceへの移行方法
+
+## ユーザー認証
+Thirdweb は独自のプロバイダーや認証方法を提供しています。移行を始めるには、これらがコードベースのどこで使われているかを特定することが重要です。
+
+これらの場所が分かれば、Sequenceへ切り替えることができるようになります。
+
+### Sequenceの依存関係のインストール
+
+```bash pnpm
+npm install @0xsequence/connect wagmi ethers@6.13.0 viem 0xsequence @tanstack/react-query
+# or
+pnpm install @0xsequence/connect wagmi ethers@6.13.0 viem 0xsequence @tanstack/react-query
+# or
+yarn add @0xsequence/connect wagmi ethers@6.13.0 viem 0xsequence @tanstack/react-query
+```
+
+### ThirdWebプロバイダーからSequenceプロバイダーへの移行
+
+<CodeGroup>
+  ```diff diff
+
+  - import { ThirdwebProvider } from "thirdweb/react";
+  + import React from "react";
+  + import ReactDOM from "react-dom/client";
+  + import "./index.css";
+
+  + import App from "./App";
+  + import { config } from "./config";
+  + import { SequenceConnect } from "@0xsequence/connect";
+
+  function MainLayout() {
+    return (
+  -		<ThirdwebProvider>
+  +			<SequenceConnect config={config}>
+  +				<App />
+  +			</SequenceConnect>
+  -		</ThirdwebProvider>
+    );
+  }
+  ```
+
+  ```ts MainLayout.tsx
+  import React from "react";
+  import ReactDOM from "react-dom/client";
+  import "./index.css";
+
+  import App from "./App";
+  import { config } from "./config";
+  import { SequenceConnect } from "@0xsequence/connect";
+
+  function Dapp() {
+    return (
+      <SequenceConnect config={config}>
+        <App />
+      </SequenceConnect>
+    );
+  }
+
+  ReactDOM.createRoot(document.getElementById("root")!).render(
+    <React.StrictMode>
+      <Dapp />
+    </React.StrictMode>
+  );
+  ```
+</CodeGroup>
+
+これで、ThirdWebのログイン機能をSequenceのログイン機能に置き換える準備ができました。これにより、ユーザーはログインし、それぞれにEmbedded Walletが自動的に作成されます。
+
+### ThirdWebのログイン機能からSequenceのログイン機能への移行
+
+<CodeGroup>
+  ```diff diff
+  - import { ConnectButton } from "thirdweb/react";
+  - import { client } from "../client";
+  + import { useOpenConnectModal } from '@0xsequence/connect'
+
+  export function Landing() {
+  + const { setOpenConnectModal } = useOpenConnectModal()
+    
+    return (
+  -   <ConnectButton client={client} />
+  +   <button onClick={() => setOpenConnectModal(true)}>Connect</button>
+    )
+  }
+  ```
+
+  ```ts Connect.tsx
+  import { useOpenConnectModal } from '@0xsequence/connect'
+
+  export function Landing() {
+    const { setOpenConnectModal } = useOpenConnectModal()
+    
+    return (
+      <button onClick={() => setOpenConnectModal(true)}>Connect</button>
+    )
+  }
+  ```
+</CodeGroup>
+
+<Info>
+  これで認証が正しく動作するはずです。続けて、[1. ユーザー認証](/solutions/wallets/embedded-wallet/migration#just-in-time-migration-process) に進み、マイグレーションを続けてください。
+</Info>
