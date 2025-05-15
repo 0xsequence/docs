@@ -1,4 +1,220 @@
 ---
-title: Inicio de sesión silencioso usando Epic Auth
-description: Documentación de la API del SDK de Unreal para leer desde la blockchain con la infraestructura de Sequence para juegos web3.
+title: Inicio de sesión con Epic Games
 ---
+
+El SDK de Unreal de Sequence permite crear wallet utilizando la autenticación de Epic Games. Para comenzar, debes integrar el EOS SDK en tu proyecto y asegurarte de iniciar sesión con los [Epic Account Services de EOS](https://dev.epicgames.com/docs/epic-account-services/getting-started)
+
+En esta guía, usaremos el EOS SDK nativo en C++ e integraremos algunas funciones que puedes llamar desde tu entorno de Blueprints. Como alternativa, también puedes usar bibliotecas de terceros como el [Redpoint EOS SDK](https://docs.redpoint.games/eos-online-subsystem/docs/) o puedes llamar directamente a las funciones en C++ en lugar de usar Blueprints.
+
+La gran ventaja de la autenticación de Epic es cuando inicias tu juego desde el Epic Games Launcher. De esta manera, puedes autenticarte con Sequence y crear wallet no custodiadas para tus usuarios sin ninguna interfaz de inicio de sesión. Es completamente automatizado, sin necesidad de interfaz de usuario.
+
+## Hoja de ruta
+
+- Inicio de sesión con Epic usando el **Exchange Code** del **Epic Games Launcher**
+- Cuando no haya código disponible, inicio de sesión usando el **Portal de cuentas de Epic**
+- Obtén el Access Token de la cuenta de Epic y utilízalo para autenticarte con el SDK de Unreal de Sequence
+
+## Aprende cómo integrarlo
+El EOS SDK nativo solo admite integraciones en C++, así que nos centraremos en eso en esta guía. Sin embargo, para usarlas en
+su entorno de Blueprints, simplemente convierta las siguientes funciones en un `UFUNCTION`.
+
+[Vea nuestro ejemplo de integración.](https://github.com/0xsequence/sequence-unreal/blob/master/Source/SequenceUnreal/Private/EOSManager.cpp)
+
+### 1. Instale los SDK requeridos
+Asegúrate de tener los siguientes SDK instalados en tu proyecto de Unreal.
+- Unreal SDK de Sequence
+- Online Services EOS
+- Online Subsystem EOS
+
+### Referencia estos en tu proyecto
+Agrega estos a los módulos de dependencias públicas dentro de tu archivo `.Build.cs`.
+
+```csharp
+PublicDependencyModuleNames.AddRange(new string[] { "SequencePlugin", "EOSSDK", "OnlineServicesEOS" });
+```
+
+### 3. Inicialice el EOS SDK
+Ejecute `EOS_Platform_Create` con las credenciales del proyecto desde el [Epic Games Dev Portal](https://dev.epicgames.com/portal/)
+Por seguridad, recomendamos leer estas credenciales desde un archivo de configuración como `EosConfig.ini` y agregarlo a su `.gitignore`
+
+```cpp
+// .h
+void Initialize();
+
+// .cpp
+void UEOSManager::Initialize()
+{
+    const FString CacheDirectory = FPaths::ConvertRelativePathToFull(FPaths::Combine(FPaths::ProjectSavedDir(), TEXT("EOSCache")));
+
+    EOS_Platform_Options PlatformOptions = {};
+    PlatformOptions.ApiVersion = EOS_PLATFORM_OPTIONS_API_LATEST;
+    PlatformOptions.ProductId = "ProductId";
+    PlatformOptions.SandboxId = "SandboxId";
+    PlatformOptions.DeploymentId = "DeploymentId";
+    PlatformOptions.ClientCredentials.ClientId = "ClientId";
+    PlatformOptions.ClientCredentials.ClientSecret = "ClientSecret";
+    PlatformOptions.EncryptionKey = "EncryptionKey";
+    PlatformOptions.TickBudgetInMilliseconds = 0;
+    PlatformOptions.CacheDirectory = TCHAR_TO_UTF8(*CacheDirectory);
+    PlatformOptions.OverrideCountryCode = nullptr;
+    PlatformOptions.OverrideLocaleCode = nullptr;
+    PlatformOptions.Flags = 0;
+
+    this->EosPlatform = EOS_Platform_Create(&PlatformOptions);
+    if (!this->EosPlatform)
+    {
+        UE_LOG(LogTemp, Error, TEXT("Failed to create EOS platform."));
+        return;
+    }
+
+    UE_LOG(LogTemp, Display, TEXT("EOS Platform initialized successfully."));
+}
+```
+
+### 4. Actualice la plataforma EOS
+Para que el EOS SDK se actualice durante el proceso de inicio de sesión, debemos 'actualizarlo' manualmente.
+Use el identificador de plataforma `EOS_HPlatform` para llamar a `EOS_Platform_Tick`
+
+```cpp
+// .h
+void Tick();
+
+// .cpp
+void UEOSManager::Tick()
+{
+    if (this->EosPlatform)
+    {
+        EOS_Platform_Tick(this->EosPlatform);
+    }
+}
+```
+
+### 5. Cree una función de inicio de sesión de EOS
+Inicie sesión con EOS llamando a la función `EOS_Auth_Login`.
+
+```cpp
+// .h
+void LoginWithEpicAccountServices(const EOS_ELoginCredentialType Type, TFunction<void()> OnSuccess, TFunction<void()> OnFailure);
+
+// .cpp
+void UEOSManager::LoginWithEpicAccountServices(const EOS_ELoginCredentialType Type, TFunction<void()> OnSuccess, TFunction<void()> OnFailure)
+{
+    if (!this->EosPlatform)
+    {
+        UE_LOG(LogTemp, Error, TEXT("Failed to login. EOS Platform is null, please Initialize."));
+        OnFailure();
+        return;
+    }
+
+    this->EosAuth = EOS_Platform_GetAuthInterface(this->EosPlatform);
+
+    EOS_Auth_Credentials Credentials = {};
+    Credentials.ApiVersion = EOS_AUTH_CREDENTIALS_API_LATEST;
+    Credentials.Type = Type;
+
+    EOS_Auth_LoginOptions LoginOptions = {};
+    LoginOptions.ApiVersion = EOS_AUTH_LOGIN_API_LATEST;
+    LoginOptions.Credentials = &Credentials;
+    LoginOptions.ScopeFlags = EOS_EAuthScopeFlags::EOS_AS_NoFlags;
+
+    FEosLoginContext* ClientData = new FEosLoginContext;
+    ClientData->Self = this;
+    ClientData->OnSuccess = [OnSuccess]() { OnSuccess(); };
+    ClientData->OnFailure = [OnFailure]() { OnFailure(); };
+
+    EOS_Auth_Login(this->EosAuth, &LoginOptions, ClientData,[](const EOS_Auth_LoginCallbackInfo* Data)
+    {
+        const FEosLoginContext* Context = static_cast<FEosLoginContext*>(Data->ClientData);
+        if (Data->ResultCode == EOS_EResult::EOS_Success)
+        {
+            const EOS_EpicAccountId EpicId = Data->LocalUserId;
+            Context->Self->EpicAccountId = EpicId;
+            Context->OnSuccess();
+        }
+        else
+        {
+            UE_LOG(LogTemp, Error, TEXT("Epic Account login failed: %s"), *FString(EOS_EResult_ToString(Data->ResultCode)));
+            Context->OnFailure();
+        }
+    });
+}
+```
+
+### 6. Obtén el Access Token de la cuenta de Epic
+Vamos a integrar una función para acceder al token de acceso de la cuenta de Epic. Este es un Id Token compatible con OIDC.
+
+```cpp
+// .h
+FString CopyEpicAccountAccessToken();
+
+// .cpp
+FString UEOSManager::CopyEpicAccountAccessToken()
+{
+    if (!this->EpicAccountId)
+    {
+        UE_LOG(LogTemp, Error, TEXT("Failed to get Access Token. Epic Account Id is null."));
+        return TEXT("");
+    }
+
+    EOS_Auth_CopyUserAuthTokenOptions TokenOptions
+    {
+        EOS_AUTH_COPYUSERAUTHTOKEN_API_LATEST
+    };
+
+    EOS_Auth_Token* AuthToken = nullptr;
+    const EOS_EResult Result = EOS_Auth_CopyUserAuthToken(this->EosAuth, &TokenOptions, this->EpicAccountId, &AuthToken);
+
+    if (Result == EOS_EResult::EOS_Success && AuthToken)
+    {
+        const FString AccessToken = FString(AuthToken->AccessToken);
+        UE_LOG(LogTemp, Log, TEXT("Epic Account Services Access Token: %s"), *AccessToken);
+
+        EOS_Auth_Token_Release(AuthToken);
+        return AccessToken;
+    }
+
+    UE_LOG(LogTemp, Error, TEXT("Failed to copy user auth token: %s"), *FString(EOS_EResult_ToString(Result)));
+    return TEXT("");
+}
+```
+
+### 7. Crea un wallet con Sequence
+Ahora que podemos iniciar sesión con Epic y acceder al Access Token de la cuenta, usémoslo con el Unreal SDK de Sequence para crear una wallet no custodial.
+
+Llamar a esta función usando la opción `EOS_ELoginCredentialType::EOS_LCT_ExchangeCode` debe hacerse al inicio del juego. El código proporcionado por Epic Games Launcher es un token de corta duración y necesitamos acceder a él rápidamente.
+
+```cpp
+// .h
+void SignInWithEpic();
+void CreateWallet();
+
+// .cpp
+void EOSManager::SignInWithEpic()
+{
+    this->LoginWithEpicAccountServices(EOS_ELoginCredentialType::EOS_LCT_ExchangeCode, [this]() => {
+        // Success after starting the game from Epic's Game Launcher
+        this->CreateWallet();
+    }, [this]() => {
+        // No exchange code, let's fallback using Epic's Account Portal
+        this->LoginWithEpicAccountServices(EOS_ELoginCredentialType::EOS_LCT_AccountPortal, [this]() => {
+            this->CreateWallet();
+        }, []() => {
+            // Failed or user canceled the Sign-In process
+        });
+    });
+}
+
+void EOSManager::CreateWallet()
+{
+    const FString Token = this->CopyEpicAccountAccessToken();
+
+    USequenceSessions* Sessions = NewObject<USequenceSessions>();
+    Sessions->StartOidcSession(Token, OnApiSuccess, OnApiFailure, OnApiFederationRequired);
+}
+```
+
+### 8. ¡Probémoslo!
+¡Listo! Ahora crea una instancia de tu clase `UEOSManager` y haz lo siguiente.
+- Llame a `Initialize()` al inicio de su juego.
+- Llame a `Tick()` en cada frame o con otra frecuencia.
+- Llame a `SignInWithEpic()`
