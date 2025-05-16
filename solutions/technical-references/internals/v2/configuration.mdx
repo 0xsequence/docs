@@ -1,11 +1,8 @@
 ---
-
-title: "Wallet Configuration"
-description: The "Wallet Configuration" in Sequence Wallets defines access control, signers, and signature weight.
-sidebarTitle: Wallet Configuration
+title: "Wallet Configuration (V2) | Sequence Docs"
+description: "The "Wallet Configuration" in Sequence Wallets defines access control, signers, and signature weight."
+sidebarTitle: "Wallet Configuration"
 ---
-
-
 
 In the context of Sequence Wallets, the "Wallet Configuration" is a set of parameters that defines the behavior of the wallet, primarily used to define the access control of the wallet, meaning who can sign transactions and how many signatures are needed.
 
@@ -65,6 +62,7 @@ This represents a whole new wallet configuration, this "nested configuration" ha
 The way it works is that if a signature reaches the `internal threshold` within the subtree it is considered valid, and the `external weight` is added to the parent tree. Any number of nested configurations can be created, and it is possible to create multiple nesting levels.
 
 This pattern can be used, among other things, to express the following scenarios:
+
 - Non-linear weight distribution, A and B signers can provide 1 weight each, but together they can provide 3 weight.
 - Limited total weight contribution, A, B, and C signers can provide 1 weight each, but together they can only provide 2 weight.
 - "Department configurations", N departments are required to sign, and each department has its own inner configuration.
@@ -81,9 +79,9 @@ keccak256(abi.encodePacked(
 ```
 
 <Warning>
-The wallet contracts have no way of validating the correctness of the configuration, the responsibility of ensuring the configuration is correct is on the SDKs interacting with the contracts.
+  The wallet contracts have no way of validating the correctness of the configuration, the responsibility of ensuring the configuration is correct is on the SDKs interacting with the contracts.
 
-Things like `threshold == 0` or `threshold > total weight` will result in fully unauthenticated wallets or inaccessible wallets respectively.
+  Things like `threshold == 0` or `threshold > total weight` will result in fully unauthenticated wallets or inaccessible wallets respectively.
 </Warning>
 
 ## ImageHash
@@ -140,11 +138,12 @@ export function hashTree(node: Node | Leaf): string {
 All Sequence Wallets have an "initial configuration", implemented by using the `imageHash` of the initial configuration as the SALT during the `CREATE2` deployment of the wallet.
 
 Wallets are deployed by calling the `deploy` function of the `Factory` contract, which takes the following parameters:
+
 - `mainModule`: The address of the initial code implementation of the wallet.
 - `salt`: The `imageHash` of the initial configuration.
 
 <Note>
-The `MainModule` should always be used as the initial code implementation of the wallet. The `MainModule` validates the `imageHash` (during signature validation) by re-computing the counterfactual address of the wallet, hence it does not require any storage initialization.
+  The `MainModule` should always be used as the initial code implementation of the wallet. The `MainModule` validates the `imageHash` (during signature validation) by re-computing the counterfactual address of the wallet, hence it does not require any storage initialization.
 
-If the `imageHash` is ever changed, `MainModule` will automatically replace the wallet code implementation with `MainModuleUpgradeable`, while handling the storage initialization.
+  If the `imageHash` is ever changed, `MainModule` will automatically replace the wallet code implementation with `MainModuleUpgradeable`, while handling the storage initialization.
 </Note>
