@@ -38,29 +38,13 @@ Para utilizar el wrapper principal de marketplace-sdk e interactuar con su marke
 
       const projectAccessKey = import.meta.env.VITE_PROJECT_ACCESS_KEY;
       const projectId = import.meta.env.VITE_PROJECT_ID!;
-      const waasConfigKey = import.meta.env.VITE_WAAS_CONFIG_KEY;
-      const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
-      const appleClientId = import.meta.env.VITE_APPLE_CLIENT_ID;
-      const appleRedirectURI = window.location.origin + window.location.pathname;
       const walletConnectId = import.meta.env.VITE_WALLET_CONNECT_ID;
 
       export function getConfig() {
-        const embedded = waasConfigKey
-          ? ({
-              waasConfigKey,
-              googleClientId,
-              appleClientId,
-              appleRedirectURI,
-            } satisfies NonNullable<SdkConfig["wallet"]>["embedded"])
-          : undefined;
-
         const config = {
           projectId,
           projectAccessKey,
-          wallet: {
-            walletConnectProjectId: walletConnectId,
-            embedded,
-          },
+          walletConnectProjectId: walletConnectId
         } satisfies SdkConfig;
 
         return config;
@@ -72,28 +56,13 @@ Para utilizar el wrapper principal de marketplace-sdk e interactuar con su marke
 
       const projectAccessKey = process.env.NEXT_PUBLIC_PROJECT_ACCESS_KEY!;
       const projectId = process.env.NEXT_PUBLIC_PROJECT_ID!;
-      const waasConfigKey = process.env.NEXT_PUBLIC_WAAS_CONFIG_KEY!;
-      const googleClientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
-      const appleClientId = process.env.NEXT_PUBLIC_APPLE_CLIENT_ID;
       const walletConnectId = process.env.NEXT_PUBLIC_WALLET_CONNECT_ID;
 
-      export function getConfig(host: string) {
-        const embedded = waasConfigKey
-          ? ({
-              waasConfigKey,
-              googleClientId,
-              appleClientId,
-              appleRedirectURI: appleClientId ? host : '',
-            } satisfies NonNullable<SdkConfig['wallet']>['embedded'])
-          : undefined;
-
+      export function getConfig() {
         const config = {
           projectId,
           projectAccessKey,
-          wallet: {
-            walletConnectProjectId: walletConnectId,
-            embedded,
-          },
+          walletConnectProjectId: walletConnectId
         } satisfies SdkConfig;
 
         return config;
@@ -105,30 +74,13 @@ Para utilizar el wrapper principal de marketplace-sdk e interactuar con su marke
 
       const projectAccessKey = process.env.NEXT_PUBLIC_PROJECT_ACCESS_KEY!;
       const projectId = process.env.NEXT_PUBLIC_PROJECT_ID!;
-      const waasConfigKey = process.env.NEXT_PUBLIC_WAAS_CONFIG_KEY!;
-      const googleClientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
-      const appleClientId = process.env.NEXT_PUBLIC_APPLE_CLIENT_ID;
-      const appleRedirectURI =
-        typeof window !== "undefined" ? `https://${window.location.host}` : "";
       const walletConnectId = process.env.NEXT_PUBLIC_WALLET_CONNECT_ID;
 
       export function getConfig() {
-        const embedded = waasConfigKey
-          ? ({
-              waasConfigKey,
-              googleClientId,
-              appleClientId,
-              appleRedirectURI,
-            } satisfies NonNullable<SdkConfig['wallet']>['embedded'])
-          : undefined;
-
         const config = {
           projectId,
           projectAccessKey,
-          wallet: {
-            walletConnectProjectId: walletConnectId,
-            embedded,
-          },
+          walletConnectProjectId: walletConnectId
         } satisfies SdkConfig;
 
         return config;
@@ -157,14 +109,11 @@ Para utilizar el wrapper principal de marketplace-sdk e interactuar con su marke
       import { getConfig } from './config';
       import { createSSRClient } from '@0xsequence/marketplace-sdk/react/ssr';
       import { QueryClient } from '@tanstack/react-query';
-      import { headers } from 'next/headers';
 
       export const ssrClient = async () => {
-        const headersList = headers();
-        
         return createSSRClient({
           cookie: headersList.get('cookie') || '',
-          config: getConfig(`https://${headersList.get('x-forwarded-host') || headersList.get('host')}/`),
+          config: getConfig(),
           queryClient: new QueryClient(),
         });
       };
