@@ -80,7 +80,7 @@ void UEOSManager::Initialize()
 ### 4. Tick the EOS Platform
 
 For the EOS SDK to update itself during the Sign-In process, we need to manually 'tick' it.
-Use the platform handle `EOS_HPlatform` to call `EOS_Platform_Tick`
+Use the platform handle `EOS_HPlatform` to call `EOS_Platform_Tick`. Call this during the `Tick` node in one of your Pawns.
 
 ```cpp
 // .h
@@ -98,11 +98,13 @@ void UEOSManager::Tick()
 
 ### 5. Create an EOS Login function
 
-Login with EOS by calling the `EOS_Auth_Login` function.
+Login with EOS by calling the `EOS_Auth_Login` function. Additionally, we create a function to get the `Exchange Code` from
+the Epic Games Launcher. This will only be used when you call this function with the `EOS_ELoginCredentialType::EOS_LCT_ExchangeCode` option.
 
 ```cpp
 // .h
 void LoginWithEpicAccountServices(const EOS_ELoginCredentialType Type, TFunction<void()> OnSuccess, TFunction<void()> OnFailure);
+char* GetExchangeCodeFromCommandLine();
 
 // .cpp
 void UEOSManager::LoginWithEpicAccountServices(const EOS_ELoginCredentialType Type, TFunction<void()> OnSuccess, TFunction<void()> OnFailure)
@@ -119,6 +121,7 @@ void UEOSManager::LoginWithEpicAccountServices(const EOS_ELoginCredentialType Ty
     EOS_Auth_Credentials Credentials = {};
     Credentials.ApiVersion = EOS_AUTH_CREDENTIALS_API_LATEST;
     Credentials.Type = Type;
+    Credentials.Token = GetExchangeCodeFromCommandLine();
 
     EOS_Auth_LoginOptions LoginOptions = {};
     LoginOptions.ApiVersion = EOS_AUTH_LOGIN_API_LATEST;
@@ -145,6 +148,19 @@ void UEOSManager::LoginWithEpicAccountServices(const EOS_ELoginCredentialType Ty
             Context->OnFailure();
         }
     });
+}
+
+char* UEOSManager::GetExchangeCodeFromCommandLine()
+{
+	FString AuthPassword;
+	if (FParse::Value(FCommandLine::Get(), TEXT("AUTH_PASSWORD="), AuthPassword))
+	{
+		UE_LOG(LogTemp, Log, TEXT("ExchangeCode: %s"), *AuthPassword);
+		return StringToChars(AuthPassword);
+	}
+
+	UE_LOG(LogTemp, Warning, TEXT("AUTH_PASSWORD parameter not found!"));
+	return const_cast<char*>("");
 }
 ```
 
@@ -203,25 +219,24 @@ void CreateWallet();
 // .cpp
 void EOSManager::SignInWithEpic()
 {
-    this->LoginWithEpicAccountServices(EOS_ELoginCredentialType::EOS_LCT_ExchangeCode, [this]() => {
+    this->LoginWithEpicAccountServices(EOS_ELoginCredentialType::EOS_LCT_ExchangeCode, [this]() {
         // Success after starting the game from Epic's Game Launcher
         this->CreateWallet();
-    }, [this]() => {
+    }, [this]() {
         // No exchange code, let's fallback using Epic's Account Portal
         this->LoginWithEpicAccountServices(EOS_ELoginCredentialType::EOS_LCT_AccountPortal, [this]() => {
             this->CreateWallet();
-        }, []() => {
+        }, []() {
             // Failed or user canceled the Sign-In process
         });
     });
 }
 
-void EOSManager::CreateWallet()
+void EOSManager::CreateWallet(TFunction<void()> OnSuccess, TFunction<void()> OnFailure)
 {
     const FString Token = this->CopyEpicAccountAccessToken();
-
-    USequenceSessions* Sessions = NewObject<USequenceSessions>();
-    Sessions->StartOidcSession(Token, OnApiSuccess, OnApiFailure, OnApiFederationRequired);
+    const USequenceSessions* Sessions = NewObject<USequenceSessions>();
+    Sessions->StartOidcSession(Token, OnSuccess, [OnFailure](FSequenceError Error) { OnFailure(); }, nullptr);
 }
 ```
 
