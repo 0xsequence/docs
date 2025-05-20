@@ -10,7 +10,7 @@ Query the swap price for a given token pair.
 <Tabs>
     <Tab title="Blueprint">
         <Frame>
-            <img src="/images/unreal/swap_price.png" />
+            <img src="/images/unreal/get_swap_price.png" />
         </Frame>
     </Tab>
     <Tab title="C++">
@@ -31,7 +31,7 @@ Query swap prices for the token your user wants to receive.
 <Tabs>
     <Tab title="Blueprint">
         <Frame>
-            <img src="/images/unreal/swap_prices.png" />
+            <img src="/images/unreal/get_swap_prices.png" />
         </Frame>
     </Tab>
     <Tab title="C++">
@@ -52,7 +52,7 @@ After checking the swap price, get your approval and transaction data needed to 
 <Tabs>
     <Tab title="Blueprint">
         <Frame>
-            <img src="/images/unreal/swap_quote.png" />
+            <img src="/images/unreal/get_swap_quote.png" />
         </Frame>
     </Tab>
     <Tab title="C++">
@@ -62,6 +62,48 @@ After checking the swap price, get your approval and transaction data needed to 
 
         USequencePay* Pay = NewObject<USequencePay>();
         Pay->GetSwapQuote(SequenceSdk::GetChainId(), UserWallet, BuyCurrency, SellCurrency, BuyAmount, IncludeApprove, OnApiSuccess, OnApiFailure, SlippagePercentage);
+        ```
+    </Tab>
+</Tabs>
+
+## Get Supported Swap Chains
+
+Get Supported Swap Chains.
+
+<Tabs>
+    <Tab title="Blueprint">
+        <Frame>
+            <img src="/images/unreal/supported_swap_chains.png" />
+        </Frame>
+    </Tab>
+    <Tab title="C++">
+        ```cpp
+        const TSuccessCallback<FSeqGetLifiChainsResponse> OnApiSuccess = [this, OnSuccess](const FSeqGetLifiChainsResponse& Response) { };
+        const FFailureCallback OnApiFailure = [this, OnFailure](const FSequenceError& Error) { };
+
+        USequencePay* Pay = NewObject<USequencePay>();
+        Pay->GetSupportedSwapChains(OnApiSuccess, OnApiFailure);
+        ```
+    </Tab>
+</Tabs>
+
+## Get Supported Swap Tokens
+
+Get Supported Swap Tokens.
+
+<Tabs>
+    <Tab title="Blueprint">
+        <Frame>
+            <img src="/images/unreal/supported_swap_tokens.png" />
+        </Frame>
+    </Tab>
+    <Tab title="C++">
+        ```cpp
+        const TSuccessCallback<FSeqGetLifiTokensResponse> OnApiSuccess = [this, OnSuccess](const FSeqGetLifiTokensResponse& Response) { };
+        const FFailureCallback OnApiFailure = [this, OnFailure](const FSequenceError& Error) { };
+
+        USequencePay* Pay = NewObject<USequencePay>();
+        Pay->GetSupportedSwapTokens(Args, OnApiSuccess, OnApiFailure);
         ```
     </Tab>
 </Tabs>

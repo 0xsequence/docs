@@ -9,7 +9,7 @@ Obtenga el precio de swap para un par de tokens específico.
 <Tabs>
   <Tab title="Blueprint">
     <Frame>
-      <img src="/images/unreal/swap_price.png" />
+      <img src="/images/unreal/get_swap_price.png" />
     </Frame>
   </Tab>
 
@@ -30,7 +30,7 @@ Obtenga los precios de swap para el token que su usuario desea recibir.
 <Tabs>
   <Tab title="Blueprint">
     <Frame>
-      <img src="/images/unreal/swap_prices.png" />
+      <img src="/images/unreal/get_swap_prices.png" />
     </Frame>
   </Tab>
 
@@ -51,7 +51,7 @@ Después de revisar el precio de swap, obtenga la aprobación y los datos de tra
 <Tabs>
   <Tab title="Blueprint">
     <Frame>
-      <img src="/images/unreal/swap_quote.png" />
+      <img src="/images/unreal/get_swap_quote.png" />
     </Frame>
   </Tab>
 
@@ -62,6 +62,48 @@ Después de revisar el precio de swap, obtenga la aprobación y los datos de tra
 
     USequencePay* Pay = NewObject<USequencePay>();
     Pay->GetSwapQuote(SequenceSdk::GetChainId(), UserWallet, BuyCurrency, SellCurrency, BuyAmount, IncludeApprove, OnApiSuccess, OnApiFailure, SlippagePercentage);
+    ```
+  </Tab>
+</Tabs>
+
+## Obtener las cadenas compatibles para swaps
+Obtenga las cadenas compatibles para swaps.
+
+<Tabs>
+  <Tab title="Blueprint">
+    <Frame>
+      <img src="/images/unreal/supported_swap_chains.png" />
+    </Frame>
+  </Tab>
+
+  <Tab title="C++">
+    ```cpp
+    const TSuccessCallback<FSeqGetLifiChainsResponse> OnApiSuccess = [this, OnSuccess](const FSeqGetLifiChainsResponse& Response) { };
+    const FFailureCallback OnApiFailure = [this, OnFailure](const FSequenceError& Error) { };
+
+    USequencePay* Pay = NewObject<USequencePay>();
+    Pay->GetSupportedSwapChains(OnApiSuccess, OnApiFailure);
+    ```
+  </Tab>
+</Tabs>
+
+## Obtener los tokens compatibles para swaps
+Obtenga los tokens compatibles para swaps.
+
+<Tabs>
+  <Tab title="Blueprint">
+    <Frame>
+      <img src="/images/unreal/supported_swap_tokens.png" />
+    </Frame>
+  </Tab>
+
+  <Tab title="C++">
+    ```cpp
+    const TSuccessCallback<FSeqGetLifiTokensResponse> OnApiSuccess = [this, OnSuccess](const FSeqGetLifiTokensResponse& Response) { };
+    const FFailureCallback OnApiFailure = [this, OnFailure](const FSequenceError& Error) { };
+
+    USequencePay* Pay = NewObject<USequencePay>();
+    Pay->GetSupportedSwapTokens(Args, OnApiSuccess, OnApiFailure);
     ```
   </Tab>
 </Tabs>
