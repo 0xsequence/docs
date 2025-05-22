@@ -5,11 +5,11 @@ sidebarTitle: Sequence の移行
 ---
 
 ## 概要
-このドキュメントは、Thirdweb や Venly など他のプロバイダーから Sequence Embedded Wallets への移行を検討している方へのガイドです。推奨される主な方法は、Just-In-Time（JIT）移行パターンで、これはユーザーが移行後に初めてログインした際に行われます。
+このドキュメントは、thirdweb や Venly など他のプロバイダーから Sequence Embedded Wallets への移行ガイドです。推奨される主な方法は「ジャストインタイム（JIT）マイグレーションパターン」であり、これはユーザーが移行後に初めてログインした際に実行されます。
 
 <CardGroup>
-  <Card title="ThirdWebからSequenceへの移行" icon="book" href="/solutions/wallets/embedded-wallet/migration#migrating-from-thirdweb-to-sequence">
-    このガイドに従って、ThirdWeb In-App WalletsからSequenceへの移行を行ってください。
+  <Card title="thirdweb から Sequence への移行" icon="book" href="/solutions/wallets/embedded-wallet/migration#migrating-from-thirdweb-to-sequence">
+    thirdweb In-App Wallets から Sequence への移行方法については、このガイドをご参照ください。
   </Card>
 </CardGroup>
 
@@ -83,7 +83,7 @@ sequenceDiagram
 
 以下に、特定のプロバイダーからの移行ガイドをまとめています。
 
-# ThirdWebからSequenceへの移行方法
+# thirdweb から Sequence への移行方法
 
 ## ユーザー認証
 Thirdweb は独自のプロバイダーや認証方法を提供しています。移行を始めるには、これらがコードベースのどこで使われているかを特定することが重要です。
@@ -100,7 +100,7 @@ pnpm install @0xsequence/connect wagmi ethers@6.13.0 viem 0xsequence @tanstack/r
 yarn add @0xsequence/connect wagmi ethers@6.13.0 viem 0xsequence @tanstack/react-query
 ```
 
-### ThirdWebプロバイダーからSequenceプロバイダーへの移行
+### thirdweb プロバイダーから Sequence プロバイダーへの移行方法
 
 <CodeGroup>
   ```diff diff
@@ -150,9 +150,9 @@ yarn add @0xsequence/connect wagmi ethers@6.13.0 viem 0xsequence @tanstack/react
   ```
 </CodeGroup>
 
-これで、ThirdWebのログイン機能をSequenceのログイン機能に置き換える準備ができました。これにより、ユーザーはログインし、それぞれにEmbedded Walletが自動的に作成されます。
+これで thirdweb のログイン機能を Sequence のログイン機能に置き換える準備ができました。これにより、ユーザーがログインすると自動的に Embedded Wallet が作成されます。
 
-### ThirdWebのログイン機能からSequenceのログイン機能への移行
+### thirdweb のログイン機能から Sequence のログイン機能への移行
 
 <CodeGroup>
   ```diff diff
@@ -183,10 +183,19 @@ yarn add @0xsequence/connect wagmi ethers@6.13.0 viem 0xsequence @tanstack/react
   ```
 </CodeGroup>
 
+移行体験に特化した内容については、[専用のサンプルリポジトリ](https://github.com/0xsequence-demos/embedded-wallet-migration)もご用意しています。これにより、ユーザーは自身のNFTを確認したり、チェーンを切り替えたり、thirdweb アカウントから他のウォレットへ資産を移動できます。
+
+Sequenceの統合を一から始める場合は、以下のいずれかのリポジトリをプロジェクトのベースとしてご利用いただけます。
+-   [React Boilerplate](https://github.com/0xsequence-demos/kit-embedded-wallet-react-boilerplate) – Sequence Embedded Walletが組み込まれたReactベースのスタータープロジェクトです。
+
+-   [Next.js Boilerplate](https://github.com/0xsequence-demos/kit-embedded-wallet-nextjs-boilerplate) – Sequence Embedded Walletが組み込まれたNext.jsベースのスタータープロジェクトです。
+
+どちらもSequence Embedded Walletの統合が最初から完了しています。
+
 また、Web-SDKを通じてSequence専用の設定変数をセットする必要があります。詳しくは[こちら](https://docs.sequence.xyz/sdk/web/getting-started#setting-up-your-dapp)をご覧ください。
 
 次に、ユーザーが認証されたらSequenceのidTokenをリクエストし、この[ガイド](https://docs.sequence.xyz/sdk/headless-wallet/verification)に従ってバックエンドに渡してください。
 
 ここからは、バックエンドやユーザーデータベースの構成に応じて、[ステップ2](https://docs.sequence.xyz/solutions/wallets/embedded-wallet/migration#recommended-migration-process)に進み、ユーザーの移行状況を追跡してください。
 
-最後に、ユーザーが無事にSequenceウォレットを取得し、バックエンド側でステータス管理ができるようになったら、専用の移行ページで資産移行を促してください。ユーザーはThirdWebの認証情報でログインし、資産をSequenceウォレットへ移すことで移行が完了します。
+最後に、ユーザーが Sequence ウォレットを取得し、バックエンド側でもステータスの追跡ができるようになったら、専用のマイグレーションページで資産移行を促してください。ユーザーは thirdweb の認証情報でログインし、資産を Sequence ウォレットへ移すことで移行が完了します。
