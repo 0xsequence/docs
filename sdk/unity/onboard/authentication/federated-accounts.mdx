@@ -50,7 +50,7 @@ SequenceLogin.GetInstanceToFederateAuth(authenticatedSequenceWalletAddress);
 
 This will configure your SequenceLogin instance to federate the accounts instead of creating a new session.
 
-<Tip>Once the user has logged out, don't forget to call `SetConnectedWalletAddress(null)` to re-configure SequenceLogin to create new sessions again.</Tip>
+<Tip>Once the user has logged out, don't forget to call `RemoveConnectedWalletAddress()` to re-configure SequenceLogin to create new sessions again.</Tip>
 
 e.g.
 
@@ -58,7 +58,7 @@ e.g.
 private void OnDropSessionCompleteHandler(string sessionId) {
     if (sessionId == Wallet.SessionId)
     {
-        SequenceLogin.GetInstance().SetConnectedWalletAddress(null);
+        SequenceLogin.GetInstance().RemoveConnectedWalletAddress();
         SceneManager.LoadScene("LoginScene"); // Re-open your scene or UI to allow the user to log back in and create a new session here
     }
 }
