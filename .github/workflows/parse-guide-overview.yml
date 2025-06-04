@@ -1,0 +1,42 @@
+name: Parse Guide Overview Cards
+
+on:
+  push:
+    paths:
+      - 'guides/guide-overview.mdx'
+  pull_request:
+    paths:
+      - 'guides/guide-overview.mdx'
+
+jobs:
+  parse-cards:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          
+      - name: Install dependencies
+        run: npm install
+        
+      - name: Parse guide overview cards
+        run: node .github/scripts/parse-guide-cards.js
+        
+      - name: Commit and push changes
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+          git add guides/guide-cards.json
+          if git diff --staged --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "Auto-update guide cards metadata [skip ci]"
+            git push
+          fi
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} 
