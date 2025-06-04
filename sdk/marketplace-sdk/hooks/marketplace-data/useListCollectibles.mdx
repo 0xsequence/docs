@@ -1,0 +1,99 @@
+---
+title: useListCollectibles
+description: The useListCollectibles hook retrieves the current listings and offers in a collection from your Marketplace. Useful for accessing and managing listings and offers efficiently.
+sidebarTitle: useListCollectibles
+---
+
+```ts
+import { OrderSide } from '@0xsequence/marketplace-sdk';
+import { useListCollectibles } from '@0xsequence/marketplace-sdk/react';
+
+## Into your React component:
+
+const {
+  data: collectibles,
+  isLoading: collectiblesLoading,
+  fetchNextPage: fetchNextCollectibles,
+} = useListCollectibles({
+  chainId,
+  collectionAddress,
+  filter: {
+    // # Optional filters
+    includeEmpty,
+    searchText,
+    properties,
+  },
+  side: OrderSide.listing,
+});
+
+const collectiblesFlat =
+  collectibles?.pages.flatMap((p) => p.collectibles) ?? [];
+
+return (
+  <div>
+    {collectiblesFlat?.map((collectible) => (
+      // Your Collectibles component
+    ))}
+  </div>
+);
+```
+
+<ResponseField name="useListCollectibles">
+  <ResponseField name="* params"/>
+  <Expandable>
+    ```ts
+    interface UseListCollectiblesArgs {
+      chainId: string;
+      side: OrderSide;
+      collectionAddress: `0x${string}`;
+      page?: {
+        page: number;
+        pageSize: number;
+        sort?: {
+          order: SortOrder$1;
+          column: string;
+        }[];
+        more?: boolean;
+      };
+      filter?: {
+        includeEmpty: boolean;
+        searchText?: string;
+        properties?: {
+          type: PropertyType;
+          name: string;
+          values?: any[];
+          max?: number;
+          min?: number;
+        }[];
+        marketplaces?: MarketplaceKind[];
+        inAccounts?: string[];
+        notInAccounts?: string[];
+        ordersCreatedBy?: string[];
+        ordersNotCreatedBy?: string[];
+      };
+      query?: {
+        enabled?: boolean;
+      };
+    }
+    ```
+  </Expandable>
+
+  <ResponseField name="* return properties"/>
+  <Expandable>
+    <ParamField path="data" type="ListCollectiblesReturn">
+      Contains the paginated collectible orders data.
+    </ParamField>
+
+    <ParamField path="data.pages" type="CollectibleOrder[]">
+      List of collectible orders returned in pages.
+    </ParamField>
+
+    <ParamField path="isLoading" type="boolean">
+      Indicates whether the data is currently loading.
+    </ParamField>
+
+    <ParamField path="fetchNextPage" type="(options?: FetchNextPageOptions) => Promise<UseInfiniteQueryResult>">
+      This function allows you to fetch the next "page" of results.
+    </ParamField>
+  </Expandable>
+</ResponseField>
