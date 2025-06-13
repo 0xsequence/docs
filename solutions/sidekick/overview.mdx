@@ -1,27 +1,45 @@
 ---
 title: Sidekick Overview & Setup
-description: The Sequence Sidekick simplifies dispatching transactions on Ethereum-compatible networks for games and apps, scaling to millions of users.
+description: Sequence Sidekick provides a fully equipped backend, leveraging Sequence's infrastructure to read and write to the blockchain through a simple API.
 ---
 
-# Sequence Sidekick 👷‍♂️
+## Main Features 🚀
 
-Sequence Sidekick provides a fully equipped backend, leveraging Sequence's infrastructure to streamline blockchain interactions for developers. With Sidekick, you can programmatically perform the following operations using your own backend wallet:
-
-- Pre-configured backend services: Redis, PostgreSQL, Transaction API, and an Indexer—all set up and ready to use.
-- Effortless deployment: Spin up your backend in minutes with a single command to create a Docker container.
-- Flexible wallet options: Use a Sequence Smart Wallet with locally managed private keys or securely integrate AWS/GCP KMS for enhanced security.
-- Seamless contract deployment: Deploy ERC20, ERC721, ERC1155, or custom smart contracts via API calls.
-- Reliable transaction management: Read from and write to any contract for your game or app, with automatic nonce management, gas bumping, and other optimizations ensuring efficient execution.
-- Webhook integration: Leverage our high-performance indexer to fully manage webhooks.
-- Optimized gas pricing: Transactions are submitted at optimal gas prices, with automatic resubmission if not included in the mempool within three blocks.
-- Built-in user rewards system: Set up self-claimed or recurring user rewards (ERC20, ERC721, ERC1155) with a single API call.
-- Built-in Bull MQ Dashboard: Monitor and manage your background jobs.
-- Swagger UI: Explore the API documentation and test the endpoints with the Swagger UI
-- Contract utilities: Easily check contract deployments on different chains.
-- Seamless Sequence Builder integration: Import all your Sequence Builder contracts into the Sidekick backend with one API call, or manually add custom contracts.
+<CardGroup>
+    <Card horizontal title="Effortless setup" icon="rocket">
+        Either use our public docker image or start it in dev mode with minimal configuration.
+    </Card>
+    <Card horizontal title="Flexible wallet options" icon="wallet">
+        Use a Sequence Smart Wallet with locally managed private keys or securely integrate AWS/GCP KMS for enhanced security.
+    </Card>
+    <Card horizontal title="Webhook management" icon="wallet">
+        Leverage our high-performance indexer to build and setup your own custom webhooks through the performant Sequence Indexer.
+    </Card>
+    <Card horizontal title="Tenderly integration" icon="bug">
+        Leverage Tenderly to easily debug your transactions, you get a simulation URL for every transaction executed through Sidekick.
+    </Card>
+    <Card horizontal title="Automatic contract verification" icon="circle-check">
+        Veryfing contracts is cumbersom, Sidekick does it for you for every contract deployed.
+    </Card>
+    <Card horizontal title="Integrated with Sequence Builder" icon="link">
+        Already have a Sequence Builder project? Import all your contracts data into Sidekick with a single API call.
+    </Card>
+    <Card horizontal title="Built-in Bull MQ Dashboard" icon="gauge">
+        Create, monitor and manage your background jobs.
+    </Card>
+    <Card horizontal title="Swagger UI" icon="book">
+        Explore the API documentation and test the endpoints with the Swagger UI
+    </Card>
+    <Card horizontal title="Optimized transaction execution" icon="bolt">
+        Transactions are submitted at optimal gas prices, with automatic resubmission if not included in the mempool within three blocks.
+    </Card>
+    <Card horizontal title="Analytics and monitoring" icon="heart">
+        Sidekick comes integrated with Grafana, Prometheus and Blackbox Exporter to monitor your backend health.
+    </Card>
+</CardGroup>
 
 ## About the backend wallet
-All transactions executed through Sidekick use a Sequence smart wallet, which is [automatically created](https://github.com/0xsequence-demos/sequence-sidekick/blob/e76a47d0b9ef19f23736c1e8f863ed4795b855a8/src/utils/wallet.ts#L25) for the externally owned account (EOA) specified by you, leveraging our infrastructure for optimized and performant execution.
+Sidekick creates a Sequence Smart Contract Wallet based on the `EVM_PRIVATE_KEY` you provide, this allows gas-sponsorship, batching and other optimizations.
 
 To configure the backend wallet, you can:
 - Declare your [EVM_PRIVATE_KEY](https://github.com/0xsequence-demos/sequence-sidekick/blob/e76a47d0b9ef19f23736c1e8f863ed4795b855a8/.env.example#L16) in the .env file for a local setup (not recommended for production)
@@ -49,7 +67,21 @@ When using the Sequence Sidekick:
 - View active relayer addresses in the [mainnet status page](https://mainnet-relayer.sequence.app/status)
 </Callout>
 
-## Steps to start your Sidekick backend
+## Start with Docker from CLI
+
+There is a public docker image available on [GitHub Container Registry](https://github.com/0xsequence/sidekick/pkgs/container/sidekick).
+```shell
+docker run -p 7500:7500 \
+  -e EVM_PRIVATE_KEY=0x \
+  ghcr.io/0xsequence/sidekick
+```
+This should get you started with a local Sidekick backend running on port 7500 with the minimal features.
+
+<Note>
+We recomment setting SEQUENCE_PROJECT_ACCESS_KEY as well but for testing purposes we provide a default one, you can get yours from [Sequence Builder](https://sequence.build/).
+</Note>
+
+## Start Sidekick in dev mode
 
 <Steps>
 <Step title="Clone the Sidekick repository">
@@ -66,32 +98,56 @@ git clone https://github.com/0xsequence/sidekick
 | Variable | Description 
 |----------|-------------
 | PROJECT_ACCESS_KEY | Access key from Sequence Builder API Keys 
-| SECRET_KEY | Your custom secret Sidekick key 
-| SEQUENCE_RPC_URL | RPC URL from Sequence 
-| BUILDER_API_SECRET_KEY | Secret key from Sequence Builder API Keys | `eyJh...` |
-| INDEXER_URL | Indexer URL based on network 
-| SIGNER_TYPE | Type of signer to use 
+| EVM_PRIVATE_KEY | Private key for the EOA used to sign transactions |
+
+### Optional Environment Variables
+
+| Variable                  | Description                                                                                 |
+|--------------------------|---------------------------------------------------------------------------------------------|
+| PORT                     | Port for the Sidekick server (default: 7500)                                                 |
+| HOST                     | Host address for the server (default: 0.0.0.0)                                               |
+| REDIS_HOST               | Redis server host (default: localhost)                                                        |
+| REDIS_PORT               | Redis server port (default: 6379)                                                             |
+| REDIS_PASSWORD           | Password for Redis server (optional)                                                          |
+| DATABASE_URL             | PostgreSQL connection string for Sidekick database                                            |
+| SIDEKICK_API_SECRET_KEY  | Secret key required for write access to the Sidekick API                                      |
+| ETHERSCAN_API_KEY        | API key for Etherscan to enable contract verification                                         |
+| VERIFY_CONTRACT_ON_DEPLOY| Enable automatic contract verification on deployment (set to true to enable)                  |
+| DEBUG                    | Enable debug logging (set to true for verbose output)                                         |
+| SIGNER_TYPE              | Type of signer to use (local, aws_kms, google_kms)                                            |
+| AWS_REGION | AWS account region |
+| AWS_ACCESS_KEY_ID | AWS access key ID |
+| AWS_SECRET_ACCESS_KEY | AWS secret access key |
+| AWS_KMS_KEY_ID | ID of the KMS key to use |
+| PROJECT | GCP project name |
+| LOCATION | GCP project location |
+| KEY_RING | Key ring name |
+| CRYPTO_KEY | Crypto key name |
+| CRYPTO_KEY_VERSION | Crypto key version |
 
 ### Wallet Configuration Variables
 
 Choose one of the following configurations:
 
-##### Local Wallet:
+#### For local wallet:
 | Variable | Description |
 |----------|-------------|
-| EVM_PRIVATE_KEY | Private key for the EOA used to sign transactions |
+| SIGNER_TYPE | local |
+| EVM_PRIVATE_KEY | 0x... |
 
-##### AWS KMS Configuration:
+#### For AWS KMS:
 | Variable | Description |
 |----------|-------------|
+| SIGNER_TYPE | aws_kms |
 | AWS_REGION | AWS account region |
 | AWS_ACCESS_KEY_ID | AWS access key ID |
 | AWS_SECRET_ACCESS_KEY | AWS secret access key |
 | AWS_KMS_KEY_ID | ID of the KMS key to use |
 
-##### GCP KMS Configuration:
+#### For GCP KMS:
 | Variable | Description |
 |----------|-------------|
+| SIGNER_TYPE | google_kms |
 | PROJECT | GCP project name |
 | LOCATION | GCP project location |
 | KEY_RING | Key ring name |
@@ -112,7 +168,7 @@ pnpm docker:start
 ```
 </Step>
 
-<Step title="Make your first API call to get back smart wallet address">
+<Step title="Check your backend wallet address">
 
 ```shell
 curl -X GET 'http://localhost:3000/sidekick/smart-account-address'
@@ -121,7 +177,12 @@ curl -X GET 'http://localhost:3000/sidekick/smart-account-address'
 </Steps>
 
 ## Dev mode without Docker
-If you want to make changes to the codebase and test them without Docker, you can run the backend locally by following the instructions in the [README](https://github.com/0xsequence-demos/sequence-sidekick/blob/master/README.md).
+If you want to make changes to the codebase and test them without Docker
+```shell
+pnpm install
+pnpm dev:withRedis
+```
+This will run Sidekick and also start a Redis server.
 
 ## Gas Sponsorship
 On testnet, we sponsor all the transactions. However, on mainnet - you will want to ensure that you sponsor the transactions in order to ensure that they process correctly by sponsoring the contract itself. You can take a deeper look at our [Gas Sponsorship](/solutions/builder/gas-tank) solution to learn how to do this.
