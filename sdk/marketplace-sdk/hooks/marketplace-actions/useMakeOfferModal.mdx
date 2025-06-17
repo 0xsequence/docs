@@ -1,0 +1,56 @@
+---
+title: useMakeOfferModal
+description: The useMakeOfferModal hook enables users to place an offer on an NFT. It facilitates creating and submitting offers within the Marketplace.
+sidebarTitle: useMakeOfferModal
+---
+
+```ts
+import { useMakeOfferModal } from "@0xsequence/marketplace-sdk/react";
+
+## Into your React component:
+
+const { show: showOfferModal } = useMakeOfferModal({
+	onError,
+});
+
+const onClickOffer = () => {
+	showOfferModal({
+		collectionAddress,
+		chainId,
+		collectibleId,
+		orderbookKind,
+	});
+};
+
+return <button onClick={onClickOffer}>Make Offer</button>
+```
+
+<ResponseField name="useMakeOfferModal">
+	<ResponseField name="* params"/>
+  <Expandable>
+		```ts
+		interface useMakeOfferModal {
+			onSuccess?: ({ hash, orderId }: {
+					hash?: Hash;
+					orderId?: string;
+			}) => void;
+			onError?: (error: Error) => void;
+		}
+		```
+  </Expandable>
+	<ResponseField name="* return properties"/>
+  <Expandable>
+    <ResponseField name="show" type="(args: ShowMakeOfferModalArgs) => void">
+		```ts
+		interface ShowMakeOfferModalArgs {
+			collectionAddress: Hex;
+			chainId: string;
+			collectibleId: string;
+			orderbookKind?: OrderbookKind;
+			callbacks?: ModalCallbacks;
+		}
+		```
+		</ResponseField>
+    <ResponseField name="close" type="() => void"></ResponseField>
+  </Expandable>
+</ResponseField>
