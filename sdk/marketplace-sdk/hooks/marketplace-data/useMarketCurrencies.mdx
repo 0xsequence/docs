@@ -1,0 +1,48 @@
+---
+title: useMarketCurrencies
+description: The useMarketCurrencies hook retrieves the list of currencies accepted by a specific contract address in your Marketplace from Builder. Each currency includes information such as its name, contractAddress, symbol, decimals, and image.
+sidebarTitle: useMarketCurrencies
+---
+
+```ts
+import { useMarketCurrencies } from "@0xsequence/marketplace-sdk/react";
+
+## Into your React component:
+
+const { data: currenciesData } = useMarketCurrencies({
+	chainId: 137,
+	collectionAddress: "0x0e5566a108e617baedbebb44e3fcc7bf03e3a839",
+	includeNativeCurrency: true,
+	query: {
+		enabled: true,
+	},
+});
+
+console.log(currenciesData);
+```
+
+<ResponseField name="useMarketCurrencies details">
+  <ResponseField name="* params"/>
+  <Expandable>
+    ```ts
+    interface UseMarketCurrenciesArgs {
+      chainId: number;
+      includeNativeCurrency?: boolean;
+      collectionAddress?: Address;
+      query?: {
+        enabled?: boolean;
+      };
+    }
+    ```
+  </Expandable>
+  <ResponseField name="* return properties"/>
+  <Expandable>
+    <ParamField path="data" type="MarketCurrency[]">
+      Contains the marketplace currencies data.
+    </ParamField>
+
+    <ParamField path="isLoading" type="boolean">
+      Indicates whether the data is currently loading.
+    </ParamField>
+  </Expandable>
+</ResponseField>
