@@ -1,0 +1,64 @@
+---
+title: useCountOfCollectables
+description: useCountOfCollectablesフックは、コレクション内のNFT数を返します。
+sidebarTitle: useCountOfCollectables
+---
+
+```ts
+import { OrderSide } from '@0xsequence/marketplace-sdk';
+import { useCountOfCollectables } from '@0xsequence/marketplace-sdk/react';
+
+const countOfCollectables = useCountOfCollectables({
+  chainId,
+  collectionAddress,
+  side: OrderSide.listing,
+  filter: {
+    searchText: text,
+    includeEmpty,
+    properties,
+  },
+});
+```
+
+<ResponseField name="useCountOfCollectables details">
+  <ResponseField name="* params" />
+
+  <Expandable>
+    ```ts
+    interface UseCountOfCollectables {
+      chainId: ChainId;
+      collectionAddress: CollectionAddress;
+      query?: { enabled?: boolean };
+      filter?: {
+        includeEmpty: boolean;
+        searchText?: string;
+        properties?: {
+          name: string;
+          type: PropertyType;
+          min?: number;
+          max?: number;
+          values?: any[];
+        }[];
+        marketplaces?: MarketplaceKind[];
+        inAccounts?: string[];
+        notInAccounts?: string[];
+        ordersCreatedBy?: string[];
+        ordersNotCreatedBy?: string[];
+      };
+      side?: OrderSide;
+    }
+    ```
+  </Expandable>
+
+  <ResponseField name="* return properties" />
+
+  <Expandable>
+    <ParamField path="data" type="number">
+      数値のレスポンスデータ。
+    </ParamField>
+
+    <ParamField path="isLoading" type="boolean">
+      データが現在読み込み中かどうかを示します。
+    </ParamField>
+  </Expandable>
+</ResponseField>
