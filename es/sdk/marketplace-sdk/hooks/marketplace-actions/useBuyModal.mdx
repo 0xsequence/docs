@@ -1,0 +1,62 @@
+---
+title: useBuyModal
+description: El hook useBuyModal permite a los usuarios comprar un NFT que está listado en el Marketplace. Se encarga del proceso de compra y la ejecución de la transacción.
+sidebarTitle: useBuyModal
+---
+
+```ts
+import { useBuyModal } from "@0xsequence/marketplace-sdk/react";
+
+## Into your React component:
+
+const { show: showBuyModal } = useBuyModal({
+	onSuccess(hash) {
+		console.log("Buy transaction sent with hash: ", hash);
+	},
+	onError,
+});
+
+const onClickBuy = () => {
+	showBuyModal({
+		chainId,
+		collectionAddress,
+		tokenId,
+		order,
+	});
+};
+
+return <button onClick={onClickBuy}>Buy</button>
+```
+
+<ResponseField name="useBuyModal">
+  <ResponseField name="* params" />
+
+  <Expandable>
+    ```ts
+    interface useBuyModal {
+    	onSuccess?: ({ hash, orderId }: {
+    			hash?: Hash;
+    			orderId?: string;
+    	}) => void;
+    	onError?: (error: Error) => void;
+    }
+    ```
+  </Expandable>
+
+  <ResponseField name="* return properties" />
+
+  <Expandable>
+    <ResponseField name="show" type="(args: ShowBuyModalArgs) => void">
+      ```ts
+      interface ShowBuyModalArgs {
+      	chainId: string;
+      	collectionAddress: Hex;
+      	tokenId: string;
+      	order: Order;
+      }
+      ```
+    </ResponseField>
+
+    <ResponseField name="close" type="() => void" />
+  </Expandable>
+</ResponseField>

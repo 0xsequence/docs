@@ -1,0 +1,54 @@
+---
+title: useSellModal
+description: The useSellModal hook is used to sell an NFT by accepting an existing offer. It provides the necessary functionality to complete the selling process.
+sidebarTitle: useSellModal
+---
+
+```ts
+import { useSellModal } from "@0xsequence/marketplace-sdk/react";
+
+## Into your React component:
+
+const { show: showSellModal } = useSellModal({ onError });
+
+const onAcceptOffer = () => {
+	showSellModal({
+		collectionAddress,
+		chainId,
+		tokenId,
+		order,
+	});
+};
+
+return <button onClick={onAcceptOffer}>Accept Offer</button>
+```
+
+<ResponseField name="useSellModal">
+	<ResponseField name="* params"/>
+  <Expandable>
+		```ts
+		interface useSellModal {
+			onSuccess?: ({ hash, orderId }: {
+				hash?: Hash;
+				orderId?: string;
+			}) => void;
+			onError?: (error: Error) => void;
+		}
+		```
+  </Expandable>
+	<ResponseField name="* return properties"/>
+  <Expandable>
+    <ResponseField name="show" type="(args: ShowSellModalArgs) => void">
+		```ts
+		interface ShowSellModalArgs {
+			collectionAddress: Hex;
+			chainId: string;
+			tokenId: string;
+			order: Order;
+			callbacks?: ModalCallbacks;
+		}
+		```
+		</ResponseField>
+    <ResponseField name="close" type="() => void"></ResponseField>
+  </Expandable>
+</ResponseField>

@@ -1,0 +1,101 @@
+---
+title: useListCollectibles
+description: useListCollectiblesフックは、マーケットプレイスのコレクション内の現在の出品やオファーを取得します。出品やオファーを効率的に管理・取得するのに役立ちます。
+sidebarTitle: useListCollectibles
+---
+
+```ts
+import { OrderSide } from '@0xsequence/marketplace-sdk';
+import { useListCollectibles } from '@0xsequence/marketplace-sdk/react';
+
+## Into your React component:
+
+const {
+  data: collectibles,
+  isLoading: collectiblesLoading,
+  fetchNextPage: fetchNextCollectibles,
+} = useListCollectibles({
+  chainId,
+  collectionAddress,
+  filter: {
+    // # Optional filters
+    includeEmpty,
+    searchText,
+    properties,
+  },
+  side: OrderSide.listing,
+});
+
+const collectiblesFlat =
+  collectibles?.pages.flatMap((p) => p.collectibles) ?? [];
+
+return (
+  <div>
+    {collectiblesFlat?.map((collectible) => (
+      // Your Collectibles component
+    ))}
+  </div>
+);
+```
+
+<ResponseField name="useListCollectibles">
+  <ResponseField name="* params" />
+
+  <Expandable>
+    ```ts
+    interface UseListCollectiblesArgs {
+      chainId: string;
+      side: OrderSide;
+      collectionAddress: `0x${string}`;
+      page?: {
+        page: number;
+        pageSize: number;
+        sort?: {
+          order: SortOrder$1;
+          column: string;
+        }[];
+        more?: boolean;
+      };
+      filter?: {
+        includeEmpty: boolean;
+        searchText?: string;
+        properties?: {
+          type: PropertyType;
+          name: string;
+          values?: any[];
+          max?: number;
+          min?: number;
+        }[];
+        marketplaces?: MarketplaceKind[];
+        inAccounts?: string[];
+        notInAccounts?: string[];
+        ordersCreatedBy?: string[];
+        ordersNotCreatedBy?: string[];
+      };
+      query?: {
+        enabled?: boolean;
+      };
+    }
+    ```
+  </Expandable>
+
+  <ResponseField name="* return properties" />
+
+  <Expandable>
+    <ParamField path="data" type="ListCollectiblesReturn">
+      ページごとに分割されたコレクティブル注文データを含みます。
+    </ParamField>
+
+    <ParamField path="data.pages" type="CollectibleOrder[]">
+      ページごとに返されるコレクティブル注文のリスト。
+    </ParamField>
+
+    <ParamField path="isLoading" type="boolean">
+      データが現在読み込み中かどうかを示します。
+    </ParamField>
+
+    <ParamField path="fetchNextPage" type="(options?: FetchNextPageOptions) => Promise<UseInfiniteQueryResult>">
+      この関数で次の「ページ」の結果を取得できます。
+    </ParamField>
+  </Expandable>
+</ResponseField>

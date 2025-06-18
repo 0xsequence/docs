@@ -1,0 +1,58 @@
+---
+title: useCreateListingModal
+description: El hook useCreateListingModal se utiliza para listar un artículo en un listado en el Marketplace. Proporciona la funcionalidad necesaria para crear y gestionar un nuevo listado.
+sidebarTitle: useCreateListingModal
+---
+
+```ts
+import { useCreateListingModal } from "@0xsequence/marketplace-sdk/react";
+
+## Into your React component:
+
+const { show: showListModal } = useCreateListingModal({ onError });
+
+const onClickList = () => {
+	showListModal({
+		collectionAddress,
+		chainId,
+		collectibleId,
+		orderbookKind,
+	});
+};
+
+return <button onClick={onClickList}>List</button>
+```
+
+<ResponseField name="useCreateListingModal">
+  <ResponseField name="* params" />
+
+  <Expandable>
+    ```ts
+    interface useCreateListingModal {
+    	onSuccess?: ({ hash, orderId }: {
+    	hash?: Hash; 
+    		orderId?: string; 
+    	}) => void;
+    	onError?: (error: Error) => void;
+    }
+    ```
+  </Expandable>
+
+  <ResponseField name="* return properties" />
+
+  <Expandable>
+    <ResponseField name="show" type="(args: ShowCreateListingModalArgs) => void">
+      ```ts
+      interface ShowCreateListingModalArgs {
+      	collectionAddress: Hex;
+      	chainId: string;
+      	collectibleId: string;
+      	orderbookKind?: OrderbookKind;
+      	callbacks?: ModalCallbacks;
+      }
+      ```
+    </ResponseField>
+
+    <ResponseField name="close" type="() => void" />
+  </Expandable>
+</ResponseField>
