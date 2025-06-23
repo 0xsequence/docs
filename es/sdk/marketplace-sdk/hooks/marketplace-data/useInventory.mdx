@@ -1,0 +1,53 @@
+---
+title: useInventory
+description: El hook useInventory obtiene el inventario del usuario en una colección de su Marketplace.
+sidebarTitle: useInventory
+---
+
+```ts
+import { useInventory } from "@0xsequence/marketplace-sdk/react";
+
+## Into your React component:
+
+const { data: inventoryData } = useInventory({
+  accountAddress: "0x2b54eAE39bdcDbBE1bbe001a4329C38cD58679D1",
+  chainId: 421614,
+  collectionAddress: "0x36631c1e690714192614364ae9629850b546d194"
+});
+
+console.log(inventoryData);
+```
+
+<ResponseField name="useInventory">
+  <ResponseField name="* params" />
+
+  <Expandable>
+    ```ts
+    interface UseInventoryArgs {
+      accountAddress: Address;
+      collectionAddress: Address;
+      chainId: number;
+      isLaos721?: boolean;
+      query?: {
+        enabled?: boolean;
+      };
+    }
+    ```
+  </Expandable>
+
+  <ResponseField name="* return properties" />
+
+  <Expandable>
+    <ParamField path="data" type="CollectiblesResponse">
+      Contiene los datos del inventario del usuario.
+    </ParamField>
+
+    <ParamField path="isLoading" type="boolean">
+      Indica si los datos se están cargando actualmente.
+    </ParamField>
+
+    <ParamField path="fetchNextPage" type="(options?: FetchNextPageOptions) => Promise<UseInfiniteQueryResult>">
+      Esta función permite obtener la siguiente "página" de resultados.
+    </ParamField>
+  </Expandable>
+</ResponseField>

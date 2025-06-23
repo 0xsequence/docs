@@ -1,0 +1,54 @@
+---
+title: useCreateListingModal
+description: The useCreateListingModal hook is used to list an item for sale on the Marketplace. It provides the necessary functionality to create and manage a new listing.
+sidebarTitle: useCreateListingModal
+---
+
+```ts
+import { useCreateListingModal } from "@0xsequence/marketplace-sdk/react";
+
+## Into your React component:
+
+const { show: showListModal } = useCreateListingModal({ onError });
+
+const onClickList = () => {
+	showListModal({
+		collectionAddress,
+		chainId,
+		collectibleId,
+		orderbookKind,
+	});
+};
+
+return <button onClick={onClickList}>List</button>
+```
+
+<ResponseField name="useCreateListingModal">
+	<ResponseField name="* params"/>
+  <Expandable>
+		```ts
+		interface useCreateListingModal {
+			onSuccess?: ({ hash, orderId }: {
+			hash?: Hash; 
+				orderId?: string; 
+			}) => void;
+			onError?: (error: Error) => void;
+		}
+		```
+  </Expandable>
+	<ResponseField name="* return properties"/>
+  <Expandable>
+    <ResponseField name="show" type="(args: ShowCreateListingModalArgs) => void">
+		```ts
+		interface ShowCreateListingModalArgs {
+			collectionAddress: Hex;
+			chainId: string;
+			collectibleId: string;
+			orderbookKind?: OrderbookKind;
+			callbacks?: ModalCallbacks;
+		}
+		```
+		</ResponseField>
+    <ResponseField name="close" type="() => void"></ResponseField>
+  </Expandable>
+</ResponseField>
