@@ -20,7 +20,7 @@ Esto se puede lograr en 8 pasos
 
 Primero siga [esta sección de la Guía de Servicio de Minteo de Coleccionables](/guides/mint-collectibles-serverless#1-setup-cloudflare-environment-with-wrangler-cli-and-deploy-a-test) para crear un Cloudflare Worker
 
-## 1. Obtenga una clave API secreta
+## 1. Obtenga una clave secreta de API (JWT\_ACCESS\_KEY)
 Para utilizar el servicio backend, debe obtener una `Secret API` Key para autenticar las solicitudes a su proyecto.
 
 Primero, acceda a la configuración y seleccione las claves API desde el [Sequence Builder Console](https://sequence.build/)
@@ -29,13 +29,13 @@ Primero, acceda a la configuración y seleccione las claves API desde el [Sequen
   ![builder settings access keys](/images/builder/builder_settings_access_keys.png)
 </Frame>
 
-Desplácese hacia abajo y seleccione `+ Add Service Account`
+Desplácese hacia abajo y seleccione `+ Add Admin API Secret Key`
 
 <Frame>
   ![builder settings add service account](/images/builder/builder_settings_add_service_account.png)
 </Frame>
 
-Luego cambie el acceso a `write` y `confirm`
+Luego cambie el acceso a `write` y confirme presionando `+ Add API Secret Key`
 
 <Frame>
   ![builder settings add service account](/images/builder/builder_settings_add_service_account_confirm.png)
@@ -51,7 +51,7 @@ Llamamos al servicio para obtener un `collectionID`
 ```shell
 curl --location 'https://metadata.sequence.app/rpc/Collections/CreateCollection' \
 --header 'Content-Type: application/json' \
---header 'Authorization: Bearer <secret_API_key or jwt_access_key>' \
+--header 'Authorization: Bearer <jwt_access_key>' \
 --data '{
     "projectId": <project_id>,
     "collection": {
@@ -130,7 +130,7 @@ Con el `asset.id` proporcionado del objeto `jsonCreateAsset` anterior
 
 		const formData = new FormData();
 		
-		formData.append('file', blob, `image.png`); // You might want to dynamically determine the filename
+		formData.append('file', blob);
 		
 		let METADATA_URL = 'https://metadata.sequence.app'
 
@@ -143,7 +143,6 @@ Con el `asset.id` proporcionado del objeto `jsonCreateAsset` anterior
 				method: 'PUT',
 				body: formData,
 				headers: {
-					'X-Access-Key': env.PROJECT_ACCESS_KEY,
 					'Authorization': `Bearer ${env.JWT_ACCESS_KEY}`, // Put your token here
 				},
 			});
@@ -188,7 +187,7 @@ Finalmente, también como una solicitud única, publicamos la colección usando 
 ```shell
 curl --location 'https://metadata.sequence.app/rpc/Collections/PublishCollection' \
 --header 'Content-Type: application/json' \
---header 'Authorization: Bearer <secrect_API_key or jwt_access_key> \
+--header 'Authorization: Bearer <jwt_access_key> \
 --data '{
     "projectId": <project_id>,
     "collectionId": <collection_id>
@@ -225,11 +224,13 @@ curl https://metadata.sequence.app/projects/1229/collections/40/tokens/457657099
 O en un [navegador](https://metadata.sequence.app/projects/1229/collections/40/tokens/457657099779485875855215293997335918990635014431)
 
 ### Renderizar asset desde la API de forma privada
-Alternativamente, puede decidir mantener sus assets almacenados como privados, pero aún así renderizar los datos pasando una clave secreta de API en el `header` junto con los parámetros completos; para esta guía el `metadata_field` está configurado como `image`
+Si decide mantener sus activos privados (en el parámetro token, private: true), aún puede ver la imagen del token si proporciona el jwt\_access\_key en el encabezado.
+
+Para esta guía, el `metadata_field` está configurado como `image`
 
 ```shell [cURL]
 curl --location 'https://metadata.sequence.app/projects/<project_id>/collections/<collection_id>/tokens/<token_id>/asset/<metadada_field>' \
---header 'Authorization: Bearer <secret_api_key or jwt_access_key>' \
+--header 'Authorization: Bearer <jwt_access_key>' \
 --output stored_file.png
 ```
 
