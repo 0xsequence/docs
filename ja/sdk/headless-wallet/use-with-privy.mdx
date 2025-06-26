@@ -1,0 +1,558 @@
+---
+title: Privy と Sequence
+description: Privy を Sequence スマートウォレットの署名者として利用する方法をご紹介します。
+---
+
+このガイドでは、主要な `sequence.js` ライブラリを使って Privy と Sequence をシームレスに統合し、ユーザーが Sequence スマートウォレットを通じて dApp にサインインし操作できるようにする方法を解説します。具体的には、ユーザーの Privy で管理された EOA によって制御される Sequence ウォレットを作成し、そのウォレットを使って Base Sepolia 上でガスレス取引を行います。
+
+<Note>
+  Next.js 15、React 19、Tailwind CSS 4 を使用します。
+</Note>
+
+<Steps>
+  <Step title="依存パッケージのインストール">
+    Sequence、Privy、wagmi/viem の各パッケージが必要です。
+
+    ```bash
+    pnpm install @0xsequence/account @0xsequence/core @0xsequence/network @0xsequence/sessions @0xsequence/signhub @privy-io/react-auth @privy-io/wagmi-connector wagmi @privy-io/wagmi @tanstack/react-query viem ethers
+    ```
+  </Step>
+
+  <Step title="Privy の App ID と Client ID を取得する">
+    Privy App ID と Client ID を取得する必要があります。[Privy Dashboard](https://dashboard.privy.io/apps) で新しいアプリを作成すると取得できます。
+    プロジェクトのルートに `.env.local` ファイルを作成し、`NEXT_PUBLIC_PRIVY_APP_ID` と `NEXT_PUBLIC_PRIVY_CLIENT_ID` を追加してください。
+  </Step>
+
+  <Step title="プロバイダーのセットアップ">
+    `providers.tsx` ファイルで `WagmiProvider` と `PrivyProvider` をセットアップします。
+    これにより、アプリで Privy を認証に、wagmi をウォレット連携に利用できるようになります。
+
+    ```tsx [providers.tsx]
+    'use client'
+
+    import { type PrivyClientConfig, PrivyProvider } from '@privy-io/react-auth'
+    import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+    import { createConfig, WagmiProvider } from '@privy-io/wagmi'
+    import { baseSepolia } from 'viem/chains'
+    import { http } from 'wagmi'
+
+    const queryClient = new QueryClient()
+
+    const wagmiConfig = createConfig({
+        chains: [baseSepolia],
+        transports: {
+            [baseSepolia.id]: http()
+        }
+    })
+
+    const privyConfig: PrivyClientConfig = {
+        embeddedWallets: {
+            requireUserPasswordOnCreate: true,
+            showWalletUIs: true
+        },
+        loginMethods: ['wallet', 'email', 'google'],
+        appearance: {
+            showWalletLoginFirst: true
+        },
+        defaultChain: baseSepolia
+    }
+
+    const APP_ID = process.env.NEXT_PUBLIC_PRIVY_APP_ID
+    const CLIENT_ID = process.env.NEXT_PUBLIC_PRIVY_CLIENT_ID
+
+    export default function Providers({ children }: { children: React.ReactNode }) {
+        return (
+            <PrivyProvider
+                appId={APP_ID as string}
+                clientId={CLIENT_ID as string}
+                config={privyConfig}
+            >
+                <QueryClientProvider client={queryClient}>
+                    <WagmiProvider config={wagmiConfig}>
+                        {children}
+                    </WagmiProvider>
+                </QueryClientProvider>
+            </PrivyProvider>
+        )
+    }
+    ```
+  </Step>
+
+  <Step title="アプリのレイアウトをプロバイダーでラップする">
+    アプリのレイアウト全体をプロバイダーでラップします。
+
+    ```tsx [layout.tsx]
+    import type { Metadata } from 'next'
+    import { Geist, Geist_Mono } from 'next/font/google'
+    import './globals.css'
+    import Providers from './providers'
+
+    const geistSans = Geist({
+    	variable: '--font-geist-sans',
+    	subsets: ['latin']
+    })
+
+    const geistMono = Geist_Mono({
+    	variable: '--font-geist-mono',
+    	subsets: ['latin']
+    })
+
+    export const metadata: Metadata = {
+    	title: 'Privy + Sequence',
+    	description: 'A demo showcasing how Sequence can be used with Privy'
+    }
+
+    export default function RootLayout({
+    	children
+    }: Readonly<{
+    	children: React.ReactNode
+    }>) {
+    	return (
+    		<html lang="en">
+    			<body
+    				className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+    			>
+    				<Providers>{children}</Providers>
+    			</body>
+    		</html>
+    	)
+    }
+    ```
+  </Step>
+
+  <Step title="トランザクションタイプの追加">
+    `./constants/types.ts` に以下の型を追加してください。
+
+    ```tsx [./constants/types.ts]
+    export type FlatTransaction = {
+    	to: string
+    	value?: string
+    	data?: string
+    	gasLimit?: string
+    	delegateCall?: boolean
+    	revertOnError?: boolean
+    }
+
+    export type TransactionsEntry = {
+    	subdigest?: string
+    	wallet: string
+    	space: string
+    	nonce: string
+    	chainId: string
+    	transactions: FlatTransaction[]
+    }
+    ```
+  </Step>
+
+  <Step title="StaticSigner クラスの作成">
+    `./utils/StaticSigner.ts` に `StaticSigner` クラスを作成します。
+
+    ```tsx [./utils/StaticSigner.ts]
+    import type { commons } from '@0xsequence/core'
+    import type { signers } from '@0xsequence/signhub'
+    import { type BytesLike, ethers } from 'ethers'
+
+    type TransactionBundle = commons.transaction.TransactionBundle
+    type SignedTransactionBundle = commons.transaction.SignedTransactionBundle
+    type IntendedTransactionBundle = commons.transaction.IntendedTransactionBundle
+
+    export class StaticSigner implements signers.SapientSigner {
+    	private readonly signatureBytes: Uint8Array
+    	private readonly savedSuffix: Uint8Array
+
+    	constructor(
+    		private readonly address: string,
+    		private readonly signature: string
+    	) {
+    		const raw = ethers.getBytes(this.signature)
+
+    		// Separate last byte as suffix
+    		this.savedSuffix = raw.slice(-1)
+    		this.signatureBytes = raw.slice(0, -1)
+    	}
+
+    	async buildDeployTransaction(): Promise<TransactionBundle | undefined> {
+    		return undefined
+    	}
+
+    	async predecorateSignedTransactions(): Promise<SignedTransactionBundle[]> {
+    		return []
+    	}
+
+    	async decorateTransactions(
+    		og: IntendedTransactionBundle
+    	): Promise<IntendedTransactionBundle> {
+    		return og
+    	}
+
+    	async sign(): Promise<BytesLike> {
+    		return this.signatureBytes
+    	}
+
+    	notifyStatusChange(): void {}
+
+    	suffix(): BytesLike {
+    		return this.savedSuffix
+    	}
+
+    	async getAddress() {
+    		return this.address
+    	}
+    }
+    ```
+  </Step>
+
+  <Step title="ユーティリティメソッドの追加">
+    いくつかのユーティリティメソッドが必要です。
+
+    このファイルを `./utils/index.ts` に追加してください。
+
+    ```tsx [index.ts]
+    import { Account } from '@0xsequence/account'
+    import { trackers } from '@0xsequence/sessions'
+    import { commons } from '@0xsequence/core'
+    import { Orchestrator, signers } from '@0xsequence/signhub'
+    import { allNetworks } from '@0xsequence/network'
+    import type { FlatTransaction, TransactionsEntry } from '../constants/types'
+    import { ethers } from 'ethers'
+    import { StaticSigner } from './StaticSigner'
+
+    export const TRACKER = new trackers.remote.RemoteConfigTracker(
+        'https://sessions.sequence.app'
+    )
+
+    export const NETWORKS = allNetworks
+
+    /**
+     * Creates a new Sequence Account with the specified threshold and signers.
+     *
+     * @param threshold - The minimum weight required to authorize transactions.
+     * @param signers - An array of signer objects with address and weight.
+     * @returns A Promise that resolves to the created Account instance.
+     */
+    export async function createSequenceAccount(
+        threshold: number,
+        signers: { address: string; weight: number }[]
+    ): Promise<Account> {
+        const account = await Account.new({
+            config: {
+                threshold,
+                // By default a random checkpoint is generated every second
+                checkpoint: 0,
+                signers: signers
+            },
+            tracker: TRACKER,
+            contexts: commons.context.defaultContexts,
+            orchestrator: new Orchestrator([]),
+            networks: NETWORKS
+        })
+
+        return account
+    }
+
+    /**
+     * Converts an array of FlatTransaction objects to Sequence Transaction objects.
+     *
+     * @param txs - Array of FlatTransaction objects to convert.
+     * @returns An array of Sequence Transaction objects.
+     */
+    export function toSequenceTransactions(
+        txs: FlatTransaction[]
+    ): commons.transaction.Transaction[] {
+        return txs.map(toSequenceTransaction)
+    }
+
+    /**
+     * Converts a FlatTransaction object to a Sequence Transaction object.
+     *
+     * @param tx - The FlatTransaction object to convert.
+     * @returns The corresponding Sequence Transaction object.
+     */
+    export function toSequenceTransaction(
+        tx: FlatTransaction
+    ): commons.transaction.Transaction {
+        return {
+            to: tx.to,
+            value: tx.value ? BigInt(tx.value) : undefined,
+            data: tx.data,
+            gasLimit: tx.gasLimit ? BigInt(tx.gasLimit) : undefined,
+            delegateCall: tx.delegateCall || false,
+            revertOnError: tx.revertOnError || false
+        }
+    }
+
+    /**
+     * Creates an Account instance for a given address and optional signatures.
+     *
+     * @param args - Object containing the address and optional signatures array.
+     * @returns An Account instance configured with the provided signers.
+     */
+    export function accountFor(args: {
+        address: string
+        signatures?: { signer: string; signature: string }[]
+    }) {
+        const signers: signers.SapientSigner[] = []
+
+        if (args.signatures) {
+            for (const { signer, signature } of args.signatures) {
+                const signatureArr = ethers.getBytes(signature)
+                if (
+                    signatureArr.length === 66 &&
+                    (signatureArr[64] === 0 || signatureArr[64] === 1)
+                ) {
+                    signatureArr[64] = signatureArr[64] + 27
+                }
+
+                signers.push(new StaticSigner(signer, ethers.hexlify(signatureArr)))
+            }
+        }
+
+        return new Account({
+            address: args.address,
+            tracker: TRACKER,
+            contexts: commons.context.defaultContexts,
+            orchestrator: new Orchestrator(signers),
+            networks: NETWORKS
+        })
+    }
+
+    /**
+     * Computes the digest for a given TransactionsEntry.
+     *
+     * @param tx - The TransactionsEntry containing transaction details.
+     * @returns The digest string for the transactions.
+     */
+    export function digestOf(tx: TransactionsEntry): string {
+        return commons.transaction.digestOfTransactions(
+            commons.transaction.encodeNonce(tx.space, tx.nonce),
+            toSequenceTransactions(tx.transactions)
+        )
+    }
+
+    /**
+     * Computes the subdigest for a given TransactionsEntry.
+     *
+     * @param tx - The TransactionsEntry containing transaction details.
+     * @returns The subdigest string for the transactions.
+     */
+    export function subdigestOf(tx: TransactionsEntry): string {
+        const digest = digestOf(tx)
+
+        return commons.signature.subdigestOf({
+            digest,
+            chainId: tx.chainId,
+            address: tx.wallet
+        })
+    }
+
+    /**
+     * Converts Sequence Transactionish objects to an array of FlatTransaction objects.
+     *
+     * @param wallet - The wallet address associated with the transactions.
+     * @param txs - The Sequence Transactionish object(s) to convert.
+     * @returns An array of FlatTransaction objects.
+     */
+    export function fromSequenceTransactions(
+        wallet: string,
+        txs: commons.transaction.Transactionish
+    ): FlatTransaction[] {
+        const sequenceTxs = commons.transaction.fromTransactionish(wallet, txs)
+        return sequenceTxs.map((stx) => ({
+            to: stx.to,
+            value: stx.value?.toString(),
+            data: stx.data?.toString(),
+            gasLimit: stx.gasLimit?.toString(),
+            delegateCall: stx.delegateCall,
+            revertOnError: stx.revertOnError
+        }))
+    }
+
+    /**
+     * Recovers the signer addresses from an array of signatures and a subdigest.
+     *
+     * @param signatures - Array of signature strings to recover signers from.
+     * @param subdigest - The subdigest string used for recovery.
+     * @returns An array of objects containing the signer address and signature.
+     */
+    export function recoverSigner(
+        signatures: string[],
+        subdigest: string
+    ): { signer: string; signature: string }[] {
+        const res: { signer: string; signature: string }[] = []
+
+        for (const signature of signatures) {
+            try {
+                const r = commons.signer.recoverSigner(subdigest, signature)
+                res.push({ signer: r, signature: signature })
+            } catch (e) {
+                console.error('Failed to recover signature', e)
+            }
+        }
+
+        return res
+    }
+    ```
+  </Step>
+
+  <Step title="Sequence ウォレットを作成し、ガスレス取引を送信する">
+    ```tsx [page.tsx]
+    "use client"
+
+    import { usePublicClient, useSignMessage } from "wagmi"
+    import { accountFor, createSequenceAccount, subdigestOf, toSequenceTransactions } from "./utils"
+    import { useState, useEffect } from "react"
+    import { commons } from "@0xsequence/core"
+    import { ethers } from "ethers"
+    import { zeroAddress } from "viem"
+    import { usePrivy } from "@privy-io/react-auth"
+
+    const CHAIN_ID = 84532
+
+    export default function Home() {
+      const { ready, authenticated, login, logout, user } = usePrivy()
+      const publicClient = usePublicClient({ chainId: CHAIN_ID })
+      const { signMessageAsync } = useSignMessage()
+      const [walletAddress, setWalletAddress] = useState<`0x${string}` | null>(null)
+      const [txHash, setTxHash] = useState<string | null>(null)
+      const [loadingSendTx, setLoadingSendTx] = useState(false)
+      const [isWalletDeployed, setIsWalletDeployed] = useState(false)
+      const [checkingWalletDeployed, setCheckingWalletDeployed] = useState(true)
+
+      useEffect(() => {
+        const createWallet = async () => {
+          if (user?.wallet && user.wallet.address) {
+            const seqeunceAccount = await createSequenceAccount(1, [
+              { address: user.wallet.address, weight: 1 },
+            ])
+            const accountWithSig = accountFor({
+              address: seqeunceAccount.address,
+            })
+            const status = await accountWithSig.status(CHAIN_ID)
+            const wallet = accountWithSig.walletForStatus(CHAIN_ID, status)
+            setCheckingWalletDeployed(true)
+            const hasCode = await publicClient?.getCode({ address: accountWithSig.address as `0x${string}` })
+            setCheckingWalletDeployed(false)
+            if (!hasCode) {
+              wallet.deploy()
+              // Wait for the wallet to be deploy, most of the times it takes less than 4 seconds
+              await new Promise((resolve) => setTimeout(resolve, 4000))
+            }
+            setWalletAddress(wallet.address as `0x${string}`)
+            setIsWalletDeployed(true)
+            setCheckingWalletDeployed(false)
+          } else {
+            setWalletAddress(null)
+            setTxHash(null)
+          }
+        }
+        createWallet()
+      }, [user])
+
+      const handleSend = async () => {
+        if (!user?.wallet?.address || !walletAddress) return
+        setLoadingSendTx(true)
+        const txs = [
+          { to: zeroAddress, data: "0x", value: "0", revertOnError: true },
+        ]
+        const txe = {
+          wallet: walletAddress,
+          space: Date.now().toString(),
+          nonce: "0",
+          chainId: CHAIN_ID.toString(),
+          transactions: txs,
+        }
+        const subdigest = subdigestOf(txe)
+        const digestBytes = ethers.getBytes(subdigest)
+        const signature = await signMessageAsync({ message: { raw: digestBytes } })
+        const suffixed = signature + "02"
+        const account = accountFor({
+          address: walletAddress,
+          signatures: [
+            { signer: user.wallet.address as `0x${string}`, signature: suffixed },
+          ],
+        })
+        const sequenceTxs = toSequenceTransactions(txs)
+        const status = await account.status(CHAIN_ID)
+        const wallet = account.walletForStatus(CHAIN_ID, status)
+        const signed = await wallet.signTransactions(
+          sequenceTxs,
+          commons.transaction.encodeNonce(txe.space, txe.nonce)
+        )
+        const relayer = account.relayer(CHAIN_ID)
+        const relayed = await relayer.relay(signed)
+        setTxHash(relayed?.hash || null)
+        setLoadingSendTx(false)
+      }
+
+      if (!ready)
+        return (
+          <div className="flex items-center justify-center min-h-screen">
+            <span className="text-xs text-gray-400">Loading Privy...</span>
+          </div>
+        )
+
+      return (
+        <main className="flex flex-col items-center justify-center min-h-screen gap-6">
+          <button
+            onClick={authenticated ? logout : login}
+            aria-label={authenticated ? "Log out" : "Log in with Privy"}
+            tabIndex={0}
+            className="px-4 py-2 border border-white rounded text-white font-semibold bg-black hover:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 transition disabled:opacity-50 text-sm"
+            onKeyDown={e => {
+              if ((e.key === "Enter" || e.key === " ") && ready) {
+                if (authenticated) {
+                  logout()
+                } else {
+                  login()
+                }
+              }
+            }}
+          >
+            {authenticated ? "Log out" : "Log in with Privy"}
+          </button>
+          {isWalletDeployed ? (
+            <div className="text-center">
+              <div className="text-xs text-gray-400 mb-2">Smart Wallet Address</div>
+              <div className="font-mono text-sm break-all">{walletAddress}</div>
+            </div>
+          ) : (
+            <div className="text-center">
+              {checkingWalletDeployed ? (
+                <div className="text-xs text-gray-400 mb-2">Checking if wallet is deployed...</div>
+              ) : (
+                <div className="text-xs text-gray-400 mb-2">Deploying Sequence Smart Wallet...</div>
+              )}
+            </div>
+          )}
+          {walletAddress && (
+            <button
+              onClick={handleSend}
+              aria-label="Send gasless transaction"
+              tabIndex={0}
+              disabled={loadingSendTx || !isWalletDeployed}
+              className="px-4 py-2 border border-black rounded text-black font-semibold bg-white hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2 transition text-sm"
+              onKeyDown={e => {
+                if (e.key === "Enter" || e.key === " ") handleSend()
+              }}
+            >
+              {loadingSendTx ? "Sending..." : "Send gasless transaction"}
+            </button>
+          )}
+          {txHash && (
+            <div className="text-center">
+              <div className="text-xs text-gray-400 mb-2">Transaction Hash</div>
+              <div className="font-mono text-sm break-all">{txHash}</div>
+            </div>
+          )}
+        </main>
+      )
+    }
+    ```
+  </Step>
+
+  <Step title="アプリを起動する">
+    ```bash
+    pnpm dev
+    ```
+  </Step>
+</Steps>
