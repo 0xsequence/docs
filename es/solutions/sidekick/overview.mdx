@@ -48,10 +48,10 @@ description: Sequence Sidekick ofrece un backend completamente equipado, aprovec
 </CardGroup>
 
 ## Acerca del backend wallet
-Sidekick crea una Sequence Smart Contract Wallet basada en el `EVM_PRIVATE_KEY` que usted proporciona, lo que permite patrocinio de gas, agrupamiento y otras optimizaciones.
+Sidekick crea una Sequence Smart Contract Wallet basada en el `BACKEND_WALLET_PV_KEY` o el firmante de `AWS / GCP KMS` que usted proporcione. Esto permite patrocinio de gas, batching y otras optimizaciones.
 
 Para configurar el backend wallet, puedes:
-- Declara tu [EVM\_PRIVATE\_KEY](https://github.com/0xsequence-demos/sequence-sidekick/blob/e76a47d0b9ef19f23736c1e8f863ed4795b855a8/.env.example#L16) en el archivo .env para una configuración local (no recomendado para producción)
+- Declare su [BACKEND\_WALLET\_PV\_KEY](https://github.com/0xsequence-demos/sequence-sidekick/blob/e76a47d0b9ef19f23736c1e8f863ed4795b855a8/.env.example#L16) en el archivo .env para una configuración local (no recomendado para producción), o no lo proporcione y se generará uno aleatorio para usted, el cual podrá encontrar en el archivo `dev.key` generado automáticamente.
 - Usa el método recomendado: configura [AWS](https://aws.amazon.com/kms/) o [GCP](https://cloud.google.com/kms) KMS y agrega las credenciales necesarias en el archivo .env.
 
 <Note>
@@ -82,9 +82,7 @@ Sequence Sidekick brinda a los desarrolladores una solución backend escalable y
 Hay una imagen pública de Docker disponible en [GitHub Container Registry](https://github.com/0xsequence/sidekick/pkgs/container/sidekick).
 
 ```shell
-docker run -p 7500:7500 \
-  -e EVM_PRIVATE_KEY=0x \
-  ghcr.io/0xsequence/sidekick
+docker run -p -e SEQUENCE_PROJECT_ACCESS_KEY=... 7500:7500 ghcr.io/0xsequence/sidekick:latest
 ```
 
 Esto permite iniciar un backend local de Sidekick en el puerto 7500 con las funciones mínimas.
@@ -105,15 +103,15 @@ Esto permite iniciar un backend local de Sidekick en el puerto 7500 con las func
   <Step title="Configure las variables de entorno requeridas">
     ### Variables de entorno requeridas
 
-    | Variable             | Description                                                   |
-    | -------------------- | ------------------------------------------------------------- |
-    | PROJECT\_ACCESS\_KEY | Clave de acceso de Sequence Builder API Keys                  |
-    | EVM\_PRIVATE\_KEY    | Clave privada para la EOA utilizada para firmar transacciones |
+    | Variable             | Description                                  |
+    | -------------------- | -------------------------------------------- |
+    | PROJECT\_ACCESS\_KEY | Clave de acceso de Sequence Builder API Keys |
 
     ### Variables de entorno opcionales
 
     | Variable                     | Description                                                                                     |
     | ---------------------------- | ----------------------------------------------------------------------------------------------- |
+    | BACKEND\_WALLET\_PV\_KEY     | Clave privada para la EOA utilizada para firmar transacciones                                   |
     | PORT                         | Puerto para el servidor de Sidekick (por defecto: 7500)                                         |
     | HOST                         | Dirección del host para el servidor (por defecto: 0.0.0.0)                                      |
     | REDIS\_HOST                  | Host del servidor Redis (por defecto: localhost)                                                |
@@ -141,10 +139,10 @@ Esto permite iniciar un backend local de Sidekick en el puerto 7500 con las func
 
     #### Para wallet local:
 
-    | Variable          | Description |
-    | ----------------- | ----------- |
-    | SIGNER\_TYPE      | local       |
-    | EVM\_PRIVATE\_KEY | 0x...       |
+    | Variable                 | Description |            |
+    | ------------------------ | ----------- | ---------- |
+    | SIGNER\_TYPE             | local       |            |
+    | BACKEND\_WALLET\_PV\_KEY | 0x...       | (opcional) |
 
     #### Para AWS KMS:
 
