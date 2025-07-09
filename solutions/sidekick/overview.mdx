@@ -39,10 +39,10 @@ description: Sequence Sidekick provides a fully equipped backend, leveraging Seq
 </CardGroup>
 
 ## About the backend wallet
-Sidekick creates a Sequence Smart Contract Wallet based on the `EVM_PRIVATE_KEY` you provide, this allows gas-sponsorship, batching and other optimizations.
+Sidekick creates a Sequence Smart Contract Wallet based on the `BACKEND_WALLET_PV_KEY` or `AWS / GCP KMS` signer you provide, this allows gas-sponsorship, batching and other optimizations.
 
 To configure the backend wallet, you can:
-- Declare your [EVM_PRIVATE_KEY](https://github.com/0xsequence-demos/sequence-sidekick/blob/e76a47d0b9ef19f23736c1e8f863ed4795b855a8/.env.example#L16) in the .env file for a local setup (not recommended for production)
+- Declare your [BACKEND_WALLET_PV_KEY](https://github.com/0xsequence-demos/sequence-sidekick/blob/e76a47d0b9ef19f23736c1e8f863ed4795b855a8/.env.example#L16) in the .env file for a local setup (not recommended for production) or don't provide it and get a random one generated for you, you can find it in the auto generated `dev.key` file.
 - Use the recommended method: setting up [AWS](https://aws.amazon.com/kms/) or [GCP](https://cloud.google.com/kms) KMS and adding the necessary credentials in the .env file. 
 
 <Note>
@@ -71,9 +71,7 @@ When using the Sequence Sidekick:
 
 There is a public docker image available on [GitHub Container Registry](https://github.com/0xsequence/sidekick/pkgs/container/sidekick).
 ```shell
-docker run -p 7500:7500 \
-  -e EVM_PRIVATE_KEY=0x \
-  ghcr.io/0xsequence/sidekick
+docker run -p -e SEQUENCE_PROJECT_ACCESS_KEY=... 7500:7500 ghcr.io/0xsequence/sidekick:latest
 ```
 This should get you started with a local Sidekick backend running on port 7500 with the minimal features.
 
@@ -98,14 +96,14 @@ git clone https://github.com/0xsequence/sidekick
 | Variable | Description 
 |----------|-------------
 | PROJECT_ACCESS_KEY | Access key from Sequence Builder API Keys 
-| EVM_PRIVATE_KEY | Private key for the EOA used to sign transactions |
 
 ### Optional Environment Variables
 
-| Variable                  | Description                                                                                 |
-|--------------------------|---------------------------------------------------------------------------------------------|
-| PORT                     | Port for the Sidekick server (default: 7500)                                                 |
-| HOST                     | Host address for the server (default: 0.0.0.0)                                               |
+| Variable                 | Description                                                                                  |
+|--------------------------|-----------------------------------------------------------------------------------------------|
+| BACKEND_WALLET_PV_KEY    | Private key for the EOA used to sign transactions                                             |
+| PORT                     | Port for the Sidekick server (default: 7500)                                                  |
+| HOST                     | Host address for the server (default: 0.0.0.0)                                                |
 | REDIS_HOST               | Redis server host (default: localhost)                                                        |
 | REDIS_PORT               | Redis server port (default: 6379)                                                             |
 | REDIS_PASSWORD           | Password for Redis server (optional)                                                          |
@@ -133,7 +131,7 @@ Choose one of the following configurations:
 | Variable | Description |
 |----------|-------------|
 | SIGNER_TYPE | local |
-| EVM_PRIVATE_KEY | 0x... |
+| BACKEND_WALLET_PV_KEY | 0x... | (optional) |
 
 #### For AWS KMS:
 | Variable | Description |

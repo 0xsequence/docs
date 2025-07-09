@@ -48,10 +48,10 @@ description: Sequence Sidekickは、Sequenceのインフラを活用し、シン
 </CardGroup>
 
 ## バックエンドウォレットについて
-Sidekickは、指定した`EVM_PRIVATE_KEY`に基づいてSequenceスマートコントラクトウォレットを作成します。これにより、ガススポンサーシップやバッチ処理などの最適化が可能です。
+Sidekickは、指定された`BACKEND_WALLET_PV_KEY`または`AWS / GCP KMS`署名者に基づいてSequenceスマートコントラクトウォレットを作成します。これにより、ガス代の肩代わり（ガススポンサーシップ）、トランザクションのバッチ処理、その他の最適化が可能となります。
 
 バックエンドウォレットの設定方法：
-- ローカル環境用に[EVM\_PRIVATE\_KEY](https://github.com/0xsequence-demos/sequence-sidekick/blob/e76a47d0b9ef19f23736c1e8f863ed4795b855a8/.env.example#L16)を.envファイルに記載（本番環境では非推奨）
+- ローカル環境でセットアップする場合は、[BACKEND\_WALLET\_PV\_KEY](https://github.com/0xsequence-demos/sequence-sidekick/blob/e76a47d0b9ef19f23736c1e8f863ed4795b855a8/.env.example#L16)を.envファイルに記載してください（本番環境では推奨されません）。また、指定しない場合はランダムなキーが自動生成され、`dev.key`ファイルに保存されます。
 - 推奨方法： [AWS](https://aws.amazon.com/kms/) または [GCP](https://cloud.google.com/kms) KMSを設定し、必要な認証情報を.envファイルに追加
 
 <Note>
@@ -82,9 +82,7 @@ Sequence Sidekickは、ブロックチェーンアプリ開発者にスケーラ
 [GitHub Container Registry](https://github.com/0xsequence/sidekick/pkgs/container/sidekick)で公開されているDockerイメージをご利用いただけます。
 
 ```shell
-docker run -p 7500:7500 \
-  -e EVM_PRIVATE_KEY=0x \
-  ghcr.io/0xsequence/sidekick
+docker run -p -e SEQUENCE_PROJECT_ACCESS_KEY=... 7500:7500 ghcr.io/0xsequence/sidekick:latest
 ```
 
 これで、最小限の機能を備えたローカルのSidekickバックエンドがポート7500で起動します。
@@ -108,12 +106,12 @@ docker run -p 7500:7500 \
     | 変数                   | 説明                                 |
     | -------------------- | ---------------------------------- |
     | PROJECT\_ACCESS\_KEY | Sequence Builder APIキーから取得したアクセスキー |
-    | EVM\_PRIVATE\_KEY    | トランザクション署名に使用するEOAの秘密鍵             |
 
     ### オプションの環境変数
 
     | 変数                           | 説明                                       |
     | ---------------------------- | ---------------------------------------- |
+    | BACKEND\_WALLET\_PV\_KEY     | トランザクション署名に使用するEOAの秘密鍵                   |
     | PORT                         | Sidekickサーバーのポート（デフォルト: 7500）            |
     | HOST                         | サーバーのホストアドレス（デフォルト: 0.0.0.0）             |
     | REDIS\_HOST                  | Redisサーバーのホスト（デフォルト: localhost）          |
@@ -141,10 +139,10 @@ docker run -p 7500:7500 \
 
     #### ローカルウォレットの場合：
 
-    | 変数                | 説明    |
-    | ----------------- | ----- |
-    | SIGNER\_TYPE      | local |
-    | EVM\_PRIVATE\_KEY | 0x... |
+    | 変数                       | 説明    |      |
+    | ------------------------ | ----- | ---- |
+    | SIGNER\_TYPE             | local |      |
+    | BACKEND\_WALLET\_PV\_KEY | 0x... | （任意） |
 
     #### AWS KMSの場合：
 
