@@ -100,6 +100,8 @@ createRoot(document.getElementById('root')!).render(
     <Dapp />
   </StrictMode>,
 )
+
+export default Dapp;
 ```
 
 ### Authentication Component
@@ -171,29 +173,42 @@ export default defineConfig({
 });
 ```
 
-### Create a config
+### Add the Marketplace SDK config
 
 ```ts config.ts
+import { createConfig } from "@0xsequence/connect";
 import type { SdkConfig } from '@0xsequence/marketplace-sdk';
 
 const projectAccessKey = import.meta.env.VITE_PROJECT_ACCESS_KEY;
-const projectId = import.meta.env.VITE_PROJECT_ID!;
+const waasConfigKey = import.meta.env.VITE_WAAS_CONFIG_KEY;
 const walletConnectId = import.meta.env.VITE_WALLET_CONNECT_ID;
+const projectId = import.meta.env.VITE_PROJECT_ID!;
+const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID!;
 
-export function getConfig() {
-  const config = {
-    projectId,
-    projectAccessKey,
-    walletConnectProjectId: walletConnectId
-  } satisfies SdkConfig;
+export const config: any = createConfig("waas", {
+  projectAccessKey,
+  chainIds: [1, 137],
+  defaultChainId: 1,
+  appName: "Demo Dapp",
+  waasConfigKey, // for waas
+  google: {
+    clientId: googleClientId,
+  },
+  walletConnect: {
+    projectId: walletConnectId,
+  },
+});
 
-  return config;
-}
+export const marketplaceConfig = {
+        projectId,
+        projectAccessKey,
+        walletConnectProjectId: walletConnectId
+} satisfies SdkConfig;
 ```
 
 ### Add the Marketplace SDK Providers Alongside Your Web SDK Providers
 
-```ts App.tsx
+```ts main.tsx
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import App from './App.tsx'
@@ -204,20 +219,21 @@ import {
   MarketplaceProvider,
   ModalProvider,
 } from "@0xsequence/marketplace-sdk/react";
-import { getConfig } from "./config";
 import { ThemeProvider, ToastProvider } from '@0xsequence/design-system';
-
-const sdkConfig = getConfig();
+import { SequenceCheckoutProvider } from "@0xsequence/checkout";
+import { marketplaceConfig } from "./config";
 
 function Dapp() {
   return (
     <ThemeProvider>
       <ToastProvider>
         <SequenceConnect config={config}>
-          <MarketplaceProvider config={sdkConfig}>
-            <App />
-            <ModalProvider />
-          </MarketplaceProvider>
+          <SequenceCheckoutProvider>
+            <MarketplaceProvider config={marketplaceConfig}>
+              <App />
+              <ModalProvider />
+            </MarketplaceProvider>
+          </SequenceCheckoutProvider>
         </SequenceConnect>
       </ToastProvider>
     </ThemeProvider>
@@ -225,35 +241,35 @@ function Dapp() {
 }
 
 createRoot(document.getElementById('root')!).render(
-  <StrictMode>
-    <Dapp />
-  </StrictMode>,
+<StrictMode>
+  <Dapp />
+</StrictMode>,
 )
+
+export default Dapp;
 ```
 
 ## 4. Displaying collections
 
-To display the marketplace collections we need to create a folder named `Collections` inside the `src/app/components` directory. Within this folder, we will create two files: `index.tsx` and `Collection.tsx`.
+To display the marketplace collections we need to create a folder named `Collections` inside the `src/components` directory. Within this folder, we will create two files: `index.tsx` and `Collection.tsx`.
 
 ```ts Collection.tsx
-import type { MarketplaceCollection } from "@0xsequence/marketplace-sdk";
+import type { MarketCollection } from "@0xsequence/marketplace-sdk";
 import { useCollection } from "@0xsequence/marketplace-sdk/react";
 
 export const Collection = ({
   collection,
   onSelectCollection,
 }: {
-  collection: MarketplaceCollection;
-  onSelectCollection: (value: MarketplaceCollection) => void;
+  collection: MarketCollection;
+  onSelectCollection: (value: MarketCollection) => void;
 }) => {
   const { data } = useCollection({
     chainId: collection.chainId,
-    collectionAddress: collection.address,
+    collectionAddress: collection.itemsAddress,
   });
 
-  // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
   const logoURI = data?.logoURI;
-  // You can add a placeholder image to improve the UX
   const image = data?.extensions.ogImage || collection.bannerUrl || logoURI;
   const description = data?.extensions.description;
   const name = data?.name;
@@ -272,11 +288,11 @@ export const Collection = ({
       <h2>
         {name} {symbol && <span>({symbol})</span>}
       </h2>
-      <p>{collection.address}</p>
+      <p>{collection.itemsAddress}</p>
       <p>Chain ID: {collection.chainId}</p>
       <img
         src={image}
-        alt={collection.address}
+        alt={collection.itemsAddress}
         className="w-[200px] h-[200px] object-cover object-center"
       />
       <p>Contract type: {contractType}</p>
@@ -287,21 +303,21 @@ export const Collection = ({
 ```
 
 ```ts index.tsx
-import type { MarketplaceCollection } from "@0xsequence/marketplace-sdk";
+import type { MarketCollection } from "@0xsequence/marketplace-sdk";
 import { Collection } from "./Collection";
 import { useMarketplaceConfig } from "@0xsequence/marketplace-sdk/react";
 
-export const Collections = ({ onSelectCollection } : { onSelectCollection: (value: MarketplaceCollection) => void }) => {
-	const { data } = useMarketplaceConfig();
+export const Collections = ({ onSelectCollection }: { onSelectCollection: (value: MarketCollection) => void }) => {
+    const { data } = useMarketplaceConfig();
 
-	const collections: MarketplaceCollection[] = data?.collections || [];
-  return (
-    <div>
-      {collections?.map((collection) => (
-        <Collection key={collection.address} collection={collection} onSelectCollection={onSelectCollection}/>
-      ))}
-    </div>
-  );
+    const collections: MarketCollection[] = data?.market.collections || [];
+    return (
+        <div>
+            {collections?.map((collection) => (
+                <Collection key={collection.itemsAddress} collection={collection} onSelectCollection={onSelectCollection} />
+            ))}
+        </div>
+    );
 };
 ```
 
@@ -312,23 +328,21 @@ import { useAccount, useDisconnect } from "wagmi";
 import "./App.css";
 import { useOpenConnectModal } from "@0xsequence/connect";
 import { Collections } from "./components/Collections";
-import type { MarketplaceCollection } from "@0xsequence/marketplace-sdk";
+import type { MarketCollection } from "@0xsequence/marketplace-sdk";
 import { useState } from "react";
-import { Collectibles } from "./components/Collectibles";
-import type { Address } from "viem";
 
 function App() {
   const { setOpenConnectModal } = useOpenConnectModal();
   const { isConnected, address } = useAccount();
   const { disconnect } = useDisconnect();
   const [collectionSelected, setCollectionSelected] =
-    useState<MarketplaceCollection | null>(null);
+    useState<MarketCollection | null>(null);
 
   function handleDisconnect() {
     disconnect();
   }
-  
-  function onSelectCollection(value: MarketplaceCollection) {
+
+  function onSelectCollection(value: MarketCollection) {
     setCollectionSelected(value);
   }
 
@@ -423,213 +437,208 @@ export type ShowSellModalArgs = {
 
 ### Set Up the Collectibles Components
 
-To create the Items page and its components, we need to add a new folder named Collectibles inside the src/app/components directory. Within this folder, we will create two files: `index.tsx` and `Collectible.tsx`.
+To create the Items page and its components, we need to add a new folder named Collectibles inside the src/components directory. Within this folder, we will create two files: `index.tsx` and `Collectible.tsx`.
 
 ```ts Collectible.tsx
 import type {
-  ShowBuyModalArgs,
-  ShowCreateListingModalArgs,
-  ShowMakeOfferModalArgs,
-  ShowSellModalArgs,
-} from "../../utils/types";
+    ShowBuyModalArgs,
+    ShowCreateListingModalArgs,
+    ShowMakeOfferModalArgs,
+    ShowSellModalArgs,
+} from "../../utils//types";
 import type {
-  CollectibleOrder,
-  MarketplaceKind,
-  OrderbookKind,
+    CollectibleOrder,
+    MarketplaceKind,
+    OrderbookKind,
 } from "@0xsequence/marketplace-sdk";
 import { useBalanceOfCollectible } from "@0xsequence/marketplace-sdk/react";
 import type { Address } from "viem";
 
 export const Collectible = ({
-  collectible,
-  chainId,
-  collectionAddress,
-  showBuyModal,
-  showListModal,
-  showOfferModal,
-  showSellModal,
-  address,
-  isConnected,
-  orderbookKind,
+    collectible,
+    chainId,
+    collectionAddress,
+    showBuyModal,
+    showListModal,
+    showOfferModal,
+    showSellModal,
+    address,
+    isConnected,
+    orderbookKind,
 }: {
-  collectible: CollectibleOrder;
-  chainId: string;
-  collectionAddress: Address;
-  showBuyModal: (args: ShowBuyModalArgs) => void;
-  showListModal: (args: ShowCreateListingModalArgs) => void;
-  showOfferModal: (args: ShowMakeOfferModalArgs) => void;
-  showSellModal: (args: ShowSellModalArgs) => void;
-  address?: Address;
-  isConnected: boolean;
-  orderbookKind: OrderbookKind;
+    collectible: CollectibleOrder;
+    chainId: string;
+    collectionAddress: Address;
+    showBuyModal: (args: ShowBuyModalArgs) => void;
+    showListModal: (args: ShowCreateListingModalArgs) => void;
+    showOfferModal: (args: ShowMakeOfferModalArgs) => void;
+    showSellModal: (args: ShowSellModalArgs) => void;
+    address?: Address;
+    isConnected: boolean;
+    orderbookKind: OrderbookKind;
 }) => {
-  const { name, image, tokenId } = collectible.metadata;
+    const { name, image, tokenId } = collectible.metadata;
 
-  // @ts-ignore: unused variable 'isBalanceLoading'
-  const { data: userBalanceResp, isLoading: isBalanceLoading } =
-    useBalanceOfCollectible({
-      chainId: Number(chainId),
-      collectionAddress,
-      collectableId: tokenId,
-      userAddress: address,
-      query: {
-        enabled: !!isConnected && !!address,
-      },
-    });
+    const { data: userBalanceResp } =
+        useBalanceOfCollectible({
+            chainId: Number(chainId),
+            collectionAddress,
+            collectableId: tokenId,
+            userAddress: address,
+            query: {
+                enabled: !!isConnected && !!address,
+            },
+        });
 
-  const tokenBalance = userBalanceResp?.balance;
+    const tokenBalance = userBalanceResp?.balance;
 
-  const onClickBuy = () =>
-    showBuyModal({
-      chainId: Number(chainId),
-      collectionAddress,
-      collectibleId: tokenId,
-      orderId: collectible!.order!.orderId,
-      marketplace: orderbookKind as unknown as MarketplaceKind,
-    });
+    const onClickBuy = () =>
+        showBuyModal({
+            chainId: Number(chainId),
+            collectionAddress,
+            collectibleId: tokenId,
+            orderId: collectible!.order!.orderId,
+            marketplace: orderbookKind as unknown as MarketplaceKind,
+        });
 
-  const onClickList = () => {
-    showListModal({
-      collectionAddress,
-      chainId: Number(chainId),
-      collectibleId: tokenId,
-      orderbookKind,
-    });
-  };
+    const onClickList = () => {
+        showListModal({
+            collectionAddress,
+            chainId: Number(chainId),
+            collectibleId: tokenId,
+            orderbookKind,
+        });
+    };
 
-  const onClickOffer = () => {
-    showOfferModal({
-      collectionAddress,
-      chainId: Number(chainId),
-      collectibleId: tokenId,
-      orderbookKind,
-    });
-  };
+    const onClickOffer = () => {
+        showOfferModal({
+            collectionAddress,
+            chainId: Number(chainId),
+            collectibleId: tokenId,
+            orderbookKind,
+        });
+    };
 
-  const onAcceptOffer = () => {
-    showSellModal({
-      collectionAddress,
-      chainId: Number(chainId),
-      tokenId,
-      order: collectible!.offer!,
-    });
-  };
+    const onAcceptOffer = () => {
+        showSellModal({
+            collectionAddress,
+            chainId: Number(chainId),
+            tokenId,
+            order: collectible!.offer!,
+        });
+    };
 
-  const hasOffer = Boolean(collectible?.offer);
-  const sellDisabled = !isConnected || !hasOffer || !tokenBalance;
-  const showActionButtons = address && isConnected;
+    const hasOffer = Boolean(collectible?.offer);
+    const sellDisabled = !isConnected || !hasOffer || !tokenBalance;
+    const showActionButtons = address && isConnected;
 
-  return (
-    <div className="flex flex-col justify-center items-center border border-white">
-      <h2>{name}</h2>
-      <img
-        src={image}
-        alt={name}
-        className="w-[200px] h-[200px] object-cover object-center"
-      />
-      {showActionButtons && (
-        <>
-          {collectible.order && <button onClick={onClickBuy}>Buy</button>}
-          {tokenBalance && <button onClick={onClickList}>List</button>}
-          <button onClick={onClickOffer}>Make offer</button>
-          {!sellDisabled && (
-            <button onClick={onAcceptOffer}>Accept Offer</button>
-          )}
-        </>
-      )}
-    </div>
-  );
+    return (
+        <div className="flex flex-col justify-center items-center border border-white">
+            <h2>{name}</h2>
+            <img
+                src={image}
+                alt={name}
+                className="w-[200px] h-[200px] object-cover object-center"
+            />
+            {showActionButtons && (
+                <>
+                    {collectible.order && <button onClick={onClickBuy}>Buy</button>}
+                    {tokenBalance && <button onClick={onClickList}>List</button>}
+                    <button onClick={onClickOffer}>Make offer</button>
+                    {!sellDisabled && (
+                        <button onClick={onAcceptOffer}>Accept Offer</button>
+                    )}
+                </>
+            )}
+        </div>
+    );
 };
 ```
 
 ```ts index.tsx
 import { OrderbookKind, OrderSide } from "@0xsequence/marketplace-sdk";
 import {
-  useBuyModal,
-  useCreateListingModal,
-  useListCollectibles,
-  useMakeOfferModal,
-  useMarketplaceConfig,
-  useSellModal,
+    useBuyModal,
+    useCreateListingModal,
+    useListCollectibles,
+    useMakeOfferModal,
+    useMarketplaceConfig,
+    useSellModal,
 } from "@0xsequence/marketplace-sdk/react";
 import { Collectible } from "./Collectible";
 import type { Address } from "viem";
 import { useAccount } from "wagmi";
 
 export const Collectibles = ({
-  collectionId,
-  chainId,
+    collectionId,
+    chainId,
 }: {
-  collectionId: Address;
-  chainId: number;
+    collectionId: Address;
+    chainId: number;
 }) => {
-  const { address, isConnected } = useAccount();
-  const {
-    data: collectibles,
-    // @ts-ignore: unused variable 'collectiblesLoading'
-    isLoading: collectiblesLoading,
-    // @ts-ignore: unused variable 'fetchNextCollectibles'
-    fetchNextPage: fetchNextCollectibles,
-  } = useListCollectibles({
-    chainId: Number(chainId),
-    collectionAddress: collectionId,
-    filter: {
-      // # Optional filters
-      includeEmpty: true,
-      // searchText: text,
-      // properties,
-    },
-    side: OrderSide.listing,
-  });
+    const { address, isConnected } = useAccount();
+    const {
+        data: collectibles,
+    } = useListCollectibles({
+        chainId: Number(chainId),
+        collectionAddress: collectionId,
+        filter: {
+            // # Optional filters
+            includeEmpty: true,
+            // searchText: text,
+            // properties,
+        },
+        side: OrderSide.listing,
+    });
 
-  const { data } = useMarketplaceConfig();
+    const { data } = useMarketplaceConfig();
 
-  const onError = (error: Error) => {
-    console.error(error.message);
-  };
+    const onError = (error: Error) => {
+        console.error(error.message);
+    };
 
-  const { show: showBuyModal } = useBuyModal({
-    onSuccess(hash) {
-      console.log("Buy transaction sent with hash: ", hash);
-    },
-    onError,
-  });
+    const { show: showBuyModal } = useBuyModal({
+        onSuccess(hash) {
+            console.log("Buy transaction sent with hash: ", hash);
+        },
+        onError,
+    });
 
-  const { show: showListModal } = useCreateListingModal({ onError });
-  const { show: showOfferModal } = useMakeOfferModal({
-    onError,
-  });
-  const { show: showSellModal } = useSellModal({ onError });
+    const { show: showListModal } = useCreateListingModal({ onError });
+    const { show: showOfferModal } = useMakeOfferModal({
+        onError,
+    });
+    const { show: showSellModal } = useSellModal({ onError });
 
-  const collectiblesFlat =
-    collectibles?.pages.flatMap((p) => p.collectibles) ?? [];
-  const collectionData =
-    data?.collections?.find(
-      (collection) => collection.address === collectionId
-    ) || null;
-  const orderbookKind: OrderbookKind =
-    (collectionData?.destinationMarketplace || "") as unknown as OrderbookKind;
+    const collectiblesFlat =
+        collectibles?.pages.flatMap((p) => p.collectibles) ?? [];
+    const collectionData =
+        data?.market.collections?.find(
+            (collection) => collection.itemsAddress === collectionId
+        ) || null;
+    const orderbookKind: OrderbookKind =
+        (collectionData?.destinationMarketplace || "") as unknown as OrderbookKind;
 
-  return (
-    <div>
-      <h1 className="text-[32px] font-semibold">Collectibles</h1>
-      {collectiblesFlat?.map((collectible) => (
-        <Collectible
-          key={collectible.metadata.tokenId}
-          collectible={collectible}
-          chainId={String(chainId)}
-          collectionAddress={collectionId}
-          showBuyModal={showBuyModal}
-          showListModal={showListModal}
-          showOfferModal={showOfferModal}
-          showSellModal={showSellModal}
-          address={address}
-          isConnected={isConnected}
-          orderbookKind={orderbookKind}
-        />
-      ))}
-    </div>
-  );
+    return (
+        <div>
+            <h1 className="text-[32px] font-semibold">Collectibles</h1>
+            {collectiblesFlat?.map((collectible) => (
+                <Collectible
+                    key={collectible.metadata.tokenId}
+                    collectible={collectible}
+                    chainId={String(chainId)}
+                    collectionAddress={collectionId}
+                    showBuyModal={showBuyModal}
+                    showListModal={showListModal}
+                    showOfferModal={showOfferModal}
+                    showSellModal={showSellModal}
+                    address={address}
+                    isConnected={isConnected}
+                    orderbookKind={orderbookKind}
+                />
+            ))}
+        </div>
+    );
 };
 ```
 
@@ -639,10 +648,10 @@ Finally, add the component for Listings and Offers into our `App.tsx` file
 import { useAccount, useDisconnect } from "wagmi";
 import "./App.css";
 import { useOpenConnectModal } from "@0xsequence/connect";
-import { Collections } from "./components/Collections";
-import type { MarketplaceCollection } from "@0xsequence/marketplace-sdk";
+import { Collections } from "./components/Collection";
+import type { MarketCollection } from "@0xsequence/marketplace-sdk";
 import { useState } from "react";
-import { Collectibles } from "./components/Collectibles";
+import { Collectibles } from "./components/Collectible/index";
 import type { Address } from "viem";
 
 function App() {
@@ -650,13 +659,13 @@ function App() {
   const { isConnected, address } = useAccount();
   const { disconnect } = useDisconnect();
   const [collectionSelected, setCollectionSelected] =
-    useState<MarketplaceCollection | null>(null);
+    useState<MarketCollection | null>(null);
 
   function handleDisconnect() {
     disconnect();
   }
 
-  function onSelectCollection(value: MarketplaceCollection) {
+  function onSelectCollection(value: MarketCollection) {
     setCollectionSelected(value);
   }
 
@@ -685,7 +694,7 @@ function App() {
           </button>
           <Collectibles
             chainId={collectionSelected.chainId}
-            collectionId={collectionSelected.address as Address}
+            collectionId={collectionSelected.itemsAddress as Address}
           />
         </>
       )}
