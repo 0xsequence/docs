@@ -3,6 +3,11 @@ title: Intercambio de monedas
 description: Documentación general del SDK de Unreal para la infraestructura Sequence orientada a juegos web3.
 ---
 
+Cambiar entre diferentes monedas ERC20 o tokens nativos en una cadena determinada es sencillo gracias al Smart Swap API de Sequence.
+
+Por favor, asegúrese de que su par de tokens tenga suficiente liquidez en un exchange compatible como UniSwap.
+Consulte esta guía sobre [cómo agregar liquidez en UniSwap.](https://support.uniswap.org/hc/en-us/articles/7423194619661-How-to-add-liquidity-to-Uniswap-v3)
+
 ## Obtener el precio de swap
 Obtenga el precio de swap para un par de tokens específico.
 
@@ -19,7 +24,7 @@ Obtenga el precio de swap para un par de tokens específico.
     const FFailureCallback OnApiFailure = [this, OnFailure](const FSequenceError& Error) { };
 
     USequencePay* Pay = NewObject<USequencePay>();
-    Pay->GetSwapPrice(SequenceSdk::GetChainId(), SellCurrency, BuyCurrency, BuyAmount, OnApiSuccess, OnApiFailure, SlippagePercentage);
+    Pay->GetSwapPrice(SequenceSdk::GetChainId(), WalletAddress, SellCurrency, BuyCurrency, BuyAmount, OnApiSuccess, OnApiFailure);
     ```
   </Tab>
 </Tabs>
@@ -40,13 +45,14 @@ Obtenga los precios de swap para el token que su usuario desea recibir.
     const FFailureCallback OnApiFailure = [this, OnFailure](const FSequenceError& Error) { };
 
     USequencePay* Pay = NewObject<USequencePay>();
-    Pay->GetSwapPrices(SequenceSdk::GetChainId(), UserWallet, BuyCurrency, BuyAmount, OnApiSuccess, OnApiFailure, SlippagePercentage);
+    Pay->GetSwapPrices(SequenceSdk::GetChainId(), WalletAddress, BuyCurrency, BuyAmount, OnApiSuccess, OnApiFailure);
     ```
   </Tab>
 </Tabs>
 
 ## Obtener la cotización de swap
-Después de revisar el precio de swap, obtenga la aprobación y los datos de transacción necesarios para construir su transacción.
+Después de consultar el precio del swap, obtenga la aprobación y los datos de transacción necesarios para construir su transacción.
+Asegúrese de definir solo el `Sell Amount` o el `Buy Amount`, pero no ambos.
 
 <Tabs>
   <Tab title="Blueprint">
@@ -61,13 +67,13 @@ Después de revisar el precio de swap, obtenga la aprobación y los datos de tra
     const FFailureCallback OnApiFailure = [this, OnFailure](const FSequenceError& Error) { };
 
     USequencePay* Pay = NewObject<USequencePay>();
-    Pay->GetSwapQuote(SequenceSdk::GetChainId(), UserWallet, BuyCurrency, SellCurrency, BuyAmount, IncludeApprove, OnApiSuccess, OnApiFailure, SlippagePercentage);
+    Pay->GetSwapQuote(SequenceSdk::GetChainId(), WalletAddress, BuyCurrency, SellCurrency, BuyAmount, SellAmount, IncludeApprove, OnApiSuccess, OnApiFailure);
     ```
   </Tab>
 </Tabs>
 
 ## Obtener las cadenas compatibles para swaps
-Obtenga las cadenas compatibles para swaps.
+Devuelve la lista de cadenas compatibles para swaps.
 
 <Tabs>
   <Tab title="Blueprint">
@@ -88,7 +94,7 @@ Obtenga las cadenas compatibles para swaps.
 </Tabs>
 
 ## Obtener los tokens compatibles para swaps
-Obtenga los tokens compatibles para swaps.
+Devuelve la lista de tokens compatibles para swaps.
 
 <Tabs>
   <Tab title="Blueprint">

@@ -1,28 +1,57 @@
 ---
 title: Resumen y configuración de Sidekick
-description: Sequence Sidekick simplifica el envío de transacciones en redes compatibles con Ethereum para juegos y aplicaciones, escalando a millones de usuarios.
+description: Sequence Sidekick ofrece un backend completamente equipado, aprovechando la infraestructura de Sequence para leer y escribir en la blockchain a través de una API sencilla.
 ---
 
-# Sequence Sidekick 👷‍♂️
-Sequence Sidekick ofrece un backend totalmente equipado, aprovechando la infraestructura de Sequence para facilitar las interacciones blockchain a los desarrolladores. Con Sidekick, puede realizar programáticamente las siguientes operaciones usando su propio backend wallet:
-- Servicios backend preconfigurados: Redis, PostgreSQL, API de transacciones y un Indexer, todo listo para usar.
-- Despliegue sin esfuerzo: Levante su backend en minutos con un solo comando para crear un contenedor Docker.
-- Opciones flexibles de wallet: Use un Sequence Smart Wallet con claves privadas gestionadas localmente o integre de forma segura AWS/GCP KMS para mayor seguridad.
-- Despliegue de contratos sin complicaciones: Despliegue contratos inteligentes ERC20, ERC721, ERC1155 o personalizados mediante llamadas API.
-- Gestión confiable de transacciones: Lea y escriba en cualquier contrato para su juego o app, con manejo automático de nonce, ajuste de gas y otras optimizaciones para una ejecución eficiente.
-- Integración con webhooks: Aproveche nuestro indexador de alto rendimiento para gestionar completamente los webhooks.
-- Optimización de precios de gas: Las transacciones se envían con precios de gas óptimos, con reenvío automático si no se incluyen en el mempool en tres bloques.
-- Sistema de recompensas integrado: Configura recompensas de usuario autogestionadas o recurrentes (ERC20, ERC721, ERC1155) con una sola llamada API.
-- Panel Bull MQ integrado: Monitorea y gestiona tus tareas en segundo plano.
-- Swagger UI: Explore la documentación de la API y pruebe los endpoints con Swagger UI
-- Utilidades de contrato: Verifica fácilmente los despliegues de contratos en diferentes cadenas.
-- Integración fluida con Sequence Builder: Importa todos tus contratos de Sequence Builder al backend de Sidekick con una sola llamada API, o agrega contratos personalizados manualmente.
+## Características principales 🚀
+
+<CardGroup>
+  <Card horizontal title="Configuración sin complicaciones" icon="rocket">
+    Puede usar nuestra imagen pública de Docker o iniciarlo en modo de desarrollo con una configuración mínima.
+  </Card>
+
+  <Card horizontal title="Opciones flexibles de wallet" icon="wallet">
+    Utilice una Sequence Smart Wallet con claves privadas gestionadas localmente o integre de forma segura AWS/GCP KMS para mayor seguridad.
+  </Card>
+
+  <Card horizontal title="Gestión de webhooks" icon="wallet">
+    Aproveche nuestro indexador de alto rendimiento para crear y configurar sus propios webhooks personalizados mediante el eficiente Sequence Indexer.
+  </Card>
+
+  <Card horizontal title="Integración con Tenderly" icon="bug">
+    Utilice Tenderly para depurar fácilmente sus transacciones; obtiene una URL de simulación para cada transacción ejecutada a través de Sidekick.
+  </Card>
+
+  <Card horizontal title="Verificación automática de contratos" icon="circle-check">
+    Verificar contratos es tedioso, Sidekick lo hace por usted en cada contrato desplegado.
+  </Card>
+
+  <Card horizontal title="Integrado con Sequence Builder" icon="link">
+    ¿Ya tiene un proyecto en Sequence Builder? Importe todos los datos de sus contratos a Sidekick con una sola llamada a la API.
+  </Card>
+
+  <Card horizontal title="Panel integrado de Bull MQ" icon="gauge">
+    Cree, monitoree y gestione sus tareas en segundo plano.
+  </Card>
+
+  <Card horizontal title="Swagger UI" icon="book">
+    Explore la documentación de la API y pruebe los endpoints con Swagger UI
+  </Card>
+
+  <Card horizontal title="Ejecución de transacciones optimizada" icon="bolt">
+    Las transacciones se envían con precios de gas óptimos y se reenvían automáticamente si no se incluyen en el mempool en tres bloques.
+  </Card>
+
+  <Card horizontal title="Analítica y monitoreo" icon="heart">
+    Sidekick viene integrado con Grafana, Prometheus y Blackbox Exporter para monitorear la salud de su backend.
+  </Card>
+</CardGroup>
 
 ## Acerca del backend wallet
-Todas las transacciones ejecutadas a través de Sidekick usan un Sequence smart wallet, que se [crea automáticamente](https://github.com/0xsequence-demos/sequence-sidekick/blob/e76a47d0b9ef19f23736c1e8f863ed4795b855a8/src/utils/wallet.ts#L25) para la cuenta externa (EOA) que usted especifique, aprovechando nuestra infraestructura para una ejecución optimizada y eficiente.
+Sidekick crea una Sequence Smart Contract Wallet basada en el `BACKEND_WALLET_PV_KEY` o el firmante de `AWS / GCP KMS` que usted proporcione. Esto permite patrocinio de gas, batching y otras optimizaciones.
 
 Para configurar el backend wallet, puedes:
-- Declara tu [EVM\_PRIVATE\_KEY](https://github.com/0xsequence-demos/sequence-sidekick/blob/e76a47d0b9ef19f23736c1e8f863ed4795b855a8/.env.example#L16) en el archivo .env para una configuración local (no recomendado para producción)
+- Declare su [BACKEND\_WALLET\_PV\_KEY](https://github.com/0xsequence-demos/sequence-sidekick/blob/e76a47d0b9ef19f23736c1e8f863ed4795b855a8/.env.example#L16) en el archivo .env para una configuración local (no recomendado para producción), o no lo proporcione y se generará uno aleatorio para usted, el cual podrá encontrar en el archivo `dev.key` generado automáticamente.
 - Usa el método recomendado: configura [AWS](https://aws.amazon.com/kms/) o [GCP](https://cloud.google.com/kms) KMS y agrega las credenciales necesarias en el archivo .env.
 
 <Note>
@@ -49,7 +78,20 @@ Sequence Sidekick brinda a los desarrolladores una solución backend escalable y
   - Vea las direcciones activas de relayers en la [página de estado de mainnet](https://mainnet-relayer.sequence.app/status)
 </Callout>
 
-## Pasos para iniciar su backend de Sidekick
+## Inicie con Docker desde la CLI
+Hay una imagen pública de Docker disponible en [GitHub Container Registry](https://github.com/0xsequence/sidekick/pkgs/container/sidekick).
+
+```shell
+docker run -p -e SEQUENCE_PROJECT_ACCESS_KEY=... 7500:7500 ghcr.io/0xsequence/sidekick:latest
+```
+
+Esto permite iniciar un backend local de Sidekick en el puerto 7500 con las funciones mínimas.
+
+<Note>
+  Recomendamos configurar también SEQUENCE\_PROJECT\_ACCESS\_KEY, pero para pruebas proporcionamos una por defecto; puede obtener la suya en [Sequence Builder](https://sequence.build/).
+</Note>
+
+## Inicie Sidekick en modo de desarrollo
 
 <Steps>
   <Step title="Clone el repositorio de Sidekick">
@@ -61,38 +103,62 @@ Sequence Sidekick brinda a los desarrolladores una solución backend escalable y
   <Step title="Configure las variables de entorno requeridas">
     ### Variables de entorno requeridas
 
-    | Variable                  | Description                                  |           |
-    | ------------------------- | -------------------------------------------- | --------- |
-    | PROJECT\_ACCESS\_KEY      | Clave de acceso de Sequence Builder API Keys |           |
-    | SECRET\_KEY               | Su clave secreta personalizada de Sidekick   |           |
-    | SEQUENCE\_RPC\_URL        | URL RPC de Sequence                          |           |
-    | BUILDER\_API\_SECRET\_KEY | Clave secreta de Sequence Builder API Keys   | `eyJh...` |
-    | INDEXER\_URL              | URL del Indexer según la red                 |           |
-    | SIGNER\_TYPE              | Tipo de firmante a usar                      |           |
+    | Variable             | Description                                  |
+    | -------------------- | -------------------------------------------- |
+    | PROJECT\_ACCESS\_KEY | Clave de acceso de Sequence Builder API Keys |
+
+    ### Variables de entorno opcionales
+
+    | Variable                     | Description                                                                                     |
+    | ---------------------------- | ----------------------------------------------------------------------------------------------- |
+    | BACKEND\_WALLET\_PV\_KEY     | Clave privada para la EOA utilizada para firmar transacciones                                   |
+    | PORT                         | Puerto para el servidor de Sidekick (por defecto: 7500)                                         |
+    | HOST                         | Dirección del host para el servidor (por defecto: 0.0.0.0)                                      |
+    | REDIS\_HOST                  | Host del servidor Redis (por defecto: localhost)                                                |
+    | REDIS\_PORT                  | Puerto del servidor Redis (por defecto: 6379)                                                   |
+    | REDIS\_PASSWORD              | Contraseña para el servidor Redis (opcional)                                                    |
+    | DATABASE\_URL                | Cadena de conexión PostgreSQL para la base de datos de Sidekick                                 |
+    | SIDEKICK\_API\_SECRET\_KEY   | Clave secreta requerida para acceso de escritura a la API de Sidekick                           |
+    | ETHERSCAN\_API\_KEY          | Clave de API para Etherscan para habilitar la verificación de contratos                         |
+    | VERIFY\_CONTRACT\_ON\_DEPLOY | Habilite la verificación automática de contratos al desplegar (establezca en true para activar) |
+    | DEBUG                        | Habilite el registro de depuración (establezca en true para salida detallada)                   |
+    | SIGNER\_TYPE                 | Tipo de firmante a utilizar (local, aws\_kms, google\_kms)                                      |
+    | AWS\_REGION                  | Región de la cuenta AWS                                                                         |
+    | AWS\_ACCESS\_KEY\_ID         | ID de clave de acceso de AWS                                                                    |
+    | AWS\_SECRET\_ACCESS\_KEY     | Clave secreta de acceso de AWS                                                                  |
+    | AWS\_KMS\_KEY\_ID            | ID de la clave KMS a usar                                                                       |
+    | PROJECT                      | Nombre del proyecto GCP                                                                         |
+    | LOCATION                     | Ubicación del proyecto GCP                                                                      |
+    | KEY\_RING                    | Nombre del key ring                                                                             |
+    | CRYPTO\_KEY                  | Nombre de la clave criptográfica                                                                |
+    | CRYPTO\_KEY\_VERSION         | Versión de la clave criptográfica                                                               |
 
     ### Variables de configuración del wallet
 
     Elija una de las siguientes configuraciones:
 
-    ##### Wallet local:
+    #### Para wallet local:
 
-    | Variable          | Description                                                   |
-    | ----------------- | ------------------------------------------------------------- |
-    | EVM\_PRIVATE\_KEY | Clave privada para la EOA utilizada para firmar transacciones |
+    | Variable                 | Description |            |
+    | ------------------------ | ----------- | ---------- |
+    | SIGNER\_TYPE             | local       |            |
+    | BACKEND\_WALLET\_PV\_KEY | 0x...       | (opcional) |
 
-    ##### Configuración de AWS KMS:
+    #### Para AWS KMS:
 
     | Variable                 | Description                    |
     | ------------------------ | ------------------------------ |
+    | SIGNER\_TYPE             | aws\_kms                       |
     | AWS\_REGION              | Región de la cuenta AWS        |
     | AWS\_ACCESS\_KEY\_ID     | ID de clave de acceso de AWS   |
     | AWS\_SECRET\_ACCESS\_KEY | Clave secreta de acceso de AWS |
     | AWS\_KMS\_KEY\_ID        | ID de la clave KMS a usar      |
 
-    ##### Configuración de GCP KMS:
+    #### Para GCP KMS:
 
     | Variable             | Description                       |
     | -------------------- | --------------------------------- |
+    | SIGNER\_TYPE         | google\_kms                       |
     | PROJECT              | Nombre del proyecto GCP           |
     | LOCATION             | Ubicación del proyecto GCP        |
     | KEY\_RING            | Nombre del key ring               |
@@ -110,7 +176,7 @@ Sequence Sidekick brinda a los desarrolladores una solución backend escalable y
     ```
   </Step>
 
-  <Step title="Realice su primera llamada API para obtener la dirección del smart wallet">
+  <Step title="Verifique la dirección de la backend wallet">
     ```shell
     curl -X GET 'http://localhost:3000/sidekick/smart-account-address'
     ```
@@ -118,7 +184,14 @@ Sequence Sidekick brinda a los desarrolladores una solución backend escalable y
 </Steps>
 
 ## Modo desarrollador sin Docker
-Si desea hacer cambios en el código y probarlos sin Docker, puede ejecutar el backend localmente siguiendo las instrucciones en el [README](https://github.com/0xsequence-demos/sequence-sidekick/blob/master/README.md).
+Si desea hacer cambios en el código y probarlos sin Docker
+
+```shell
+pnpm install
+pnpm dev:withRedis
+```
+
+Esto ejecutará Sidekick y también iniciará un servidor Redis.
 
 ## Gas Sponsorship
 En testnet, patrocinamos todas las transacciones. Sin embargo, en mainnet, usted querrá asegurarse de patrocinar las transacciones para que se procesen correctamente patrocinando el propio contrato. Puede ver más detalles en nuestra solución de [Gas Sponsorship](/solutions/builder/gas-tank) para aprender cómo hacerlo.

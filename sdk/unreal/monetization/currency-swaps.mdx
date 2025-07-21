@@ -3,6 +3,11 @@ title: "Currency Swaps"
 description: Documentation for Unreal SDK overview for the Sequence infrastructure stack for web3 gaming.
 ---
 
+Swapping between different ERC20/native token currencies on a given Chain is made easy by Sequence's Smart Swap API.
+
+Please make sure that your token pair has enough liquidity on a supported exchange such as UniSwap.
+Checkout this guide on [how to add liquidity on UniSwap.](https://support.uniswap.org/hc/en-us/articles/7423194619661-How-to-add-liquidity-to-Uniswap-v3)
+
 ## Get Swap Price
 
 Query the swap price for a given token pair.
@@ -19,7 +24,7 @@ Query the swap price for a given token pair.
         const FFailureCallback OnApiFailure = [this, OnFailure](const FSequenceError& Error) { };
 
         USequencePay* Pay = NewObject<USequencePay>();
-        Pay->GetSwapPrice(SequenceSdk::GetChainId(), SellCurrency, BuyCurrency, BuyAmount, OnApiSuccess, OnApiFailure, SlippagePercentage);
+        Pay->GetSwapPrice(SequenceSdk::GetChainId(), WalletAddress, SellCurrency, BuyCurrency, BuyAmount, OnApiSuccess, OnApiFailure);
         ```
     </Tab>
 </Tabs>
@@ -40,7 +45,7 @@ Query swap prices for the token your user wants to receive.
         const FFailureCallback OnApiFailure = [this, OnFailure](const FSequenceError& Error) { };
 
         USequencePay* Pay = NewObject<USequencePay>();
-        Pay->GetSwapPrices(SequenceSdk::GetChainId(), UserWallet, BuyCurrency, BuyAmount, OnApiSuccess, OnApiFailure, SlippagePercentage);
+        Pay->GetSwapPrices(SequenceSdk::GetChainId(), WalletAddress, BuyCurrency, BuyAmount, OnApiSuccess, OnApiFailure);
         ```
     </Tab>
 </Tabs>
@@ -48,6 +53,7 @@ Query swap prices for the token your user wants to receive.
 ## Get Swap Quote
 
 After checking the swap price, get your approval and transaction data needed to build your transaction.
+Make sure you only define `Sell Amount` or `Buy Amount` and not both.
 
 <Tabs>
     <Tab title="Blueprint">
@@ -61,14 +67,14 @@ After checking the swap price, get your approval and transaction data needed to 
         const FFailureCallback OnApiFailure = [this, OnFailure](const FSequenceError& Error) { };
 
         USequencePay* Pay = NewObject<USequencePay>();
-        Pay->GetSwapQuote(SequenceSdk::GetChainId(), UserWallet, BuyCurrency, SellCurrency, BuyAmount, IncludeApprove, OnApiSuccess, OnApiFailure, SlippagePercentage);
+        Pay->GetSwapQuote(SequenceSdk::GetChainId(), WalletAddress, BuyCurrency, SellCurrency, BuyAmount, SellAmount, IncludeApprove, OnApiSuccess, OnApiFailure);
         ```
     </Tab>
 </Tabs>
 
 ## Get Supported Swap Chains
 
-Get Supported Swap Chains.
+Returns the list of chains supported for swapping.
 
 <Tabs>
     <Tab title="Blueprint">
@@ -89,7 +95,7 @@ Get Supported Swap Chains.
 
 ## Get Supported Swap Tokens
 
-Get Supported Swap Tokens.
+Returns the list of tokens supported for swapping.
 
 <Tabs>
     <Tab title="Blueprint">

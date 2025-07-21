@@ -6,7 +6,7 @@ title: フェデレーテッドアカウント
 
 例：ユーザーがGoogleサインインでアカウントを作成し、その後同じメールアドレスでメール＋OTPサインインを試みた場合、このエラーが発生します。
 
-デフォルト（`LoginPanel` を利用している場合）、SDKは自動的に `SequenceFrontend > Prefabs > FederatedAuthPopupPanel` にある `FederatedAuthPopupPanel` プレハブを開きます。このプレハブはカスタマイズや `LoginPanel` プレハブ内での差し替えが可能です。このパネルでは、重複したログイン方法は許可されていないことをユーザーに説明し、ログイン画面に戻って関連するログイン方法（または別のメールアドレス）でサインインするよう促します。
+デフォルト（`SequenceLoginWindow`を使用している場合）では、SDKは自動的に`SequenceFrontend > Prefabs > FederatedAuthPopupPanel`にある`FederatedAuthPopupPanel`プレハブを開きます。このプレハブは自由にカスタマイズしたり、[SequenceLoginWindow](/sdk/unity/bootstrap_game#login)プレハブ内で差し替えたりできます。このパネルは、ユーザーに重複したログイン方法が許可されていないことを説明し、ログイン画面に戻って関連付けられたログイン方法（または別のメールアドレス）でサインインするよう促します。
 
 <Info>もし `SequenceConfig` で `EnableMultipleAccountsPerEmail` が有効になっている場合、`FederatedAuthPopupPanel` でユーザーが同じメールアドレスに別のアカウントを作成できるオプションが表示されます。</Info>
 
@@ -35,7 +35,7 @@ login.FederateAccountEmail(email, code, walletAddress);
 
 ここで walletAddress は、ユーザー認証後に取得した `SequenceWallet` のアドレスです。
 
-### デフォルトの LoginPanel の再利用
+### ログインウィンドウのひな型を再利用する
 デフォルトの LoginPanel を使ってユーザーが手動でアカウントをフェデレート／リンクできるようにするには、`SequenceLogin` インスタンスで `SetConnectedWalletAddress` を呼び出すか、現在認証されているウォレットアドレスを指定して `SequenceLogin.GetInstanceToFederateAuth` を呼び出してください。
 
 ```csharp
@@ -49,7 +49,7 @@ SequenceLogin.GetInstanceToFederateAuth(authenticatedSequenceWalletAddress);
 
 これにより、SequenceLogin インスタンスが新しいセッションを作成するのではなく、アカウントのフェデレーションを行うように設定されます。
 
-<Tip>ユーザーがログアウトした後は、`SetConnectedWalletAddress(null)` を呼び出して、SequenceLogin を新しいセッション作成モードに戻すのをお忘れなく。</Tip>
+<Tip>ユーザーがログアウトした後は、必ず `RemoveConnectedWalletAddress()` を呼び出し、SequenceLogin を再設定して新しいセッションを作成できるようにしましょう。</Tip>
 
 例：
 
@@ -57,7 +57,7 @@ SequenceLogin.GetInstanceToFederateAuth(authenticatedSequenceWalletAddress);
 private void OnDropSessionCompleteHandler(string sessionId) {
     if (sessionId == Wallet.SessionId)
     {
-        SequenceLogin.GetInstance().SetConnectedWalletAddress(null);
+        SequenceLogin.GetInstance().RemoveConnectedWalletAddress();
         SceneManager.LoadScene("LoginScene"); // Re-open your scene or UI to allow the user to log back in and create a new session here
     }
 }

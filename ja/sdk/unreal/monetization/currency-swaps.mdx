@@ -3,6 +3,11 @@ title: 通貨スワップ
 description: Sequenceインフラストラクチャスタックを用いたweb3ゲーム向けUnreal SDK概要のドキュメントです。
 ---
 
+SequenceのSmart Swap APIを使えば、特定チェーン上で異なるERC20やネイティブトークン間のスワップが簡単に行えます。
+
+ご利用のトークンペアが、UniSwapなどの対応取引所で十分な流動性を確保していることをご確認ください。
+[UniSwapで流動性を追加する方法については、こちらのガイドをご覧ください。](https://support.uniswap.org/hc/en-us/articles/7423194619661-How-to-add-liquidity-to-Uniswap-v3)
+
 ## スワップ価格の取得
 指定したトークンペアのスワップ価格を取得します。
 
@@ -19,7 +24,7 @@ description: Sequenceインフラストラクチャスタックを用いたweb3�
     const FFailureCallback OnApiFailure = [this, OnFailure](const FSequenceError& Error) { };
 
     USequencePay* Pay = NewObject<USequencePay>();
-    Pay->GetSwapPrice(SequenceSdk::GetChainId(), SellCurrency, BuyCurrency, BuyAmount, OnApiSuccess, OnApiFailure, SlippagePercentage);
+    Pay->GetSwapPrice(SequenceSdk::GetChainId(), WalletAddress, SellCurrency, BuyCurrency, BuyAmount, OnApiSuccess, OnApiFailure);
     ```
   </Tab>
 </Tabs>
@@ -40,13 +45,14 @@ description: Sequenceインフラストラクチャスタックを用いたweb3�
     const FFailureCallback OnApiFailure = [this, OnFailure](const FSequenceError& Error) { };
 
     USequencePay* Pay = NewObject<USequencePay>();
-    Pay->GetSwapPrices(SequenceSdk::GetChainId(), UserWallet, BuyCurrency, BuyAmount, OnApiSuccess, OnApiFailure, SlippagePercentage);
+    Pay->GetSwapPrices(SequenceSdk::GetChainId(), WalletAddress, BuyCurrency, BuyAmount, OnApiSuccess, OnApiFailure);
     ```
   </Tab>
 </Tabs>
 
 ## スワップ見積もりの取得
-スワップ価格を確認後、承認およびトランザクション作成に必要なデータを取得します。
+スワップ価格を確認した後、取引を構築するために必要な承認データとトランザクションデータを取得します。
+`Sell Amount` または `Buy Amount` のいずれか一方のみを指定し、両方を同時に定義しないようにしてください。
 
 <Tabs>
   <Tab title="ブループリント">
@@ -61,13 +67,13 @@ description: Sequenceインフラストラクチャスタックを用いたweb3�
     const FFailureCallback OnApiFailure = [this, OnFailure](const FSequenceError& Error) { };
 
     USequencePay* Pay = NewObject<USequencePay>();
-    Pay->GetSwapQuote(SequenceSdk::GetChainId(), UserWallet, BuyCurrency, SellCurrency, BuyAmount, IncludeApprove, OnApiSuccess, OnApiFailure, SlippagePercentage);
+    Pay->GetSwapQuote(SequenceSdk::GetChainId(), WalletAddress, BuyCurrency, SellCurrency, BuyAmount, SellAmount, IncludeApprove, OnApiSuccess, OnApiFailure);
     ```
   </Tab>
 </Tabs>
 
 ## サポートされているスワップチェーンを取得する
-サポートされているスワップチェーンを取得します。
+スワップに対応しているチェーンの一覧を返します。
 
 <Tabs>
   <Tab title="ブループリント">
@@ -88,7 +94,7 @@ description: Sequenceインフラストラクチャスタックを用いたweb3�
 </Tabs>
 
 ## サポートされているスワップトークンを取得する
-サポートされているスワップトークンを取得します。
+スワップに対応しているトークンの一覧を返します。
 
 <Tabs>
   <Tab title="ブループリント">

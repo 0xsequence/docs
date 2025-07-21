@@ -20,7 +20,7 @@ sidebarTitle: コレクションメタデータの管理
 
 まず、[Collectible Minting Service Guideのこのセクション](/guides/mint-collectibles-serverless#1-setup-cloudflare-environment-with-wrangler-cli-and-deploy-a-test)に従ってCloudflare Workerを作成してください。
 
-## 1. Secret API Keyを取得する
+## 1. シークレットAPIキー（JWT\_ACCESS\_KEY）を取得する
 バックエンドサービスを利用するには、リクエストを認証するための`Secret API` Keyが必要です。
 
 まずは設定画面にアクセスし、[Sequence Builder Console](https://sequence.build/)でAPI Keysを選択します。
@@ -29,13 +29,13 @@ sidebarTitle: コレクションメタデータの管理
   ![builder settings access keys](/images/builder/builder_settings_access_keys.png)
 </Frame>
 
-下にスクロールして`+ Add Service Account`を選択します。
+下にスクロールして「+ Add Admin API Secret Key」を選択してください
 
 <Frame>
   ![builder settings add service account](/images/builder/builder_settings_add_service_account.png)
 </Frame>
 
-アクセス権限を「write」と「confirm」に変更します。
+アクセス権を「write」に変更し、「+ Add API Secret Key」を押して確定します
 
 <Frame>
   ![builder settings add service account](/images/builder/builder_settings_add_service_account_confirm.png)
@@ -51,7 +51,7 @@ sidebarTitle: コレクションメタデータの管理
 ```shell
 curl --location 'https://metadata.sequence.app/rpc/Collections/CreateCollection' \
 --header 'Content-Type: application/json' \
---header 'Authorization: Bearer <secret_API_key or jwt_access_key>' \
+--header 'Authorization: Bearer <jwt_access_key>' \
 --data '{
     "projectId": <project_id>,
     "collection": {
@@ -130,7 +130,7 @@ const jsonCreateAsset = await collectionsService.createAsset({
 
 		const formData = new FormData();
 		
-		formData.append('file', blob, `image.png`); // You might want to dynamically determine the filename
+		formData.append('file', blob);
 		
 		let METADATA_URL = 'https://metadata.sequence.app'
 
@@ -143,8 +143,7 @@ const jsonCreateAsset = await collectionsService.createAsset({
 				method: 'PUT',
 				body: formData,
 				headers: {
-					'X-Access-Key': env.PROJECT_ACCESS_KEY,
-					'Authorization': `Bearer ${env.JWT_ACCESS_KEY}`, // Put your token here
+					Authorization: `Bearer ${env.JWT_ACCESS_KEY}`, // Put your token here
 				},
 			});
 		
@@ -188,7 +187,7 @@ const res3 = await collectionsService.updateToken({
 ```shell
 curl --location 'https://metadata.sequence.app/rpc/Collections/PublishCollection' \
 --header 'Content-Type: application/json' \
---header 'Authorization: Bearer <secrect_API_key or jwt_access_key> \
+--header 'Authorization: Bearer <jwt_access_key> \
 --data '{
     "projectId": <project_id>,
     "collectionId": <collection_id>
@@ -225,11 +224,13 @@ curl https://metadata.sequence.app/projects/1229/collections/40/tokens/457657099
 または [ブラウザで確認](https://metadata.sequence.app/projects/1229/collections/40/tokens/457657099779485875855215293997335918990635014431)
 
 ### API からアセットをプライベートにレンダリングする
-または、アセットをプライベートのまま保存しつつ、リクエストのヘッダーにシークレットAPIキーを渡し、必要なパラメータを指定することでデータをレンダリングすることも可能です。このガイドでは `metadata_field` を `image` に設定しています。
+資産を非公開（tokenパラメータでprivate: true）にした場合でも、ヘッダーにjwt\_access\_keyを指定すればトークン画像を表示できます。
+
+このガイドでは、`metadata_field` は `image` に設定されています
 
 ```shell [cURL]
 curl --location 'https://metadata.sequence.app/projects/<project_id>/collections/<collection_id>/tokens/<token_id>/asset/<metadada_field>' \
---header 'Authorization: Bearer <secret_api_key or jwt_access_key>' \
+--header 'Authorization: Bearer <jwt_access_key>' \
 --output stored_file.png
 ```
 

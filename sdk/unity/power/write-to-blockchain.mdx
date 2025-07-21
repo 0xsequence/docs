@@ -1,5 +1,5 @@
 ---
-title: Write to Blockcahin
+title: Write to Blockchain
 description: The content provides detailed instructions on writing to a blockchain using the Sequence SDK. It explains how to handle transactions asynchronously, including raw transactions, ERC20, ERC721, and ERC1155 token transfers, as well as smart contract interactions.
 ---
 
@@ -268,7 +268,7 @@ private async Task WaitForFeeOptionsAndSubmitFirstAvailable(Address toAddress, s
             return;
         }
     }
-    
+
     Debug.LogError("The user does not have enough of the valid FeeOptions in their wallet");
 }
 ```
@@ -296,7 +296,7 @@ Currently, the SDK exposes two different inheritors of the `TransactionQueuer` c
 
 ### SequenceWalletTransactionQueuer
 
-The `SequenceWalletTransactionQueuer` allows you to queue up transactions for your user's Sequence Embedded Wallet. 
+The `SequenceWalletTransactionQueuer` allows you to queue up transactions for your user's Sequence Embedded Wallet.
 
 The `SequenceWalletTransactionQueuer` expects you to enqueue `IQueueableTransaction`s. This interface is implemented by the `QueuedTokenTransaction` class. Please feel free to create other classes implementing the `IQueueableTransaction` interface as needed.
 
@@ -307,11 +307,11 @@ The `PermissionedMinterTransactionQueuer` is meant to be used for queueing up tr
 The `PermissionedMinterTransactionQueuer` expects you to enqueue a `PermissionedMintTransaction`, a basic data transfer object specifying the TokenId and Amount to be minted, and optionally an IMinter. If not provided, the `PermissionedMinterTransactionQueuer` will default to using the `PermissionedMinter` class. The `PermissionedMinter` class will be useful for most use cases; it sends a payload in the following format:
 
 ```json
-ProofPayload: 
+ProofPayload:
 {
     "app": "Made with Sequence Unity SDK App",
-    "iat": (uint)DateTimeOffset.UtcNow.ToUnixTimeSeconds(), // issued at time 
-    "exp": (uint)DateTimeOffset.UtcNow.ToUnixTimeSeconds() + 300, // expiry time 
+    "iat": (uint)DateTimeOffset.UtcNow.ToUnixTimeSeconds(), // issued at time
+    "exp": (uint)DateTimeOffset.UtcNow.ToUnixTimeSeconds() + 300, // expiry time
     "ogn": "Sequence Unity SDK",
     "payload": {
         "contractAddress": "0xabc123...",

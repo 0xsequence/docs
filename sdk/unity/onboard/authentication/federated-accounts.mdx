@@ -6,7 +6,7 @@ By default, the WaaS API only allows one account per email. If a user attempts t
 
 For example: if the user created their account using Google Sign In and then attempts to sign in with Email + OTP using the same method, they will receive this error.
 
-By default (if using the default `LoginPanel`), the SDK will automatically open the `FederatedAuthPopupPanel` prefab located at `SequenceFrontend > Prefabs > FederatedAuthPopupPanel`. This prefab can be customized to your linking or replaced in the `LoginPanel` prefab. This panel will explain to the user that duplicate login methods are not allowed and prompt them to return to the login screen and sign in with their associated login method (or a different email altogether).
+By default (if using the default `SequenceLoginWindow`), the SDK will automatically open the `FederatedAuthPopupPanel` prefab located at `SequenceFrontend > Prefabs > FederatedAuthPopupPanel`. This prefab can be customized to your linking or replaced in the [SequenceLoginWindow](/sdk/unity/bootstrap_game#login) prefab. This panel will explain to the user that duplicate login methods are not allowed and prompt them to return to the login screen and sign in with their associated login method (or a different email altogether).
 
 <Info>If `EnableMultipleAccountsPerEmail` is enabled in `SequenceConfig` the `FederatedAuthPopupPanel` will give the user the option to create another account associated with their email.</Info>
 
@@ -35,7 +35,7 @@ login.FederateAccountEmail(email, code, walletAddress);
 ```
 where walletAddress is the address of the `SequenceWallet` you retrieved after authenticating the user.
 
-### Re-using the Default LoginPanel
+### Re-using the Login Window Boilerplate
 
 To allow a user to federate/link their accounts manually using the default LoginPanel, simply call `SetConnectedWalletAddress` on your `SequenceLogin` instance or call `SequenceLogin.GetInstanceToFederateAuth` with the currently authenticated wallet address provided.
 
@@ -50,7 +50,7 @@ SequenceLogin.GetInstanceToFederateAuth(authenticatedSequenceWalletAddress);
 
 This will configure your SequenceLogin instance to federate the accounts instead of creating a new session.
 
-<Tip>Once the user has logged out, don't forget to call `SetConnectedWalletAddress(null)` to re-configure SequenceLogin to create new sessions again.</Tip>
+<Tip>Once the user has logged out, don't forget to call `RemoveConnectedWalletAddress()` to re-configure SequenceLogin to create new sessions again.</Tip>
 
 e.g.
 
@@ -58,7 +58,7 @@ e.g.
 private void OnDropSessionCompleteHandler(string sessionId) {
     if (sessionId == Wallet.SessionId)
     {
-        SequenceLogin.GetInstance().SetConnectedWalletAddress(null);
+        SequenceLogin.GetInstance().RemoveConnectedWalletAddress();
         SceneManager.LoadScene("LoginScene"); // Re-open your scene or UI to allow the user to log back in and create a new session here
     }
 }
