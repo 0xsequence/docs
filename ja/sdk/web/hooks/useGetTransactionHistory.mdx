@@ -24,7 +24,7 @@ function TransactionList() {
     isFetchingNextPage
   } = useGetTransactionHistory({
     chainId: 1,
-    accountAddress: '0x123...',
+    accountAddresses: ['0x123...'],
     // Optional filters:
     // contractAddress: '0x456...',
     // tokenId: '1'
@@ -128,7 +128,7 @@ type UseGetTransactionHistoryReturnType = UseInfiniteQueryResult<
 ```tsx
 interface UseGetTransactionHistoryArgs {
   chainId: number
-  accountAddress: string
+  accountAddresses: string[]
   contractAddress?: string
   tokenId?: string
   page?: {
@@ -137,13 +137,13 @@ interface UseGetTransactionHistoryArgs {
 }
 ```
 
-| パラメータ             | 型        | 説明                              |
-| ----------------- | -------- | ------------------------------- |
-| `chainId`         | `number` | トランザクションを取得するチェーンID             |
-| `accountAddress`  | `string` | トランザクション履歴を取得するアドレス             |
-| `contractAddress` | `string` | （オプション）コントラクトアドレスでトランザクションを絞り込み |
-| `tokenId`         | `string` | （オプション）トークンIDでトランザクションを絞り込み     |
-| `page`            | `object` | （オプション）ページネーション設定               |
+| パラメータ              | 型          | 説明                              |
+| ------------------ | ---------- | ------------------------------- |
+| `chainId`          | `number`   | トランザクションを取得するチェーンID             |
+| `accountAddresses` | `string[]` | 取引履歴を取得する対象のアドレス                |
+| `contractAddress`  | `string`   | （オプション）コントラクトアドレスでトランザクションを絞り込み |
+| `tokenId`          | `string`   | （オプション）トークンIDでトランザクションを絞り込み     |
+| `page`             | `object`   | （オプション）ページネーション設定               |
 
 ### options: `HooksOptions`
 
