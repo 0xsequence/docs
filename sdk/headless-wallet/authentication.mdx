@@ -72,6 +72,7 @@ For more examples on authenticating with specific providers, please ensure your 
 - [Authentication with PlayFab](/sdk/headless-wallet/authentication#authenticating-with-playfab)
 - [Authentication with Google](/sdk/headless-wallet/authentication#authenticating-with-google)
 - [Authentication with Stytch](/sdk/headless-wallet/authentication#authenticating-with-stytch)
+- [Authentication with X (Twitter)](/sdk/headless-wallet/authentication#authenticating-with-x-twitter)
 
 ### Email Authentication
 
@@ -293,6 +294,24 @@ export const sequence = new SequenceWaaS({
 const idToken = cookies.get('stytch_session_jwt')
 await sequence.signIn({ idToken }, "Stytch Session name");
 ```
+
+### Authenticating with X (Twitter)
+
+<Note>
+Ensure you [complete the configuration details](/solutions/builder/embedded-wallet/x-configuration) for X (Twitter) prior.
+</Note>
+
+To authenticate a user with X (formerly Twitter), you first need to obtain an access token through their OAuth 2.0 flow. Due to some complexities with X's API, we recommend using the Sequence X Auth Proxy as detailed in the configuration guide.
+
+Once you have the user's access token, you can pass it to the `signIn` method using the `xAccessToken` property:
+
+```typescript
+const response = await sequence.signIn({
+  xAccessToken: 'THE_USER_X_ACCESS_TOKEN'
+}, 'X session');
+```
+
+Unlike other providers that use an `idToken` (OIDC), for X auth you will need to provide an `xAccessToken`. Please refer to the [X (Twitter) configuration guide](/solutions/builder/embedded-wallet/x-configuration) for more details.
 
 ## Retrieve User information from Social Providers
 
