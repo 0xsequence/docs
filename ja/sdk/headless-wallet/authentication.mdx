@@ -68,6 +68,7 @@ await sequence.signIn({ idToken }, "Session name");
 - [PlayFabによる認証](/sdk/headless-wallet/authentication#authenticating-with-playfab)
 - [Googleによる認証](/sdk/headless-wallet/authentication#authenticating-with-google)
 - [Stytchによる認証](/sdk/headless-wallet/authentication#authenticating-with-stytch)
+- [X（Twitter）での認証](/sdk/headless-wallet/authentication#authenticating-with-x-twitter)
 
 ### メール認証
 Embedded Wallet SDKでは、メールアドレスを渡してワンタイムパスワードによる認証を行い、Embedded Walletセッションを開始できます。この機能により、以下が可能です。
@@ -283,6 +284,24 @@ export const sequence = new SequenceWaaS({
 const idToken = cookies.get('stytch_session_jwt')
 await sequence.signIn({ idToken }, "Stytch Session name");
 ```
+
+### X（Twitter）での認証方法
+
+<Note>
+  事前に[X（Twitter）の設定詳細](/solutions/builder/embedded-wallet/x-configuration)を完了してください。
+</Note>
+
+X（旧Twitter）でユーザーを認証するには、まずOAuth 2.0フローを通じてアクセストークンを取得する必要があります。XのAPIにはいくつか複雑な点があるため、設定ガイドで説明しているSequence X Auth Proxyの利用を推奨します。
+
+ユーザーのアクセストークンを取得したら、`xAccessToken`プロパティを使って`signIn`メソッドに渡します。
+
+```typescript
+const response = await sequence.signIn({
+  xAccessToken: 'THE_USER_X_ACCESS_TOKEN'
+}, 'X session');
+```
+
+他のプロバイダーが`idToken`（OIDC）を使用するのとは異なり、X認証では`xAccessToken`を指定する必要があります。詳細は[X（Twitter）設定ガイド](/solutions/builder/embedded-wallet/x-configuration)をご参照ください。
 
 ## ソーシャルプロバイダーからユーザー情報を取得する
 認証プロバイダーの設定方法によっては、アプリケーションと連携できるユーザー情報を解析し、何らかの形で利用できます。

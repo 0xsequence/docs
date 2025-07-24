@@ -68,6 +68,7 @@ Para más ejemplos sobre cómo autenticar con proveedores específicos, asegúre
 - [Autenticación con PlayFab](/sdk/headless-wallet/authentication#authenticating-with-playfab)
 - [Autenticación con Google](/sdk/headless-wallet/authentication#authenticating-with-google)
 - [Autenticación con Stytch](/sdk/headless-wallet/authentication#authenticating-with-stytch)
+- [Autenticación con X (Twitter)](/sdk/headless-wallet/authentication#authenticating-with-x-twitter)
 
 ### Autenticación por correo electrónico
 El SDK de Embedded Wallet permite a los desarrolladores ingresar un correo electrónico e iniciar una sesión de Embedded Wallet basada en la respuesta exitosa de una contraseña de un solo uso (OTP). Esta función permite:
@@ -283,6 +284,24 @@ export const sequence = new SequenceWaaS({
 const idToken = cookies.get('stytch_session_jwt')
 await sequence.signIn({ idToken }, "Stytch Session name");
 ```
+
+### Autenticación con X (Twitter)
+
+<Note>
+  Asegúrese de [completar los detalles de configuración](/solutions/builder/embedded-wallet/x-configuration) para X (Twitter) previamente.
+</Note>
+
+Para autenticar a un usuario con X (antes Twitter), primero debe obtener un access token a través del flujo OAuth 2.0 de X. Debido a ciertas complejidades con la API de X, recomendamos utilizar el Sequence X Auth Proxy como se detalla en la guía de configuración.
+
+Una vez que tenga el access token del usuario, puede pasarlo al método `signIn` usando la propiedad `xAccessToken`:
+
+```typescript
+const response = await sequence.signIn({
+  xAccessToken: 'THE_USER_X_ACCESS_TOKEN'
+}, 'X session');
+```
+
+A diferencia de otros proveedores que utilizan un `idToken` (OIDC), para la autenticación con X deberá proporcionar un `xAccessToken`. Consulte la [guía de configuración de X (Twitter)](/solutions/builder/embedded-wallet/x-configuration) para más detalles.
 
 ## Obtener información del usuario desde proveedores sociales
 Dependiendo de cómo esté configurada su aplicación desde la perspectiva de los proveedores de autenticación, tiene la opción de obtener los datos del usuario que pueden compartirse para integrarlos en las aplicaciones.
