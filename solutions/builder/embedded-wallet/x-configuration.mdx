@@ -1,0 +1,128 @@
+---
+title: "X (Twitter) Configuration for Embedded Wallet"
+description: "Learn how to configure X (Twitter) OAuth for your Embedded Wallet instance. This guide covers using Sequence's proxy for X's OAuth 2.0 and the required permissions."
+sidebarTitle: "X (Twitter) Setup"
+---
+
+To integrate X (formerly Twitter) authentication into your Embedded Wallet, you'll need to configure your application to use X's OAuth 2.0.
+
+## Add Your Client ID to Sequence Builder
+
+First, you need to create an application in the X Developer Portal to get a Client ID and Client Secret.
+
+After creating your application, you must add the Client ID to your project's configuration in Sequence Builder.
+
+1. Go to your project in the [Sequence Builder](https://sequence.build).
+2. Navigate to the **Embedded Wallet** settings.
+3. Under the authentication providers, find **X (Twitter)** and paste your **Client ID** into the corresponding field.
+
+This step is crucial for Sequence to verify the authentication requests coming from your application.
+
+## Authenticating with the SDK
+
+Once you have an access token from X, you can pass it to the Sequence WaaS SDK to sign in the user. This is different from other OIDC providers like Google or Epic Games where you would pass an `idToken`. For X, you will use the `xAccessToken` parameter.
+
+```typescript
+await sequence.signIn({ 
+  xAccessToken: 'YOUR_X_ACCESS_TOKEN' 
+});
+```
+
+For more details on how to implement the sign-in flow in your application, please see the [Authentication documentation](/sdk/headless-wallet/authentication).
+
+## Obtaining an Access Token from X
+
+To get an access token, you need to implement the OAuth 2.0 PKCE flow. Due to issues with X's OAuth 2.0 implementation, Sequence hosts a custom proxy service to ensure a smooth and reliable authentication flow.
+
+### Using the Sequence X Auth Proxy
+
+Instead of sending requests directly to `api.x.com`, you will use the Sequence proxy URL that facilitates the OAuth 2.0 flow.
+
+When performing the token exchange in your OAuth 2.0 PKCE flow, you should target the following URL:
+
+```
+https://xproxy.sequence.xyz/api.x.com/2/oauth2/token
+```
+
+### Example Implementation
+
+Here is a minimal example of how to implement the X authentication flow using the Sequence proxy.
+
+<CodeGroup>
+```typescript Step 1: Redirect to X
+// This function constructs the authorization URL and redirects the user.
+function redirectToXAuth() {
+  const params = new URLSearchParams({
+    response_type: 'code',
+    client_id: 'YOUR_X_CLIENT_ID', // Replace with your X Client ID
+    redirect_uri: 'YOUR_REDIRECT_URI', // Your callback URL
+    scope: 'users.read email.read tweet.read', // Required scopes
+    state: 'state', // A random string for security
+    code_challenge: 'challenge', // A PKCE code challenge
+    code_challenge_method: 'plain', // Use 'S256' in production
+  });
+
+  window.location.assign(`https://x.com/i/oauth2/authorize?${params.toString()}`);
+}
+```
+
+```typescript Step 2: Handle Callback & Get Access Token
+// On your callback page, handle the redirect from X and get the access token.
+async function handleXCallback() {
+  const params = new URLSearchParams(window.location.search);
+  const code = params.get('code');
+
+  if (code) {
+    try {
+      // Exchange the authorization code for an access token.
+      // Instead of calling X directly, we use the Sequence proxy.
+      const tokenUrl = 'https://xproxy.sequence.xyz/api.x.com/2/oauth2/token';
+      
+      const tokenResponse = await fetch(tokenUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: new URLSearchParams({
+          code,
+          grant_type: 'authorization_code',
+          client_id: 'YOUR_X_CLIENT_ID', // Replace with your X Client ID
+          redirect_uri: 'YOUR_REDIRECT_URI', // Must match the one in Step 1
+          code_verifier: 'challenge', // The PKCE code verifier
+        }),
+      });
+
+      const { access_token } = await tokenResponse.json();
+
+      if (!access_token) {
+        throw new Error('Failed to obtain access token');
+      }
+
+      // Now you have the access token. You can pass it to the signIn method.
+      console.log('Access Token:', access_token);
+      return access_token;
+
+    } catch (error) {
+      console.error('X sign-in failed:', error);
+    }
+  }
+}
+
+// Call this function when your callback page loads
+handleXCallback();
+```
+</CodeGroup>
+
+<Note>
+For production applications, you should use the `S256` `code_challenge_method` for PKCE, which is more secure. This requires generating a random `code_verifier` string, hashing it with SHA-256, and sending the Base64-URL-encoded hash as the `code_challenge`. The original `code_verifier` is then sent in the token request.
+</Note>
+
+## Required Scopes
+
+When you configure your X application and request authorization from users, you must include the following scopes at a minimum:
+
+- `users.read`
+- `email.read`
+- `tweet.read`
+
+It is important to include `tweet.read`. Due to a peculiarity in the X API, if this scope is not requested, the other scopes may not take effect. Sequence does not read any user tweets; this permission is requested only to ensure the authentication process works correctly.
