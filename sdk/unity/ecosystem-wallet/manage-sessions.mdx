@@ -1,0 +1,60 @@
+---
+title: "Manage Sessions"
+description: Ecosystem Wallet Documentation for Sequence's Unity SDK.
+---
+
+### Add Session
+
+Add additional sessions to your existing login method. Every session shares the same wallet address with the possibility
+of assigning different permissions for each session. You must provide a `SessionPermissions` object whenever you call `AddSession`.
+
+```csharp
+SessionPermissions permissions = sessionBuilder.GetPermissions();
+SequenceSessionWallet wallet = await connect.AddSession(permissions);
+```
+
+### Construct Permissions
+
+Use the `SessionBuilder` class to easily construct a set of permissions for your session.
+
+```csharp
+var signer = new Address("0xb7bE532959236170064cf099e1a3395aEf228F44");
+var deadline = new BigInteger(DateTime.UtcNow.ToUnixTimestamp() * 1000 + 1000 * 60 * 5000);
+var target = new Address("0x8F6066bA491b019bAc33407255f3bc5cC684A5a4");
+
+var sessionBuilder = new SessionBuilder(_chain, signer, 0, deadline);
+sessionBuilder.AddPermission(target);
+```
+
+### Get Wallet
+
+Wallet object used to handle all available sessions.
+
+```csharp
+SequenceWallet wallet = connect.GetWallet();
+```
+
+### Get All Session Wallets
+
+Get all available sessions that you are currently connected to.
+
+```csharp
+SequenceSessionWallet[] sessions = connect.GetAllSessionWallets();
+```
+
+### Remove Session
+
+Remove a session using it's session address.
+
+```csharp
+Address sessionAddress = connect.GetAllSessionWallets()[0].Address;
+SequenceSessionWallet wallet = await connect.RemoveSession(sessionAddress);
+```
+
+### Sign Out
+
+Sign out will clear the local storage.
+
+```csharp
+connect.SignOut();
+```

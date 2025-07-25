@@ -1,0 +1,38 @@
+---
+title: "Blockchain Interactions"
+description: Ecosystem Wallet Documentation for Sequence's Unity SDK.
+---
+
+## Sign messages
+
+Sign messages on an external browser.
+
+```csharp
+SequenceWallet wallet = connect.GetWallet();
+string message = "Your message to sign.";
+
+SignMessageResponse response = await wallet.SignMessage(message);
+string signature = response.signature;
+```
+
+## Send Transactions
+
+Send transactions without paying for gas fees on any testnet or when using Gas Sponsorship.
+
+```csharp
+SequenceWallet wallet = connect.GetWallet();
+string txnHash = await wallet.SendTransaction(calls);
+```
+
+## Send Transactions using Fee Options
+
+Get available fee options for the user and choose one to use when sending the transaction.
+
+```csharp
+SequenceWallet wallet = connect.GetWallet();
+
+FeeOption[] feeOptions = await wallet.GetFeeOptions(calls);
+FeeOption feeOption = feeOptions[0] // Choose a way to select the appropriate option
+
+string txnHash = await wallet.SendTransaction(calls, feeOption);
+```
