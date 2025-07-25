@@ -1,0 +1,120 @@
+---
+title: Embedded Wallet向けX（Twitter）設定
+description: Embedded WalletインスタンスでX（Twitter）OAuthを設定する方法をご案内します。本ガイドでは、XのOAuth 2.0に対してSequenceのプロキシを利用する方法や必要な権限について説明しています。
+sidebarTitle: X（Twitter）のセットアップ
+---
+
+Embedded WalletにX（旧Twitter）認証を組み込むには、アプリケーションでXのOAuth 2.0を利用する設定が必要です。
+
+## Sequence BuilderへのクライアントID追加
+まず、X Developer Portalでアプリケーションを作成し、クライアントIDとクライアントシークレットを取得します。
+
+アプリケーション作成後、クライアントIDをSequence Builderのプロジェクト設定に追加してください。
+1. [Sequence Builder](https://sequence.build)でご自身のプロジェクトにアクセスします。
+2. **Embedded Wallet**の設定画面に移動します。
+3. 認証プロバイダーの一覧から**X（Twitter）**を選び、該当欄に**クライアントID**を貼り付けます。
+
+この手順は、アプリケーションからの認証リクエストをSequenceが正しく検証するために重要です。
+
+## SDKを使った認証
+Xからアクセストークンを取得したら、Sequence WaaS SDKに渡してユーザーをサインインさせます。GoogleやEpic Gamesなど他のOIDCプロバイダーとは異なり、Xの場合は`xAccessToken`パラメータを使用します。
+
+```typescript
+await sequence.signIn({ 
+  xAccessToken: 'YOUR_X_ACCESS_TOKEN' 
+});
+```
+
+アプリケーションでサインインフローを実装する方法の詳細は、[認証ドキュメント](/sdk/headless-wallet/authentication)をご覧ください。
+
+## Xからアクセストークンを取得する方法
+アクセストークンを取得するには、OAuth 2.0 PKCEフローを実装する必要があります。XのOAuth 2.0実装に関する問題に対応するため、Sequenceでは認証フローを円滑かつ確実に行うための独自プロキシサービスを提供しています。
+
+### Sequence X Auth Proxyの利用
+`api.x.com`に直接リクエストを送る代わりに、OAuth 2.0フローを補助するSequenceプロキシURLを利用します。
+
+OAuth 2.0 PKCEフローでトークン交換を行う際は、以下のURLを指定してください。
+
+```
+https://xproxy.sequence.xyz/api.x.com/2/oauth2/token
+```
+
+### 実装例
+以下は、Sequenceプロキシを使ってX認証フローを実装する最小限の例です。
+
+<CodeGroup>
+  ```typescript Step 1: Redirect to X
+  // This function constructs the authorization URL and redirects the user.
+  function redirectToXAuth() {
+    const params = new URLSearchParams({
+      response_type: 'code',
+      client_id: 'YOUR_X_CLIENT_ID', // Replace with your X Client ID
+      redirect_uri: 'YOUR_REDIRECT_URI', // Your callback URL
+      scope: 'users.read email.read tweet.read', // Required scopes
+      state: 'state', // A random string for security
+      code_challenge: 'challenge', // A PKCE code challenge
+      code_challenge_method: 'plain', // Use 'S256' in production
+    });
+
+    window.location.assign(`https://x.com/i/oauth2/authorize?${params.toString()}`);
+  }
+  ```
+
+  ```typescript Step 2: Handle Callback & Get Access Token
+  // On your callback page, handle the redirect from X and get the access token.
+  async function handleXCallback() {
+    const params = new URLSearchParams(window.location.search);
+    const code = params.get('code');
+
+    if (code) {
+      try {
+        // Exchange the authorization code for an access token.
+        // Instead of calling X directly, we use the Sequence proxy.
+        const tokenUrl = 'https://xproxy.sequence.xyz/api.x.com/2/oauth2/token';
+        
+        const tokenResponse = await fetch(tokenUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+          },
+          body: new URLSearchParams({
+            code,
+            grant_type: 'authorization_code',
+            client_id: 'YOUR_X_CLIENT_ID', // Replace with your X Client ID
+            redirect_uri: 'YOUR_REDIRECT_URI', // Must match the one in Step 1
+            code_verifier: 'challenge', // The PKCE code verifier
+          }),
+        });
+
+        const { access_token } = await tokenResponse.json();
+
+        if (!access_token) {
+          throw new Error('Failed to obtain access token');
+        }
+
+        // Now you have the access token. You can pass it to the signIn method.
+        console.log('Access Token:', access_token);
+        return access_token;
+
+      } catch (error) {
+        console.error('X sign-in failed:', error);
+      }
+    }
+  }
+
+  // Call this function when your callback page loads
+  handleXCallback();
+  ```
+</CodeGroup>
+
+<Note>
+  本番環境のアプリケーションでは、より安全な`S256`の`code_challenge_method`をPKCEで利用してください。これはランダムな`code_verifier`文字列を生成し、それをSHA-256でハッシュ化し、Base64-URLエンコードしたものを`code_challenge`として送信します。元の`code_verifier`はトークンリクエスト時に送信します。
+</Note>
+
+## 必要なスコープ
+Xアプリケーションを設定し、ユーザーに認可を求める際は、最低限以下のスコープを含める必要があります。
+- `users.read`
+- `email.read`
+- `tweet.read`
+
+`tweet.read`を必ず含めてください。X APIの仕様により、このスコープをリクエストしないと他のスコープが有効にならない場合があります。Sequenceがユーザーのツイートを取得することはありませんが、認証処理を正しく行うためにこの権限が必要です。
