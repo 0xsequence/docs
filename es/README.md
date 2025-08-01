@@ -1,7 +1,7 @@
-![Sequence: Cree los mejores juegos y experiencias web3 con Sequence](images/sequence-header.jpg)
+![Sequence: Cree las mejores aplicaciones y experiencias web3](images/sequence-header.jpg)
 
 # Documentación de Sequence
-¡Bienvenido a la documentación de Sequence! Su infraestructura para cadenas, juegos y aplicaciones.
+¡Bienvenido a la documentación de Sequence! Su infraestructura para cadenas, aplicaciones y juegos.
 
 ## Desarrollo
 Para instalar las herramientas de desarrollo, use el siguiente comando
