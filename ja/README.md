@@ -1,7 +1,7 @@
-![Sequence: Build the best web3 games and experiences](images/sequence-header.jpg)
+![Sequence: 最高のWeb3アプリと体験を構築する](images/sequence-header.jpg)
 
 # Sequence Documentation
-Welcome to the Sequence docs! Your infrastructure for chains, games, and apps.
+Sequenceドキュメントへようこそ！チェーン、アプリ、ゲームのためのインフラストラクチャです。
 
 ## Development
 To install dev tools, use the following command
