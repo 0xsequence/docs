@@ -1,7 +1,7 @@
-![Sequence: Build the best web3 games and experiences](images/sequence-header.jpg)
+![Sequence: Build the best web3 apps and experiences](images/sequence-header.jpg)
 
 # Sequence Documentation
-Welcome to the Sequence docs! Your infrastructure for chains, games, and apps.
+Welcome to the Sequence docs! Your infrastructure for chains, apps, and games.
 
 ## Development
 To install dev tools, use the following command
