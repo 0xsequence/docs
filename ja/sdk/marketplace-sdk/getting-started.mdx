@@ -1,215 +1,270 @@
 ---
 title: Marketplace SDK のはじめ方
-description: 必要なパッケージのインストールや設定ファイルの作成など、Marketplace SDK の導入手順を解説します。
+description: Marketplace SDK をアプリケーションに統合する方法について、インストールや設定、オファー作成機能の実装手順を解説します。
 sidebarTitle: はじめに
 ---
 
-この統合を始める前に、Web SDK のインストールと設定が完了していることを確認してください。セットアップ手順は [Web SDK - Getting started](/sdk/web/getting-started) のドキュメントをご参照ください。完了したら、ここに戻って続けてください。
-
-それ以外の場合は、Marketplace SDK のインストールから、SDK のインスタンス化、マーケットプレイスと連携するためのフックの使い方まで順を追ってご案内します。
-
-## Marketplace SDK パッケージのインストール
-Marketplace SDK はモジュール式なので、必要なパッケージだけをインストールできます。まずは `@0xsequence/marketplace-sdk` のコアパッケージと、その他必要な依存パッケージをインストールしてください。
-
-```bash
-npm install @0xsequence/connect @0xsequence/checkout @0xsequence/wallet-widget @0xsequence/marketplace-sdk @0xsequence/design-system @0xsequence/network @0xsequence/indexer @0xsequence/metadata wagmi ethers@^6 viem 0xsequence @tanstack/react-query @tanstack/react-query-devtools @legendapp/state framer-motion pino-pretty
-# or
-pnpm add @0xsequence/connect @0xsequence/checkout @0xsequence/wallet-widget @0xsequence/marketplace-sdk @0xsequence/design-system @0xsequence/network @0xsequence/indexer @0xsequence/metadata wagmi ethers@^6 viem 0xsequence @tanstack/react-query @tanstack/react-query-devtools @legendapp/state framer-motion pino-pretty
-# or
-yarn add @0xsequence/connect @0xsequence/checkout @0xsequence/wallet-widget @0xsequence/marketplace-sdk @0xsequence/design-system @0xsequence/network @0xsequence/indexer @0xsequence/metadata wagmi ethers@^6 viem 0xsequence @tanstack/react-query @tanstack/react-query-devtools @legendapp/state framer-motion pino-pretty
-```
-
-# Dapp のセットアップ
-アプリケーションからマーケットプレイスとやり取りするために、core marketplace-sdk ラッパーを利用するには以下の手順に従ってください。
+# はじめに
+NFT を表示し操作できるシンプルな React アプリケーションを作成しましょう。ウォレット接続と基本的な NFT 表示機能をセットアップします。
 
 <Steps>
-  <Step title="Web SDK が正しく統合されているか確認">
-    Marketplace SDK を始める前に、Web SDK が正しく統合されていることが重要です。これを確認するには、ログイン・ログアウトが正常にできるかをチェックしてください。
+  <Step title="Sequence Builder でプロジェクトを作成">
+    コーディングを始める前に、プロジェクトのセットアップが必要です。
+
+    1. [Sequence Builder](https://sequence.build) にアクセスします。
+    2. 新しいプロジェクトを作成します。
+    3. [White-label Marketplace ガイド](https://docs.sequence.xyz/solutions/marketplaces/white-label-marketplace/overview) に従ってください。
+    4. プロジェクト ID と API アクセスキーをメモしておきましょう。
   </Step>
 
-  <Step title="設定ファイルの作成">
-    次に、Marketplace SDK 用の設定変数を作成します。このファイルで環境変数など、Marketplace SDK の主要な設定値を一元管理します。これにより、設定値の管理や保守が容易になります。
+  <Step title="新しい React プロジェクトを作成">
+    このガイドでは Vite、React、TypeScript を使用します。パッケージマネージャーは何でも構いませんが、例では pnpm を使います。
 
-    #### config.ts
+    ```bash
+    # Create a new project
+    pnpm create vite@latest my-marketplace-app -- --template react-ts
 
-    <CodeGroup>
-      ```ts vite
-      import type { SdkConfig } from '@0xsequence/marketplace-sdk';
+    # Navigate to the project directory
+    cd my-marketplace-app
 
-      const projectAccessKey = import.meta.env.VITE_PROJECT_ACCESS_KEY;
-      const projectId = import.meta.env.VITE_PROJECT_ID!;
-      const walletConnectId = import.meta.env.VITE_WALLET_CONNECT_ID;
-
-      export function getConfig() {
-        const config = {
-          projectId,
-          projectAccessKey,
-          walletConnectProjectId: walletConnectId
-        } satisfies SdkConfig;
-
-        return config;
-      }
-      ```
-
-      ```ts nextjs server side rendering
-      import type { SdkConfig } from '@0xsequence/marketplace-sdk';
-
-      const projectAccessKey = process.env.NEXT_PUBLIC_PROJECT_ACCESS_KEY!;
-      const projectId = process.env.NEXT_PUBLIC_PROJECT_ID!;
-      const walletConnectId = process.env.NEXT_PUBLIC_WALLET_CONNECT_ID;
-
-      export function getConfig() {
-        const config = {
-          projectId,
-          projectAccessKey,
-          walletConnectProjectId: walletConnectId
-        } satisfies SdkConfig;
-
-        return config;
-      }
-      ```
-
-      ```ts nextjs client side rendering
-      import type { SdkConfig } from '@0xsequence/marketplace-sdk';
-
-      const projectAccessKey = process.env.NEXT_PUBLIC_PROJECT_ACCESS_KEY!;
-      const projectId = process.env.NEXT_PUBLIC_PROJECT_ID!;
-      const walletConnectId = process.env.NEXT_PUBLIC_WALLET_CONNECT_ID;
-
-      export function getConfig() {
-        const config = {
-          projectId,
-          projectAccessKey,
-          walletConnectProjectId: walletConnectId
-        } satisfies SdkConfig;
-
-        return config;
-      }
-      ```
-    </CodeGroup>
+    # Install dependencies
+    pnpm install
+    ```
   </Step>
 
-  <Step title="SSR クライアントの作成">
-    次に、Marketplace SDK 用の SSR クライアントを作成します。この SSR クライアントは Next.js サーバー上で Marketplace SDK を初期化するエントリーポイントとなり、UI 描画前の効率的なデータ取得や設定が可能になります。
+  <Step title="必要な依存パッケージのインストール">
+    Marketplace SDK とそのピア依存パッケージをインストールします。
 
-    #### SSR クライアントの理解
+    ```bash
+    pnpm add @0xsequence/marketplace-sdk @0xsequence/connect wagmi viem @tanstack/react-query
+    ```
+  </Step>
 
-    SSR クライアントを使うことで、マーケットプレイスの主要なデータや設定にアクセスでき、サーバーサイドで SDK を正しく初期化するのに役立ちます。以下のデータが取得可能です：
+  <Step title="SDK設定の作成">
+    新しいファイル `src/config/sdk.ts` を作成し、SDKの設定を保存します。
 
-    このセットアップにより、サーバーサイドレンダリングと Marketplace SDK のシームレスな統合が実現し、パフォーマンスとユーザー体験が向上します。
+    ```tsx
+    import type { SdkConfig } from "@0xsequence/marketplace-sdk";
 
-    #### ssrClient.ts
+    export const sdkConfig = {
+      projectId: "YOUR_PROJECT_ID",
+      projectAccessKey: "YOUR_PROJECT_ACCESS_KEY",
+    } satisfies SdkConfig;
+    ```
 
-    <CodeGroup>
-      ```ts vite
-      // You can omit this step with VITE
-      ```
+    <Check>
+      `YOUR_PROJECT_ID` と `YOUR_PROJECT_ACCESS_KEY` を実際のプロジェクト情報に置き換えてください。Project ID は `https://sequence.build/project/{YOUR_PROJECT_ID}/overview`、Project Access Key は `https://sequence.build/project/{YOUR_PROJECT_ID}/settings/apikeys` で [Sequence Builder](https://sequence.build) ダッシュボードから確認できます。
+    </Check>
+  </Step>
 
-      ```ts nextjs server side rendering
-      import { getConfig } from './config';
-      import { createSSRClient } from '@0xsequence/marketplace-sdk/react/ssr';
-      import { QueryClient } from '@tanstack/react-query';
+  <Step title="プロバイダーのセットアップ">
+    必要なプロバイダーを設定するために、新しいファイル `src/providers.tsx` を作成します。
 
-      export const ssrClient = async () => {
-        return createSSRClient({
-          cookie: headersList.get('cookie') || '',
-          config: getConfig(),
-          queryClient: new QueryClient(),
-        });
+    ```tsx
+    import {
+      MarketplaceProvider,
+      MarketplaceQueryClientProvider,
+      ModalProvider,
+      createWagmiConfig,
+      getQueryClient,
+      marketplaceConfigOptions,
+    } from "@0xsequence/marketplace-sdk/react";
+    import { useQuery } from "@tanstack/react-query";
+    import { WagmiProvider } from "wagmi";
+    import {
+      SequenceConnectProvider,
+      type ConnectConfig,
+    } from "@0xsequence/connect";
+    import { sdkConfig } from "./config/sdk";
+
+    interface ProvidersProps {
+      children: React.ReactNode;
+    }
+
+    export default function Providers({ children }: ProvidersProps) {
+      const queryClient = getQueryClient();
+      const { data: marketplaceConfig, isLoading } = useQuery(
+        marketplaceConfigOptions(sdkConfig),
+        queryClient
+      );
+
+      if (isLoading) {
+        return <div>Loading configuration...</div>;
+      }
+
+      if (!marketplaceConfig) {
+        return <div>Failed to load marketplace configuration</div>;
+      }
+
+      const connectConfig: ConnectConfig = {
+        projectAccessKey: sdkConfig.projectAccessKey,
+        signIn: {
+          projectName: marketplaceConfig.settings.title,
+        },
       };
-      ```
 
-      ```ts nextjs client side rendering
-      // You can omit this step in NEXT.js if your layout uses 'use client' instead of server-side rendering
-      ```
-    </CodeGroup>
+      const wagmiConfig = createWagmiConfig(marketplaceConfig, sdkConfig);
+
+      return (
+        <WagmiProvider config={wagmiConfig}>
+          <MarketplaceQueryClientProvider>
+            <SequenceConnectProvider config={connectConfig}>
+              <MarketplaceProvider config={sdkConfig}>
+                {children}
+                <ModalProvider />
+              </MarketplaceProvider>
+            </SequenceConnectProvider>
+          </MarketplaceQueryClientProvider>
+        </WagmiProvider>
+      );
+    }
+    ```
+
+    <Note>
+      SDKの設定では、`shadowDom` がデフォルトで有効になっています。これは、Tailwind CSS を使用していない場合でも、コンポーネントにスタイルが正しく適用されるようにするためです。
+    </Note>
   </Step>
 
-  <Step title="Marketplace SDK プロバイダーを Web SDK プロバイダーと一緒に追加">
-    `Providers.tsx` ファイルを開き、Web SDK の設定とともに Marketplace SDK のプロバイダーも統合してください。
+  <Step title="メインエントリーポイントの更新">
+    `main.tsx` を更新して Providers コンポーネントを利用します。
 
-    <CodeGroup>
-      ```ts vite
-      import {
-        MarketplaceProvider,
-        ModalProvider,
-      } from "@0xsequence/marketplace-sdk/react";
-      import { getConfig } from "./config";
+    ```tsx
+    import React from 'react'
+    import ReactDOM from 'react-dom/client'
+    import App from './App'
+    import Providers from './providers'
+    import './index.css'
 
-      const sdkConfig = getConfig();
-
-      // Into your React component:
-
-      return (
-        /* Your other providers should be placed here (they should wrap MarketplaceProvider) */
-        
-        <MarketplaceProvider config={sdkConfig}>
-          {children}
-          <ModalProvider />
-        </MarketplaceProvider>
-
-        /* Your other providers should close here */
-      );
-      ```
-
-      ```ts nextjs server side rendering
-      import {
-        MarketplaceProvider,
-        ModalProvider,
-        marketplaceConfigOptions,
-      } from "@0xsequence/marketplace-sdk/react";
-
-      import {
-        QueryClient,
-        QueryClientProvider,
-        useQuery,
-      } from '@tanstack/react-query';
-
-      import { ssrClient } from '../ssrClient.ts';
-
-      // Into your React component:
-
-      const { getInitialState, config: sdkConfig } = ssrClient();
-      const sdkInitialState = await getInitialState();
-
-      return (
-        /* Your other providers should be placed here (they should wrap MarketplaceProvider) */
-        
-        <MarketplaceProvider config={sdkConfig} sdkInitialState={sdkInitialState}>
-          {children}
-          <ModalProvider />
-        </MarketplaceProvider>
-
-        /* Your other providers should close here */
-      );
-      ```
-
-      ```ts nextjs client side rendering
-      import {
-        MarketplaceProvider,
-        ModalProvider,
-      } from "@0xsequence/marketplace-sdk/react";
-      import { getConfig } from "./config";
-
-      const sdkConfig = getConfig();
-
-      // Into your React component:
-
-      return (
-        /* Your other providers should be placed here (they should wrap MarketplaceProvider) */
-        
-        <MarketplaceProvider config={sdkConfig}>
-          {children}
-          <ModalProvider />
-        </MarketplaceProvider>
-
-        /* Your other providers should close here */
-      );
-      ```
-    </CodeGroup>
+    ReactDOM.createRoot(document.getElementById('root')!).render(
+      <React.StrictMode>
+        <Providers>
+          <App />
+        </Providers>
+      </React.StrictMode>
+    )
+    ```
   </Step>
 
-  <Step title="完了">
-    これで、Marketplace SDKで利用可能なフックを探索する準備が整いました。興味がありますか？詳しくは[Marketplace SDK hooks](/sdk/marketplace-sdk/overview#marketplace-sdk-hooks)のドキュメントをご覧ください。
+  <Step title="Connect ボタンコンポーネントの作成">
+    ウォレット接続用の新しいコンポーネント `src/components/ConnectButton.tsx` を作成します。
+
+    ```tsx
+    import { useOpenConnectModal } from '@0xsequence/connect';
+    import { useAccount } from 'wagmi';
+
+    export default function ConnectButton() {
+      const { setOpenConnectModal } = useOpenConnectModal();
+      const { address } = useAccount();
+
+      return (
+        <button
+          onClick={() => setOpenConnectModal(true)}
+        >
+          {address ? `${address.slice(0, 6)}...${address.slice(-4)}` : "Connect Wallet"}
+        </button>
+      );
+    }
+    ```
+  </Step>
+
+  <Step title="NFT カードコンポーネントの作成">
+    NFT を表示・操作するための新しいコンポーネント `src/components/NFTCard.tsx` を作成します。
+
+    ```tsx
+    import {
+      useCollectible,
+      useMakeOfferModal,
+    } from "@0xsequence/marketplace-sdk/react";
+    import type { Address } from "viem";
+
+    const collectionAddress = "YOUR_COLLECTION_ADDRESS" as Address;
+    const collectibleId = "1" as string;
+    const chainId = 80002 as number; // Polygon Amoy Testnet
+
+    export default function NFTCard() {
+      const { data: nft } = useCollectible({
+        chainId,
+        collectionAddress,
+        collectibleId,
+      });
+
+      const { show } = useMakeOfferModal();
+
+      if (!nft) return null;
+
+      return (
+        <div>
+          <img src={nft.image} alt={nft.name} />
+          <h3>{nft.name}</h3>
+          <button
+            onClick={() => {
+              show({
+                chainId,
+                collectionAddress,
+                collectibleId,
+              });
+            }}
+          >
+            Make Offer
+          </button>
+        </div>
+      );
+    }
+    ```
+
+    <Note>
+      コレクションアドレスとチェーン ID を取得するには：
+
+      1. `https://sequence.build/project/{YOUR_PROJECT_ID}/marketplace/market` にアクセスし、作成したコレクションのアドレスをコピーします。
+      2. チェーン ID について：
+         - コレクションをデプロイしたネットワークが分かっている場合は、そのチェーン ID を使用してください。
+         - 不明な場合は [Sequence Chainlist](https://sequence.xyz/chains) でコレクションがデプロイされているチェーン ID を探してください（"Supported" ステータスのネットワークを確認）。
+      3. コレクション内で少なくとも 1 つコレクティブルをミントし、そのコレクティブルの ID を `collectibleId` として使用してください。
+    </Note>
+
+    <Tip>
+      最適な体験には Sequence Connect を推奨しますが、Marketplace SDK では他のウォレットプロバイダーも利用可能です。カスタムウォレットコネクターについては [カスタムコネクターのガイド](/sdk/web/custom-connectors) をご覧ください。
+    </Tip>
+  </Step>
+
+  <Step title="App コンポーネントの更新">
+    `App.tsx` を更新して新しいコンポーネントを利用します。
+
+    ```tsx
+    import ConnectButton from './components/ConnectButton'
+    import NFTCard from './components/NFTCard'
+
+    export default function App() {
+      return (
+        <div>
+          <ConnectButton />
+          <NFTCard />
+        </div>
+      )
+    }
+    ```
+  </Step>
+
+  <Step title="アプリケーションの実行">
+    開発サーバーを起動します。
+
+    ```bash
+    pnpm run dev
+    ```
+
+    マーケットプレイスアプリケーションが `http://localhost:5173` で動作します。次のことができます：
+
+    1. Connect ボタンでウォレットを接続
+    2. NFT の詳細を表示
+    3. Make Offer ボタンで NFT にオファーを出す
   </Step>
 </Steps>
+
+## 次のステップ
+基本的な機能が動作したら、次のことにも挑戦できます：
+- NFT のリスティング作成
+- 注文の管理
+- UI のカスタマイズ
+- さらに多くの機能については他のガイドもご覧ください。
+
+サポートが必要ですか？[Discord コミュニティ](https://discord.gg/sequence) にご参加ください。
