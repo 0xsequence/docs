@@ -40,6 +40,23 @@ Vamos a crear una aplicación React sencilla que pueda mostrar e interactuar con
     ```
   </Step>
 
+  <Step title="Crear configuración del SDK">
+    Cree un nuevo archivo `src/config/sdk.ts` para guardar la configuración del SDK:
+
+    ```tsx
+    import type { SdkConfig } from "@0xsequence/marketplace-sdk";
+
+    export const sdkConfig = {
+      projectId: "YOUR_PROJECT_ID",
+      projectAccessKey: "YOUR_PROJECT_ACCESS_KEY",
+    } satisfies SdkConfig;
+    ```
+
+    <Check>
+      Asegúrese de reemplazar `YOUR_PROJECT_ID` y `YOUR_PROJECT_ACCESS_KEY` por las credenciales reales de su proyecto. Puede encontrar su Project ID en `https://sequence.build/project/{YOUR_PROJECT_ID}/overview` y su Project Access Key en `https://sequence.build/project/{YOUR_PROJECT_ID}/settings/apikeys` en el panel de [Sequence Builder](https://sequence.build).
+    </Check>
+  </Step>
+
   <Step title="Configure los Providers">
     Cree un nuevo archivo `src/providers.tsx` para configurar los providers necesarios:
 
@@ -58,19 +75,13 @@ Vamos a crear una aplicación React sencilla que pueda mostrar e interactuar con
       SequenceConnectProvider,
       type ConnectConfig,
     } from "@0xsequence/connect";
-    import type { SdkConfig } from "@0xsequence/marketplace-sdk";
+    import { sdkConfig } from "./config/sdk";
 
     interface ProvidersProps {
       children: React.ReactNode;
     }
 
     export default function Providers({ children }: ProvidersProps) {
-      const sdkConfig = {
-        projectId: "YOUR_PROJECT_ID",
-        projectAccessKey: "YOUR_PROJECT_ACCESS_KEY",
-        shadowDom: true,
-      } satisfies SdkConfig;
-
       const queryClient = getQueryClient();
       const { data: marketplaceConfig, isLoading } = useQuery(
         marketplaceConfigOptions(sdkConfig),
@@ -109,12 +120,8 @@ Vamos a crear una aplicación React sencilla que pueda mostrar e interactuar con
     }
     ```
 
-    <Check>
-      Asegúrese de reemplazar `YOUR_PROJECT_ID` y `YOUR_PROJECT_ACCESS_KEY` por las credenciales reales de su proyecto. Puede encontrar su Project ID en `https://sequence.build/project/{YOUR_PROJECT_ID}/overview` y su Project Access Key en `https://sequence.build/project/{YOUR_PROJECT_ID}/settings/apikeys` en el panel de [Sequence Builder](https://sequence.build).
-    </Check>
-
     <Note>
-      La opción `shadowDom: true` en la configuración del SDK es necesaria si no utiliza Tailwind CSS. Esto asegura que los estilos se apliquen correctamente a los componentes.
+      Tenga en cuenta que `shadowDom` está habilitado por defecto en la configuración del SDK. Esto garantiza que los estilos se apliquen correctamente a los componentes cuando no se utiliza Tailwind CSS.
     </Note>
   </Step>
 
@@ -150,7 +157,7 @@ Vamos a crear una aplicación React sencilla que pueda mostrar e interactuar con
       const { address } = useAccount();
 
       return (
-        <button 
+        <button
           onClick={() => setOpenConnectModal(true)}
         >
           {address ? `${address.slice(0, 6)}...${address.slice(-4)}` : "Connect Wallet"}
