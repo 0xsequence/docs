@@ -30,6 +30,7 @@ Let's create a simple React application that can display and interact with NFTs.
     # Install dependencies
     pnpm install
     ```
+
   </Step>
 
   <Step title="Install Required Dependencies">
@@ -38,6 +39,25 @@ Let's create a simple React application that can display and interact with NFTs.
     ```bash
     pnpm add @0xsequence/marketplace-sdk @0xsequence/connect wagmi viem @tanstack/react-query
     ```
+
+  </Step>
+
+  <Step title="Create SDK Configuration">
+    Create a new file `src/config/sdk.ts` to store your SDK configuration:
+
+    ```tsx
+    import type { SdkConfig } from "@0xsequence/marketplace-sdk";
+
+    export const sdkConfig = {
+      projectId: "YOUR_PROJECT_ID",
+      projectAccessKey: "YOUR_PROJECT_ACCESS_KEY",
+    } satisfies SdkConfig;
+    ```
+
+    <Check>
+      Make sure to replace `YOUR_PROJECT_ID` and `YOUR_PROJECT_ACCESS_KEY` with your actual project credentials. You can find your Project ID at `https://sequence.build/project/{YOUR_PROJECT_ID}/overview` and your Project Access Key at `https://sequence.build/project/{YOUR_PROJECT_ID}/settings/apikeys` in the [Sequence Builder](https://sequence.build) dashboard.
+    </Check>
+
   </Step>
 
   <Step title="Set Up Providers">
@@ -58,19 +78,13 @@ Let's create a simple React application that can display and interact with NFTs.
       SequenceConnectProvider,
       type ConnectConfig,
     } from "@0xsequence/connect";
-    import type { SdkConfig } from "@0xsequence/marketplace-sdk";
+    import { sdkConfig } from "./config/sdk";
 
     interface ProvidersProps {
       children: React.ReactNode;
     }
 
     export default function Providers({ children }: ProvidersProps) {
-      const sdkConfig = {
-        projectId: "YOUR_PROJECT_ID",
-        projectAccessKey: "YOUR_PROJECT_ACCESS_KEY",
-        shadowDom: true,
-      } satisfies SdkConfig;
-
       const queryClient = getQueryClient();
       const { data: marketplaceConfig, isLoading } = useQuery(
         marketplaceConfigOptions(sdkConfig),
@@ -109,13 +123,10 @@ Let's create a simple React application that can display and interact with NFTs.
     }
     ```
 
-    <Check>
-      Make sure to replace `YOUR_PROJECT_ID` and `YOUR_PROJECT_ACCESS_KEY` with your actual project credentials. You can find your Project ID at `https://sequence.build/project/{YOUR_PROJECT_ID}/overview` and your Project Access Key at `https://sequence.build/project/{YOUR_PROJECT_ID}/settings/apikeys` in the [Sequence Builder](https://sequence.build) dashboard.
-    </Check>
-
     <Note>
-      The `shadowDom: true` setting in the SDK configuration is required when not using Tailwind CSS. This ensures that the styles are properly applied to the components.
+      Note that `shadowDom` is enabled by default in the SDK configuration. This ensures that the styles are properly applied to the components when not using Tailwind CSS.
     </Note>
+
   </Step>
 
   <Step title="Update Main Entry Point">
@@ -136,6 +147,7 @@ Let's create a simple React application that can display and interact with NFTs.
       </React.StrictMode>
     )
     ```
+
   </Step>
 
   <Step title="Create Connect Button Component">
@@ -150,7 +162,7 @@ Let's create a simple React application that can display and interact with NFTs.
       const { address } = useAccount();
 
       return (
-        <button 
+        <button
           onClick={() => setOpenConnectModal(true)}
         >
           {address ? `${address.slice(0, 6)}...${address.slice(-4)}` : "Connect Wallet"}
@@ -158,6 +170,7 @@ Let's create a simple React application that can display and interact with NFTs.
       );
     }
     ```
+
   </Step>
 
   <Step title="Create NFT Card Component">
@@ -217,6 +230,7 @@ Let's create a simple React application that can display and interact with NFTs.
     <Tip>
       While Sequence Connect is recommended for the best experience, you can use other wallet providers with the Marketplace SDK. For custom wallet connectors, see our guide on [custom connectors](/sdk/web/custom-connectors).
     </Tip>
+
   </Step>
 
   <Step title="Update App Component">
@@ -235,6 +249,7 @@ Let's create a simple React application that can display and interact with NFTs.
       )
     }
     ```
+
   </Step>
 
   <Step title="Run Your Application">
@@ -248,12 +263,14 @@ Let's create a simple React application that can display and interact with NFTs.
     1. Connect your wallet using the connect button
     2. View NFT details
     3. Make offers on NFTs using the Make Offer button
+
   </Step>
 </Steps>
 
 ## Next Steps
 
 Now that you have the basics working, you can:
+
 - Create NFT listings
 - Manage orders
 - Customize the UI
