@@ -40,6 +40,23 @@ NFT を表示し操作できるシンプルな React アプリケーションを
     ```
   </Step>
 
+  <Step title="SDK設定の作成">
+    新しいファイル `src/config/sdk.ts` を作成し、SDKの設定を保存します。
+
+    ```tsx
+    import type { SdkConfig } from "@0xsequence/marketplace-sdk";
+
+    export const sdkConfig = {
+      projectId: "YOUR_PROJECT_ID",
+      projectAccessKey: "YOUR_PROJECT_ACCESS_KEY",
+    } satisfies SdkConfig;
+    ```
+
+    <Check>
+      `YOUR_PROJECT_ID` と `YOUR_PROJECT_ACCESS_KEY` を実際のプロジェクト情報に置き換えてください。Project ID は `https://sequence.build/project/{YOUR_PROJECT_ID}/overview`、Project Access Key は `https://sequence.build/project/{YOUR_PROJECT_ID}/settings/apikeys` で [Sequence Builder](https://sequence.build) ダッシュボードから確認できます。
+    </Check>
+  </Step>
+
   <Step title="プロバイダーのセットアップ">
     必要なプロバイダーを設定するために、新しいファイル `src/providers.tsx` を作成します。
 
@@ -58,19 +75,13 @@ NFT を表示し操作できるシンプルな React アプリケーションを
       SequenceConnectProvider,
       type ConnectConfig,
     } from "@0xsequence/connect";
-    import type { SdkConfig } from "@0xsequence/marketplace-sdk";
+    import { sdkConfig } from "./config/sdk";
 
     interface ProvidersProps {
       children: React.ReactNode;
     }
 
     export default function Providers({ children }: ProvidersProps) {
-      const sdkConfig = {
-        projectId: "YOUR_PROJECT_ID",
-        projectAccessKey: "YOUR_PROJECT_ACCESS_KEY",
-        shadowDom: true,
-      } satisfies SdkConfig;
-
       const queryClient = getQueryClient();
       const { data: marketplaceConfig, isLoading } = useQuery(
         marketplaceConfigOptions(sdkConfig),
@@ -109,12 +120,8 @@ NFT を表示し操作できるシンプルな React アプリケーションを
     }
     ```
 
-    <Check>
-      `YOUR_PROJECT_ID` と `YOUR_PROJECT_ACCESS_KEY` を実際のプロジェクト情報に置き換えてください。Project ID は `https://sequence.build/project/{YOUR_PROJECT_ID}/overview`、Project Access Key は `https://sequence.build/project/{YOUR_PROJECT_ID}/settings/apikeys` で [Sequence Builder](https://sequence.build) ダッシュボードから確認できます。
-    </Check>
-
     <Note>
-      SDK 設定の `shadowDom: true` オプションは、Tailwind CSS を使用しない場合に必要です。これにより、スタイルがコンポーネントに正しく適用されます。
+      SDKの設定では、`shadowDom` がデフォルトで有効になっています。これは、Tailwind CSS を使用していない場合でも、コンポーネントにスタイルが正しく適用されるようにするためです。
     </Note>
   </Step>
 
@@ -150,7 +157,7 @@ NFT を表示し操作できるシンプルな React アプリケーションを
       const { address } = useAccount();
 
       return (
-        <button 
+        <button
           onClick={() => setOpenConnectModal(true)}
         >
           {address ? `${address.slice(0, 6)}...${address.slice(-4)}` : "Connect Wallet"}
