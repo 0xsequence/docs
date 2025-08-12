@@ -5,7 +5,7 @@ sidebarTitle: はじめに
 ---
 
 # はじめに
-NFT を表示し操作できるシンプルな React アプリケーションを作成しましょう。ウォレット接続と基本的な NFT 表示機能をセットアップします。
+コレクティブルを表示・操作できるシンプルなReactアプリケーションを作成します。ウォレット接続と基本的なコレクティブル閲覧機能を設定しましょう。
 
 <Steps>
   <Step title="Sequence Builder でプロジェクトを作成">
@@ -167,8 +167,8 @@ NFT を表示し操作できるシンプルな React アプリケーションを
     ```
   </Step>
 
-  <Step title="NFT カードコンポーネントの作成">
-    NFTを表示および操作するための新しいコンポーネント `src/components/CollectibleCard.tsx` を作成します。
+  <Step title="コレクティブルカードコンポーネントの作成">
+    コレクティブルを表示・操作するための新しいコンポーネント `src/components/CollectibleCard.tsx` を作成します。
 
     ```tsx
     import {
@@ -177,25 +177,25 @@ NFT を表示し操作できるシンプルな React アプリケーションを
     } from "@0xsequence/marketplace-sdk/react";
     import type { Address } from "viem";
 
-    const collectionAddress = "YOUR_COLLECTION_ADDRESS" as Address;
-    const collectibleId = "1" as string;
-    const chainId = 80002 as number; // Polygon Amoy Testnet
-
     export default function CollectibleCard() {
+      const { data: marketplaceConfig } = useMarketplaceConfig();
+      const { chainId, itemsAddress } = marketplaceConfig?.market
+      .collections[0] as MarketCollection;
+
       const { data: nft } = useCollectible({
         chainId,
-        collectionAddress,
-        collectibleId,
+        collectionAddress: itemsAddress,
+        collectibleId: "0",
       });
 
       const { show } = useMakeOfferModal();
 
-      if (!nft) return null;
+      if (!collectible) return null;
 
       return (
         <div>
-          <img src={nft.image} alt={nft.name} />
-          <h3>{nft.name}</h3>
+          <img src={collectible.image} alt={collectible.name} />
+          <h3>{collectible.name}</h3>
           <button
             onClick={() => {
               show({
@@ -255,14 +255,14 @@ NFT を表示し操作できるシンプルな React アプリケーションを
     マーケットプレイスアプリケーションが `http://localhost:5173` で動作します。次のことができます：
 
     1. Connect ボタンでウォレットを接続
-    2. NFT の詳細を表示
-    3. Make Offer ボタンで NFT にオファーを出す
+    2. コレクティブルの詳細を表示する
+    3. 「オファーする」ボタンを使ってコレクティブルにオファーを出す
   </Step>
 </Steps>
 
 ## 次のステップ
 基本的な機能が動作したら、次のことにも挑戦できます：
-- NFT のリスティング作成
+- コレクティブルのリスティングを作成する
 - 注文の管理
 - UI のカスタマイズ
 - さらに多くの機能については他のガイドもご覧ください。
