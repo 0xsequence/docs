@@ -1,62 +1,196 @@
 ---
 title: useBuyModal
-description: useBuyModalフックは、マーケットプレイスで販売中のNFTを購入するためのものです。購入手続きやトランザクションの実行を担当します。
+description: NFT購入用の購入モーダルインターフェースを管理するためのフック
 sidebarTitle: useBuyModal
 ---
 
-```ts
-import { useBuyModal } from "@0xsequence/marketplace-sdk/react";
+## インポート
 
-## Into your React component:
-
-const { show: showBuyModal } = useBuyModal({
-	onSuccess(hash) {
-		console.log("Buy transaction sent with hash: ", hash);
-	},
-	onError,
-});
-
-const onClickBuy = () => {
-	showBuyModal({
-		chainId,
-		collectionAddress,
-		tokenId,
-		order,
-	});
-};
-
-return <button onClick={onClickBuy}>Buy</button>
+```tsx
+import { useBuyModal } from '@0xsequence/marketplace-sdk/react'
 ```
 
-<ResponseField name="useBuyModal">
-  <ResponseField name="* params" />
+## 使い方
 
-  <Expandable>
-    ```ts
-    interface useBuyModal {
-    	onSuccess?: ({ hash, orderId }: {
-    			hash?: Hash;
-    			orderId?: string;
-    	}) => void;
-    	onError?: (error: Error) => void;
+### 例：マーケットとショップ購入を含むAppコンポーネント
+
+```tsx
+import type { MarketplaceKind } from '@0xsequence/marketplace-sdk'
+import { useBuyModal } from '@0xsequence/marketplace-sdk/react'
+import type { Address } from 'viem'
+
+export default function App() {
+  // Market purchase modal (Secondary Sales)
+  const { show: showMarketModal } = useBuyModal({
+    onSuccess: ({ hash, orderId }) => {
+      console.log('Market purchase successful', { hash, orderId })
+    },
+    onError: (error) => {
+      console.error('Market purchase failed:', error.message)
     }
-    ```
-  </Expandable>
+  })
 
-  <ResponseField name="* return properties" />
+  // Shop purchase modal (Primary Sales)
+  const { show: showShopModal } = useBuyModal({
+    onSuccess: ({ hash }) => {
+      console.log('Shop purchase successful', { hash })
+    },
+    onError: (error) => {
+      console.error('Shop purchase failed:', error.message)
+    }
+  })
 
-  <Expandable>
-    <ResponseField name="show" type="(args: ShowBuyModalArgs) => void">
-      ```ts
-      interface ShowBuyModalArgs {
-      	chainId: string;
-      	collectionAddress: Hex;
-      	tokenId: string;
-      	order: Order;
-      }
-      ```
-    </ResponseField>
+  const marketData = {
+    chainId: 1, // Ethereum mainnet
+    collectionAddress: '0x1234567890123456789012345678901234567890' as Address,
+    collectibleId: '1',
+    orderId: 'order123',
+    marketplace: 'opensea' as MarketplaceKind,
+    priceUSDFormatted: '100.00'
+  }
 
-    <ResponseField name="close" type="() => void" />
-  </Expandable>
-</ResponseField>
+  const shopData = {
+    chainId: 1,
+    collectionAddress: '0x1234567890123456789012345678901234567890' as Address,
+    salesContractAddress: '0x0987654321098765432109876543210987654321' as Address,
+    salePrice: {
+      amount: '100000000000000000', // 0.1 ETH in wei
+      currencyAddress: '0x0000000000000000000000000000000000000000' as Address // ETH
+    },
+    quantityRemaining: 100
+  }
+
+  const handleMarketBuy = () => {
+    showMarketModal({
+      chainId: marketData.chainId,
+      collectionAddress: marketData.collectionAddress,
+      collectibleId: marketData.collectibleId,
+      orderId: marketData.orderId,
+      marketplace: marketData.marketplace,
+    })
+  }
+
+  const handleShopBuy = () => {
+    showShopModal({
+      chainId: shopData.chainId,
+      collectionAddress: shopData.collectionAddress,
+      salesContractAddress: shopData.salesContractAddress,
+      marketplaceType: 'shop',
+      quantityDecimals: 0,
+      quantityRemaining: shopData.quantityRemaining,
+      items: [{ quantity: '1' }],
+      salePrice: shopData.salePrice
+    })
+  }
+
+  return (
+    <div style={{ padding: '20px' }}>
+      <div style={{ marginBottom: '20px' }}>
+        <h3>Market Purchase</h3>
+        <p>Price: ${marketData.priceUSDFormatted}</p>
+        <button onClick={handleMarketBuy}>
+          Buy from Market
+        </button>
+      </div>
+
+      <div>
+        <h3>Shop Purchase</h3>
+        <p>Quantity Remaining: {shopData.quantityRemaining}</p>
+        <button onClick={handleShopBuy}>
+          Buy from Shop
+        </button>
+      </div>
+    </div>
+  )
+}
+```
+
+## パラメータ
+このフックは、オプションで以下のプロパティを持つ `callbacks` オブジェクトを受け取ります：
+
+```tsx
+interface ModalCallbacks {
+  onSuccess?: ({ hash, orderId }: { hash?: Hash; orderId?: string }) => void
+  onError?: (error: Error) => void
+  onBuyAtFloorPrice?: () => void
+  successActionButtons?: Array<{ label: string; action: () => void }>
+}
+```
+
+| パラメータ                            | 型                                                                | 説明                                  |
+| -------------------------------- | ---------------------------------------------------------------- | ----------------------------------- |
+| `callbacks.onSuccess`            | `({ hash, orderId }: { hash?: Hash; orderId?: string }) => void` | 購入が成功した際に呼び出されるオプションのコールバック関数       |
+| `callbacks.onError`              | `(error: Error) => void`                                         | 購入時にエラーが発生した場合に呼び出されるオプションのコールバック関数 |
+| `callbacks.onBuyAtFloorPrice`    | `() => void`                                                     | フロア価格で購入する際に呼び出されるオプションのコールバック関数    |
+| `callbacks.successActionButtons` | `Array<{ label: string; action: () => void }>`                   | 成功時に表示するアクションボタンのオプション配列            |
+
+## 返り値の型
+このフックは、以下のメソッドを持つオブジェクトを返します：
+
+```tsx
+{
+  show: (args: BuyModalProps) => void
+  close: () => void
+}
+```
+
+### メソッド一覧
+
+#### show
+`(args: BuyModalProps) => void`
+
+指定したパラメータで購入モーダルを開きます。`BuyModalProps` は購入タイプに応じて `ShopBuyModalProps` または `MarketplaceBuyModalProps` のいずれかになります。
+
+マーケット購入（セカンダリーセール）の場合：
+
+```tsx
+interface MarketplaceBuyModalProps extends BuyModalBaseProps {
+  marketplaceType?: 'market'
+  collectibleId: string
+  marketplace: MarketplaceKind
+  orderId: string
+}
+```
+
+ショップ購入（プライマリーセール）の場合：
+
+```tsx
+interface ShopBuyModalProps extends BuyModalBaseProps {
+  marketplaceType: 'shop'
+  salesContractAddress: Address
+  items: Array<Partial<CheckoutOptionsItem> & { tokenId?: string }>
+  quantityDecimals: number
+  quantityRemaining: number
+  salePrice: {
+    amount: string
+    currencyAddress: Address
+  }
+  unlimitedSupply?: boolean
+}
+```
+
+どちらのタイプも `BuyModalBaseProps` を継承しています：
+
+```tsx
+interface BuyModalBaseProps {
+  chainId: number
+  collectionAddress: Address
+  skipNativeBalanceCheck?: boolean
+  nativeTokenAddress?: Address
+  marketplaceType?: MarketplaceType
+  customCreditCardProviderCallback?: (buyStep: Step) => void
+  successActionButtons?: Array<{ label: string; action: () => void }>
+}
+```
+
+#### close
+`() => void`
+
+購入モーダルを閉じます。
+
+## 補足
+`useBuyModal` フックは、NFT購入用の購入モーダルインターフェースを簡単に管理できる方法を提供します。主な機能は以下の通りです：
+- モーダルの開閉
+- 購入フローの状態管理
+- エラー処理や成功時のコールバック対応
+- プライマリーセールとセカンダリーセールの両方に対応
