@@ -177,16 +177,19 @@ Let's create a simple React application that can display and interact with colle
       useCollectible,
       useMakeOfferModal,
     } from "@0xsequence/marketplace-sdk/react";
+    import type { Address } from "viem";
 
     export default function CollectibleCard() {
       const { data: marketplaceConfig } = useMarketplaceConfig();
-      const { chainId, itemsAddress } = marketplaceConfig?.market
-      .collections[0] as MarketCollection;
+      const collection = marketplaceConfig?.market.collections[0];  // First collection setup in Sequence Builder
+      const chainId = collection?.chainId as number;
+      const collectionAddress = collection?.itemsAddress as Address;
+      const collectibleId = "0";
 
       const { data: collectible, isLoading: isCollectibleLoading, isError: isCollectibleError } = useCollectible({
         chainId,
-        collectionAddress: itemsAddress,
-        collectibleId: "0",
+        collectionAddress,
+        collectibleId,
       });
 
       const { show } = useMakeOfferModal();
