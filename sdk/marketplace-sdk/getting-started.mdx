@@ -1,229 +1,289 @@
 ---
 title: "Getting Started with Marketplace SDK"
-description: Learn how to get started with Marketplace SDK by installing the necessary packages and setting up configs
+description: Learn how to integrate Marketplace SDK into your application with guidance on installation, configuration, and implementing the make offer feature
 sidebarTitle: Getting Started
 ---
 
-Prior to beginning this integration, ensure you have installed and configured our Web SDK. For setup instructions, please refer to the [Web SDK - Getting started](/sdk/web/getting-started) documentation. Once complete, return here to proceed.
+# Getting Started
 
-Otherwise, we will walk you through the process of installing Marketplace SDK, instantiating the SDK and providing you some hooks to work with our marketplace
+Let's create a simple React application that can display and interact with collectibles. We'll set up wallet connection and basic collectible viewing functionality.
 
-## Installing Marketplace SDK Packages
-
-Marketplace SDK is modular, allowing you to install only the necessary packages. To get started, install the `@0xsequence/marketplace-sdk` core package, as well as install other dependencies necessary dependencies.
-
-```bash
-npm install @0xsequence/connect @0xsequence/checkout @0xsequence/wallet-widget @0xsequence/marketplace-sdk @0xsequence/design-system @0xsequence/network @0xsequence/indexer @0xsequence/metadata wagmi ethers@^6 viem 0xsequence @tanstack/react-query @tanstack/react-query-devtools @legendapp/state framer-motion pino-pretty
-# or
-pnpm add @0xsequence/connect @0xsequence/checkout @0xsequence/wallet-widget @0xsequence/marketplace-sdk @0xsequence/design-system @0xsequence/network @0xsequence/indexer @0xsequence/metadata wagmi ethers@^6 viem 0xsequence @tanstack/react-query @tanstack/react-query-devtools @legendapp/state framer-motion pino-pretty
-# or
-yarn add @0xsequence/connect @0xsequence/checkout @0xsequence/wallet-widget @0xsequence/marketplace-sdk @0xsequence/design-system @0xsequence/network @0xsequence/indexer @0xsequence/metadata wagmi ethers@^6 viem 0xsequence @tanstack/react-query @tanstack/react-query-devtools @legendapp/state framer-motion pino-pretty
-```
-
-# Setting Up your Dapp
-
-To utilize the core marketplace-sdk wrapper to interact with your marketplace from your application, follow these steps:
 <Steps>
+  <Step title="Create a Project in Sequence Builder">
+    Before you begin coding, you'll need to set up your project:
+    1. Go to [Sequence Builder](https://sequence.build)
+    2. Create a new project
+    3. Follow our [White-label Marketplace Guide](https://docs.sequence.xyz/solutions/marketplaces/white-label-marketplace/overview)
+    4. Note down your Project ID and API Access Key
+  </Step>
 
-<Step title="Verify If Your Web SDK Is Correctly Integrated">
+  <Step title="Create a New React Project">
+    We'll use Vite with React and TypeScript for this guide. You can use any package manager, but we'll use pnpm in our examples:
 
-Ensuring that your Web SDK is properly integrated is crucial before getting started with Marketplace SDK. To verify this, simply check if you can log in and log out successfully.
+    ```bash
+    # Create a new project
+    pnpm create vite@latest my-marketplace-app -- --template react-ts
 
-</Step>
+    # Navigate to the project directory
+    cd my-marketplace-app
 
-<Step title="Create a Config">
+    # Install dependencies
+    pnpm install
+    ```
 
-Next, a configuration variable for Marketplace SDK will need to be created. In this file, we will define and manage essential configuration settings for our Marketplace SDK, including environment variables. This centralized approach ensures that configuration values are easily accessible and maintainable.
+  </Step>
 
-#### config.ts
+  <Step title="Install Required Dependencies">
+    Install the Marketplace SDK and its peer dependencies:
 
-<CodeGroup>
-```ts vite
-import type { SdkConfig } from '@0xsequence/marketplace-sdk';
+    ```bash
+    pnpm add @0xsequence/marketplace-sdk @0xsequence/connect wagmi viem @tanstack/react-query
+    ```
 
-const projectAccessKey = import.meta.env.VITE_PROJECT_ACCESS_KEY;
-const projectId = import.meta.env.VITE_PROJECT_ID!;
-const walletConnectId = import.meta.env.VITE_WALLET_CONNECT_ID;
+  </Step>
 
-export function getConfig() {
-  const config = {
-    projectId,
-    projectAccessKey,
-    walletConnectProjectId: walletConnectId
-  } satisfies SdkConfig;
+  <Step title="Create SDK Configuration">
+    Create a new file `src/config/sdk.ts` to store your SDK configuration:
 
-  return config;
-}
-```
+    ```tsx
+    import type { SdkConfig } from "@0xsequence/marketplace-sdk";
 
-```ts nextjs server side rendering
-import type { SdkConfig } from '@0xsequence/marketplace-sdk';
+    export const sdkConfig = {
+      projectId: "YOUR_PROJECT_ID",
+      projectAccessKey: "YOUR_PROJECT_ACCESS_KEY",
+    } satisfies SdkConfig;
+    ```
 
-const projectAccessKey = process.env.NEXT_PUBLIC_PROJECT_ACCESS_KEY!;
-const projectId = process.env.NEXT_PUBLIC_PROJECT_ID!;
-const walletConnectId = process.env.NEXT_PUBLIC_WALLET_CONNECT_ID;
+    <Check>
+      Make sure to replace `YOUR_PROJECT_ID` and `YOUR_PROJECT_ACCESS_KEY` with your actual project credentials. You can find your Project ID at `https://sequence.build/project/{YOUR_PROJECT_ID}/overview` and your Project Access Key at `https://sequence.build/project/{YOUR_PROJECT_ID}/settings/apikeys` in the [Sequence Builder](https://sequence.build) dashboard.
+    </Check>
 
-export function getConfig() {
-  const config = {
-    projectId,
-    projectAccessKey,
-    walletConnectProjectId: walletConnectId
-  } satisfies SdkConfig;
+  </Step>
 
-  return config;
-}
-```
+  <Step title="Set Up Providers">
+    Create a new file `src/providers.tsx` to configure the necessary providers:
 
-```ts nextjs client side rendering
-import type { SdkConfig } from '@0xsequence/marketplace-sdk';
+    ```tsx
+    import {
+      MarketplaceProvider,
+      MarketplaceQueryClientProvider,
+      ModalProvider,
+      createWagmiConfig,
+      getQueryClient,
+      marketplaceConfigOptions,
+    } from "@0xsequence/marketplace-sdk/react";
+    import { useQuery } from "@tanstack/react-query";
+    import { WagmiProvider } from "wagmi";
+    import {
+      SequenceConnectProvider,
+      type ConnectConfig,
+    } from "@0xsequence/connect";
+    import { sdkConfig } from "./config/sdk";
 
-const projectAccessKey = process.env.NEXT_PUBLIC_PROJECT_ACCESS_KEY!;
-const projectId = process.env.NEXT_PUBLIC_PROJECT_ID!;
-const walletConnectId = process.env.NEXT_PUBLIC_WALLET_CONNECT_ID;
+    interface ProvidersProps {
+      children: React.ReactNode;
+    }
 
-export function getConfig() {
-  const config = {
-    projectId,
-    projectAccessKey,
-    walletConnectProjectId: walletConnectId
-  } satisfies SdkConfig;
+    export default function Providers({ children }: ProvidersProps) {
+      const queryClient = getQueryClient();
+      const { data: marketplaceConfig, isLoading } = useQuery(
+        marketplaceConfigOptions(sdkConfig),
+        queryClient
+      );
 
-  return config;
-}
-```
-</CodeGroup>
-</Step>
+      if (isLoading) {
+        return <div>Loading configuration...</div>;
+      }
 
-<Step title="Create an SSR Client">
+      if (!marketplaceConfig) {
+        return <div>Failed to load marketplace configuration</div>;
+      }
 
-Next, a Ssr Client for Marketplace SDK will need to be created. This SSR Client serves as an entry point for initializing the marketplace SDK on the Next.js server, enabling efficient data fetching and configuration setup before rendering the UI.
+      const connectConfig: ConnectConfig = {
+        projectAccessKey: sdkConfig.projectAccessKey,
+        signIn: {
+          projectName: marketplaceConfig.settings.title,
+        },
+      };
 
-#### Understanding the SSR Client
+      const wagmiConfig = createWagmiConfig(marketplaceConfig, sdkConfig);
 
-The SSR Client allows you to access key marketplace data and configurations, which are essential for properly initializing the SDK on the server side. The following data can be retrieved:
+      return (
+        <WagmiProvider config={wagmiConfig}>
+          <MarketplaceQueryClientProvider>
+            <SequenceConnectProvider config={connectConfig}>
+              <MarketplaceProvider config={sdkConfig}>
+                {children}
+                <ModalProvider />
+              </MarketplaceProvider>
+            </SequenceConnectProvider>
+          </MarketplaceQueryClientProvider>
+        </WagmiProvider>
+      );
+    }
+    ```
 
-This setup ensures a seamless integration of the marketplace SDK with server-side rendering, improving performance and user experience.
+  </Step>
 
-#### ssrClient.ts
+  <Step title="Update Main Entry Point">
+    Update your `main.tsx` to use the Providers component:
 
-<CodeGroup>
-```ts vite
-// You can omit this step with VITE
-```
+    ```tsx
+    import React from 'react'
+    import ReactDOM from 'react-dom/client'
+    import App from './App'
+    import Providers from './providers'
+    import './index.css'
 
-```ts nextjs server side rendering
-import { getConfig } from './config';
-import { createSSRClient } from '@0xsequence/marketplace-sdk/react/ssr';
-import { QueryClient } from '@tanstack/react-query';
+    ReactDOM.createRoot(document.getElementById('root')!).render(
+      <React.StrictMode>
+        <Providers>
+          <App />
+        </Providers>
+      </React.StrictMode>
+    )
+    ```
 
-export const ssrClient = async () => {
-  return createSSRClient({
-    cookie: headersList.get('cookie') || '',
-    config: getConfig(),
-    queryClient: new QueryClient(),
-  });
-};
-```
+  </Step>
 
-```ts nextjs client side rendering
-// You can omit this step in NEXT.js if your layout uses 'use client' instead of server-side rendering
-```
+  <Step title="Create Connect Button Component">
+    Create a new component `src/components/ConnectButton.tsx` for wallet connection:
 
-</CodeGroup>
+    ```tsx
+    import { useOpenConnectModal } from '@0xsequence/connect';
+    import { useAccount } from 'wagmi';
 
-</Step>
+    export default function ConnectButton() {
+      const { setOpenConnectModal } = useOpenConnectModal();
+      const { address } = useAccount();
 
-<Step title="Add the Marketplace SDK Providers Alongside Your Web SDK Providers">
+      return (
+        <button
+          onClick={() => setOpenConnectModal(true)}
+        >
+          {address ? `${address.slice(0, 6)}...${address.slice(-4)}` : "Connect Wallet"}
+        </button>
+      );
+    }
+    ```
 
-Open your `Providers.tsx` file, where the Web SDK is configured, and integrate the Marketplace SDK providers.
+  </Step>
 
-<CodeGroup>
-```ts vite
-import {
-  MarketplaceProvider,
-  ModalProvider,
-} from "@0xsequence/marketplace-sdk/react";
-import { getConfig } from "./config";
+  <Step title="Create Collectible Card Component">
+    Create a new component `src/components/CollectibleCard.tsx` to display and interact with collectibles:
 
-const sdkConfig = getConfig();
+    ```tsx
+    import {
+      useCollectible,
+      useMakeOfferModal,
+    } from "@0xsequence/marketplace-sdk/react";
+    import type { Address } from "viem";
 
-// Into your React component:
+    export default function CollectibleCard() {
+      const { data: marketplaceConfig } = useMarketplaceConfig();
+      const collection = marketplaceConfig?.market.collections[0];  // First collection setup in Sequence Builder
+      const chainId = collection?.chainId as number;
+      const collectionAddress = collection?.itemsAddress as Address;
+      const collectibleId = "0";
 
-return (
-  /* Your other providers should be placed here (they should wrap MarketplaceProvider) */
-  
-  <MarketplaceProvider config={sdkConfig}>
-    {children}
-    <ModalProvider />
-  </MarketplaceProvider>
+      const { data: collectible, isLoading: isCollectibleLoading, isError: isCollectibleError } = useCollectible({
+        chainId,
+        collectionAddress,
+        collectibleId,
+      });
 
-  /* Your other providers should close here */
-);
-```
+      const { show } = useMakeOfferModal();
 
-```ts nextjs server side rendering
-import {
-  MarketplaceProvider,
-  ModalProvider,
-  marketplaceConfigOptions,
-} from "@0xsequence/marketplace-sdk/react";
+      if (isCollectibleLoading){
+        return <div>Loading collectible...</div>
+      }
 
-import {
-  QueryClient,
-  QueryClientProvider,
-  useQuery,
-} from '@tanstack/react-query';
+      if (isCollectibleError){
+        return <div>Error while fetching collectible</div>
+      }
 
-import { ssrClient } from '../ssrClient.ts';
+      if (!collectible) {
+        return <div>No collectible found</div>;
+      }
 
-// Into your React component:
+      return (
+        <div>
+          <img width={100} height={100} src={collectible?.image} alt={collectible?.name} />
 
-const { getInitialState, config: sdkConfig } = ssrClient();
-const sdkInitialState = await getInitialState();
+          <h3>{collectible?.name}</h3>
 
-return (
-  /* Your other providers should be placed here (they should wrap MarketplaceProvider) */
-  
-  <MarketplaceProvider config={sdkConfig} sdkInitialState={sdkInitialState}>
-    {children}
-    <ModalProvider />
-  </MarketplaceProvider>
+          <button
+            onClick={() => {
+              show({
+                chainId,
+                collectionAddress: itemsAddress,
+                collectibleId: "0",
+              });
+            }}
+          >
+            Make Offer
+          </button>
+        </div>
+      );
+    }
+    ```
 
-  /* Your other providers should close here */
-);
-```
+    <Note>
+      To get your collection address and chain ID:
+      1. Go to your marketplace at `https://sequence.build/project/{YOUR_PROJECT_ID}/marketplace/market` and copy the collection address you created.
+      2. For the chain ID:
+         - If you know the network where your collection is deployed, use that chain ID
+         - If unsure, visit [Sequence Chainlist](https://sequence.xyz/chains) and find the chain ID where your collection is deployed (look for networks with "Supported" status)
+      3. Make sure you have minted at least one collectible in your collection, then use that collectible's ID as the `collectibleId`
+    </Note>
 
-```ts nextjs client side rendering
-import {
-  MarketplaceProvider,
-  ModalProvider,
-} from "@0xsequence/marketplace-sdk/react";
-import { getConfig } from "./config";
+    <Tip>
+      While Sequence Connect is recommended for the best experience, you can use other wallet providers with the Marketplace SDK. For custom wallet connectors, see our guide on [custom connectors](/sdk/web/custom-connectors).
+    </Tip>
 
-const sdkConfig = getConfig();
+  </Step>
 
-// Into your React component:
+  <Step title="Update App Component">
+    Update your `App.tsx` to use the new components:
 
-return (
-  /* Your other providers should be placed here (they should wrap MarketplaceProvider) */
-  
-  <MarketplaceProvider config={sdkConfig}>
-    {children}
-    <ModalProvider />
-  </MarketplaceProvider>
+    ```tsx
+    import ConnectButton from './components/ConnectButton'
+    import CollectibleCard from './components/CollectibleCard'
 
-  /* Your other providers should close here */
-);
-```
-</CodeGroup>
+    export default function App() {
+      return (
+        <div>
+          <ConnectButton />
+          <CollectibleCard />
+        </div>
+      )
+    }
+    ```
 
-</Step>
+  </Step>
 
-<Step title="Done">
+  <Step title="Run Your Application">
+    Start your development server:
 
-Congratulations! Now you’re ready to explore the available hooks in our Marketplace SDK. Interested? Check out the [Marketplace SDK hooks](/sdk/marketplace-sdk/overview#marketplace-sdk-hooks) documentation to learn more.
+    ```bash
+    pnpm run dev
+    ```
 
-</Step>
+    Your marketplace application will be running at `http://localhost:5173`. You can now:
+    1. Connect your wallet using the connect button
+    2. View collectible details
+    3. Make offers on the collectible using the Make Offer button
 
-
+  </Step>
 </Steps>
+
+## Next Steps
+
+Now that you have the basics working, you can:
+
+- Create collectible listings
+- Manage orders
+- Customize the UI
+- Check out our other guides for more features
+
+Need help? Join our [Discord community](https://discord.gg/sequence).
