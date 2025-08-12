@@ -119,10 +119,6 @@ sidebarTitle: はじめに
       );
     }
     ```
-
-    <Note>
-      SDKの設定では、`shadowDom` がデフォルトで有効になっています。これは、Tailwind CSS を使用していない場合でも、コンポーネントにスタイルが正しく適用されるようにするためです。
-    </Note>
   </Step>
 
   <Step title="メインエントリーポイントの更新">
@@ -179,29 +175,43 @@ sidebarTitle: はじめに
 
     export default function CollectibleCard() {
       const { data: marketplaceConfig } = useMarketplaceConfig();
-      const { chainId, itemsAddress } = marketplaceConfig?.market
-      .collections[0] as MarketCollection;
+      const collection = marketplaceConfig?.market.collections[0];  // First collection setup in Sequence Builder
+      const chainId = collection?.chainId as number;
+      const collectionAddress = collection?.itemsAddress as Address;
+      const collectibleId = "0";
 
-      const { data: nft } = useCollectible({
+      const { data: collectible, isLoading: isCollectibleLoading, isError: isCollectibleError } = useCollectible({
         chainId,
-        collectionAddress: itemsAddress,
-        collectibleId: "0",
+        collectionAddress,
+        collectibleId,
       });
 
       const { show } = useMakeOfferModal();
 
-      if (!collectible) return null;
+      if (isCollectibleLoading){
+        return <div>Loading collectible...</div>
+      }
+
+      if (isCollectibleError){
+        return <div>Error while fetching collectible</div>
+      }
+
+      if (!collectible) {
+        return <div>No collectible found</div>;
+      }
 
       return (
         <div>
-          <img src={collectible.image} alt={collectible.name} />
-          <h3>{collectible.name}</h3>
+          <img width={100} height={100} src={collectible?.image} alt={collectible?.name} />
+
+          <h3>{collectible?.name}</h3>
+
           <button
             onClick={() => {
               show({
                 chainId,
-                collectionAddress,
-                collectibleId,
+                collectionAddress: itemsAddress,
+                collectibleId: "0",
               });
             }}
           >

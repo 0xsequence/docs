@@ -119,10 +119,6 @@ Vamos a crear una aplicación sencilla en React que permita mostrar e interactua
       );
     }
     ```
-
-    <Note>
-      Tenga en cuenta que `shadowDom` está habilitado por defecto en la configuración del SDK. Esto garantiza que los estilos se apliquen correctamente a los componentes cuando no se utiliza Tailwind CSS.
-    </Note>
   </Step>
 
   <Step title="Actualice el punto de entrada principal">
@@ -179,29 +175,43 @@ Vamos a crear una aplicación sencilla en React que permita mostrar e interactua
 
     export default function CollectibleCard() {
       const { data: marketplaceConfig } = useMarketplaceConfig();
-      const { chainId, itemsAddress } = marketplaceConfig?.market
-      .collections[0] as MarketCollection;
+      const collection = marketplaceConfig?.market.collections[0];  // First collection setup in Sequence Builder
+      const chainId = collection?.chainId as number;
+      const collectionAddress = collection?.itemsAddress as Address;
+      const collectibleId = "0";
 
-      const { data: nft } = useCollectible({
+      const { data: collectible, isLoading: isCollectibleLoading, isError: isCollectibleError } = useCollectible({
         chainId,
-        collectionAddress: itemsAddress,
-        collectibleId: "0",
+        collectionAddress,
+        collectibleId,
       });
 
       const { show } = useMakeOfferModal();
 
-      if (!collectible) return null;
+      if (isCollectibleLoading){
+        return <div>Loading collectible...</div>
+      }
+
+      if (isCollectibleError){
+        return <div>Error while fetching collectible</div>
+      }
+
+      if (!collectible) {
+        return <div>No collectible found</div>;
+      }
 
       return (
         <div>
-          <img src={collectible.image} alt={collectible.name} />
-          <h3>{collectible.name}</h3>
+          <img width={100} height={100} src={collectible?.image} alt={collectible?.name} />
+
+          <h3>{collectible?.name}</h3>
+
           <button
             onClick={() => {
               show({
                 chainId,
-                collectionAddress,
-                collectibleId,
+                collectionAddress: itemsAddress,
+                collectibleId: "0",
               });
             }}
           >
