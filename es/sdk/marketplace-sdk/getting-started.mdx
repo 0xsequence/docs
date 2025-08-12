@@ -141,95 +141,67 @@ Vamos a crear una aplicación sencilla en React que permita mostrar e interactua
     ```
   </Step>
 
-  <Step title="Cree el componente Connect Button">
-    Cree un nuevo componente `src/components/ConnectButton.tsx` para la conexión de wallet:
-
-    ```tsx
-    import { useOpenConnectModal } from '@0xsequence/connect';
-    import { useAccount } from 'wagmi';
-
-    export default function ConnectButton() {
-      const { setOpenConnectModal } = useOpenConnectModal();
-      const { address } = useAccount();
-
-      return (
-        <button
-          onClick={() => setOpenConnectModal(true)}
-        >
-          {address ? `${address.slice(0, 6)}...${address.slice(-4)}` : "Connect Wallet"}
-        </button>
-      );
-    }
-    ```
-  </Step>
-
   <Step title="Crear componente de tarjeta de coleccionable">
     Cree un nuevo componente `src/components/CollectibleCard.tsx` para mostrar e interactuar con coleccionables:
 
     ```tsx
     import {
-      useCollectible,
-      useMakeOfferModal,
+    useCollectible,
+    useMakeOfferModal,
+    useMarketplaceConfig,
+    useOpenConnectModal,
     } from "@0xsequence/marketplace-sdk/react";
     import type { Address } from "viem";
+    import { useAccount } from "wagmi";
 
     export default function CollectibleCard() {
-      const { data: marketplaceConfig } = useMarketplaceConfig();
-      const collection = marketplaceConfig?.market.collections[0];  // First collection setup in Sequence Builder
-      const chainId = collection?.chainId as number;
-      const collectionAddress = collection?.itemsAddress as Address;
-      const collectibleId = "0";
+    const { data: marketplaceConfig, isLoading: isMarketplaceConfigLoading } = useMarketplaceConfig();
+    const { isConnected } = useAccount()
+    const { openConnectModal } = useOpenConnectModal()
 
-      const { data: collectible, isLoading: isCollectibleLoading, isError: isCollectibleError } = useCollectible({
-        chainId,
-        collectionAddress,
-        collectibleId,
-      });
+    const collection = marketplaceConfig?.market.collections[0];
+    const chainId = collection?.chainId as number;
+    const collectionAddress = collection?.itemsAddress as Address;
+    const collectibleId = "0";
 
-      const { show } = useMakeOfferModal();
+    const { data: collectible, isLoading: isCollectibleLoading, error: collectibleError } = useCollectible({
+    chainId,
+    collectionAddress,
+    collectibleId,
+    });
 
-      if (isCollectibleLoading){
-        return <div>Loading collectible...</div>
-      }
+    const { show } = useMakeOfferModal();
 
-      if (isCollectibleError){
-        return <div>Error while fetching collectible</div>
-      }
+    if (isMarketplaceConfigLoading || isCollectibleLoading) return <div>Loading...</div>;
+    if (collectibleError) return <div>Error: {collectibleError.message}</div>;
+    if (!collectible) return <div>No collectible found</div>;
 
-      if (!collectible) {
-        return <div>No collectible found</div>;
-      }
-
-      return (
-        <div>
-          <img width={100} height={100} src={collectible?.image} alt={collectible?.name} />
-
-          <h3>{collectible?.name}</h3>
-
-          <button
-            onClick={() => {
-              show({
-                chainId,
-                collectionAddress: itemsAddress,
-                collectibleId: "0",
-              });
-            }}
-          >
-            Make Offer
-          </button>
-        </div>
-      );
+    return (
+    <div>
+      <img width={200} height={200} src={collectible.image} alt={collectible.name} />
+      <h3>{collectible.name}</h3>
+      {isConnected ? (
+        <button
+          onClick={() => {
+            show({
+              chainId,
+              collectionAddress,
+              collectibleId,
+            });
+          }}
+        >
+          Make Offer
+        </button>
+      ) : (
+        <button onClick={() => openConnectModal()}>Connect Wallet</button>
+      )}
+    </div>
+    );
     }
     ```
 
     <Note>
-      Para obtener la dirección de su colección y el chain ID:
-
-      1. Vaya a su marketplace en `https://sequence.build/project/{YOUR_PROJECT_ID}/marketplace/market` y copie la dirección de la colección que creó.
-      2. Para el chain ID:
-         - Si conoce la red donde está desplegada su colección, use ese chain ID
-         - Si no está seguro, visite [Sequence Chainlist](https://sequence.xyz/chains) y busque el chain ID donde está desplegada su colección (busque redes con estado "Supported")
-      3. Asegúrese de haber minteado al menos un coleccionable en su colección, luego use el ID de ese coleccionable como `collectibleId`
+      Asegúrese de haber minteado al menos un coleccionable en su colección, luego use el ID de ese coleccionable como `collectibleId`
     </Note>
 
     <Tip>
@@ -241,16 +213,12 @@ Vamos a crear una aplicación sencilla en React que permita mostrar e interactua
     Actualice su `App.tsx` para usar los nuevos componentes:
 
     ```tsx
-    import ConnectButton from './components/ConnectButton'
-    import CollectibleCard from './components/CollectibleCard'
+    import NFTCard from "./nft-card";
 
     export default function App() {
-      return (
-        <div>
-          <ConnectButton />
-          <CollectibleCard />
-        </div>
-      )
+    return (
+        <NFTCard />
+    );
     }
     ```
   </Step>
