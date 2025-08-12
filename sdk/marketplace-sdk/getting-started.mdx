@@ -6,7 +6,7 @@ sidebarTitle: Getting Started
 
 # Getting Started
 
-Let's create a simple React application that can display and interact with NFTs. We'll set up wallet connection and basic NFT viewing functionality.
+Let's create a simple React application that can display and interact with collectibles. We'll set up wallet connection and basic collectible viewing functionality.
 
 <Steps>
   <Step title="Create a Project in Sequence Builder">
@@ -173,8 +173,8 @@ Let's create a simple React application that can display and interact with NFTs.
 
   </Step>
 
-  <Step title="Create NFT Card Component">
-    Create a new component `src/components/CollectibleCard.tsx` to display and interact with NFTs:
+  <Step title="Create Collectible Card Component">
+    Create a new component `src/components/CollectibleCard.tsx` to display and interact with collectibles:
 
     ```tsx
     import {
@@ -183,25 +183,25 @@ Let's create a simple React application that can display and interact with NFTs.
     } from "@0xsequence/marketplace-sdk/react";
     import type { Address } from "viem";
 
-    const collectionAddress = "YOUR_COLLECTION_ADDRESS" as Address;
-    const collectibleId = "1" as string;
-    const chainId = 80002 as number; // Polygon Amoy Testnet
-
     export default function CollectibleCard() {
+      const { data: marketplaceConfig } = useMarketplaceConfig();
+      const { chainId, itemsAddress } = marketplaceConfig?.market
+      .collections[0] as MarketCollection;
+
       const { data: nft } = useCollectible({
         chainId,
-        collectionAddress,
-        collectibleId,
+        collectionAddress: itemsAddress,
+        collectibleId: "0",
       });
 
       const { show } = useMakeOfferModal();
 
-      if (!nft) return null;
+      if (!collectible) return null;
 
       return (
         <div>
-          <img src={nft.image} alt={nft.name} />
-          <h3>{nft.name}</h3>
+          <img src={collectible.image} alt={collectible.name} />
+          <h3>{collectible.name}</h3>
           <button
             onClick={() => {
               show({
@@ -261,8 +261,8 @@ Let's create a simple React application that can display and interact with NFTs.
 
     Your marketplace application will be running at `http://localhost:5173`. You can now:
     1. Connect your wallet using the connect button
-    2. View NFT details
-    3. Make offers on NFTs using the Make Offer button
+    2. View collectible details
+    3. Make offers on the collectible using the Make Offer button
 
   </Step>
 </Steps>
@@ -271,7 +271,7 @@ Let's create a simple React application that can display and interact with NFTs.
 
 Now that you have the basics working, you can:
 
-- Create NFT listings
+- Create collectible listings
 - Manage orders
 - Customize the UI
 - Check out our other guides for more features
