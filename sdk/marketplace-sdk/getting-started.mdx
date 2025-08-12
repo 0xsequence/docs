@@ -177,14 +177,13 @@ Let's create a simple React application that can display and interact with colle
       useCollectible,
       useMakeOfferModal,
     } from "@0xsequence/marketplace-sdk/react";
-    import type { Address } from "viem";
 
     export default function CollectibleCard() {
       const { data: marketplaceConfig } = useMarketplaceConfig();
       const { chainId, itemsAddress } = marketplaceConfig?.market
       .collections[0] as MarketCollection;
 
-      const { data: nft } = useCollectible({
+      const { data: collectible, isLoading: isCollectibleLoading, isError: isCollectibleError } = useCollectible({
         chainId,
         collectionAddress: itemsAddress,
         collectibleId: "0",
@@ -192,20 +191,30 @@ Let's create a simple React application that can display and interact with colle
 
       const { show } = useMakeOfferModal();
 
-      if (!collectible) return null;
+      if (isCollectibleLoading){
+        return <div>Loading collectible...</div>
+      }
+
+      if (isCollectibleError){
+        return <div>Error while fetching collectible</div>
+      }
+
+      if (!collectible) {
+        return <div>No collectible found</div>;
+      }
 
       return (
         <div>
-          <img width={100} height={100} src={collectible.image} alt={collectible.name} />
+          <img width={100} height={100} src={collectible?.image} alt={collectible?.name} />
 
-          <h3>{collectible.name}</h3>
+          <h3>{collectible?.name}</h3>
 
           <button
             onClick={() => {
               show({
                 chainId,
-                collectionAddress,
-                collectibleId,
+                collectionAddress: itemsAddress,
+                collectibleId: "0",
               });
             }}
           >
