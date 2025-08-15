@@ -1,0 +1,61 @@
+---
+title: Interacciones con blockchain
+description: Documentación de Ecosystem Wallet para el SDK de Unity de Sequence.
+---
+
+## Firmar mensajes
+Firmar mensajes en un navegador externo.
+
+```csharp
+Chain chain = Chain.TestnetAbitrumSepolia;
+string message = "Your message to sign.";
+
+SignMessageResponse response = await wallet.SignMessage(chain, message);
+string signature = response.signature;
+```
+
+## Enviar transacciones
+Enviar transacciones sin pagar comisiones de gas en cualquier testnet o cuando use Gas Sponsorship.
+
+```csharp
+Chain chain = Chain.TestnetAbitrumSepolia;
+Address to = new Address("0x33985d320809E26274a72E03268c8a29927Bc6dA");
+
+ITransaction[] transactions = new Transaction[]
+{
+    new Transaction(to, 0, "implicitEmit()"),
+    new Transaction(to, 0, "explicitEmit()")
+};
+
+string txnHash = await wallet.SendTransaction(chain, transactions);
+```
+
+## Enviar transacciones usando Fee Options
+Obtenga las opciones de comisión disponibles para el usuario y elija una para usar al enviar la transacción.
+
+```csharp
+Chain chain = Chain.TestnetAbitrumSepolia;
+Address to = new Address("0x33985d320809E26274a72E03268c8a29927Bc6dA");
+
+ITransaction[] transactions = new Transaction[]
+{
+    new Transaction(to, 0, "implicitEmit()"),
+    new Transaction(to, 0, "explicitEmit()")
+};
+
+FeeOption[] feeOptions = await _wallet.GetFeeOption(chain, transactions);
+FeeOption feeOption = feeOptions[0]; // Choose a way to select the appropriate option
+
+string txnHash = await wallet.SendTransaction(chain, transactions, feeOption);
+```
+
+### Verificar si su wallet admite una transacción
+Puede hacer la misma llamada para varias transacciones a la vez si pasa un arreglo `Transactions[]`.
+
+```csharp
+Chain chain = Chain.TestnetAbitrumSepolia;
+Address to = new Address("0x33985d320809E26274a72E03268c8a29927Bc6dA");
+ITransaction transaction = new Transaction(to, 0, "implicitEmit()");
+
+bool supported = await wallet.SupportsTransaction(chain, transaction);
+```
