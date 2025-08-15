@@ -1,62 +1,209 @@
 ---
 title: useBuyModal
-description: El hook useBuyModal permite a los usuarios comprar un NFT que está listado en el Marketplace. Se encarga del proceso de compra y la ejecución de la transacción.
+description: Hook para gestionar la interfaz del modal de compra para compras de NFT
 sidebarTitle: useBuyModal
 ---
 
-```ts
+## Importar
+
+```tsx
 import { useBuyModal } from "@0xsequence/marketplace-sdk/react";
-
-## Into your React component:
-
-const { show: showBuyModal } = useBuyModal({
-	onSuccess(hash) {
-		console.log("Buy transaction sent with hash: ", hash);
-	},
-	onError,
-});
-
-const onClickBuy = () => {
-	showBuyModal({
-		chainId,
-		collectionAddress,
-		tokenId,
-		order,
-	});
-};
-
-return <button onClick={onClickBuy}>Buy</button>
 ```
 
-<ResponseField name="useBuyModal">
-  <ResponseField name="* params" />
+## Uso
 
-  <Expandable>
-    ```ts
-    interface useBuyModal {
-    	onSuccess?: ({ hash, orderId }: {
-    			hash?: Hash;
-    			orderId?: string;
-    	}) => void;
-    	onError?: (error: Error) => void;
+### Examples
+
+<Tabs>
+  <Tab title="Compra en el mercado">
+    Ejemplo de cómo implementar una compra en el mercado (ventas secundarias) usando el hook `useBuyModal`:
+
+    ```tsx
+    import type { MarketplaceKind } from '@0xsequence/marketplace-sdk'
+    import { useBuyModal } from '@0xsequence/marketplace-sdk/react'
+    import type { Address } from 'viem'
+
+    export default function MarketPurchaseExample() {
+      const { show: showMarketModal } = useBuyModal({
+        onSuccess: ({ hash, orderId }) => {
+          console.log('Market purchase successful', { hash, orderId })
+        },
+        onError: (error) => {
+          console.error('Market purchase failed:', error.message)
+        }
+      })
+
+      const marketData = {
+        chainId: 1, // Ethereum mainnet
+        collectionAddress: '0x1234567890123456789012345678901234567890' as Address,
+        collectibleId: '1',
+        orderId: 'order123',
+        marketplace: 'opensea' as MarketplaceKind,
+        priceUSDFormatted: '100.00'
+      }
+
+      const handleMarketBuy = () => {
+        showMarketModal({
+          chainId: marketData.chainId,
+          collectionAddress: marketData.collectionAddress,
+          collectibleId: marketData.collectibleId,
+          orderId: marketData.orderId,
+          marketplace: marketData.marketplace,
+        })
+      }
+
+      return (
+        <div style={{ padding: '20px' }}>
+          <h3>Market Purchase</h3>
+          <p>Price: ${marketData.priceUSDFormatted}</p>
+          <button onClick={handleMarketBuy}>
+            Buy from Market
+          </button>
+        </div>
+      )
     }
     ```
-  </Expandable>
+  </Tab>
 
-  <ResponseField name="* return properties" />
+  <Tab title="Compra en la tienda">
+    Ejemplo de cómo implementar una compra en la tienda (ventas primarias) usando el hook `useBuyModal`:
 
-  <Expandable>
-    <ResponseField name="show" type="(args: ShowBuyModalArgs) => void">
-      ```ts
-      interface ShowBuyModalArgs {
-      	chainId: string;
-      	collectionAddress: Hex;
-      	tokenId: string;
-      	order: Order;
+    ```tsx
+    import { useBuyModal } from '@0xsequence/marketplace-sdk/react'
+    import type { Address } from 'viem'
+
+    export default function ShopPurchaseExample() {
+      const { show: showShopModal } = useBuyModal({
+        onSuccess: ({ hash }) => {
+          console.log('Shop purchase successful', { hash })
+        },
+        onError: (error) => {
+          console.error('Shop purchase failed:', error.message)
+        }
+      })
+
+      const shopData = {
+        chainId: 1,
+        collectionAddress: '0x1234567890123456789012345678901234567890' as Address,
+        salesContractAddress: '0x0987654321098765432109876543210987654321' as Address,
+        salePrice: {
+          amount: '100000000000000000', // 0.1 ETH in wei
+          currencyAddress: '0x0000000000000000000000000000000000000000' as Address // ETH
+        },
+        quantityRemaining: 100
       }
-      ```
-    </ResponseField>
 
-    <ResponseField name="close" type="() => void" />
-  </Expandable>
-</ResponseField>
+      const handleShopBuy = () => {
+        showShopModal({
+          chainId: shopData.chainId,
+          collectionAddress: shopData.collectionAddress,
+          salesContractAddress: shopData.salesContractAddress,
+          marketplaceType: 'shop',
+          quantityDecimals: 0,
+          quantityRemaining: shopData.quantityRemaining,
+          items: [{ quantity: '1' }],
+          salePrice: shopData.salePrice
+        })
+      }
+
+      return (
+        <div style={{ padding: '20px' }}>
+          <h3>Shop Purchase</h3>
+          <p>Quantity Remaining: {shopData.quantityRemaining}</p>
+          <button onClick={handleShopBuy}>
+            Buy from Shop
+          </button>
+        </div>
+      )
+    }
+    ```
+  </Tab>
+</Tabs>
+
+## Parámetros
+El hook acepta un objeto opcional `callbacks` con las siguientes propiedades:
+
+```tsx
+interface ModalCallbacks {
+  onSuccess?: ({ hash, orderId }: { hash?: Hash; orderId?: string }) => void;
+  onError?: (error: Error) => void;
+  successActionButtons?: Array<{ label: string; action: () => void }>;
+}
+```
+
+| Parámetro                        | Type                                                             | Description                                                                        |
+| -------------------------------- | ---------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
+| `callbacks.onSuccess`            | `({ hash, orderId }: { hash?: Hash; orderId?: string }) => void` | Función de callback opcional que se llama cuando la compra es exitosa              |
+| `callbacks.onError`              | `(error: Error) => void`                                         | Función de callback opcional que se llama cuando ocurre un error durante la compra |
+| `callbacks.successActionButtons` | `Array<{ label: string; action: () => void }>`                   | Arreglo opcional de botones de acción para mostrar en caso de éxito                |
+
+## Tipo de retorno
+El hook retorna un objeto con los siguientes métodos:
+
+```tsx
+{
+  show: (args: BuyModalProps) => void
+  close: () => void
+}
+```
+
+### Métodos
+
+#### show
+`(args: BuyModalProps) => void`
+
+Abre el modal de compra con los parámetros especificados. `BuyModalProps` puede ser `ShopBuyModalProps` o `MarketplaceBuyModalProps` dependiendo del tipo de compra.
+
+Para compras en el mercado (ventas secundarias):
+
+```tsx
+interface MarketplaceBuyModalProps extends BuyModalBaseProps {
+  marketplaceType?: "market";
+  collectibleId: string;
+  marketplace: MarketplaceKind;
+  orderId: string;
+}
+```
+
+Para compras en la tienda (ventas primarias):
+
+```tsx
+interface ShopBuyModalProps extends BuyModalBaseProps {
+  marketplaceType: "shop";
+  salesContractAddress: Address;
+  items: Array<Partial<CheckoutOptionsItem> & { tokenId?: string }>;
+  quantityDecimals: number;
+  quantityRemaining: number;
+  salePrice: {
+    amount: string;
+    currencyAddress: Address;
+  };
+  unlimitedSupply?: boolean;
+}
+```
+
+Ambos tipos extienden de `BuyModalBaseProps`:
+
+```tsx
+interface BuyModalBaseProps {
+  chainId: number;
+  collectionAddress: Address;
+  skipNativeBalanceCheck?: boolean;
+  nativeTokenAddress?: Address;
+  marketplaceType?: MarketplaceType;
+  customCreditCardProviderCallback?: (buyStep: Step) => void;
+  successActionButtons?: Array<{ label: string; action: () => void }>;
+}
+```
+
+#### close
+`() => void`
+
+Cierra el modal de compra.
+
+## Notas
+El hook `useBuyModal` ofrece una forma práctica de gestionar la interfaz del modal de compra para compras de NFT. Se encarga de:
+- Abrir y cerrar el modal
+- Gestionar el estado del flujo de compra
+- Manejo de errores y callbacks de éxito
+- Soporte tanto para ventas primarias como secundarias
