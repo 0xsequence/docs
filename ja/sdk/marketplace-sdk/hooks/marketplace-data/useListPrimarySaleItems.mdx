@@ -1,0 +1,127 @@
+---
+title: useListPrimarySaleItems
+description: プライマリーセールアイテムをページネーションで取得するためのフック
+sidebarTitle: useListPrimarySaleItems
+---
+
+## インポート
+
+```tsx
+import { useListPrimarySaleItems } from "@0xsequence/marketplace-sdk";
+```
+
+## 使い方
+
+```tsx
+import { useListPrimarySaleItems } from "@0xsequence/marketplace-sdk";
+
+function App() {
+  const { data, isLoading, hasNextPage, fetchNextPage, isFetchingNextPage } =
+    useListPrimarySaleItems({
+      chainId: 137,
+      primarySaleContractAddress: "0x123...",
+      page: {
+        pageSize: 20,
+      },
+    });
+
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
+
+  return (
+    <div>
+      {data?.pages.map((page, i) => (
+        <div key={i}>
+          {page.items.map((item) => (
+            <div key={item.id}>
+              {item.name} - {item.price}
+            </div>
+          ))}
+        </div>
+      ))}
+
+      {hasNextPage && (
+        <button onClick={() => fetchNextPage()} disabled={isFetchingNextPage}>
+          {isFetchingNextPage ? "Loading more..." : "Load More"}
+        </button>
+      )}
+    </div>
+  );
+}
+```
+
+## 返り値の型：`UseInfiniteQueryResult`
+このフックは、以下の主要なプロパティを持つ React Query の infinite query 結果オブジェクトを返します。
+
+```tsx
+type UseInfiniteQueryResult = {
+  data: {
+    pages: Array<{
+      items: PrimarySaleItem[];
+      nextCursor?: string;
+    }>;
+    pageParams: unknown[];
+  };
+  isLoading: boolean;
+  error: Error | null;
+  hasNextPage: boolean;
+  fetchNextPage: () => Promise<void>;
+  isFetchingNextPage: boolean;
+  // ... other React Query infinite query properties
+};
+```
+
+### パラメータ
+
+| パラメータ                        | 型        | 説明                                      |
+| ---------------------------- | -------- | --------------------------------------- |
+| `chainId`                    | `number` | チェーンID（例：Ethereum は 1、Polygon は 137 など） |
+| `primarySaleContractAddress` | `string` | プライマリーセールコントラクトのアドレス                    |
+| `filter`                     | `object` | （オプション）クエリのフィルターパラメータ                   |
+| `filter.status`              | `string` | （オプション）アイテムのステータスでフィルター（例：'active'）     |
+| `page`                       | `object` | （オプション）ページネーション設定                       |
+| `page.pageSize`              | `number` | （オプション）1ページあたりのアイテム数                    |
+| `query`                      | `object` | （オプション）React Query の設定オプション             |
+| `config`                     | `object` | （オプション）SDK の設定オプション                     |
+
+### クエリオプション
+オプションのパラメータを使って、クエリの挙動をカスタマイズできます。
+
+```tsx
+const { data, isLoading } = useListPrimarySaleItems({
+  chainId: 1,
+  primarySaleContractAddress: "0x...",
+  filter: {
+    status: "active",
+  },
+  page: {
+    pageSize: 20,
+  },
+  query: {
+    enabled: isReady,
+    refetchInterval: 30000, // Refetch every 30 seconds
+  },
+});
+```
+
+## 補足
+このフックは以下の用途に便利です：
+- 無限スクロールでプライマリーセールアイテムのリストを表示する場合
+- マーケットプレイスのプライマリーセールページを作成する場合
+- 初回販売用の利用可能なアイテムを表示する場合
+- ページネーションによるデータの読み込み管理
+
+このフックは自動的に以下を処理します：
+- 無限スクロールのページネーション
+- データの取得とキャッシュ
+- ローディングやエラー状態の管理
+- 型安全なレスポンス
+
+<Warning>
+  特に無限スクロール機能を実装する際は、`isFetchingNextPage` などのローディング状態を適切に処理してください。
+</Warning>
+
+<Warning>
+  `primarySaleContractAddress` には、プライマリーセールに対応した有効なコントラクトアドレスを指定してください。無効なアドレスの場合、クエリは失敗します。
+</Warning>
