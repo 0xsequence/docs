@@ -1,0 +1,162 @@
+---
+title: Media
+description: さまざまな種類のコレクティブルアセットを表示するためのコンポーネントです。
+sidebarTitle: Media
+---
+
+## インポート
+
+```tsx
+import { Media } from "@0xsequence/marketplace-sdk/react";
+```
+
+## 使い方
+
+### 使用例
+
+<Tabs>
+  <Tab title="基本的な使い方">
+    Media コンポーネントで画像を表示する基本例：
+
+    ```tsx
+    import { Media } from "@0xsequence/marketplace-sdk/react";
+
+    export default function BasicExample() {
+      return (
+        <Media
+          name="My Collectible"
+          assets={["https://example.com/image.png"]}
+          className="w-64 h-64"
+        />
+      );
+    }
+    ```
+  </Tab>
+
+  <Tab title="複数アセット対応">
+    複数アセットをフォールバック付きで扱う例：
+
+    ```tsx
+    import { Media } from "@0xsequence/marketplace-sdk/react";
+
+    export default function MultipleAssetsExample() {
+      return (
+        <Media
+          name="My Collectible"
+          assets={[
+            "https://example.com/main-image.png",
+            "https://example.com/fallback-image.jpg",
+            "https://example.com/video.mp4"
+          ]}
+          className="w-full h-full"
+          // The component will try each asset in order until one loads successfully
+        />
+      );
+    }
+    ```
+  </Tab>
+
+  <Tab title="カスタムフォールバック">
+    カスタムフォールバックコンポーネントを使った例：
+
+    ```tsx
+    import { Media } from "@0xsequence/marketplace-sdk/react";
+
+    export default function CustomFallbackExample() {
+      const CustomFallback = () => (
+        <div className="flex items-center justify-center h-full w-full bg-gray-100">
+          <p>Asset not available</p>
+        </div>
+      );
+
+      return (
+        <Media
+          name="My Collectible"
+          assets={["https://example.com/image.png"]}
+          className="w-64 h-64"
+          fallbackContent={<CustomFallback />}
+        />
+      );
+    }
+    ```
+  </Tab>
+</Tabs>
+
+## パラメータ
+コンポーネントは以下のプロパティを受け取ります：
+
+```tsx
+interface MediaProps {
+  name?: string;
+  assets: (string | undefined)[];
+  assetSrcPrefixUrl?: string;
+  className?: string;
+  containerClassName?: string;
+  mediaClassname?: string;
+  isLoading?: boolean;
+  fallbackContent?: React.ReactNode;
+  shouldListenForLoad?: boolean;
+}
+```
+
+| パラメータ                 | 型                 | 説明                                       |                                          |
+| --------------------- | ----------------- | ---------------------------------------- | ---------------------------------------- |
+| `name`                | `string`          | オプション。画像の alt テキストとして使われるコレクティブル名        |                                          |
+| `assets`              | \`(string         | undefined)\[]\`                          | 読み込みを試みるアセットURLの配列。順番に読み込み、成功したものを表示します。 |
+| `assetSrcPrefixUrl`   | `string`          | アセットURLの先頭に付加するオプションのURLプレフィックス          |                                          |
+| `className`           | `string`          | コンポーネントコンテナ用のオプションCSSクラス名                |                                          |
+| `containerClassName`  | `string`          | 外側コンテナ用のオプションCSSクラス名                     |                                          |
+| `mediaClassname`      | `string`          | メディア要素自体のオプションCSSクラス名                    |                                          |
+| `isLoading`           | `boolean`         | オプション。ローディング状態を表示するフラグ                   |                                          |
+| `fallbackContent`     | `React.ReactNode` | すべてのアセットが読み込めない場合に表示するカスタムコンテンツ（オプション）   |                                          |
+| `shouldListenForLoad` | `boolean`         | 読み込みイベントリスナーの有効／無効を切り替えるフラグ（デフォルトは true） |                                          |
+
+## 対応メディアタイプ
+Media コンポーネントは自動的にさまざまなコンテンツタイプを判別・処理します：
+- **画像**：標準的な画像ファイル（PNG、JPG、GIFなど）を表示
+- **動画**：自動再生・ループ・コントロール付きで動画ファイルをサポート
+- **3Dモデル**：ModelViewer コンポーネントで 3D モデルを表示
+- **HTML**：サンドボックス化された iframe で HTML コンテンツを表示
+
+## 特徴
+
+### 自動コンテンツタイプ判定
+コンポーネントはアセットのコンテンツタイプを自動判定し、適切な要素を表示します。
+
+```tsx
+<Media
+  assets={[
+    "model.glb", // Will render as 3D model
+    "video.mp4", // Will render as video
+    "image.png", // Will render as image
+    "content.html", // Will render as iframe
+  ]}
+/>
+```
+
+### フォールバックチェーン
+アセットの読み込みに失敗した場合、コンポーネントは：
+1. assets 配列の次のアセットを試します
+2. すべてのアセットが失敗した場合、カスタムフォールバックコンテンツを表示します
+3. フォールバックコンテンツが指定されていない場合、デフォルトのチェスタイルパターンを表示します
+
+### ローディング状態
+コンポーネントには組み込みのローディング状態があります。
+
+```tsx
+<Media
+  assets={["https://example.com/large-image.png"]}
+  isLoading={true} // Will show loading skeleton
+/>
+```
+
+## 補足
+`Media` コンポーネントは、コレクティブルアセットのさまざまなタイプに対応し、以下の機能を備えています：
+- 自動コンテンツタイプ判定
+- フォールバック処理
+- ローディング状態の管理
+- Safari 互換性への調整
+
+動画コンテンツを使用する際の注意点：
+- 動画はデフォルトで自動再生されます
+- 自動再生互換性のため、動画はデフォルトでミュートされます

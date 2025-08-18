@@ -1,0 +1,432 @@
+---
+title: CollectibleCard
+description: マーケットプレイスやショップでコレクティブルを表示するための多用途なカードコンポーネントです。
+sidebarTitle: CollectibleCard
+---
+
+## インポート
+
+```tsx
+import { CollectibleCard } from "@0xsequence/marketplace-sdk/react";
+```
+
+## 使い方
+
+### データフック
+SDK には、CollectibleCard コンポーネント用のデータ取得・整形専用フックが用意されています。
+
+#### マーケットカード
+
+```tsx
+import { useListMarketCardData } from "@0xsequence/marketplace-sdk/react";
+
+const {
+  collectibleCards,
+  isLoading,
+  hasNextPage,
+  isFetchingNextPage,
+  fetchNextPage,
+} = useListMarketCardData({
+  orderbookKind,
+  collectionType,
+  filterOptions,
+  searchText,
+  showListedOnly,
+  collectionAddress,
+  chainId,
+});
+```
+
+#### ショップカード
+ショップカードには、コントラクトタイプに応じて2種類のフックがあります。
+
+```tsx
+// For ERC721 tokens
+import { useList721ShopCardData } from "@0xsequence/marketplace-sdk/react";
+
+const { collectibleCards, isLoading } = useList721ShopCardData({
+  primarySaleItemsWithMetadata,
+  chainId,
+  contractAddress,
+  salesContractAddress,
+  enabled: contractType === ContractType.ERC721,
+});
+
+// For ERC1155 tokens
+import { useList1155ShopCardData } from "@0xsequence/marketplace-sdk/react";
+
+const { collectibleCards, isLoading } = useList1155ShopCardData({
+  chainId,
+  contractAddress,
+  salesContractAddress,
+  enabled: contractType === ContractType.ERC1155,
+  primarySaleItemsWithMetadata,
+});
+```
+
+これらのフックは以下を処理します：
+- データの取得と整形
+- ローディング状態の管理
+- ページネーション（マーケットカード用）
+- タイプごとのデータ要件
+- フィルターや検索との連携
+
+### 使用例
+
+<Tabs>
+  <Tab title="マーケットカード">
+    マーケットプレイスで CollectibleCard コンポーネントを使う例：
+
+    ```tsx
+    import { CollectibleCard } from "@0xsequence/marketplace-sdk/react";
+
+    export default function MarketExample() {
+      return (
+        <CollectibleCard
+          collectibleId="1"
+          chainId={1}
+          collectionAddress="0x..."
+          marketplaceType="market"
+          collectible={{
+            // collectible data
+            tokenId: "1",
+            metadata: {
+              name: "My NFT",
+              image: "https://example.com/nft.png"
+            }
+          }}
+          onCollectibleClick={(tokenId) => {
+            console.log(`Clicked collectible ${tokenId}`);
+          }}
+        />
+      );
+    }
+    ```
+  </Tab>
+
+  <Tab title="ショップカード">
+    ショップで CollectibleCard を利用する例：
+
+    ```tsx
+    import { CollectibleCard } from "@0xsequence/marketplace-sdk/react";
+
+    export default function ShopExample() {
+      return (
+        <CollectibleCard
+          collectibleId="1"
+          chainId={1}
+          collectionAddress="0x..."
+          marketplaceType="shop"
+          salesContractAddress="0x..."
+          tokenMetadata={{
+            name: "Shop Item",
+            image: "https://example.com/item.png"
+          }}
+          salePrice={{
+            amount: "1000000000000000000", // 1 ETH in wei
+            currencyAddress: "0x..." // ETH address
+          }}
+          quantityInitial="100"
+          quantityRemaining="50"
+        />
+      );
+    }
+    ```
+  </Tab>
+
+  <Tab title="オファー機能付き">
+    オファー機能を持つ例：
+
+    <Frame>
+      ![オファー付きコレクティブルカード](/images/marketplace/collectible_card_with_offer.png "Collectible Card with Offers")
+    </Frame>
+
+    ```tsx
+    import { CollectibleCard } from "@0xsequence/marketplace-sdk/react";
+
+    export default function OffersExample() {
+      return (
+        <CollectibleCard
+          collectibleId="1"
+          chainId={1}
+          collectionAddress="0x..."
+          marketplaceType="market"
+          collectible={{
+            tokenId: "1",
+            metadata: {
+              name: "NFT with Offers",
+              image: "https://example.com/nft.png"
+            }
+          }}
+          onOfferClick={({ order, e }) => {
+            console.log('Offer clicked', order);
+            e.preventDefault();
+          }}
+          onCannotPerformAction={(action) => {
+            console.log(`Cannot perform action: ${action}`);
+          }}
+        />
+      );
+    }
+    ```
+  </Tab>
+</Tabs>
+
+## パラメータ
+コンポーネントはマーケットプレイスタイプに応じて異なるプロパティを受け取ります。
+
+### 基本プロパティ
+これらのプロパティはすべてのカードタイプで共通です：
+
+```tsx
+interface MarketplaceCardBaseProps {
+  collectibleId: string;
+  chainId: number;
+  collectionAddress: Address;
+  collectionType?: ContractType;
+  assetSrcPrefixUrl?: string;
+  cardLoading?: boolean;
+  marketplaceType?: MarketplaceType;
+  isTradable?: boolean;
+}
+```
+
+| パラメータ               | 型                 | 説明                                      |
+| ------------------- | ----------------- | --------------------------------------- |
+| `collectibleId`     | `string`          | コレクティブルの一意な識別子                          |
+| `chainId`           | `number`          | ブロックチェーンネットワークID                        |
+| `collectionAddress` | `Address`         | コレクションのスマートコントラクトアドレス                   |
+| `collectionType`    | `ContractType`    | オプション。コントラクトタイプ（ERC721 または ERC1155）     |
+| `assetSrcPrefixUrl` | `string`          | オプション。アセットソース用のURLプレフィックス               |
+| `cardLoading`       | `boolean`         | オプション。ローディング状態を表示するフラグ                  |
+| `marketplaceType`   | `MarketplaceType` | オプション。マーケットプレイスタイプ（'market' または 'shop'） |
+| `isTradable`        | `boolean`         | オプション。このアイテムが取引可能かどうかを示すフラグ             |
+
+### ショップカード用プロパティ
+ショップカード（`marketplaceType="shop"`）用の追加プロパティ：
+
+```tsx
+interface ShopCardSpecificProps {
+  salesContractAddress: Address;
+  tokenMetadata: TokenMetadata;
+  salePrice?: {
+    amount: string;
+    currencyAddress: Address;
+  };
+  saleStartsAt?: string;
+  saleEndsAt?: string;
+  quantityDecimals?: number;
+  quantityInitial?: string;
+  quantityRemaining?: string;
+  unlimitedSupply?: boolean;
+}
+```
+
+| パラメータ                  | 型               | 説明                     |
+| ---------------------- | --------------- | ---------------------- |
+| `salesContractAddress` | `Address`       | 販売コントラクトのアドレス          |
+| `tokenMetadata`        | `TokenMetadata` | トークンのメタデータ（名前、説明、画像など） |
+| `salePrice`            | `object`        | オプション。金額や通貨を含む価格情報     |
+| `saleStartsAt`         | `string`        | オプション。販売開始のタイムスタンプ     |
+| `saleEndsAt`           | `string`        | オプション。販売終了のタイムスタンプ     |
+| `quantityDecimals`     | `number`        | オプション。数量の小数点以下の桁数      |
+| `quantityInitial`      | `string`        | オプション。初期供給量            |
+| `quantityRemaining`    | `string`        | オプション。残り供給量            |
+| `unlimitedSupply`      | `boolean`       | オプション。供給が無制限かどうか       |
+
+### マーケットカード用プロパティ
+マーケットカード（`marketplaceType="market"`）用の追加プロパティ：
+
+```tsx
+interface MarketCardSpecificProps {
+  orderbookKind?: OrderbookKind;
+  collectible?: CollectibleOrder;
+  onCollectibleClick?: (tokenId: string) => void;
+  onOfferClick?: (params: {
+    order?: Order;
+    e: React.MouseEvent<HTMLButtonElement>;
+  }) => void;
+  balance?: string;
+  balanceIsLoading: boolean;
+  onCannotPerformAction?: (action: CollectibleCardAction) => void;
+  prioritizeOwnerActions?: boolean;
+}
+```
+
+| パラメータ                    | 型                  | 説明                         |
+| ------------------------ | ------------------ | -------------------------- |
+| `orderbookKind`          | `OrderbookKind`    | オプション。オーダーブックの種類           |
+| `collectible`            | `CollectibleOrder` | オプション。コレクティブルの注文情報         |
+| `onCollectibleClick`     | `function`         | オプション。コレクティブルクリック時のハンドラー   |
+| `onOfferClick`           | `function`         | オプション。オファークリック時のハンドラー      |
+| `balance`                | `string`           | オプション。このコレクティブルのユーザー保有数    |
+| `balanceIsLoading`       | `boolean`          | 現在バランスを読み込み中かどうか           |
+| `onCannotPerformAction`  | `function`         | オプション。権限がない操作時のハンドラー       |
+| `prioritizeOwnerActions` | `boolean`          | オプション。UI上でオーナーの操作を優先するかどうか |
+
+## 特徴
+
+### カードバリエーション
+コンポーネントは主に2つのバリエーションをサポートします：
+1.  **マーケットカード**：マーケットプレイスでコレクティブルを表示する際に使用し、以下を含みます：
+    - 現在の出品価格
+    - 最高オファーの表示
+    - 保有・所有情報
+    - 購入・オファーアクション
+
+2.  **ショップカード**：一次販売用で、以下を含みます：
+    - 販売価格
+    - 供給情報
+    - 販売状況
+    - 購入アクション
+
+### 自動タイプ判定
+コンポーネントは異なるトークン規格を自動で処理します：
+- ERC-721（非代替性トークン）
+- ERC-1155（半代替性トークン）
+
+### ローディング状態
+組み込みのローディング状態が用意されています。
+
+```tsx
+<CollectibleCard
+  cardLoading={true}
+  // ... other props
+/>
+```
+
+### 価格フォーマット
+コンポーネントには高度な価格フォーマット機能が含まれています：
+- 通貨記号の表示
+- オーバーフロー／アンダーフローの指標
+- さまざまなトークン小数点への対応
+- 価格がゼロの場合の「無料」表示
+
+## 統合例
+
+### マーケットコンテンツへの統合
+CollectibleCard をマーケットプレイスで統合する完全な例：
+
+```tsx
+import {
+  CollectibleCard,
+  useListMarketCardData,
+} from "@0xsequence/marketplace-sdk/react";
+
+export function MarketContent({
+  collectionAddress,
+  chainId,
+  onCollectibleClick,
+}) {
+  const {
+    collectibleCards,
+    isLoading,
+    hasNextPage,
+    isFetchingNextPage,
+    fetchNextPage,
+  } = useListMarketCardData({
+    orderbookKind,
+    collectionType,
+    filterOptions,
+    searchText,
+    showListedOnly,
+    collectionAddress,
+    chainId,
+  });
+
+  return (
+    <div>
+      {collectibleCards.map((card, index) => (
+        <button
+          key={index}
+          onClick={() => onCollectibleClick(card.collectibleId)}
+          className="w-full cursor-pointer"
+        >
+          <CollectibleCard {...card} />
+        </button>
+      ))}
+    </div>
+  );
+}
+```
+
+### ショップコンテンツへの統合
+コントラクトタイプの処理を含むショップでの CollectibleCard 統合例：
+
+```tsx
+import {
+  CollectibleCard,
+  useList721ShopCardData,
+  useList1155ShopCardData,
+} from "@0xsequence/marketplace-sdk/react";
+
+export function ShopContent({
+  saleContractAddress,
+  collectionAddress,
+  chainId,
+  onCollectibleClick,
+}) {
+  // Choose hook based on contract type
+  const { collectibleCards, isLoading } =
+    contractType === ContractType.ERC721
+      ? useList721ShopCardData({
+          primarySaleItemsWithMetadata,
+          chainId,
+          contractAddress: collectionAddress,
+          salesContractAddress: saleContractAddress,
+          enabled: true,
+        })
+      : useList1155ShopCardData({
+          chainId,
+          contractAddress: collectionAddress,
+          salesContractAddress: saleContractAddress,
+          enabled: true,
+          primarySaleItemsWithMetadata,
+        });
+
+  return (
+    <div>
+      {collectibleCards.map((card, index) => (
+        <button
+          key={index}
+          onClick={() => onCollectibleClick(card.collectibleId)}
+          className="w-full cursor-pointer"
+        >
+          <CollectibleCard {...card} />
+        </button>
+      ))}
+    </div>
+  );
+}
+```
+
+## 補足
+`MarketplaceCollectibleCard` コンポーネントは、さまざまなマーケットプレイスのシナリオに対応できるよう設計されています：
+- レスポンシブレイアウト
+- ローディング状態の管理
+- 価格フォーマット
+- 供給量の追跡
+- アクションの処理
+- オーナー向け機能
+- オファー管理
+
+ERC-1155 トークンで利用する場合の注意点：
+- 保有数は「Owned: X」の形式で表示されます
+- ショップアイテムには供給情報が表示されます
+- 数量の追跡に対応しています
+
+### ベストプラクティス
+
+1.  **データ取得**
+    - 利用する状況（マーケット／ショップ）やコントラクトタイプ（ERC721／ERC1155）に応じて適切なデータフックを使ってください。
+    - 必要に応じて `enabled` プロップで条件付き取得を有効化できます。
+    - ローディング状態を適切に処理してください。
+
+2.  **イベント処理**
+    - カードや特定アクション（購入・オファー）用のクリックハンドラーを実装してください。
+    - 権限がない操作時は `onCannotPerformAction` コールバックを利用してください。
+
+3.  **表示**
+    - クリック可能にするため、カードをボタンでラップしてください。
+    - レイアウトや余白調整には適切な className を使ってください。
+    - 大規模コレクションには無限スクロールやページネーションの実装も検討してください。
