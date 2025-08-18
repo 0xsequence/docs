@@ -18,104 +18,159 @@ import { useBuyModal } from "@0xsequence/marketplace-sdk/react";
   <Tab title="Market Purchase">
     Example of implementing a market purchase (secondary sales) using the `useBuyModal` hook:
 
+    <Note>
+      This example uses the [`useLowestListing`](/sdk/marketplace-sdk/hooks/marketplace-data/useLowestListing) hook from marketplace-sdk. If there is no lowestListing with the given parameters, it means there is no orderId available, and therefore the item cannot be bought.
+    </Note>
+
     ```tsx
-    import type { MarketplaceKind } from '@0xsequence/marketplace-sdk'
-    import { useBuyModal } from '@0xsequence/marketplace-sdk/react'
-    import type { Address } from 'viem'
 
-    export default function MarketPurchaseExample() {
-      const { show: showMarketModal } = useBuyModal({
-        onSuccess: ({ hash, orderId }) => {
-          console.log('Market purchase successful', { hash, orderId })
-        },
-        onError: (error) => {
-          console.error('Market purchase failed:', error.message)
-        }
-      })
+import type { MarketplaceKind } from "@0xsequence/marketplace-sdk";
+import {
+  useBuyModal,
+  useLowestListing,
+} from "@0xsequence/marketplace-sdk/react";
+import type { Address } from "viem";
 
-      const marketData = {
-        chainId: 1, // Ethereum mainnet
-        collectionAddress: '0x1234567890123456789012345678901234567890' as Address,
-        collectibleId: '1',
-        orderId: 'order123',
-        marketplace: 'opensea' as MarketplaceKind,
-        priceUSDFormatted: '100.00'
-      }
+export default function MarketPurchaseExample() {
+  const {
+    data: lowestListing,
+    isLoading: isLoadingLowestListing,
+    isError: isErrorLowestListing,
+  } = useLowestListing({
+    collectionAddress: "0x1234567890123456789012345678901234567890" as Address // Replace with your collection address
+    chainId: 1 // Replace with your chain id
+    tokenId: "1", // Replace with your token id
+  });
+  const chainId = lowestListing?.chainId as number;
+  const collectionAddress = lowestListing?.collectionContractAddress as Address;
+  const tokenId = lowestListing?.tokenId as string;
+  const orderId = lowestListing?.orderId as string;
+  const marketplace = lowestListing?.marketplace as MarketplaceKind;
+  const priceUSDFormatted = lowestListing?.priceUSDFormatted as string;
 
-      const handleMarketBuy = () => {
-        showMarketModal({
-          chainId: marketData.chainId,
-          collectionAddress: marketData.collectionAddress,
-          collectibleId: marketData.collectibleId,
-          orderId: marketData.orderId,
-          marketplace: marketData.marketplace,
-        })
-      }
+const { show: showMarketModal } = useBuyModal({
+onSuccess: ({ hash, orderId }) => {
+console.log("Market purchase successful", { hash, orderId });
+},
+onError: (error) => {
+console.error("Market purchase failed:", error.message);
+},
+});
 
-      return (
-        <div style={{ padding: '20px' }}>
-          <h3>Market Purchase</h3>
-          <p>Price: ${marketData.priceUSDFormatted}</p>
-          <button onClick={handleMarketBuy}>
-            Buy from Market
-          </button>
-        </div>
-      )
-    }
+const handleMarketBuy = () => {
+if (!lowestListing || isLoadingLowestListing) return;
+
+    showMarketModal({
+      chainId,
+      collectionAddress,
+      collectibleId: tokenId,
+      orderId,
+      marketplace,
+    });
+
+};
+
+return (
+<div style={{ padding: "20px" }}>
+<h3>Market Purchase</h3>
+
+      <p>Price: ${priceUSDFormatted}</p>
+
+      <button
+        onClick={handleMarketBuy}
+        disabled={isLoadingLowestListing || isErrorLowestListing}
+      >
+        Buy from Market
+      </button>
+    </div>
+
+);
+}
+
     ```
 
   </Tab>
   <Tab title="Shop Purchase">
     Example of implementing a shop purchase (primary sales) using the `useBuyModal` hook:
 
+    <Note>
+      This example uses the [`useListPrimarySaleItems`](/sdk/marketplace-sdk/hooks/marketplace-data/useListPrimarySaleItems) hook from marketplace-sdk. The hook fetches primary sale items from a specific contract. If there is no primarySaleItem with the given parameters or if the supply is 0, the item cannot be bought.
+    </Note>
+
     ```tsx
-    import { useBuyModal } from '@0xsequence/marketplace-sdk/react'
-    import type { Address } from 'viem'
 
-    export default function ShopPurchaseExample() {
-      const { show: showShopModal } = useBuyModal({
-        onSuccess: ({ hash }) => {
-          console.log('Shop purchase successful', { hash })
+import {
+  useBuyModal,
+  useListPrimarySaleItems,
+} from '@0xsequence/marketplace-sdk/react';
+import type { Address } from 'viem';
+
+export default function ShopPurchaseExample() {
+  // Example values - replace with your own
+  const chainId = 1; // Ethereum mainnet
+  const saleContractAddress =
+    '0x1234567890123456789012345678901234567890' as Address;
+  const collectionAddress =
+    '0x0987654321098765432109876543210987654321' as Address;
+  const tokenId = '1';
+
+const { show: showBuyModal } = useBuyModal({
+onSuccess: ({ hash }) => {
+console.log('Shop purchase successful', { hash });
+},
+onError: (error) => {
+console.error('Shop purchase failed:', error.message);
+},
+});
+
+// Fetch primary sale items - replace parameters with your own
+const { data: primarySaleItems } = useListPrimarySaleItems({
+chainId: chainId,
+primarySaleContractAddress: saleContractAddress,
+filter: {
+includeEmpty: true,
+},
+});
+
+const primarySaleItem =
+primarySaleItems?.pages[0]?.primarySaleItems[0]?.primarySaleItem;
+
+const handleShopBuy = () => {
+if (!primarySaleItem) return;
+
+    showBuyModal({
+      chainId: chainId,
+      collectionAddress: collectionAddress,
+      salesContractAddress: saleContractAddress,
+      marketplaceType: 'shop',
+      quantityDecimals: 0,
+      quantityRemaining: Number(primarySaleItem.supply),
+      items: [
+        {
+          tokenId: tokenId,
+          quantity: '1',
         },
-        onError: (error) => {
-          console.error('Shop purchase failed:', error.message)
-        }
-      })
+      ],
+      salePrice: {
+        amount: primarySaleItem.priceAmount ?? '0',
+        currencyAddress: (primarySaleItem.currencyAddress as Address) ?? '0x',
+      },
+    });
 
-      const shopData = {
-        chainId: 1,
-        collectionAddress: '0x1234567890123456789012345678901234567890' as Address,
-        salesContractAddress: '0x0987654321098765432109876543210987654321' as Address,
-        salePrice: {
-          amount: '100000000000000000', // 0.1 ETH in wei
-          currencyAddress: '0x0000000000000000000000000000000000000000' as Address // ETH
-        },
-        quantityRemaining: 100
-      }
+};
 
-      const handleShopBuy = () => {
-        showShopModal({
-          chainId: shopData.chainId,
-          collectionAddress: shopData.collectionAddress,
-          salesContractAddress: shopData.salesContractAddress,
-          marketplaceType: 'shop',
-          quantityDecimals: 0,
-          quantityRemaining: shopData.quantityRemaining,
-          items: [{ quantity: '1' }],
-          salePrice: shopData.salePrice
-        })
-      }
+return (
+<div>
+<p>Available: {primarySaleItem?.supply ?? 0}</p>
+<button
+onClick={handleShopBuy}
+disabled={!primarySaleItem || Number(primarySaleItem.supply) === 0} >
+Buy from Shop
+</button>
+</div>
+);
+}
 
-      return (
-        <div style={{ padding: '20px' }}>
-          <h3>Shop Purchase</h3>
-          <p>Quantity Remaining: {shopData.quantityRemaining}</p>
-          <button onClick={handleShopBuy}>
-            Buy from Shop
-          </button>
-        </div>
-      )
-    }
     ```
 
   </Tab>
