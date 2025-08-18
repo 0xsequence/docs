@@ -1,0 +1,97 @@
+---
+title: "useLowestListing"
+description: "Hook for fetching the lowest priced listing for a collectible"
+sidebarTitle: useLowestListing
+---
+
+## Import
+
+```tsx
+import { useLowestListing } from "@0xsequence/marketplace-sdk";
+```
+
+## Usage
+
+```tsx
+import { useLowestListing } from "@0xsequence/marketplace-sdk";
+
+function App() {
+  const { data, isLoading } = useLowestListing({
+    chainId: 137,
+    collectionAddress: "0x123...",
+    tokenId: "1",
+  });
+
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
+
+  return (
+    <div>
+      {data ? (
+        <div>Lowest price: {data.price}</div>
+      ) : (
+        <div>No listings available</div>
+      )}
+    </div>
+  );
+}
+```
+
+## Return Type: `UseQueryResult`
+
+The hook returns a React Query result object with the following key properties:
+
+```tsx
+type UseQueryResult = {
+  data: LowestListingData | null;
+  isLoading: boolean;
+  error: Error | null;
+  // ... other React Query properties
+};
+```
+
+### Parameters
+
+| Parameter           | Type     | Description                                          |
+| ------------------- | -------- | ---------------------------------------------------- |
+| `chainId`           | `number` | The chain ID (e.g., 1 for Ethereum, 137 for Polygon) |
+| `collectionAddress` | `string` | The collection contract address                      |
+| `tokenId`           | `string` | The token ID within the collection                   |
+| `query`             | `object` | (Optional) React Query configuration options         |
+| `config`            | `object` | (Optional) SDK configuration options                 |
+
+### Query Options
+
+You can customize the query behavior using the optional `query` parameter:
+
+```tsx
+const { data, isLoading } = useLowestListing({
+  chainId: 1,
+  collectionAddress: "0x...",
+  tokenId: "42",
+  query: {
+    refetchInterval: 15000, // Refetch every 15 seconds
+    enabled: hasTokenId, // Only run query when tokenId is available
+    // ... other React Query options
+  },
+});
+```
+
+## Notes
+
+This hook is useful for:
+
+- Displaying the current lowest price for a specific Collectible
+- Building price comparison features
+
+The hook automatically handles:
+
+- Data fetching and caching
+- Loading and error states
+- Type-safe responses
+
+<Warning>
+  Make sure to provide valid chain IDs and contract addresses. Invalid
+  parameters will result in failed queries.
+</Warning>
