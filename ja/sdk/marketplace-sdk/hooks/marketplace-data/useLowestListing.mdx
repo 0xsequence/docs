@@ -1,0 +1,91 @@
+---
+title: useLowestListing
+description: コレクティブルの最安値リスティングを取得するためのフック
+sidebarTitle: useLowestListing
+---
+
+## インポート
+
+```tsx
+import { useLowestListing } from "@0xsequence/marketplace-sdk";
+```
+
+## 使い方
+
+```tsx
+import { useLowestListing } from "@0xsequence/marketplace-sdk";
+
+function App() {
+  const { data, isLoading } = useLowestListing({
+    chainId: 137,
+    collectionAddress: "0x123...",
+    tokenId: "1",
+  });
+
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
+
+  return (
+    <div>
+      {data ? (
+        <div>Lowest price: {data.price}</div>
+      ) : (
+        <div>No listings available</div>
+      )}
+    </div>
+  );
+}
+```
+
+## 返り値の型：`UseQueryResult`
+このフックは、以下の主要なプロパティを持つ React Query の結果オブジェクトを返します。
+
+```tsx
+type UseQueryResult = {
+  data: LowestListingData | null;
+  isLoading: boolean;
+  error: Error | null;
+  // ... other React Query properties
+};
+```
+
+### パラメータ
+
+| パラメータ               | 型        | 説明                                      |
+| ------------------- | -------- | --------------------------------------- |
+| `chainId`           | `number` | チェーンID（例：Ethereum は 1、Polygon は 137 など） |
+| `collectionAddress` | `string` | コレクションコントラクトのアドレス                       |
+| `tokenId`           | `string` | コレクション内のトークンID                          |
+| `query`             | `object` | （オプション）React Query の設定オプション             |
+| `config`            | `object` | （オプション）SDK の設定オプション                     |
+
+### クエリオプション
+オプションの `query` パラメータを使って、クエリの挙動をカスタマイズできます。
+
+```tsx
+const { data, isLoading } = useLowestListing({
+  chainId: 1,
+  collectionAddress: "0x...",
+  tokenId: "42",
+  query: {
+    refetchInterval: 15000, // Refetch every 15 seconds
+    enabled: hasTokenId, // Only run query when tokenId is available
+    // ... other React Query options
+  },
+});
+```
+
+## 補足
+このフックは以下の用途に便利です：
+- 特定のコレクティブルの現在の最安値を表示する場合
+- 価格比較機能を構築する場合
+
+このフックは自動的に以下を処理します：
+- データの取得とキャッシュ
+- ローディングやエラー状態の管理
+- 型安全なレスポンス
+
+<Warning>
+  有効なチェーンIDやコントラクトアドレスを必ず指定してください。無効なパラメータの場合、クエリは失敗します。
+</Warning>
