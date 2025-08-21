@@ -1,0 +1,173 @@
+---
+title: "Media"
+description: "Component for displaying various types of collectible assets"
+sidebarTitle: "Media"
+---
+
+## Import
+
+```tsx
+import { Media } from "@0xsequence/marketplace-sdk/react";
+```
+
+## Usage
+
+### Examples
+
+<Tabs>
+  <Tab title="Basic Usage">
+    Basic example of using the Media component to display an image:
+
+    ```tsx
+    import { Media } from "@0xsequence/marketplace-sdk/react";
+
+    export default function BasicExample() {
+      return (
+        <Media
+          name="My Collectible"
+          assets={["https://example.com/image.png"]}
+          className="w-64 h-64"
+        />
+      );
+    }
+    ```
+
+  </Tab>
+  <Tab title="Multiple Assets">
+    Example showing how to handle multiple assets with fallback:
+
+    ```tsx
+    import { Media } from "@0xsequence/marketplace-sdk/react";
+
+    export default function MultipleAssetsExample() {
+      return (
+        <Media
+          name="My Collectible"
+          assets={[
+            "https://example.com/main-image.png",
+            "https://example.com/fallback-image.jpg",
+            "https://example.com/video.mp4"
+          ]}
+          className="w-full h-full"
+          // The component will try each asset in order until one loads successfully
+        />
+      );
+    }
+    ```
+
+  </Tab>
+  <Tab title="Custom Fallback">
+    Example with a custom fallback component:
+
+    ```tsx
+    import { Media } from "@0xsequence/marketplace-sdk/react";
+
+    export default function CustomFallbackExample() {
+      const CustomFallback = () => (
+        <div className="flex items-center justify-center h-full w-full bg-gray-100">
+          <p>Asset not available</p>
+        </div>
+      );
+
+      return (
+        <Media
+          name="My Collectible"
+          assets={["https://example.com/image.png"]}
+          className="w-64 h-64"
+          fallbackContent={<CustomFallback />}
+        />
+      );
+    }
+    ```
+
+  </Tab>
+</Tabs>
+
+## Parameters
+
+The component accepts the following props:
+
+```tsx
+interface MediaProps {
+  name?: string;
+  assets: (string | undefined)[];
+  assetSrcPrefixUrl?: string;
+  className?: string;
+  containerClassName?: string;
+  mediaClassname?: string;
+  isLoading?: boolean;
+  fallbackContent?: React.ReactNode;
+  shouldListenForLoad?: boolean;
+}
+```
+
+| Parameter             | Type                      | Description                                                                                                   |
+| --------------------- | ------------------------- | ------------------------------------------------------------------------------------------------------------- |
+| `name`                | `string`                  | Optional name for the collectible, used as alt text for images                                                |
+| `assets`              | `(string \| undefined)[]` | Array of asset URLs to try loading. The component will attempt to load each asset in order until one succeeds |
+| `assetSrcPrefixUrl`   | `string`                  | Optional URL prefix to prepend to asset URLs                                                                  |
+| `className`           | `string`                  | Optional CSS class name for the component container                                                           |
+| `containerClassName`  | `string`                  | Optional CSS class name for the outer container                                                               |
+| `mediaClassname`      | `string`                  | Optional CSS class name for the media element itself                                                          |
+| `isLoading`           | `boolean`                 | Optional flag to show loading state                                                                           |
+| `fallbackContent`     | `React.ReactNode`         | Optional custom content to display when no assets can be loaded                                               |
+| `shouldListenForLoad` | `boolean`                 | Optional flag to enable/disable load event listeners (defaults to true)                                       |
+
+## Supported Media Types
+
+The Media component automatically detects and handles different types of content:
+
+- **Images**: Renders standard image files (PNG, JPG, GIF, etc.)
+- **Videos**: Supports video files with autoplay, loop, and controls
+- **3D Models**: Renders 3D models using ModelViewer component
+- **HTML**: Displays HTML content in a sandboxed iframe
+
+## Features
+
+### Automatic Content Type Detection
+
+The component automatically detects the content type of the asset and renders the appropriate element:
+
+```tsx
+<Media
+  assets={[
+    "model.glb", // Will render as 3D model
+    "video.mp4", // Will render as video
+    "image.png", // Will render as image
+    "content.html", // Will render as iframe
+  ]}
+/>
+```
+
+### Fallback Chain
+
+If an asset fails to load, the component will:
+
+1. Try the next asset in the assets array
+2. If all assets fail, display the custom fallback content
+3. If no fallback content is provided, show the default chess tile pattern
+
+### Loading States
+
+The component includes built-in loading states:
+
+```tsx
+<Media
+  assets={["https://example.com/large-image.png"]}
+  isLoading={true} // Will show loading skeleton
+/>
+```
+
+## Notes
+
+The `Media` component is designed to handle various types of collectible assets with built-in:
+
+- Automatic content type detection
+- Fallback handling
+- Loading states
+- Safari compatibility adjustments
+
+When using with video content, note that:
+
+- Videos autoplay by default
+- Videos are muted by default for autoplay compatibility
