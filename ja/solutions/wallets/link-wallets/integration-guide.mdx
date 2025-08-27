@@ -6,7 +6,7 @@ description: このガイドでは、ウォレットリンクのために親埋�
 # ウォレットリンクの統合
 所要時間：25～35分
 
-このガイドでは、メールやソーシャルログインなど従来の認証を使って[埋め込みウォレット](/solutions/wallets/embedded-wallet/overview)にサインインする方法を紹介します。その後、Web SDK を利用して外部ウォレットアドレスを埋め込みウォレットにリンクするため、署名を使ってオフチェーンでプライベートに管理される単一ユーザープロファイルのアドレスセットを作成します。さらに、API の他の機能（リンク済みウォレットの一覧表示やリンク状態の削除など）も、プライバシー保護のため署名を利用して解説します。
+このガイドでは、メールやソーシャルログインなど従来の認証を使って[埋め込みウォレット](/solutions_old/wallets/embedded-wallet/overview)にサインインする方法を紹介します。その後、Web SDK を利用して外部ウォレットアドレスを埋め込みウォレットにリンクするため、署名を使ってオフチェーンでプライベートに管理される単一ユーザープロファイルのアドレスセットを作成します。さらに、API の他の機能（リンク済みウォレットの一覧表示やリンク状態の削除など）も、プライバシー保護のため署名を利用して解説します。
 
 # デモ
 [デモを試す](https://demo-waas-wallet-link.pages.dev/) または [ソースコード全体を見る](https://github.com/0xsequence-demos/demo-embedded-wallet-linking)。
@@ -55,9 +55,9 @@ const api = new API("https://dev-api.sequence.app", fetch);
 
 #### リポジトリに統合されたAPI関数を使ったシンプルな例（`0xsequence/waas`や`wagmi`パッケージを利用）：
 
-1. [`linkWallet(...)`](/solutions/wallets/link-wallets/integration-guide#5-link-an-external-wallet-to-an-embedded-wallet)
-2. [`getLinkedWallets(...)`](/solutions/wallets/link-wallets/integration-guide#6-retrieve-linked-wallets)
-3. [`removeLinkedWallet(...)`](/solutions/wallets/link-wallets/integration-guide#7-remove-linked-wallet)
+1. [`linkWallet(...)`](/solutions_old/wallets/embedded-wallet/link-wallets/integration-guide#5-link-an-external-wallet-to-an-embedded-wallet)
+2. [`getLinkedWallets(...)`](/solutions_old/wallets/embedded-wallet/link-wallets/integration-guide#6-retrieve-linked-wallets)
+3. [`removeLinkedWallet(...)`](/solutions_old/wallets/embedded-wallet/link-wallets/integration-guide#7-remove-linked-wallet)
 
 ## 2. 外部ウォレットをEmbedded Walletに連携する
 外部ウォレット（例：EOA、Sequence Universal Walletなど）をEmbedded Walletに連携するには、まずユーザーを`親`ウォレットとしてEmbedded Walletで認証します。認証後、Web SDKを使って再度認証し、ユーザーが所有権を証明するためにメッセージへ署名します。そのメッセージを`linkWallet` APIエンドポイントに、以下の型付き引数と返却型（オプション値を除く）で渡します：
@@ -197,7 +197,7 @@ const getLinkedWallets = async () => {
 ```
 
 ## 4. 連携済みウォレットの解除
-最後に、ウォレットを親ウォレットからオフチェーンで連携解除したい場合、両方のウォレット（Embedded WalletとWeb SDK連携ウォレット）で署名を行い、連携ウォレットアドレスを[ステップ6と同様に](/solutions/wallets/link-wallets/integration-guide#6-link-sequence-kit-signed-in-wallet)渡すことで、連携状態を解除できます：
+最後に、ウォレットを親ウォレットからオフチェーンで連携解除したい場合、両方のウォレット（Embedded WalletとWeb SDK連携ウォレット）で署名を行い、連携ウォレットアドレスを[ステップ6と同様に](/solutions_old/wallets/embedded-wallet/link-wallets/integration-guide#6-link-sequence-kit-signed-in-wallet)渡すことで、連携状態を解除できます：
 
 ### 連携アドレス解除のためのメッセージ署名
 
