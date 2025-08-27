@@ -4,7 +4,7 @@ title: Introducción
 
 Las Ventas Primarias implican el uso de un contrato inteligente para facilitar el minteo de ERC721/1155s a los usuarios.
 
-En general, recomendamos usar nuestros contratos de ventas primarias auditados que se pueden [implementar fácilmente desde el Sequence Builder](/solutions/builder/contracts/deploy-primary-sales-contract).
+En general, recomendamos usar nuestros contratos de ventas primarias auditados que pueden [desplegarse fácilmente desde Sequence Builder](/solutions/builder/contracts/deploy-primary-sales-contract).
 
 ## Ventas Primarias en Unity
 Al trabajar con los contratos de ventas de Sequence en Unity, se recomienda usar las clases `ERC721Sale` y `ERC1155Sale` para ventas de ERC721 y ERC1155 respectivamente. Si está usando su propio contrato de ventas primarias con su propio ABI, se recomienda construir un wrapper de contrato en C# (como hemos hecho con `ERC721Sale` y `ERC1155Sale`) para facilitar un flujo de trabajo más sencillo y menos propenso a errores. Este documento se centrará en el uso de nuestros contratos de Ventas Primarias.
@@ -16,7 +16,7 @@ ERC1155Sale sale1155 = new ERC1155Sale(contractAddress);
 ERC721Sale sale721 = new ERC721Sale(otherContractAddress);
 ```
 
-Una vez que haya [configurado su contrato de Venta Primaria en el Sequence Builder](/solutions/builder/contracts/deploy-primary-sales-contract), puede que quiera obtener esos detalles en Unity.
+Una vez que haya [configurado su contrato de venta primaria en Sequence Builder](/solutions/builder/contracts/deploy-primary-sales-contract), puede que desee obtener esos detalles en Unity.
 
 ```
 IEthClient client = new SequenceEthClient(chain);
@@ -38,4 +38,4 @@ transactions.Add(new RawTransaction(sale1155.Mint(_wallet.GetWalletAddress(),
 _wallet.SendTransaction(chain, tranactions.ToArray());
 ```
 
-<Tip>¡No olvide agregar las direcciones de sus contratos de ventas primarias y de la moneda de precio a su [Gas Tank](/solutions/builder/gas-sponsorship) si desea que estas transacciones sean patrocinadas!</Tip>
+<Tip>¡No olvide agregar sus contratos de ventas primarias y las direcciones de contrato de la moneda de precio a su [Gas Tank](/solutions/builder/gas-sponsorship) si quiere que estas transacciones sean patrocinadas!</Tip>
