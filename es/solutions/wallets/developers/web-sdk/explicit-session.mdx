@@ -1,0 +1,208 @@
+Las sesiones explícitas otorgan a un firmante la capacidad de realizar llamadas dentro de un alcance definido. Los permisos explícitos pasan a formar parte de la configuración de la sesión y, por lo tanto, de la configuración del wallet, por lo que requieren una actualización de la configuración del wallet. Los permisos deben ser definidos y aceptados explícitamente por el usuario para poder ser utilizados (de ahí el nombre).
+
+El gestor de sesiones del SDK es lo suficientemente inteligente como para firmar múltiples llamadas de varias sesiones. Si una sesión tiene permisos para aprobar un ERC20 y otra sesión tiene acceso a un contrato de marketplace, estas llamadas pueden combinarse automáticamente en un solo payload.
+
+Cada llamada debe coincidir con al menos 1 permiso. Al hacer coincidir un permiso, la dirección de destino y **todas** las reglas deben validarse.
+
+## Examples
+A continuación se muestran algunos ejemplos de permisos para casos de uso comunes. La definición de tipo del permiso es:
+
+```tsx
+export enum ParameterOperation {
+  EQUAL = 0,
+  NOT_EQUAL = 1,
+  GREATER_THAN_OR_EQUAL = 2,
+  LESS_THAN_OR_EQUAL = 3,
+}
+
+export type ParameterRule = {
+  cumulative: boolean
+  operation: ParameterOperation
+  value: Bytes.Bytes
+  offset: bigint
+  mask: Bytes.Bytes
+}
+
+export type Permission = {
+  target: Address.Address
+  rules: ParameterRule[]
+}
+
+export type SessionPermissions = {
+  signer: Address.Address
+  valueLimit: bigint
+  deadline: bigint
+  permissions: [Permission, ...Permission[]]
+}
+```
+
+`Permission.SELECTOR_MASK`, `Permission.ADDRESS_MASK` y `Permission.UINT256_MASK` están disponibles en el SDK para su conveniencia.
+
+### Fecha límite
+Cada permiso debe incluir un `deadline` que indica hasta cuándo es válido el permiso. Un `deadline` de `0` indica que el permiso está disponible para siempre.
+
+El wallet del ecosistema puede decidir cuál es una fecha límite apropiada. Por ejemplo, el wallet puede advertir al usuario si se solicita una sesión con una fecha límite superior a 1 día, o incluso puede impedir fechas límite superiores a 1 semana.
+
+```tsx
+const deadline = BigInt(Math.floor(Date.now() / 1000) + 3600) // 1 hour from now
+```
+
+### Transferencia de valor (ETH)
+Cada permiso debe incluir un `valueLimit` que determina cuánto del token nativo (por ejemplo, ETH) se puede enviar. Se pueden realizar múltiples llamadas hasta alcanzar este límite acumulado.
+
+El wallet del ecosistema puede advertir al usuario cada vez que se solicite un valor distinto de cero.
+
+Para enviar a una dirección, el permiso `target` se establece en el receptor. Esto también funciona para contratos con funciones pagaderas. Si el receptor no se conoce de antemano, el `target` puede ser un contrato forwarder de valor como [0xdb8cB1A9cEb374A5Fc0eCb98bb0369e456452da0](https://arbiscan.io/address/0xdb8cB1A9cEb374A5Fc0eCb98bb0369e456452da0).
+
+```tsx
+return {
+  signer,
+  valueLimit: 1000000000000000000n, // 1 ETH
+  deadline,
+  permissions: [
+    {
+      target: target, // The receiver
+      rules: [], // No rules required
+    },
+  ],
+}
+```
+
+En este ejemplo, el permiso tiene acceso sin restricciones al enviar call data al `target`. Para funciones pagaderas, como el forwarder, puede especificar una regla de selector para limitar qué funciones se pueden llamar (vea los ejemplos a continuación) o especificar un selector de `0x00000000` que coincidirá con call data vacío.
+
+### ERC20
+ERC20 tiene varias formas de acceder al valor. Como los permisos validan el call data, la codificación del permiso varía dependiendo de si el usuario desea usar `approve(address spender, uint256 value)`, `transfer(address to, uint256 value)` o `transferFrom(address from, address to, uint256 value)`.
+
+En general, el permiso debe consistir en dos reglas:
+- una regla que coincida con el selector
+- una regla acumulativa de menor o igual sobre el valor
+
+La app de wallet debe ser lo suficientemente inteligente como para detectar un permiso que use una regla de validación de selector (`offset: 0`, `mask: Permission.SELECTOR_MASK`), decodificar el valor y mostrar el alcance del permiso en un formato legible para el usuario.
+
+La wallet debe tener en cuenta las aprobaciones existentes. Si un firmante explícito aprueba el acceso a una
+
+Aquí hay un ejemplo para ERC20 usando `transfer`.
+
+```tsx
+const erc20TransferAbi = AbiFunction.from('function transfer(address to, uint256 value) returns (bool)')
+return {
+  signer,
+  valueLimit: 0,
+  deadline,
+  permissions: [
+    {
+      target: erc20Address,
+      rules: [
+        {
+	        // The selector match rule
+          cumulative: false,
+          operation: Permission.ParameterOperation.EQUAL,
+          value: Bytes.fromHex(AbiFunction.getSelector(erc20TransferAbi), { size: 32 }),
+          offset: 0n,
+          mask: Permission.SELECTOR_MASK,
+        },
+        {
+          // The value limit rule
+          cumulative: true, // Record the values across multiple calls.
+          operation: Permission.ParameterOperation.LESS_THAN_OR_EQUAL,
+          value: Bytes.fromNumber(10000000n, { size: 32 }), // 10 USDC (6 decimals)
+          offset: 4n + 32n, // Offset the selector and to address
+          mask: Permission.UINT256_MASK,
+        },
+      ],
+    },
+  ],
+}
+```
+
+Tenga en cuenta que el `offset` en la regla de valor es `4` (el selector es bytes4) `+ 32` (la dirección se codifica en 32 bytes) para que la regla revise el `uint256 value` en los datos de la llamada. Para la función `transferFrom`, debe usar `4 + 32 + 32` para obtener el offset correcto del parámetro value.
+
+Además, el `value` debe incluir la cantidad correcta de decimales del token.
+
+También puede agregar una regla que valide la `address to` en el permiso para asegurar que los tokens ERC20 solo puedan ser enviados o accedidos por una dirección específica.
+
+Codificar múltiples permisos para un solo ERC20 otorga acceso a la suma total de los permisos. Por ejemplo, tener un permiso de `transfer` y uno de `transferFrom` por 10 USDC cada uno, permitirá acceder a 20 USDC en total.
+
+### Compra en Marketplace
+Solicitar permisos para una compra en Sequence Marketplace requiere conocer el `requestId` de antemano. El permiso no puede limitarse a un tipo específico de NFT (por ejemplo).
+
+El permiso puede exigir que el destinatario de la compra sea la dirección de la wallet, y que la compra no se realice en nombre de otra dirección.
+
+Se puede otorgar un conjunto de permisos que permita aceptar múltiples solicitudes. Esto, junto con un permiso de aprobación de ERC20, podría permitir que un firmante compre hasta cierto valor dentro de una lista de publicaciones.
+
+```tsx
+const acceptRequestAbi = AbiFunction.from('acceptRequest(uint256 requestId, uint256 quantity, address recipient, uint256[] calldata additionalFees, address[] calldata additionalFeeRecipients)')
+const marketplacePermissions = requestIds.map(requestId => ({
+  target: marketplaceAddress,
+  rules: [
+    {
+	    // Selector rule
+      cumulative: false,
+      operation: Permission.ParameterOperation.EQUAL,
+      value: Bytes.fromHex(AbiFunction.getSelector(acceptRequestAbi), { size: 32 }),
+      offset: 0n,
+      mask: Permission.SELECTOR_MASK,
+    },
+    {
+	    // Request Id rule
+      cumulative: false,
+      operation: Permission.ParameterOperation.EQUAL,
+      value: Bytes.fromNumber(requestId, { size: 32 }), // requestId
+      offset: 4n,
+      mask: Permission.UINT256_MASK,
+    },
+    {
+	    // Recipient rule
+      cumulative: false,
+      operation: Permission.ParameterOperation.EQUAL,
+      value: Bytes.fromHex(wallet.address, { size: 32 }), // wallet.address
+      offset: 4n + 32n + 32n,
+      mask: Permission.ADDRESS_MASK,
+    },
+  ],
+})
+return {
+  signer,
+  valueLimit: 0,
+  deadline,
+  // erc20ApprovePermission as defined in the earlier example
+  permissions: [erc20ApprovePermission, ...marketplacePermissions],
+}
+```
+
+### Swaps
+`// TODO AnyPay`
+
+Las sesiones no pueden firmar mensajes. Al momento de escribir esto, Uniswap requiere un mensaje firmado, por lo que las sesiones explícitas no pueden funcionar sin también solicitar la firma a la wallet, lo que en cierto modo anula el propósito de usar una sesión explícita aquí.
+
+### Hack de uso único
+Puede "hackear" la estructura de permisos para otorgar un permiso que solo se pueda usar una vez. Configure el permiso con `culumative: true`, `operation: Permission.ParameterOption.EQUAL` en el selector con `mask: Permission.SELECTOR` y `offset: 0`. Al usarse, el contrato session manager registrará el uso del selector y actualizará el offset. Las llamadas posteriores con este permiso fallarán, ya que el selector (con el incremento) ya no coincidirá.
+
+En este ejemplo, la sesión podrá abrir 1 pack.
+
+```tsx
+const packCommitAbi = AbiFunction.from('function commit()')
+return {
+  signer,
+  valueLimit: 0,
+  deadline,
+  permissions: [
+    {
+      target: packAddress,
+      rules: [
+        {
+          cumulative: true,
+          operation: Permission.ParameterOperation.EQUAL,
+          value: Bytes.fromHex(AbiFunction.getSelector(packCommitAbi), { size: 32 }),
+          offset: 0n,
+          mask: Permission.SELECTOR_MASK,
+        },
+      ],
+    },
+  ],
+}
+```
+
+Tenga en cuenta que esto no impide que se emitan permisos posteriores para el mismo selector. Esta limitación de un solo uso solo aplica dentro del alcance de ese permiso.
+
+Para permitir 2 llamadas, simplemente repita este permiso dentro del array. (No probado)

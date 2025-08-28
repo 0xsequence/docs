@@ -1,0 +1,169 @@
+---
+title: Transaction History
+sidebarTitle: Transaction History
+---
+
+## Fetch the transaction history for any wallet address
+任意のウォレットアドレスにおけるERC20、ERC721、ERC1155トークンの取引・トークン履歴を取得します。
+レスポンスには、分かりやすく利用・表示できるようデコード済みの取引詳細が含まれます。
+
+_Sequence Indexer `GetTransactionHistory` Method:_
+- Request: POST /rpc/Indexer/GetTransactionHistory
+- Content-Type: application/json
+- ボディ（JSON形式）：
+  - `filter` (object)
+    - `accountAddress` (string) -- the wallet account address
+    - `contractAddress` (string) -- optionally specify a contract address to filter
+    - `accountAddresses` (string array) -- optionally specify a list of wallet account addresses
+    - `contractAddresses` (string array) -- optionally specify a list of contract address
+    - `transactionHashes` (string array) -- optionally specify a list of transaction hashes
+    - `metaTransactionIDs` (string array) -- optionally specify a list of meta transaction IDs
+  - `includeMetadata` (boolean - optional - default: false) -- toggle token metadata to be included in the response
+  - `metadataOptions` (object - optional) -- additional options for metadata
+    - `verifiedOnly` (boolean - optional) -- return only contracts which are 'verified' to help reduce spam
+    - `includeContracts` (\[]string - optional) -- list of specific contract addresses to always be included, even if verifiedOnly is enabled.
+
+<br />
+
+<Note>
+  Wallet transaction history retention with the Indexer is 30 days for all networks (with the exception of `arbitrum-sepolia` which is 20 days).
+</Note>
+
+**Example: `GetTransactionHistory` of a wallet account address on Polygon using an `API_ACCESS_KEY`**
+
+<CodeGroup>
+  ```bash cURL
+  curl -X POST -H "Content-Type: application/json" -H "X-Access-Key: AQAAAAAAAF_JvPALhBthL7VGn6jV0YDqaFY" https://polygon-indexer.sequence.app/rpc/Indexer/GetTransactionHistory -d '{ "filter": { "accountAddress": "0x8e3E38fe7367dd3b52D1e281E4e8400447C8d8B9" }, "includeMetadata": true }'
+  projectAccessKey
+  ```
+
+  ```ts Typescript
+  // Works in both a Webapp (browser) or Node.js:
+  import { SequenceIndexer } from '@0xsequence/indexer'
+
+  const indexer = new SequenceIndexer('https://polygon-indexer.sequence.app', 'AQAAAAAAAF_JvPALhBthL7VGn6jV0YDqaFY')
+
+  // try any account address you'd like :)
+  const filter = {
+  	accountAddress: "0xabc..."
+  }
+
+  // query Sequence Indexer for all token transaction history on Polygon
+  const transactionHistory = await indexer.getTransactionHistory({
+  	filter: filter,
+  	includeMetadata: true
+  })
+  	
+  console.log('transaction history in account:', transactionHistory)
+  ```
+
+  ```go Go
+  import (
+  	"context"
+  	"fmt"
+  	"log"
+  	"net/http"
+
+  	"github.com/0xsequence/go-sequence/indexer"
+  )
+
+  func GetTransactionHistory(accountAddress string) {
+  	seqIndexer := indexer.NewIndexer("https://polygon-indexer.sequence.app", "AQAAAAAAAF_JvPALhBthL7VGn6jV0YDqaFY")
+
+  	filter := &indexer.TransactionHistoryFilter{
+  		AccountAddress: &accountAddress,
+  	}
+
+  	metadataOptions := indexer.MetadataOptions{
+  		VerifiedOnly:     true, // Set to true if you want to fetch only verified contracts
+  		UnverifiedOnly:   false,
+  		IncludeContracts: nil, // Provide a list of specific contracts to include, if any
+  	}
+
+  	_, history, err := seqIndexer.GetTransactionHistory(context.Background(), filter, nil, nil, &metadataOptions)
+  	if err != nil {
+  		log.Fatal(err)
+  	}
+  	fmt.Println("transaction history:", history)
+  }
+  ```
+</CodeGroup>
+
+## 任意のERC20、ERC721、ERC1155コントラクトの取引履歴を取得・監視します。
+このクエリは、特定のトークンコントラクトの取引履歴を追跡するのに便利です。
+この例では、Polygonネットワーク上のSkyweaverトークンコントラクトアドレス 0x631998e91476DA5B870D741192fc5Cbc55F5a52E を使用しています。
+サポートされているネットワーク上の任意のコントラクトアドレスをクエリできますが、
+必ず対応するネットワークのインデクサーにクエリしてください。
+
+_Sequence Indexer `GetTransactionHistory` Method:_
+- Request: POST /rpc/Indexer/GetTransactionHistory
+- Content-Type: application/json
+- ボディ（JSON形式）：
+  - `filter` (object)
+    - `contractAddress` (string) -- a ERC20 / ERC721 / ERC1155 contract address
+
+<Note>
+  Token contract transaction history retention with the Indexer is 30 days for all networks (with the exception of `arbitrum-sepolia` which is 20 days).
+</Note>
+
+**Example: `GetTransactionHistory` of Skyweaver contract on Polygon using an `API_ACCESS_KEY`**
+
+<CodeGroup>
+  ```bash cURL
+  curl -X POST -H "Content-Type: application/json" -H "X-Access-Key: AQAAAAAAAF_JvPALhBthL7VGn6jV0YDqaFY" https://polygon-indexer.sequence.app/rpc/Indexer/GetTransactionHistory -d '{ "filter": { "accountAddress": "0x631998e91476DA5B870D741192fc5Cbc55F5a52E" }, "includeMetadata": true }'
+  ```
+
+  ```typescript Typescript
+  // Works in both a Webapp (browser) or Node.js:
+  import { SequenceIndexer } from "@0xsequence/indexer";
+
+  const indexer = new SequenceIndexer('https://polygon-indexer.sequence.app', 'AQAAAAAAAF_JvPALhBthL7VGn6jV0YDqaFY')
+
+  // here we query the Skyweaver contract address, but you can use any
+  const contractAddress = "0x631998e91476DA5B870D741192fc5Cbc55F5a52E";
+
+  // query Sequence Indexer for all token details / supplies
+  // try any contract address you'd like :)
+  const filter = {
+    contractAddress: contractAddress,
+  };
+
+  // query Sequence Indexer for all token transaction history on Polygon
+  const transactionHistory = await indexer.getTransactionHistory({
+    filter: filter,
+  });
+
+  console.log("transaction history of contract:", transactionHistory);
+  ```
+
+  ```go Go
+  import (
+  	"context"
+  	"fmt"
+  	"log"
+  	"net/http"
+
+  	"github.com/0xsequence/go-sequence/indexer"
+  )
+
+  func GetTransactionHistory(contractAddress string) {
+  	seqIndexer := indexer.NewIndexer("https://polygon-indexer.sequence.app", "AQAAAAAAAF_JvPALhBthL7VGn6jV0YDqaFY")
+
+  	filter := &indexer.TransactionHistoryFilter{
+  		ContractAddress: &contractAddress,
+  	}
+
+  	metadataOptions := indexer.MetadataOptions{
+  		VerifiedOnly:     true, // Set to true if you want to fetch only verified contracts
+  		UnverifiedOnly:   false,
+  		IncludeContracts: nil, // Provide a list of specific contracts to include, if any
+  	}
+
+  	_, history, err := seqIndexer.GetTransactionHistory(context.Background(), filter, nil, nil, &metadataOptions)
+  	if err != nil {
+  		log.Fatal(err)
+  	}
+  	fmt.Println("transaction history:", history)
+  }
+  ```
+</CodeGroup>
