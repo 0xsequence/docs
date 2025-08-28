@@ -6,7 +6,7 @@ description: Esta guía muestra cómo integrar una Embedded Wallet principal con
 # Integrando la vinculación de wallets
 Tiempo estimado: 25-35 minutos
 
-En esta guía, mostraremos cómo iniciar sesión en una [Embedded Wallet](/solutions_old/wallets/embedded-wallet/overview) usando autenticación tradicional como correo electrónico o inicio de sesión con redes sociales. Luego, para vincular una dirección de wallet externa usando Web SDK a su Embedded Wallet, firmaremos un mensaje que crea un conjunto de direcciones consultables para un solo perfil de usuario almacenado fuera de la cadena de manera privada. Finalmente, se explorarán otras funciones del API, como listar todas las wallets vinculadas y eliminar el estado de wallets vinculadas, ambas utilizando firmas para preservar la privacidad.
+En esta guía, mostraremos cómo iniciar sesión en una [Embedded Wallet](/solutions/wallets/developers/embedded-wallet/overview) usando autenticación tradicional como correo electrónico o inicio de sesión con redes sociales. Luego, para vincular una dirección de wallet externa usando Web SDK a su Embedded Wallet, firmaremos un mensaje que crea un conjunto de direcciones consultables para un solo perfil de usuario almacenado fuera de la cadena de manera privada. Finalmente, se explorarán otras funciones del API, como listar todas las wallets vinculadas y eliminar el estado de wallets vinculadas, ambas utilizando firmas para preservar la privacidad.
 
 # Demo
 [Pruebe una demo de ejemplo](https://demo-waas-wallet-link.pages.dev/) o [vea el código fuente completo](https://github.com/0xsequence-demos/demo-embedded-wallet-linking).
@@ -55,9 +55,9 @@ const api = new API("https://dev-api.sequence.app", fetch);
 
 #### Ejemplos simples usando las funciones del API integradas en el repositorio utilizando los paquetes `0xsequence/waas` y `wagmi`:
 
-1. [`linkWallet(...)`](/solutions_old/wallets/embedded-wallet/link-wallets/integration-guide#5-link-an-external-wallet-to-an-embedded-wallet)
-2. [`getLinkedWallets(...)`](/solutions_old/wallets/embedded-wallet/link-wallets/integration-guide#6-retrieve-linked-wallets)
-3. [`removeLinkedWallet(...)`](/solutions_old/wallets/embedded-wallet/link-wallets/integration-guide#7-remove-linked-wallet)
+1. [`linkWallet(...)`](/solutions/wallets/developers/embedded-wallet/wallet-linking#2-link-an-external-wallet-to-an-embedded-wallet)
+2. [`getLinkedWallets(...)`](/solutions/wallets/developers/embedded-wallet/wallet-linking#3-retrieving-linked-wallets)
+3. [`removeLinkedWallet(...)`](/solutions/wallets/developers/embedded-wallet/wallet-linking#4-removing-linked-wallets)
 
 ## 2. Vincular una wallet externa a una embedded wallet
 Para vincular una wallet externa (por ejemplo, EOA, Sequence Universal Wallet, etc.) a una Embedded Wallet, primero necesitamos autenticar al usuario con una embedded wallet que se categoriza como la wallet `parent`. Una vez autenticado, se autentica nuevamente usando Web SDK, donde el usuario firma un mensaje después de la autenticación para validar la propiedad de esa wallet. Ese mensaje se enviará al endpoint `linkWallet` del API, con los siguientes argumentos tipados y tipos de retorno (ignorando los valores opcionales):
@@ -197,7 +197,7 @@ const getLinkedWallets = async () => {
 ```
 
 ## 4. Eliminar wallets vinculadas
-Finalmente, si ya no desea mantener una wallet vinculada fuera de la cadena a una wallet principal, puede realizar una firma con ambas instancias de wallet (Embedded Wallet y la wallet vinculada con Web SDK), y pasar la dirección de la wallet vinculada, [como en el paso 6](/solutions_old/wallets/embedded-wallet/link-wallets/integration-guide#6-link-sequence-kit-signed-in-wallet), para eliminar el estado de vinculación:
+Finalmente, si ya no desea mantener una wallet vinculada fuera de la cadena a una wallet principal, puede realizar una firma con ambas instancias de wallet (Embedded Wallet y la wallet vinculada con Web SDK), y pasar la dirección de la wallet vinculada, [como en el paso 6](/solutions/wallets/developers/embedded-wallet/wallet-linking#2-link-an-external-wallet-to-an-embedded-wallet), para eliminar el estado de vinculación:
 
 ### Firmar mensaje para atestiguar la eliminación de una dirección vinculada
 
