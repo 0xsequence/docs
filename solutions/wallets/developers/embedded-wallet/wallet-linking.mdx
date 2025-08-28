@@ -3,11 +3,29 @@ title: Sequence Wallet Linking Integration - Embedded Wallet Authentication & Ex
 description: This guide demonstrates how to integrate a parent Embedded Wallet with web2 authentication methods for wallet linking purposes. It covers signing into a social login provider and linking using signatures from an external wallet signed in via Web SDK stored privately and securely.
 ---
 
+# Wallet Linking Overview
+
+Wallet Linking enables the ability for a developer to create a verifiable association between two wallets from a single user. Generally, this is a link between an embedded wallet for a game or application and an external wallet, such as Metamask. This solves a number of issues for games such as:
+
+- Validating a user holds an NFT, but doesn't want to move their valuable asset around for token-gating or reward distributions.
+- Easy migration for flow of funds or liquidity from an external wallet to the embedded wallet for a game.
+- Verifiying a number of ERC20 tokens a user holds to provide governance rights.
+
+Using Sequence SDKs, the embedded wallet session can be instantiated from nearly any platform such as Mobile, Web, PC or Console so users can enjoy a seamless game experience. However, when desired, a user is directed to an external browser session to link additional wallets.
+
+## Try a Demo
+
+:::info
+Try out how wallet linking works [here](https://demo-waas-wallet-link-initiator.pages.dev/) by authenticating with your social login using an Embedded Wallet
+:::
+
+Dive into the implementation for your own game or application, by following our [integration guide](/solutions/wallets/developers/embedded-wallet/link-wallets/integration-guide).
+
 # Integrating Wallet Linking
 
 Time to complete: 25-35 minutes
 
-In this guide, we will showcase how to sign into an [Embedded Wallet](/solutions_old/wallets/embedded-wallet/overview) using traditional authentication like email or social login. Then, in order to link an external wallet address using Web SDK (now Web SDK) to your Embedded Wallet, we will sign a message which creates a queryable set of addresses for a single user profile stored off-chain privately. Finally, other features of the API will be delved into, like listing total wallets linked and removal of the state of linked wallets, both using signatures for privacy preserving means.
+In this guide, we will showcase how to sign into an [Embedded Wallet](/solutions/wallets/developers/embedded-wallet/overview) using traditional authentication like email or social login. Then, in order to link an external wallet address using Web SDK (now Web SDK) to your Embedded Wallet, we will sign a message which creates a queryable set of addresses for a single user profile stored off-chain privately. Finally, other features of the API will be delved into, like listing total wallets linked and removal of the state of linked wallets, both using signatures for privacy preserving means.
 
 # Demo 
 Give a [try of an example demo](https://demo-waas-wallet-link.pages.dev/) or [view the full source code](https://github.com/0xsequence-demos/demo-embedded-wallet-linking).
@@ -54,9 +72,9 @@ const api = new API("https://dev-api.sequence.app", fetch);
 ```
 
 #### Simple examples using the API functions integrated in the repository using `0xsequence/waas` and `wagmi` packages:
-1. [`linkWallet(...)`](/solutions_old/wallets/embedded-wallet/link-wallets/integration-guide#5-link-an-external-wallet-to-an-embedded-wallet)
-2. [`getLinkedWallets(...)`](/solutions_old/wallets/embedded-wallet/link-wallets/integration-guide#6-retrieve-linked-wallets)
-3. [`removeLinkedWallet(...)`](/solutions_old/wallets/embedded-wallet/link-wallets/integration-guide#7-remove-linked-wallet)
+1. [`linkWallet(...)`](/solutions/wallets/developers/embedded-wallet/wallet-linking#2-link-an-external-wallet-to-an-embedded-wallet)
+2. [`getLinkedWallets(...)`](/solutions/wallets/developers/embedded-wallet/wallet-linking#3-retrieving-linked-wallets)
+3. [`removeLinkedWallet(...)`](/solutions/wallets/developers/embedded-wallet/wallet-linking#4-removing-linked-wallets)
 
 ## 2. Link an external wallet to an embedded wallet
 
@@ -199,7 +217,7 @@ const getLinkedWallets = async () => {
 ```
 
 ## 4. Removing Linked Wallets
-Finally, if you no longer want to keep a wallet linked off-chain to a parent wallet, you can perform a signature by both wallet instances (Embedded Wallet & Web SDK linked wallet), and pass in the linked wallet address, [like in step 6](/solutions_old/wallets/embedded-wallet/link-wallets/integration-guide#6-link-sequence-kit-signed-in-wallet) in order to remove the linked state:
+Finally, if you no longer want to keep a wallet linked off-chain to a parent wallet, you can perform a signature by both wallet instances (Embedded Wallet & Web SDK linked wallet), and pass in the linked wallet address, [like in step 6](/solutions/wallets/developers/embedded-wallet/wallet-linking#2-link-an-external-wallet-to-an-embedded-wallet) in order to remove the linked state:
 
 ### Sign Message to Attest to Removing a Linked Address
 
