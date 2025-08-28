@@ -1,10 +1,51 @@
 ---
-title: Sidekick Overview
-description: Sequence Sidekick provides a fully equipped backend, leveraging Sequence's infrastructure to read and write to the blockchain through a simple API.
+title: "Overview"
+description: Dockerized backend that exposes standardized blockchain read/write endpoints with secure key management, built on Sequence infrastructure.
 sidebarTitle: Overview
 ---
 
-## Main Features 🚀
+**Sidekick** is a dockerized backend you can run to perform blockchain reads/writes through simple HTTP endpoints while keeping **private keys** off the client. It integrates with Sequence services (Indexer, Transactions API, Node Gateway) and can hold keys locally or via KMS.
+
+## What it's for
+
+- **Server-side write flows** (e.g., mint ERC-1155/721, transfer, airdrops).  
+- **Secure key custody** with local files, AWS KMS, or GCP KMS.  
+- **Simple HTTP endpoints** so your app doesn't need to embed signing logic.
+
+## High-level setup
+
+<Steps>
+  <Step title="Run the container">
+    Start Sidekick via Docker; configure environment variables for your access keys, networks, and key storage (local or KMS).
+  </Step>
+  <Step title="Get the smart account">
+    Retrieve the Sidekick smart account address from the `/sidekick/smart-account-address` endpoint.
+  </Step>
+  <Step title="Grant permissions">
+    Grant <code>MINTER_ROLE</code> (or transfer ownership) on your contracts to the Sidekick account, depending on your access control model.
+  </Step>
+  <Step title="Call endpoints">
+    Use write endpoints (e.g., <code>/write/erc1155/{chainId}/{contract}/mint</code>) and read endpoints as needed.
+  </Step>
+</Steps>
+
+## Quickstart
+
+There is a public docker image available on [GitHub Container Registry](https://github.com/0xsequence/sidekick/pkgs/container/sidekick).
+
+```shell
+docker run -p 7500:7500 -e SEQUENCE_PROJECT_ACCESS_KEY=... ghcr.io/0xsequence/sidekick:latest
+```
+
+This will get you started with a local Sidekick backend running on port 7500 with the minimal features.
+
+<Note>
+We recommend setting SEQUENCE_PROJECT_ACCESS_KEY as well but for testing purposes we provide a default one, you can get yours from [Sequence Builder](https://sequence.build/).
+</Note>
+
+To do a full setup, you can follow the [quickstart guide](/solutions/infrastructure/sidekick/quickstart).
+
+## Features and Use Cases
 
 <CardGroup>
     <Card horizontal title="Effortless setup" icon="rocket">
@@ -39,150 +80,10 @@ sidebarTitle: Overview
     </Card>
 </CardGroup>
 
-## About the backend wallet
-Sidekick creates a Sequence Smart Contract Wallet based on the `BACKEND_WALLET_PV_KEY` or `AWS / GCP KMS` signer you provide, this allows gas-sponsorship, batching and other optimizations.
+## Further Reading
 
-To configure the backend wallet, you can:
-- Declare your [BACKEND_WALLET_PV_KEY](https://github.com/0xsequence-demos/sequence-sidekick/blob/e76a47d0b9ef19f23736c1e8f863ed4795b855a8/.env.example#L16) in the .env file for a local setup (not recommended for production) or don't provide it and get a random one generated for you, you can find it in the auto generated `dev.key` file.
-- Use the recommended method: setting up [AWS](https://aws.amazon.com/kms/) or [GCP](https://cloud.google.com/kms) KMS and adding the necessary credentials in the .env file. 
-
-<Note>
-To find out what are the required credentials for local, AWS, or GCP wallet configurations, please refer to the [env.example](https://github.com/0xsequence-demos/sequence-sidekick/blob/master/.env.example) file.
-</Note>
-
-<Note>
-Make sure you choose the correct key types in AWS KMS and GCP KMS.
-- AWS KMS: `ECC_NIST_P256_KEY_ALIAS`
-- GCP KMS: `GCP_KEY_RING_NAME`
-</Note>
-
-Sidekick is built to integrate seamlessly with AWS and GCP KMS, allowing you to use your KMS signer. We've developed [adapters](https://github.com/orgs/0xsequence/repositories?q=kms) that make AWS/GCP KMS compatible with the ethers signer type, ensuring compatibility with the latest version.
-
-Sequence Sidekick empowers developers with a scalable, plug-and-play backend solution for blockchain-based applications, allowing you to focus on building without backend complexities.
-
-<Callout type="warning">
-When using the Sequence Sidekick:
-- `msg.sender` will be the Sequence Wallet address of your EOA, not your EOA address
-- `tx.origin` will be one of the Sequence Relayer addresses
-- Ensure proper permissions are granted for contract function calls to the Sequence Wallet address
-- View active relayer addresses in the [mainnet status page](https://mainnet-relayer.sequence.app/status)
-</Callout>
-
-## Start with Docker from CLI
-
-There is a public docker image available on [GitHub Container Registry](https://github.com/0xsequence/sidekick/pkgs/container/sidekick).
-```shell
-docker run -p 7500:7500 -e SEQUENCE_PROJECT_ACCESS_KEY=... ghcr.io/0xsequence/sidekick:latest
-```
-This should get you started with a local Sidekick backend running on port 7500 with the minimal features.
-
-<Note>
-We recommend setting SEQUENCE_PROJECT_ACCESS_KEY as well but for testing purposes we provide a default one, you can get yours from [Sequence Builder](https://sequence.build/).
-</Note>
-
-## Start Sidekick in dev mode
-
-<Steps>
-<Step title="Clone the Sidekick repository">
-
-```shell
-git clone https://github.com/0xsequence/sidekick
-```
-</Step>
-
-<Step title="Setup the required environment variables">
-
-### Required Environment Variables
-
-| Variable | Description 
-|----------|-------------
-| PROJECT_ACCESS_KEY | Access key from Sequence Builder API Keys 
-
-### Optional Environment Variables
-
-| Variable                 | Description                                                                                  |
-|--------------------------|-----------------------------------------------------------------------------------------------|
-| BACKEND_WALLET_PV_KEY    | Private key for the EOA used to sign transactions                                             |
-| PORT                     | Port for the Sidekick server (default: 7500)                                                  |
-| HOST                     | Host address for the server (default: 0.0.0.0)                                                |
-| REDIS_HOST               | Redis server host (default: localhost)                                                        |
-| REDIS_PORT               | Redis server port (default: 6379)                                                             |
-| REDIS_PASSWORD           | Password for Redis server (optional)                                                          |
-| DATABASE_URL             | PostgreSQL connection string for Sidekick database                                            |
-| SIDEKICK_API_SECRET_KEY  | Secret key required for write access to the Sidekick API                                      |
-| ETHERSCAN_API_KEY        | API key for Etherscan to enable contract verification                                         |
-| VERIFY_CONTRACT_ON_DEPLOY| Enable automatic contract verification on deployment (set to true to enable)                  |
-| DEBUG                    | Enable debug logging (set to true for verbose output)                                         |
-| SIGNER_TYPE              | Type of signer to use (local, aws_kms, google_kms)                                            |
-| AWS_REGION | AWS account region |
-| AWS_ACCESS_KEY_ID | AWS access key ID |
-| AWS_SECRET_ACCESS_KEY | AWS secret access key |
-| AWS_KMS_KEY_ID | ID of the KMS key to use |
-| PROJECT | GCP project name |
-| LOCATION | GCP project location |
-| KEY_RING | Key ring name |
-| CRYPTO_KEY | Crypto key name |
-| CRYPTO_KEY_VERSION | Crypto key version |
-
-### Wallet Configuration Variables
-
-Choose one of the following configurations:
-
-#### For local wallet:
-| Variable | Description |
-|----------|-------------|
-| SIGNER_TYPE | local |
-| BACKEND_WALLET_PV_KEY | 0x... | (optional) |
-
-#### For AWS KMS:
-| Variable | Description |
-|----------|-------------|
-| SIGNER_TYPE | aws_kms |
-| AWS_REGION | AWS account region |
-| AWS_ACCESS_KEY_ID | AWS access key ID |
-| AWS_SECRET_ACCESS_KEY | AWS secret access key |
-| AWS_KMS_KEY_ID | ID of the KMS key to use |
-
-#### For GCP KMS:
-| Variable | Description |
-|----------|-------------|
-| SIGNER_TYPE | google_kms |
-| PROJECT | GCP project name |
-| LOCATION | GCP project location |
-| KEY_RING | Key ring name |
-| CRYPTO_KEY | Crypto key name |
-| CRYPTO_KEY_VERSION | Crypto key version |
-</Step>
-
-<Step title="Make sure you have Docker installed">
-
-Get it from [here](https://www.docker.com/get-started/)
-
-</Step>
-
-<Step title="Start Sidekick in a Docker container">
-
-```shell
-pnpm docker:start
-```
-</Step>
-
-<Step title="Check your backend wallet address">
-
-```shell
-curl -X GET 'http://localhost:3000/sidekick/smart-account-address'
-```
-</Step>
-</Steps>
-
-## Dev mode without Docker
-If you want to make changes to the codebase and test them without Docker
-```shell
-pnpm install
-pnpm dev:withRedis
-```
-This will run Sidekick and also start a Redis server.
-
-## Gas Sponsorship
-On testnet, we sponsor all the transactions. However, on mainnet - you will want to ensure that you sponsor the transactions in order to ensure that they process correctly by sponsoring the contract itself. You can take a deeper look at our [Gas Sponsorship](/solutions/builder/gas-sponsorship) solution to learn how to do this.
-
+- [Quickstart](/solutions/infrastructure/sidekick/quickstart)
+- [Minting Server Guide](/solutions/infrastructure/sidekick/minting-server)
+- [Sidekick GitHub Repository](https://github.com/0xsequence/sidekick)
+- [Sidekick Docker Image](https://github.com/0xsequence/sidekick/pkgs/container/sidekick)
+- [Sidekick Documentation](https://github.com/0xsequence/sidekick/blob/master/README.md)

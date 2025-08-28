@@ -1,4 +1,55 @@
 ---
-title: Transaction API
-description: Sequence's Transaction API allows developers to interact with the blockchain seamlessly, enabling them to send transactions, query transaction status, and manage user accounts through a unified interface.
+title: "Transaction API"
+description: Send transactions via a unified relayer with gas sponsorship, batching, and parallel processing. Works with any EVM contract and any Sequence or external wallet.
+sidebarTitle: Transaction API
 ---
+
+The **Transaction API** is a unified relayer that dispatches transactions on EVM chains with **gas sponsorship**, **fee abstraction**, **batching**, and **parallel processing**. It manages nonces, estimates optimal gas, and resubmits transactions when needed, so you can focus on your business logic.
+
+<Info>
+For endpoint details, see the API reference: [Transactions API](/api-references/transactions/overview). For SDK usage, see [TypeScript SDK](/sdk/typescript/overview) and [Go SDK](/sdk/go/overview). A full server example is in [Building a Relaying Transaction Server](/guides/building-relaying-server).
+</Info>
+
+## Core capabilities
+
+- **Gas sponsorship** — sponsor user interactions at the project, contract, token, or address level.  
+- **Fee abstraction** — users can pay fees in supported ERC-20s (e.g., USDC), or you can sponsor entirely.  
+- **Batching** — group multiple calls into one on-chain transaction.  
+- **Parallel processing** — send multiple independent transactions concurrently.  
+- **Compatible with any EVM contract** — no contract changes required.
+
+## When to use it
+
+- You want production-grade dispatch with **retries, correct gas pricing, and nonces managed**.  
+- You need **free** or **token-denominated** gas for users.  
+- You're building **server-triggered** actions (e.g., mints, rewards) or **client-triggered** meta-transactions.
+
+## Minimal client example (TypeScript)
+
+```ts
+import { Session } from '@0xsequence/auth'
+import { ethers } from 'ethers'
+
+const chainId = 8453 // Base mainnet, for example
+
+// Create a Sequence session for the current user or service signer
+const session = await Session.singleSigner({ signer: myEOA, projectAccessKey: '<ACCESS_KEY>' })
+const signer = session.account.getSigner(chainId)
+
+// Call any contract function
+const erc20 = new ethers.Contract('0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48', ['function transfer(address to, uint256 amount)'], signer)
+const tx = await erc20.transfer('0xRecipient', 10n ** 6n) // 1 USDC
+await tx.wait()
+```
+
+## Gas Sponsorship and Fee Tokens
+
+Use **Builder** to configure gas sponsorship for your project. You can also have the end user pay the relayer directly by including a **fee payment** transaction in the bundle. See accepted fee tokens via `/rpc/Relayer/FeeTokens` on the network relayer. More details are available in the [API reference](/api-references/transactions/overview).
+
+## References
+
+- [API Reference](/api-references/transactions/overview)  
+- [TypeScript SDK](/sdk/typescript/overview)  
+- [Go SDK](/sdk/go/overview)  
+- [Relaying Transaction Server Guide](/guides/building-relaying-server)
+- [Sidekick Dockerized Backend](/solutions/infrastructure/sidekick)
