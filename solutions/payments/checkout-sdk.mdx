@@ -1,0 +1,145 @@
+---
+title: "Checkout SDK (card payments for NFTs)"
+description: Use @0xsequence/checkout to add credit/debit card checkout for NFT purchases via partners (e.g., Transak, Forte).
+sidebarTitle: Checkout SDK
+---
+
+<Warning>
+Card processing is handled by **partners**. Integration requires **KYB** and **contract allowlisting** with the partner before card payments are enabled. Sequence does not underwrite or operate the processor.
+</Warning>
+
+<Info>
+Supported processors: <strong>Transak</strong> and <strong>Forte</strong>.
+Coverage generally includes <strong>major EVM chains</strong> and is partner-dependent. Partners may consider adding new EVM chains based on opportunity. To begin, <strong>contact Sequence</strong> and we'll introduce you to an appropriate partner.
+</Info>
+
+## When to use Checkout SDK
+
+- You sell **ERC-1155 / ERC-721** items and want a **card** option in addition to crypto.  
+- You will complete partner **KYB** and **allowlisting**.  
+- You want a **drop-in modal** that handles payment method selection and purchase.
+
+## Installation
+
+```bash
+pnpm add @0xsequence/checkout @0xsequence/connect
+```
+
+## Basic setup
+
+```tsx
+import { SequenceConnect } from '@0xsequence/connect'
+import { SequenceCheckoutProvider } from '@0xsequence/checkout'
+import { config } from './config'
+
+export default function App() {
+  return (
+    <SequenceConnect config={config}>
+      <SequenceCheckoutProvider>
+        <YourRoutes />
+      </SequenceCheckoutProvider>
+    </SequenceConnect>
+  )
+}
+```
+
+## Example: ERC-1155 primary sale
+
+```tsx
+import { useAccount } from 'wagmi'
+import { useERC1155SaleContractCheckout } from '@0xsequence/checkout'
+
+export function BuyButton() {
+  const { address } = useAccount()
+  const { openCheckoutModal } = useERC1155SaleContractCheckout({
+    chain: 137, // destination chainId
+    contractAddress: '0xSaleContract',  // primary sale contract
+    collectionAddress: '0xERC1155',     // collection
+    wallet: address!,                   // recipient
+    items: [{ tokenId: '1', quantity: '1' }],
+    // Optional: restrict card providers if your integration requires it
+    // creditCardProviders: ['transak', 'forte'],
+    onSuccess: (txHash) => console.log('success', txHash),
+    onError: (err) => console.error(err),
+  })
+
+  return <button onClick={() => address && openCheckoutModal()}>Buy</button>
+}
+```
+
+## Example: custom contract call
+
+```tsx
+import { useAccount } from 'wagmi'
+import { useSelectPaymentModal, type SelectPaymentSettings } from '@0xsequence/checkout'
+import { encodeFunctionData } from 'viem'
+
+export function CustomBuy() {
+  const { address } = useAccount()
+  const { openSelectPaymentModal } = useSelectPaymentModal()
+
+  const onClick = () => {
+    if (!address) return
+
+    const chainId = 137
+    const salesContract = '0xSaleContract'
+    const currency = '0xUSDC'
+    const collection = '0xERC1155'
+    const price = '20000' // align with your contract's decimals
+
+    const erc1155MintAbi = [{ /* ...mint signature matching your contract... */ }]
+    const txData = encodeFunctionData({
+      abi: erc1155MintAbi,
+      functionName: 'mint',
+      args: [address, /* tokenIds[] */, /* amounts[] */, /* data */, currency, price, /* proof */]
+    })
+
+    const settings: SelectPaymentSettings = {
+      chain: chainId,
+      targetContractAddress: salesContract,
+      recipientAddress: address,
+      currencyAddress: currency,
+      collectionAddress: collection,
+      price,
+      collectibles: [{ tokenId: '1', quantity: '1' }],
+      // creditCardProviders: ['transak', 'forte'],
+      onSuccess: (txHash) => console.log('success', txHash),
+      onError: (err) => console.error(err),
+      txData,
+    }
+
+    openSelectPaymentModal(settings)
+  }
+
+  return <button onClick={onClick}>Buy (custom)</button>
+}
+```
+
+## Partner setup (cards)
+
+<Steps>
+  <Step title="Contact Sequence">
+    Reach out to Sequence to discuss your use case; we will introduce you to <strong>Transak</strong> or <strong>Forte</strong> as appropriate.
+  </Step>
+  <Step title="Partner account & KYB">
+    Create an account with a supported provider (e.g., Transak or Forte) and complete KYB.
+  </Step>
+  <Step title="Allowlist contracts">
+    Ask the partner to allowlist the sale contract(s) you will charge through card flows.
+  </Step>
+  <Step title="Configure providers">
+    Pass allowed providers via <code>creditCardProviders</code> if you need to scope usage to your approved partner(s).
+  </Step>
+  <Step title="Go live">
+    Enable on <strong>major EVM chains</strong> per partner requirements and test a full purchase with a real card.
+  </Step>
+</Steps>
+
+<Info>
+For crypto-only purchases, or to pay from “any token/chain”, use <a href="/solutions/payments/trails">Trails</a>. Checkout SDK focuses on the **card** path for NFT purchases and can coexist with Trails and wallet flows.
+</Info>
+
+## References
+
+- [Web SDK Checkout guide](/sdk/web/guides/checkout)
+- [Trails overview](/solutions/payments/trails)
