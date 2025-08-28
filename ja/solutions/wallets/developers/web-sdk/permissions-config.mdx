@@ -1,0 +1,93 @@
+dAppを設定して**approve**および**transfer**パーミッションをリクエストし、ユーザーへの繰り返しウォレットポップアップを排除しましょう。
+
+---
+
+## 🔧 完全な設定例
+
+```typescript
+import { createConfig } from '@0xsequence/connect'
+import { ChainId } from '@0xsequence/network'
+import { Utils } from '@0xsequence/wallet-core'
+
+// 1. Define the addresses for your dApp
+const USDC_ADDRESS = '0xaf88d065e77c8cC2239327C5EDb3A432268e5831'
+const DAPP_CONTRACT_ADDRESS = '0x1234.....' // Your dApp's main contract
+
+// 2. Add the `permissions` object to your main configuration
+export const config = createConfig({
+  // ... your other project configurations like projectAccessKey, defaultTheme, etc.
+
+  // This is where you define the rules for the user's session
+  permissions: { 
+    // The chain where these rules apply
+    chainId: ChainId.ARBITRUM,
+
+    // The total amount of native currency (e.g., ETH) the session can spend.
+    // For token permissions, this should be 0.
+    valueLimit: 0n,
+
+    // Set a time limit for how long the session is valid (e.g., 24 hours)
+    deadline: BigInt(Math.floor(Date.now() / 1000) + 3600 * 24),
+    
+    // This array holds the specific permissions you are requesting
+    permissions: [
+
+      // Rule #1: The 'Approve' Permission
+      Utils.ERC20PermissionBuilder.buildApprove(
+        USDC_ADDRESS,
+        DAPP_CONTRACT_ADDRESS,
+        100000000n // A spending limit of 100 USDC (with 6 decimals)
+      ),
+
+      // Rule #2: The 'Transfer' Permission
+      Utils.ERC20PermissionBuilder.buildTransfer(
+        USDC_ADDRESS,
+        100000000n // A spending limit of 100 USDC (with 6 decimals)
+      )
+    ]
+  }
+})
+```
+
+---
+
+## 📋 設定パラメータ
+
+| パラメータ             | 型         | 説明                                      |
+| ----------------- | --------- | --------------------------------------- |
+| **`chainId`**     | `ChainId` | パーミッションが適用されるブロックチェーン                   |
+| **`valueLimit`**  | `bigint`  | ネイティブ通貨の利用上限（トークンのみのパーミッションの場合は`0n`を指定） |
+| **`deadline`**    | `bigint`  | セッションの有効期限タイムスタンプ                       |
+| **`permissions`** | `Array`   | 特定のパーミッションルールのリスト                       |
+
+---
+
+## 🎯 パーミッションタイプ
+
+### 承認パーミッション
+
+```typescript
+Utils.ERC20PermissionBuilder.buildApprove(
+  tokenAddress,    // The ERC20 token contract
+  spenderAddress,  // Your dApp's contract that can spend tokens
+  amountLimit      // Maximum tokens that can be approved
+)
+```
+
+### 送金パーミッション
+
+```typescript
+Utils.ERC20PermissionBuilder.buildTransfer(
+  tokenAddress,    // The ERC20 token contract
+  amountLimit      // Maximum tokens that can be transferred
+)
+```
+
+---
+
+## ✨ 結果
+この設定により：
+- ユーザー接続時に**一度だけ承認**
+- その後のapprove/transfer操作では**ポップアップなし**
+- 24時間経過または利用上限到達で**自動的に期限切れ**
+- **オンチェーンで安全な範囲**が強制されます
