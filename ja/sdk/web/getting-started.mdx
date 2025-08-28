@@ -5,6 +5,8 @@ sidebarTitle: はじめに
 ---
 
 # Dapp のセットアップ
+まず、Sequenceアカウントを作成していることを確認してください。まだお持ちでない場合は[こちら](https://sequence.build/)から作成できます。Web SDKを利用するには`Project Access Key`が必要です。
+
 web3ウォレットをアプリケーションに接続するために`SequenceConnect`ラッパーを利用する手順は以下の通りです：
 
 <Note>
@@ -37,27 +39,31 @@ web3ウォレットをアプリケーションに接続するために`SequenceC
       </Step>
 
       <Step title="設定ファイルの作成">
-        次に、`SequenceConnect`用の設定変数を`waas`として作成します（[Embedded Wallet](/sdk/headless-wallet/quickstart)を意味します）。
+        次に、設定を作成します。
 
-        まず[Sequence BuilderからWaaS設定キー](https://sequence.build/)と[プロジェクトアクセスキー](/support/builder/project-settings#copy-your-access-key)を取得し、プロジェクトのオリジンが[Builder Embedded Wallet Configuration](https://sequence.build)でホワイトリストに登録されていることを確認してください。
-        WalletConnectを許可したい場合は[Wallet Connect ID](https://cloud.reown.com/sign-in)も必要です。
-        Googleログインの設定は[Embedded WalletのGoogle設定ガイド](../../solutions/builder/embedded-wallet/google-configuration)をご覧ください。
+        WalletConnectを許可したい場合は、[walletConnectProjectId](https://cloud.reown.com/sign-in)も必要です。
+        Googleログインの設定方法については、[Embedded WalletのGoogle設定](../../solutions/builder/embedded-wallet/google-configuration)をご覧ください。
 
         ```typescript [config.ts]
         import { createConfig } from "@0xsequence/connect";
 
-        export const config: any = createConfig("waas", {
+        export const config: any = createConfig({
           projectAccessKey: "<your-project-access-key>",
-          chainIds: [1, 137],
+          signIn: {
+            projectName: 'Sequence Web SDK Demo',
+          },
+          walletUrl: 'https://v3.sequence.app',
+          dappOrigin: window.location.origin,
+          appName: 'Sequence Web SDK Demo',
+          chainIds: [1],
           defaultChainId: 1,
-          appName: "Demo Dapp",
-          waasConfigKey: "<your-waas-config-key>", // for waas
-          google: {
-            clientId: "<your-google-client-id>",
-          },
+          google: true,
+          apple: true,
+          email: true,
           walletConnect: {
-            projectId: "<your-wallet-connect-project-id>",
+            projectId: walletConnectProjectId
           },
+          permissions: ...
         });
         ```
 
@@ -117,18 +123,6 @@ web3ウォレットをアプリケーションに接続するために`SequenceC
 
   <Tab title="NextJSアプリ">
     <Steps>
-      <Step title="NextJSプロジェクトの作成">
-        まずは[create-next-app](https://nextjs.org/docs/getting-started)を使って[NextJS](https://nextjs.org/)プロジェクトを作成します：
-
-        ```sh
-        npx create-next-app@latest
-        # or
-        pnpm create next-app
-        # or
-        yarn create next-app
-        ```
-      </Step>
-
       <Step title="Web SDKの依存パッケージをインストール">
         ```bash
         npm install @0xsequence/connect @0xsequence/hooks wagmi ethers viem 0xsequence @tanstack/react-query
@@ -156,27 +150,31 @@ web3ウォレットをアプリケーションに接続するために`SequenceC
       </Step>
 
       <Step title="設定ファイルの作成">
-        次に、`SequenceConnect`用の設定変数を`waas`として作成します（[Embedded Wallet](/sdk/headless-wallet/quickstart)を意味します）。
+        次に、設定を作成します。
 
-        まず[Sequence BuilderからWaaS設定キー](https://sequence.build/)と[プロジェクトアクセスキー](/support/builder/project-settings#copy-your-access-key)を取得し、プロジェクトのオリジンが[Builder Embedded Wallet Configuration](https://sequence.build)でホワイトリストに登録されていることを確認してください。
-        WalletConnectを許可したい場合は[Wallet Connect ID](https://cloud.reown.com/sign-in)も必要です。
-        Googleログインの設定は[Embedded WalletのGoogle設定ガイド](../../solutions/builder/embedded-wallet/google-configuration)をご覧ください。
+        WalletConnectを許可したい場合は、[walletConnectProjectId](https://cloud.reown.com/sign-in)も必要です。
+        Googleログインの設定方法については、[Embedded WalletのGoogle設定](../../solutions/builder/embedded-wallet/google-configuration)をご覧ください。
 
-        ```typescript [src/app/config.ts]
+        ```typescript [config.ts]
         import { createConfig } from "@0xsequence/connect";
 
-        export const config = createConfig("waas" /*or, 'universal'*/, {
+        export const config: any = createConfig({
           projectAccessKey: "<your-project-access-key>",
-          chainIds: [1, 137],
+          signIn: {
+            projectName: 'Sequence Web SDK Demo',
+          },
+          walletUrl: 'https://v3.sequence.app',
+          dappOrigin: window.location.origin,
+          appName: 'Sequence Web SDK Demo',
+          chainIds: [1],
           defaultChainId: 1,
-          appName: "Demo Dapp",
-          waasConfigKey: "<your-waas-config-key>", // for waas
-          google: {
-            clientId: "<your-google-client-id>",
-          },
+          google: true,
+          apple: true,
+          email: true,
           walletConnect: {
-            projectId: "<your-wallet-connect-project-id>",
+            projectId: walletConnectProjectId
           },
+          permissions: ...
         });
         ```
 
@@ -272,6 +270,8 @@ web3ウォレットをアプリケーションに接続するために`SequenceC
 
         web3操作には、wagmiが提供するReactフックを使うことで、トランザクション送信などの一般的な機能を簡単に実装できます。
       </Step>
+
+      web3操作には、wagmiが提供するReactフックを使うことで、トランザクション送信などの一般的な機能を簡単に実装できます。
     </Steps>
   </Tab>
 </Tabs>
