@@ -1,0 +1,208 @@
+明示的セッションでは、署名者が定義された範囲内でコールを実行できます。明示的な権限はセッション設定の一部となり、ウォレット設定にも反映されるため、ウォレット設定の更新が必要です。権限は明確に定義され、ユーザーによる承認が必要となります（これが名称の由来です）。
+
+SDKのセッションマネージャーは、複数のセッションによる複数のコールを賢く署名できます。例えば、一方のセッションがERC20の承認権限を持ち、もう一方がマーケットプレイスコントラクトへのアクセス権限を持つ場合、これらのコールは自動的に1つのペイロードにまとめられます。
+
+各コールは少なくとも1つの権限に一致する必要があります。権限が一致する場合、ターゲットアドレスと**すべての**ルールが検証されます。
+
+## 使用例
+以下は、よくあるユースケース向けの権限例です。権限の型定義は次の通りです。
+
+```tsx
+export enum ParameterOperation {
+  EQUAL = 0,
+  NOT_EQUAL = 1,
+  GREATER_THAN_OR_EQUAL = 2,
+  LESS_THAN_OR_EQUAL = 3,
+}
+
+export type ParameterRule = {
+  cumulative: boolean
+  operation: ParameterOperation
+  value: Bytes.Bytes
+  offset: bigint
+  mask: Bytes.Bytes
+}
+
+export type Permission = {
+  target: Address.Address
+  rules: ParameterRule[]
+}
+
+export type SessionPermissions = {
+  signer: Address.Address
+  valueLimit: bigint
+  deadline: bigint
+  permissions: [Permission, ...Permission[]]
+}
+```
+
+`Permission.SELECTOR_MASK`、`Permission.ADDRESS_MASK`、`Permission.UINT256_MASK`は、SDKで便利に利用できます。
+
+### 有効期限（Deadline）
+すべての権限には、その権限がいつまで有効かを示す`deadline`を指定する必要があります。`deadline`が`0`の場合は、権限が無期限で利用可能であることを示します。
+
+エコシステムウォレットは、適切な有効期限を判断できます。たとえば、1日を超えるセッションのリクエスト時にユーザーへ警告したり、1週間を超える有効期限を禁止したりすることができます。
+
+```tsx
+const deadline = BigInt(Math.floor(Date.now() / 1000) + 3600) // 1 hour from now
+```
+
+### ETHの送金
+すべての権限には、ネイティブトークン（例：ETH）で送信可能な上限額を決める`valueLimit`を指定する必要があります。複数回のコールで、合計送信額がこの上限まで許可されます。
+
+エコシステムウォレットは、0以外の値がリクエストされた場合にユーザーへ警告を表示することがあります。
+
+アドレスへ送金する場合、権限の`target`を受取人に設定します。これは、payable関数を持つコントラクトにも対応しています。受取人が事前に分からない場合は、[0xdb8cB1A9cEb374A5Fc0eCb98bb0369e456452da0](https://arbiscan.io/address/0xdb8cB1A9cEb374A5Fc0eCb98bb0369e456452da0)のようなvalue forwarderコントラクトを`target`に指定できます。
+
+```tsx
+return {
+  signer,
+  valueLimit: 1000000000000000000n, // 1 ETH
+  deadline,
+  permissions: [
+    {
+      target: target, // The receiver
+      rules: [], // No rules required
+    },
+  ],
+}
+```
+
+この例では、`target`へのコールデータ送信に制限がありません。forwarderのようなpayable関数の場合、呼び出せる関数を制限するためにselectorルールを指定したり（下記例参照）、空のコールデータに一致する`0x00000000`のselectorを指定したりできます。
+
+### ERC20
+ERC20には複数の価値移転方法があります。権限はコールデータを検証するため、`approve(address spender, uint256 value)`、`transfer(address to, uint256 value)`、`transferFrom(address from, address to, uint256 value)`のいずれを使うかによってエンコーディングが異なります。
+
+一般的に、権限は2つのルールで構成されます：
+- selectorに一致するルール
+- valueの累積が上限以下であることを確認するルール
+
+ウォレットアプリは、selector検証ルール（`offset: 0`, `mask: Permission.SELECTOR_MASK`）を使った権限を検出し、値をデコードしてユーザーに分かりやすい形式で権限範囲を表示できるべきです。
+
+ウォレットは既存の承認状況にも注意する必要があります。もし1人の明示的署名者がアクセスを承認した場合、
+
+こちらは`transfer`を使ったERC20の例です。
+
+```tsx
+const erc20TransferAbi = AbiFunction.from('function transfer(address to, uint256 value) returns (bool)')
+return {
+  signer,
+  valueLimit: 0,
+  deadline,
+  permissions: [
+    {
+      target: erc20Address,
+      rules: [
+        {
+	        // The selector match rule
+          cumulative: false,
+          operation: Permission.ParameterOperation.EQUAL,
+          value: Bytes.fromHex(AbiFunction.getSelector(erc20TransferAbi), { size: 32 }),
+          offset: 0n,
+          mask: Permission.SELECTOR_MASK,
+        },
+        {
+          // The value limit rule
+          cumulative: true, // Record the values across multiple calls.
+          operation: Permission.ParameterOperation.LESS_THAN_OR_EQUAL,
+          value: Bytes.fromNumber(10000000n, { size: 32 }), // 10 USDC (6 decimals)
+          offset: 4n + 32n, // Offset the selector and to address
+          mask: Permission.UINT256_MASK,
+        },
+      ],
+    },
+  ],
+}
+```
+
+値ルールの`offset`が`4`（セレクターはbytes4）`+ 32`（アドレスは32バイトでエンコードされる）となっていることに注意してください。これにより、コールデータ内の`uint256 value`がチェックされます。`transferFrom`関数の場合は、値パラメータの正しいオフセットを取得するために`4 + 32 + 32`を使用する必要があります。
+
+また、`value`にはトークンに合わせた正しい小数点以下の桁数を含める必要があります。
+
+さらに、ERC20トークンが特定のアドレスにのみ送信またはアクセスできるようにするために、`address to`を検証するルールをパーミッションに追加することもできます。
+
+1つのERC20に対して複数のパーミッションをエンコードすると、パーミッション全体の合計額にアクセスできるようになります。例：10 USDCずつの`transfer`と`transferFrom`のパーミッションがある場合、合計20 USDCまでアクセス可能です。
+
+### マーケットプレイスでの購入
+Sequence Marketplaceでの購入パーミッションをリクエストするには、事前に`requestId`を知っておく必要があります。パーミッションは特定のNFTタイプなどには限定できません。
+
+パーミッションによって、購入の受取人がウォレットアドレスであること、また他のアドレスの代理で購入されないことを強制できます。
+
+複数のリクエストを承認できるパーミッションセットを付与することも可能です。これにERC20の承認パーミッションを組み合わせれば、サイナーがリスト内の上限額まで購入できるようになります。
+
+```tsx
+const acceptRequestAbi = AbiFunction.from('acceptRequest(uint256 requestId, uint256 quantity, address recipient, uint256[] calldata additionalFees, address[] calldata additionalFeeRecipients)')
+const marketplacePermissions = requestIds.map(requestId => ({
+  target: marketplaceAddress,
+  rules: [
+    {
+	    // Selector rule
+      cumulative: false,
+      operation: Permission.ParameterOperation.EQUAL,
+      value: Bytes.fromHex(AbiFunction.getSelector(acceptRequestAbi), { size: 32 }),
+      offset: 0n,
+      mask: Permission.SELECTOR_MASK,
+    },
+    {
+	    // Request Id rule
+      cumulative: false,
+      operation: Permission.ParameterOperation.EQUAL,
+      value: Bytes.fromNumber(requestId, { size: 32 }), // requestId
+      offset: 4n,
+      mask: Permission.UINT256_MASK,
+    },
+    {
+	    // Recipient rule
+      cumulative: false,
+      operation: Permission.ParameterOperation.EQUAL,
+      value: Bytes.fromHex(wallet.address, { size: 32 }), // wallet.address
+      offset: 4n + 32n + 32n,
+      mask: Permission.ADDRESS_MASK,
+    },
+  ],
+})
+return {
+  signer,
+  valueLimit: 0,
+  deadline,
+  // erc20ApprovePermission as defined in the earlier example
+  permissions: [erc20ApprovePermission, ...marketplacePermissions],
+}
+```
+
+### スワップ
+`// TODO AnyPay`
+
+セッションではメッセージへの署名ができません。執筆時点ではUniswapは署名済みメッセージが必要なため、明示的なセッションだけではウォレットへの署名リクエストが必要となり、セッションを使う意味が薄れてしまいます。
+
+### ワンタイム利用ハック
+パーミッション構造を“ハック”して、一度だけ使えるパーミッションを付与することができます。パーミッションに`culumative: true`、セレクターに`operation: Permission.ParameterOption.EQUAL`、`mask: Permission.SELECTOR`、`offset: 0`を設定します。使用時、セッションマネージャーコントラクトがセレクターの利用を記録し、オフセットを更新します。以降、このパーミッションでの呼び出しは、セレクターが一致しなくなるため失敗します。
+
+この例では、セッションで1パックだけ開封できるようになります。
+
+```tsx
+const packCommitAbi = AbiFunction.from('function commit()')
+return {
+  signer,
+  valueLimit: 0,
+  deadline,
+  permissions: [
+    {
+      target: packAddress,
+      rules: [
+        {
+          cumulative: true,
+          operation: Permission.ParameterOperation.EQUAL,
+          value: Bytes.fromHex(AbiFunction.getSelector(packCommitAbi), { size: 32 }),
+          offset: 0n,
+          mask: Permission.SELECTOR_MASK,
+        },
+      ],
+    },
+  ],
+}
+```
+
+ただし、同じセレクターに対して新たなパーミッションが発行されるのは防げません。この一度きりの制限は、あくまでそのパーミッションの範囲内です。
+
+2回呼び出しを許可したい場合は、このパーミッションを配列内で繰り返してください（未検証）。
