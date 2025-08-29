@@ -1,28 +1,66 @@
-Sequence搭載のスマートウォレットをReact dAppに追加するのは簡単です。このガイドでは、新規プロジェクトからウォレットの完全統合までの3つの基本ステップを紹介します。
+---
+title: クイックスタート
+description: Sequence搭載のスマートウォレットをReact dAppに追加するのは簡単です。このガイドでは、新規プロジェクトからウォレットの完全統合までの3つの基本ステップを紹介します。
+sidebarTitle: クイックスタート
+---
+
+完全に統合されたデモを見るには、[Mining Quest](https://mining-quest-v3.pages.dev/) をご覧ください。また、その[ソースコードはこちら](https://github.com/0xsequence-demos/mining-quest/tree/v3)で確認できます。
 
 ## 🔑 ステップ1：プロジェクトアクセスキーを取得
 まず、dAppをSequenceインフラに接続するためのキーが必要です。このキーがプロジェクトを識別し、サービス利用を可能にします。
 
-**操作:** [sequence.build](https://sequence.build)にアクセスし、サインアップまたはログインして新しいプロジェクトを作成してください。
+[sequence.build](https://sequence.build)にアクセスし、サインアップまたはログインして新しいプロジェクトを作成します。[Builder Getting Started](/solutions/builder/getting-started)ガイドで手順を確認できます。
 
-**結果:** あなた専用の`projectAccessKey`が取得できます。
+ここで、あなた専用の `projectAccessKey` を取得できます。
 
 ## 📦 ステップ2：コアSDKパッケージ`@0xsequence/connect`をインストール
 次に、Sequence Web SDKの主要パッケージをプロジェクトの依存関係に追加します。このパッケージには必要なフックやコンポーネント、ウォレットモーダルがすべて含まれています。
 
-**操作:** プロジェクトのターミナルでインストールコマンドを実行してください。
+プロジェクトのターミナルで、以下のインストールコマンドを実行してください。
 
 ```bash
-npm install @0xsequence/connect
+pnpm install @0xsequence/connect
 ```
 
-**結果:** Sequence SDKがプロジェクトの依存関係に追加され、すぐに利用可能になります。
+これでSequence SDKがプロジェクトの依存関係として追加され、すぐに利用可能です。
 
 ## 🔗 ステップ3：Reactアプリに統合
-最後に、アプリケーション全体をウォレットプロバイダーでラップします。これにより、dApp内のどのコンポーネントからも接続機能が利用できるようになります。
+最後に、アプリケーション全体をウォレットプロバイダーでラップしてください。これにより、dApp内のどのコンポーネントでも接続機能が利用できるようになります。
 
-**操作:** 公式の[Web SDK統合ガイド](/sdk/web/getting-started)を参考に、詳しい統合手順をご覧ください。
+```tsx
+import { ThemeProvider } from "@0xsequence/design-system";
+import { SequenceConnect, createConfig } from "@0xsequence/connect";
 
-**結果:** SequenceウォレットがdAppで利用可能になります。`useConnect()`などのwagmiフックを使って、ユーザーがSNSやメールでサインインし、ブロックチェーンとやり取りできるようになります。
+import { Homepage } from "./components/Homepage";
 
-React/Next.jsアプリケーションへのWeb SDK統合方法については、[Web SDK統合ガイド](/sdk/web/getting-started)をご覧ください。
+const config = createConfig({
+  projectAccessKey: "YOUR_PROJECT_ACCESS_KEY",
+  defaultTheme: "dark",
+  signIn: {
+    projectName: "My Dapp",
+  },
+  displayedAssets: [],
+  readOnlyNetworks: [],
+  walletUrl: "https://v3.sequence-dev.app",
+  dappOrigin: window.location.origin,
+  appName: "My Dapp",
+  chainIds: [137],
+  defaultChainId: 137,
+});
+
+export const App = () => {
+  return (
+    <ThemeProvider theme="dark">
+      <SequenceConnect config={config}>
+        <SequenceWalletProvider>
+          <Homepage />
+        </SequenceWalletProvider>
+      </SequenceConnect>
+    </ThemeProvider>
+  );
+};
+```
+
+SequenceウォレットがdApp内で利用可能になりました。`useConnect()` などのwagmiフックを使って、ユーザーがソーシャルやメールでサインインし、ブロックチェーンとやり取りできるようになります。
+
+次のステップとして、セッション権限を設定し、ユーザーのウォレットポップアップを繰り返し表示しないようにできます。詳細は[セッション権限](/solutions/wallets/developers/ecosystem-wallet/permissions)をご覧ください。

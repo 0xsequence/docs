@@ -1,0 +1,65 @@
+---
+title: カスタムウォレット
+description: Wallet Development Kitを使い、Sequenceインフラ上で完全カスタムのエコシステムウォレットを構築できます。必要に応じて重要なコンポーネントをセルフホスト可能です。
+sidebarTitle: カスタムウォレット
+---
+
+**Wallet Development Kit (WDK)** を使えば、Sequenceインフラのアイデンティティ、セッション、トランザクション、データ機能を活用しつつ、カスタムエコシステムウォレットを構築できます。UIやルーティング、製品設計は自由に決定でき、必要に応じて重要なコンポーネントをセルフホストできます。
+- パッケージ: `@0xsequence/wallet-wdk`
+- リポジトリ: [sequence.js](https://github.com/0xsequence/sequence.js)
+
+## 構築範囲と提供範囲
+
+| 領域           | 構築する部分                   | Sequenceが提供する部分                                                            |
+| ------------ | ------------------------ | -------------------------------------------------------------------------- |
+| UI/UX        | ウォレット画面、フロー、ルーティング、テーマ設定 | リファレンスコンポーネントおよびSDK                                                        |
+| 認証とセッション     | ログインUXの選択、フローの設計         | Identity Instrument（セッション証明）、Smart Sessionsモデル                             |
+| Transactions | アプリ固有のフローやUX             | リレーやスポンサーシップ用の[Transaction API](/solutions/infrastructure/transaction-api) |
+| データ          | カスタムビューや分析機能             | 残高、NFT、イベント、価格取得用の[インデクサ](/solutions/indexer/overview)                     |
+| ノードアクセス      | オプションでカスタムプロバイダー利用可      | Node Gateway経由の[Blockchain RPC](/solutions/infrastructure/blockchain-rpc)  |
+| バックエンド       | オプションで独自ビジネスロジック追加可      | 安全なサーバーサイドエンドポイント用[Sidekick](/solutions/infrastructure/sidekick)           |
+
+## 利用可能な機能
+
+- **Smart Sessions**とセッション証明による範囲限定・低負荷な実行。
+- **パスキーやソーシャルログイン**によるエンクレーブ署名付きセッション。
+- **クロスチェーンアカウント**：単一のオンチェーン設定ルート（署名者、セッション、リカバリー）で管理。
+- **タイムリカバリーキー**：時間ベースのリカバリー付き秘密パスフレーズ対応。
+- **開発者向け統合**：既存SDKを通じてWeb、React Native、Unity、Unrealに対応。
+- **サービス**：リード用のIndexer、ライト用のTransaction API、生データ呼び出し用のNode Gateway RPC。
+
+## 高レベルの統合フロー
+
+<Steps>
+  <Step title="インストールとホスティング計画">
+    パッケージを追加します：<code>pnpm add @0xsequence/wallet-wdk</code>。どのコンポーネント（例：UI、Identity Instrument）をセルフホストするか、またはホスティングサービスを利用するか決定します。
+  </Step>
+
+  <Step title="エコシステムのメタデータを設定">
+    ウォレットドメイン、対応チェーン、ブランディング、セッションポリシーを設定します。環境や鍵、ポリシー管理にはBuilderを使用します。
+  </Step>
+
+  <Step title="アイデンティティとセッションの連携">
+    Identity Instrumentを使ってセッション認証を行います。ログインとセッションコールバックフローを実装し、セッションキーを安全に保管してください。
+  </Step>
+
+  <Step title="サービスの接続">
+    [Indexer](/solutions/indexer/overview)で読み取り、[Transaction API](/solutions/infrastructure/transaction-api)で書き込み、[Blockchain RPC](/solutions/infrastructure/blockchain-rpc)でノードにアクセスします。
+  </Step>
+
+  <Step title="テストとリリース">
+    Smart Sessionのスコープ、リカバリーパス、クロスチェーンアクションを検証し、ご自身のドメインで公開します。
+  </Step>
+</Steps>
+
+## セルフホスティングに関する注意点
+
+- **Identity Instrument**は、コンプライアンス要件に応じてご自身のAWS Nitro Enclave環境でセルフホスト可能です。
+- **Sidekick**を独自に運用し、サーバーサイドでの書き込みや鍵管理を制御できます。
+- コントラクト、監査、デプロイについては[Technical References](/solutions/technical-references/overview)に記載されています。
+
+## 次のステップ
+
+- リポジトリを参照：[sequence.js](https://github.com/0xsequence/sequence.js)。
+- エコシステムに統合するアプリチームには[For Developers](/solutions/wallets/developers/overview)を共有してください。
+- [Smart Sessions](/solutions/wallets/ecosystems/smart-sessions)や[For Ecosystems](/solutions/wallets/ecosystems/overview)もご確認ください。
