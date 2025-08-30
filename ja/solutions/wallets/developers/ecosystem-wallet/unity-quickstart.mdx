@@ -3,3 +3,55 @@ title: Unity SDK クイックスタート
 description: UnityアプリにSequence対応のスマートウォレットを追加します。
 sidebarTitle: Unity クイックスタート
 ---
+
+## 🛠️ ステップ 1：Sequence の Unity SDK をインストールする
+[SDK の GitHub リリース（v5.0.0）](https://github.com/0xsequence/sequence-unity/releases/tag/v5-beta) からダウンロードして、Ecosystem Wallets を利用しましょう。`.unitypackage` ファイルとしてダウンロードし、Unity プロジェクトに追加するだけです。
+
+Ecosystem Wallets の動作を確認したい場合は、[組み込みデモをお試しください。](/sdk/unity/ecosystem-wallet/setup#try-our-built-in-demo)
+
+## 🔑 ステップ 2：プロジェクトアクセスキーを追加する
+[sequence.build](https://sequence.build)にアクセスし、サインアップまたはログインして新しいプロジェクトを作成します。[Builder Getting Started](/solutions/builder/getting-started)ガイドで手順を確認できます。
+
+次に、Unity プロジェクト内で `SequenceConfig.asset` ファイルを作成し、`projectAccessKey` を設定の「Builder API Key」欄に入力してください。
+
+## 🌐 ステップ 3：Ecosystem を定義する
+まず、`SequenceConnect` インターフェースのインスタンスを定義しましょう。
+
+```csharp
+EcosystemType ecosystem = EcosystemType.Sequence;
+SequenceConnect connect = new SequenceConnect(ecosystem);
+```
+
+## 💼 ステップ 4：権限付きセッションを作成する
+特定のコントラクトにトランザクションを送信するには、必要な権限を持つセッションを最初に作成する必要があります。
+
+```csharp
+Chain chain = Chain.TestnetAbitrumSepolia;
+Address contractAddress = new Address("0x33985d320809E26274a72E03268c8a29927Bc6dA");
+BigInteger deadline = new BigInteger(DateTimeOffset.UtcNow.ToUnixTimeSeconds() * 1000 + 1000 * 60 * 5000);
+BigInteger valueLimit = 0;
+
+IPermissions permissions = new ContractPermissions(chain, contractAddress, deadline, valueLimit);
+```
+
+次に、これらの権限を使って `SequenceConnect` インターフェースでウォレットセッションを作成します。
+他の[ログインオプションはこちら。](/sdk/unity/ecosystem-wallet/setup#try-our-built-in-demo)
+
+```csharp
+IWallet wallet = await connect.SignInWithGoogle(permissions);
+```
+
+## 📨 ステップ 5：トランザクションを送信する
+最後に、作成したウォレットセッションを使って、権限で指定したコントラクトアドレスへトランザクションを送信しましょう。
+
+```csharp
+Chain chain = Chain.TestnetAbitrumSepolia;
+Address to = new Address("0x33985d320809E26274a72E03268c8a29927Bc6dA");
+
+ITransaction[] transactions = new Transaction[]
+{
+    new Transaction(to, 0, "explicitEmit()")
+};
+
+string txnHash = await wallet.SendTransaction(chain, transactions);
+```
