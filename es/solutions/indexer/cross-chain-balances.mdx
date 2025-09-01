@@ -1,0 +1,70 @@
+---
+title: Saldos de tokens cross-chain
+sidebarTitle: Saldos de tokens cross-chain
+---
+
+## Obtenga la lista y los saldos de tokens nativos, ERC20, ERC721 y ERC1155 en múltiples cadenas EVM con una sola llamada a la API
+_Método `GetTokenBalances` de Sequence Indexer:_
+- Solicitud: POST /rpc/Indexer/GetTokenBalances
+- Content-Type: application/json
+- Cuerpo (en JSON):
+  - `accountAddress` (string) -- la dirección de cuenta del wallet
+  - `includeMetadata` (booleano - opcional - por defecto: false) -- alterna si los metadatos del token se incluyen en la respuesta
+  - `metadataOptions` (objeto - opcional) -- opciones adicionales para metadatos
+    - `verifiedOnly` (booleano - opcional) -- devuelve solo contratos 'verificados' para ayudar a reducir spam
+    - `includeContracts` (\[]string - opcional) -- lista de direcciones de contrato específicas que siempre se incluirán, incluso si verifiedOnly está activado.
+  - `includeCollectionTokens` (booleano - opcional - por defecto: true) -- alterna para representar tokens ERC721 / ERC1155 como un solo ítem resumen en la respuesta
+
+<CodeGroup>
+  ```shell Curl
+  curl -X POST https://indexer.sequence.app/rpc/IndexerGateway/GetTokenBalances \
+   -H "Content-Type: application/json" \
+   -H "X-Access-Key: AQAAAAAAAF_JvPALhBthL7VGn6jV0YDqaFY" \
+   -d '{ "accountAddress": "0x8e3E38fe7367dd3b52D1e281E4e8400447C8d8B9", "includeMetadata": true }'
+  ```
+
+  ```ts Typescript
+  // Make sure to install the @0xsequence/indexer package:
+  // npm install @0xsequence/indexer
+  // or
+  // yarn add @0xsequence/indexer
+
+  import { SequenceIndexer } from '@0xsequence/indexer'
+
+  const indexer = new SequenceIndexerGateway('https://indexer.sequence.app', 'AQAAAAAAAF_JvPALhBthL7VGn6jV0YDqaFY')
+
+  // try any account address you'd like
+  const accountAddress = '0x8e3E38fe7367dd3b52D1e281E4e8400447C8d8B9'
+
+  // query Sequence Indexer for all token balances of the account on Polygon
+  const tokenBalances = await indexer.getTokenBalances({
+  	accountAddress: accountAddress,
+  	includeMetadata: true
+  })
+
+  console.log('tokens in your account:', tokenBalances)
+  ```
+
+  ```go Go
+  import (
+  	"context"
+  	"fmt"
+  	"log"
+  	"net/http"
+
+  	"github.com/0xsequence/go-sequence/indexer"
+  )
+
+  func GetTokenBalances(accountAddress string) {
+  	seqIndexer := indexer.NewIndexerGateway("https://indexer.sequence.app", "AQAAAAAAAF_JvPALhBthL7VGn6jV0YDqaFY")
+
+  	includeMetadata := true
+
+  	tokenBalances, _, err := seqIndexer.GetTokenBalances(context.Background(), &accountAddress, nil, &includeMetadata, nil, nil)
+  	if err != nil {
+  		log.Fatal(err)
+  	}
+  	fmt.Println("tokenBalances:", tokenBalances)
+  }
+  ```
+</CodeGroup>

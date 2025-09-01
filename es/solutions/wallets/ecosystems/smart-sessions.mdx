@@ -1,0 +1,119 @@
+---
+title: Smart Sessions
+description: Las Smart Sessions de Sequence ofrecen una forma fluida de interactuar con aplicaciones al reducir las ventanas emergentes del wallet y mejorar la experiencia del usuario.
+---
+
+## El problema de la UX en Web3 hoy
+En Web3 hoy, la experiencia del usuario suele verse interrumpida. Cada swap, cada listado, cada acción menor requiere una ventana emergente del wallet, obligándole a "firmar" y aprobar. Esto genera fricción y hace que las aplicaciones se sientan torpes en comparación con las apps fluidas que usamos a diario.
+
+## ¿Qué son las Smart Sessions?
+**Smart Sessions es la solución a este problema.**
+
+Una Smart Session es un conjunto seguro, temporal y estrictamente limitado de permisos que usted otorga a una aplicación. En vez de aprobar cada transacción individualmente, aprueba una sesión una sola vez, permitiendo que la aplicación realice una serie de acciones preacordadas en su nombre. Esto elimina las ventanas emergentes constantes y permite una experiencia fluida, similar a Web2, sin sacrificar la seguridad ni la autocustodia.
+
+> 💡 **Piénselo así:** No es como entregar su llave maestra (el firmador principal de su wallet), sino como dar a una aplicación una tarjeta de acceso especial con reglas y límites muy claros.
+
+## Dos tipos de Smart Sessions
+Sequence ofrece dos tipos distintos de Smart Sessions, cada uno diseñado para un propósito diferente:
+- **Sesiones implícitas:** Para máxima comodidad dentro de una sola aplicación confiable.
+- **Explicit Sessions:** Para control potente y granular sobre cualquier acción on-chain.
+
+---
+
+## 1. Implicit Sessions: El “Pase de Comodidad en la App”
+Una Sesión Implícita es el tipo más simple y común de Smart Session. Su único propósito es hacer que su experiencia dentro de una sola aplicación sea lo más fluida posible.
+
+```mermaid
+flowchart TD
+    U[👤 User] --> C["Clicks 'Connect Wallet'<br/>on App"]
+    C --> S["✔️ Session Created"]
+    S --> F["🛡️ Digital Fence is Established<br/>(Scoped to the App Domain)"]
+
+    F --> SW["✔️ Swap App's Token<br/>(Instant & Pop-up Free)"]
+    F --> ST["✔️ Stake in App's Pool<br/>(Instant & Pop-up Free)"]
+    F -.-> EC["⚠️ Attempt to directly call an external contract<br/>(e.g., main USDC contract)"]
+    EC --> B["⛔ BLOCKED ON-CHAIN<br/>The session is not valid outside the fence"]
+
+    style F fill:#d9edf7,stroke:#2a6496,stroke-width:1px,color:#000
+    style S fill:#d9edf7,stroke:#2a6496,stroke-width:1px,color:#000
+    style SW fill:#fff,stroke:#666,color:#000
+    style ST fill:#fff,stroke:#666,color:#000
+    style EC fill:#fff,stroke:#666,stroke-dasharray: 3 3,color:#000
+    style B fill:#f2dede,stroke:#a94442,stroke-width:1px,color:#000
+```
+
+### 🎯 La idea central
+Cuando se conecta a una aplicación en la que confía, está creando un "límite de confianza" alrededor del dominio web de esa aplicación. Una Sesión Implícita le da a esa aplicación permiso para operar libremente solo dentro de sus propios límites.
+
+### ⚙️ Cómo funciona
+
+1. **Conectar y confiar:** Conecta su wallet a una aplicación (por ejemplo, `app.my-defi-protocol.com`)
+2. **Aprobación silenciosa:** Se crea automáticamente y en silencio una sesión que está criptográficamente vinculada a ese dominio específico, sin que el usuario tenga que aprobarla.
+3. **Experiencia fluida:** Ahora puede realizar cualquier acción dentro de esa aplicación, realizando swaps, staking, listados, sin más ventanas emergentes. Simplemente funciona.
+
+### 🔒 El resguardo de seguridad
+Esta sesión no sirve en ningún otro lugar. Si la aplicación fuera maliciosa e intentara usar esta sesión para llamar a un contrato fuera de su dominio (como el contrato de USDC), la transacción sería rechazada automáticamente on-chain. La sesión solo es válida para los smart contracts propios de la aplicación.
+La aplicación configurará los permisos en el [Sequence Builder](https://sequence.build)
+
+### 📊 Implicit Sessions en resumen
+
+| Aspecto                  | Detalles                                                                                                                                                             |
+| ------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Ideal para**           | Uso diario de una sola aplicación (protocolos DeFi, marketplaces, juegos)                                                                                            |
+| **Característica clave** | Máxima comodidad. Elimina todas las ventanas emergentes de firma dentro de un entorno confiable de la aplicación                                                     |
+| **Analogía**             | Una tarjeta de acceso para un edificio específico. Le permite moverse libremente entre todas las habitaciones dentro, pero no abre la puerta del edificio de al lado |
+
+---
+
+## 2. Explicit Sessions: El “Permiso Programable”
+Una Sesión Explícita es una herramienta más avanzada y poderosa. Está diseñada para cuando una aplicación necesita realizar tareas muy específicas que interactúan con otros protocolos externos.
+
+```mermaid
+flowchart TD
+    U[👤 User] --> C["Connects to App &<br/>Logs In"]
+    C --> P["📄 App Proposes Session Rules<br/>(For a seamless swap experience)"]
+    P --> R["📝 User Reviews Granular Rules:<br/>- Action: transfer() on USDC Contract<br/>- Target: Only App's Swap Router<br/>- Limit: Up to 100 USDC<br/>- Expires: 24 hours"]
+    R --> A["🙋 User Explicitly Approves<br/>This Exact Set of Rules"]
+    A --> V["⚙️ On-Chain Validation Activated"]
+
+    V -->|Invalid Action: Transfer USDC to other address| B1["⛔ BLOCKED<br/>(Target is not the Swap Router)"]
+    V -->|Valid Action: Swap using 50 USDC| OK["✔️ ALLOWED<br/>(All rules are met)"]
+    V -->|Invalid Action: Swap using 101 USDC| B2["⛔ BLOCKED<br/>(Exceeds value limit)"]
+
+    style P fill:#d9edf7,stroke:#2a6496,stroke-width:1px,color:#000
+    style R fill:#d9edf7,stroke:#2a6496,stroke-width:1px,color:#000
+    style A fill:#337ab7,stroke:#2a6496,stroke-width:1px,color:#fff
+    style V fill:#d9edf7,stroke:#2a6496,stroke-width:1px,color:#000
+    style OK fill:#dff0d8,stroke:#3c763d,stroke-width:1px,color:#000
+    style B1 fill:#f2dede,stroke:#a94442,stroke-width:1px,color:#000
+    style B2 fill:#f2dede,stroke:#a94442,stroke-width:1px,color:#000
+```
+
+### 🎯 La idea central
+En lugar de confiar en toda la aplicación y sus smart contracts, usted aprueba una lista precisa de reglas para un firmante temporal. Está creando un permiso personalizado que indica exactamente qué se puede hacer, dónde, cuánto se puede gastar, por cuánto tiempo y para qué contratos.
+
+### ⚙️ Cómo funciona
+
+1.  **La app propone un "contrato":** La app presenta a su wallet una lista de permisos muy específicos que necesita. Por ejemplo:
+    - "Permíteme llamar a la función `transfer` en el `USDC contract`."
+    - "...solo con la dirección de `recipient` `0x...`"
+    - "...por un total acumulado no mayor a `100` USDC."
+    - "...y este permiso expirará en `24 hours`."
+
+2.  **Usted aprueba explícitamente las reglas:** Su wallet muestra estas reglas en un formato legible. Usted revisa y aprueba este conjunto exacto de condiciones.
+
+3.  **La app ejecuta:** Ahora la app puede realizar esas acciones automáticamente, sin ventanas emergentes.
+
+### 🔒 El resguardo de seguridad
+El poder de las Sesiones Explícitas proviene de su nivel de detalle. Cada regla se valida en la blockchain. Si la app intenta hacer algo fuera del alcance aprobado, como gastar 101 USDC en vez de 100, o llamar a la función `approve` en vez de `transfer`, la transacción fallará.
+
+### 📊 Explicit Sessions en resumen
+
+| Aspecto                  | Detalles                                                                                                                                                                                                 |
+| ------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Ideal para**           | Autorizar acciones específicas, automatizadas o de alto valor (por ejemplo, cosecha automática de rendimientos, hacer ofertas en un NFT, configurar pagos recurrentes) o 0 pop-ups                       |
+| **Característica clave** | Control granular y programable. Usted define el alcance exacto de lo que la app puede hacer                                                                                                              |
+| **Analogía**             | Un cheque preautorizado. Usted lo escribe a una persona específica (target), por un monto exacto (valueLimit), y anota “solo para depósito” en el memo (rules). El banco hará cumplir todas esas reglas. |
+
+### Integraciones versátiles
+Lo mejor es que puede combinar ambos tipos de sesiones para obtener lo mejor de ambos mundos. Cuando salga del alcance de una Implicit Session, los SDKs de Sequence cambiarán automáticamente a un estado de aprobación por transacción, funcionando como un EOA. Para acciones repetidas fuera de una Implicit Session, puede solicitar una Explicit Session para una integración fluida.

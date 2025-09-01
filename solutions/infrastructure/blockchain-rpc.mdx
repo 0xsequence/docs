@@ -1,0 +1,55 @@
+---
+title: "Blockchain RPC"
+description: High-availability RPC access with provider failover, health checks, and simple URLs for each network.
+sidebarTitle: Blockchain RPC
+---
+
+**Blockchain RPC** is a load balanced raw node access service. It provides health-checked, load-balanced **RPC endpoints** per network and automatically fails over across multiple providers.
+
+## Usage
+
+1. Setup your project in [Builder](/solutions/builder/getting-started) and obtain your **Project Access Key**.
+2. Use the Node Gateway URL pattern in your client or server:
+
+```txt
+https://nodes.sequence.app/<chain_handle>
+```
+
+<Info>
+For a full list of chain handles, see [supported networks & status](https://status.sequence.info). You can also use the Blockchain RPC section in [Builder](https://sequence.build/) to get the right URL for your project, prepopulated with your access key.
+</Info>
+
+**Example (ethers v6):**
+
+```ts
+import { JsonRpcProvider } from 'ethers'
+
+const provider = new JsonRpcProvider('https://nodes.sequence.app/base') // Chain handle from status page
+const block = await provider.getBlockNumber()
+```
+
+## Notes
+
+- The Node Gateway automatically routes to healthy providers and keeps data **in-sync**.  
+- Works alongside **Indexer** for higher-level reads and **Transaction API** for writes.  
+- You can monitor usage and configure access keys in Builder, including request access restrictions.
+
+## Performance
+
+Sequence Blockchain RPC is engineered to power high-demand and high-availability apps. It aggregates multiple node providers, auto-switching between them to ensure correct and in sync data availability — giving you the assurance that your decentralized applications run smoothly with low latency for your users.
+
+No need to worry about peak traffic. Our node infrastructure is robust, offering higher scalability and fault tolerance. Additionally, we provide automatic node failure detection and recovery.
+
+## Watch a Blockchain RPC integration
+<Frame>
+<video
+  controls
+  className="w-full aspect-video"
+  src="/video/builder/06_Node_Gateway.mp4"
+></video>
+</Frame>
+
+## Related
+
+- [Indexer](/solutions/indexer/overview)  
+- [Transaction API](/solutions/infrastructure/transaction-api)

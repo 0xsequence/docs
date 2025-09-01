@@ -1,0 +1,69 @@
+---
+title: "Quickstart"
+description: Adding a Sequence-powered smart wallet to your React app is a straightforward process. This guide outlines the three core steps to get you from a new project to a fully integrated wallet.
+sidebarTitle: Quickstart
+---
+
+To see a fully integrated demo, check out [Mining Quest](https://mining-quest-v3.pages.dev/). You can also see its [source code here](https://github.com/0xsequence-demos/mining-quest/tree/v3).
+
+## 🔑 Step 1: Get Your Project Access Key
+
+First, you need a key to connect your app to the Sequence infrastructure. This key identifies your project and enables our services.
+
+Go to [sequence.build](https://sequence.build), sign up or log in, and create a new project. You can follow the [Builder Getting Started](/solutions/builder/getting-started) guide to get a step by step flow.
+
+You will now be able to get your unique `projectAccessKey`.
+
+## 📦 Step 2: Install the core SDK package `@0xsequence/connect`
+
+Next, add the primary Sequence Web SDK package to your project's dependencies. This package contains all the necessary hooks, components, and the pre-built wallet modal.
+
+In your project's terminal, run the installation command:
+
+```bash
+pnpm install @0xsequence/connect
+```
+
+The Sequence SDK is now a dependency in your project, ready to be used.
+
+## 🔗 Step 3: Integrate with Your React App
+
+Finally, wrap your application with our wallet provider. This makes all connect features available to any component within your dApp:
+
+```tsx
+import { ThemeProvider } from "@0xsequence/design-system";
+import { SequenceConnect, createConfig } from "@0xsequence/connect";
+
+import { Homepage } from "./components/Homepage";
+
+const config = createConfig({
+  projectAccessKey: "YOUR_PROJECT_ACCESS_KEY",
+  defaultTheme: "dark",
+  signIn: {
+    projectName: "My Dapp",
+  },
+  displayedAssets: [],
+  readOnlyNetworks: [],
+  walletUrl: "https://v3.sequence-dev.app",
+  dappOrigin: window.location.origin,
+  appName: "My Dapp",
+  chainIds: [137],
+  defaultChainId: 137,
+});
+
+export const App = () => {
+  return (
+    <ThemeProvider theme="dark">
+      <SequenceConnect config={config}>
+        <SequenceWalletProvider>
+          <Homepage />
+        </SequenceWalletProvider>
+      </SequenceConnect>
+    </ThemeProvider>
+  );
+};
+```
+
+Sequence wallet is now live in your app. You can immediately use wagmi hooks like `useConnect()` to allow users to sign in with their socials or email and interact with the blockchain.
+
+As a next step, you can configure your session permissions to eliminate repeated wallet pop-ups for your users. See [Session Permissions](/solutions/wallets/developers/ecosystem-wallet/permissions) for more information.
