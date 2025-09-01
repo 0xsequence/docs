@@ -1,0 +1,109 @@
+---
+title: "Indexer Overview"
+description: Real-time balances, transfers, NFTs, prices, and contract events across EVM chains with webhooks and subscriptions. Use it as your production read layer for onchain apps.
+sidebarTitle: Overview
+---
+
+**Indexer** gives you low-latency reads across EVM chains: balances and portfolio, token and NFT ownership, transfers and logs, prices, and contract events. It is built for production: cursor-based pagination, filters, webhooks, and event subscriptions. All in a scalable, 99.99% uptime service.
+
+<CardGroup>
+  <Card title="API Reference" href="/api-references/indexer/overview">
+    Endpoints, filters, pagination, and response shapes.
+  </Card>
+  <Card title="Cross-Chain Token Balances" href="/solutions/indexer/cross-chain-balances">
+    Fetch token balances across multiple EVM chains with a single API call.
+  </Card>
+  <Card title="Token Balances" href="/solutions/indexer/token-balances">
+    Fetch token balances for any wallet or contract address.
+  </Card>
+  <Card title="Transaction History" href="/solutions/indexer/transaction-history">
+    Fetch transaction history for any wallet or contract address.
+  </Card>
+  <Card title="Subscriptions" href="/solutions/indexer/subscriptions">
+    Subscribe to events, receipts, balance updates for any wallet or contract address.
+  </Card>
+  <Card title="Webhooks" href="/solutions/indexer/webhooks">
+    Receive webhook triggers for any contract emitted event.
+  </Card>
+</CardGroup>
+
+## What you can build
+
+- **Wallet and portfolio views**: unified balances and positions across chains.
+- **Activity feeds**: transfers, mints, burns, sales.
+- **Collection browsers**: NFTs with metadata and ownership.
+- **Analytics**: prices, volumes, holders, and contract events.
+
+## Quickstart
+
+Use the SDKs for the fastest path, or call the REST API directly. The examples below illustrate typical requests; see the API reference for exact parameters and response fields.
+
+<CodeGroup>
+
+```shell Curl
+curl -X POST https://polygon-indexer.sequence.app/rpc/Indexer/GetTokenBalances \
+ -H "Content-Type: application/json" \
+ -H "X-Access-Key: AQAAAAAAAF_JvPALhBthL7VGn6jV0YDqaFY" \
+ -d '{ "accountAddress": "0x8e3E38fe7367dd3b52D1e281E4e8400447C8d8B9", "includeMetadata": true }'
+```
+
+```ts Typescript
+// Make sure to install the @0xsequence/indexer package:
+// npm install @0xsequence/indexer
+// or
+// yarn add @0xsequence/indexer
+
+import { SequenceIndexer } from '@0xsequence/indexer'
+
+const indexer = new SequenceIndexer('https://polygon-indexer.sequence.app', 'AQAAAAAAAF_JvPALhBthL7VGn6jV0YDqaFY')
+
+// try any account address you'd like :)
+const accountAddress = '0xabc...'
+
+// query Sequence Indexer for all token balances of the account on Polygon
+const tokenBalances = await indexer.getTokenBalances({
+	accountAddress: accountAddress,
+	includeMetadata: true
+})
+console.log('tokens in your account:', tokenBalances)
+```
+
+```go Go
+import (
+	"context"
+	"fmt"
+	"log"
+	"net/http"
+
+	"github.com/0xsequence/go-sequence/indexer"
+)
+
+func GetTokenBalances(accountAddress string) {
+	seqIndexer := indexer.NewIndexer("https://polygon-indexer.sequence.app", "AQAAAAAAAF_JvPALhBthL7VGn6jV0YDqaFY")
+
+	includeMetadata := true
+
+	tokenBalances, _, err := seqIndexer.GetTokenBalances(context.Background(), &accountAddress, nil, &includeMetadata, nil, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println("tokenBalances:", tokenBalances)
+}
+```
+</CodeGroup>
+
+## Supported Networks
+
+You can see the [full list of supported networks here](https://status.sequence.info).
+
+## Further Reading
+
+Here are a few example queries you can make to a blockchain from your app, game, or wallet:
+
+- [Fetch all tokens & NFTS in a wallet across all EVMs](/solutions/indexer/cross-chain-balances)
+- [Fetch all tokens & NFTS in any wallet including all metadata](/solutions/indexer/token-balances)
+- [Fetch the transaction history for any wallet address](/solutions/indexer/transaction-history)
+- [Fetch all unique tokens in a particular ERC20/721/1155 contract, including total supplies](/solutions/indexer/token-balances)
+- [Fetch the transaction history for any token contract address](/solutions/indexer/transaction-history)
+- [Listen to transactions for particular tokens/contracts/addresses via webhooks](/solutions/indexer/webhooks)
+- [Subscribe to events, receipts, balance updates for any wallet or contract address](/solutions/indexer/subscriptions)

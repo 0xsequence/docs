@@ -1,0 +1,109 @@
+---
+title: インデクサー概要
+description: EVMチェーン全体のリアルタイム残高、トランスファー、NFT、価格、コントラクトイベントをウェブフックやサブスクリプションで取得。オンチェーンアプリの本番用リードレイヤーとしてご利用いただけます。
+sidebarTitle: 概要
+---
+
+**Indexer** は、EVMチェーン全体で低遅延の読み取りを提供します：残高やポートフォリオ、トークンやNFTの所有状況、トランスファーやログ、価格、コントラクトイベントなど。本番環境向けに設計されており、カーソルベースのページネーション、フィルター、ウェブフック、イベントサブスクリプションに対応。スケーラブルで99.99%の稼働率を誇るサービスです。
+
+<CardGroup>
+  <Card title="APIリファレンス" href="/api-references/indexer/overview">
+    エンドポイント、フィルター、ページネーション、レスポンス形式について。
+  </Card>
+
+  <Card title="クロスチェーン・トークン残高" href="/solutions/indexer/cross-chain-balances">
+    1回のAPIコールで複数のEVMチェーンのトークン残高を取得します。
+  </Card>
+
+  <Card title="トークン残高" href="/solutions/indexer/token-balances">
+    任意のウォレットまたはコントラクトアドレスのトークン残高を取得します。
+  </Card>
+
+  <Card title="Transaction History" href="/solutions/indexer/transaction-history">
+    任意のウォレットまたはコントラクトアドレスの取引履歴を取得します。
+  </Card>
+
+  <Card title="Subscriptions" href="/solutions/indexer/subscriptions">
+    任意のウォレットやコントラクトアドレスのイベント、レシート、残高更新を購読できます。
+  </Card>
+
+  <Card title="Webhooks" href="/solutions/indexer/webhooks">
+    任意のコントラクトが発行するイベントのウェブフック通知を受け取ります。
+  </Card>
+</CardGroup>
+
+## できること
+
+- **ウォレットおよびポートフォリオビュー**：チェーンをまたいだ統合残高とポジション表示。
+- **アクティビティフィード**：トランスファー、ミント、バーン、セール情報。
+- **コレクションブラウザー**：NFTのメタデータや所有状況を表示。
+- **分析**：価格、取引量、保有者数、コントラクトイベントなど。
+
+## クイックスタート
+最速で始めるならSDKの利用がおすすめですが、REST APIを直接呼び出すことも可能です。以下の例は一般的なリクエスト例です。正確なパラメータやレスポンス項目はAPIリファレンスをご参照ください。
+
+<CodeGroup>
+  ```shell Curl
+  curl -X POST https://polygon-indexer.sequence.app/rpc/Indexer/GetTokenBalances \
+   -H "Content-Type: application/json" \
+   -H "X-Access-Key: AQAAAAAAAF_JvPALhBthL7VGn6jV0YDqaFY" \
+   -d '{ "accountAddress": "0x8e3E38fe7367dd3b52D1e281E4e8400447C8d8B9", "includeMetadata": true }'
+  ```
+
+  ```ts Typescript
+  // Make sure to install the @0xsequence/indexer package:
+  // npm install @0xsequence/indexer
+  // or
+  // yarn add @0xsequence/indexer
+
+  import { SequenceIndexer } from '@0xsequence/indexer'
+
+  const indexer = new SequenceIndexer('https://polygon-indexer.sequence.app', 'AQAAAAAAAF_JvPALhBthL7VGn6jV0YDqaFY')
+
+  // try any account address you'd like :)
+  const accountAddress = '0xabc...'
+
+  // query Sequence Indexer for all token balances of the account on Polygon
+  const tokenBalances = await indexer.getTokenBalances({
+  	accountAddress: accountAddress,
+  	includeMetadata: true
+  })
+  console.log('tokens in your account:', tokenBalances)
+  ```
+
+  ```go Go
+  import (
+  	"context"
+  	"fmt"
+  	"log"
+  	"net/http"
+
+  	"github.com/0xsequence/go-sequence/indexer"
+  )
+
+  func GetTokenBalances(accountAddress string) {
+  	seqIndexer := indexer.NewIndexer("https://polygon-indexer.sequence.app", "AQAAAAAAAF_JvPALhBthL7VGn6jV0YDqaFY")
+
+  	includeMetadata := true
+
+  	tokenBalances, _, err := seqIndexer.GetTokenBalances(context.Background(), &accountAddress, nil, &includeMetadata, nil, nil)
+  	if err != nil {
+  		log.Fatal(err)
+  	}
+  	fmt.Println("tokenBalances:", tokenBalances)
+  }
+  ```
+</CodeGroup>
+
+## 対応ネットワーク
+You can see the [full list of supported networks here](https://status.sequence.info).
+
+## さらに詳しく知る
+アプリ、ゲーム、ウォレットからブロックチェーンに対して実行できるクエリの例をいくつかご紹介します。
+- [すべてのEVMチェーンでウォレット内の全トークンとNFTを取得](/solutions/indexer/cross-chain-balances)
+- [任意のウォレット内の全トークンとNFT（全メタデータ付き）を取得](/solutions/indexer/token-balances)
+- [任意のウォレットアドレスの取引履歴を取得](/solutions/indexer/transaction-history)
+- [特定のERC20/721/1155コントラクト内の全ユニークトークンと総供給量を取得](/solutions/indexer/token-balances)
+- [任意のトークンコントラクトアドレスの取引履歴を取得](/solutions/indexer/transaction-history)
+- [特定のトークン／コントラクト／アドレスのトランザクションをウェブフックで受信](/solutions/indexer/webhooks)
+- [任意のウォレットやコントラクトアドレスのイベント、レシート、残高更新を購読する](/solutions/indexer/subscriptions)

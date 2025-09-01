@@ -1,0 +1,51 @@
+---
+title: Blockchain RPC
+description: Acceso RPC de alta disponibilidad con conmutación por error de proveedores, verificaciones de estado y URLs simples para cada red.
+sidebarTitle: Blockchain RPC
+---
+
+**Blockchain RPC** es un servicio de acceso a nodos sin procesar con balanceo de carga. Ofrece **endpoints RPC** verificados y balanceados por red, y realiza conmutación automática entre varios proveedores.
+
+## Uso
+
+1. Configure su proyecto en [Builder](/solutions/builder/getting-started) y obtenga su **Project Access Key**.
+2. Utilice el patrón de URL del Node Gateway en su cliente o servidor:
+
+```txt
+https://nodes.sequence.app/<chain_handle>
+```
+
+<Info>
+  Para ver la lista completa de identificadores de cadena, consulte [redes compatibles y estado](https://status.sequence.info). También puede usar la sección Blockchain RPC en [Builder](https://sequence.build/) para obtener la URL correcta para su proyecto, ya prellenada con su Project Access Key.
+</Info>
+
+**Ejemplo (ethers v6):**
+
+```ts
+import { JsonRpcProvider } from 'ethers'
+
+const provider = new JsonRpcProvider('https://nodes.sequence.app/base') // Chain handle from status page
+const block = await provider.getBlockNumber()
+```
+
+## Notas
+
+- El Node Gateway enruta automáticamente a proveedores saludables y mantiene los datos **sincronizados**.
+- Funciona junto con **Indexer** para lecturas de alto nivel y **Transaction API** para escrituras.
+- Puede monitorear el uso y configurar las Project Access Keys en Builder, incluyendo restricciones de acceso por solicitud.
+
+## Rendimiento
+Sequence Blockchain RPC está diseñado para aplicaciones de alta demanda y disponibilidad. Agrega múltiples proveedores de nodos, cambiando automáticamente entre ellos para asegurar la disponibilidad de datos correctos y sincronizados, dándole la tranquilidad de que sus aplicaciones descentralizadas funcionarán sin problemas y con baja latencia para sus usuarios.
+
+No necesita preocuparse por picos de tráfico. Nuestra infraestructura de nodos es robusta, ofreciendo mayor escalabilidad y tolerancia a fallos. Además, proporcionamos detección y recuperación automática ante fallos de nodos.
+
+## Vea una integración de Blockchain RPC
+
+<Frame>
+  <video controls className="w-full aspect-video" src="/video/builder/06_Node_Gateway.mp4" />
+</Frame>
+
+## Relacionado
+
+- [Indexer](/solutions/indexer/overview)
+- [Transaction API](/solutions/infrastructure/transaction-api)
