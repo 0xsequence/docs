@@ -1,0 +1,66 @@
+---
+title: クイックスタート
+description: Sequence搭載のスマートウォレットをReact dAppに追加するのは簡単です。このガイドでは、新規プロジェクトからウォレットの完全統合までの3つの基本ステップを紹介します。
+sidebarTitle: クイックスタート
+---
+
+完全に統合されたデモを見るには、[Mining Quest](https://mining-quest-v3.pages.dev/) をご覧ください。また、その[ソースコードはこちら](https://github.com/0xsequence-demos/mining-quest/tree/v3)で確認できます。
+
+## 🔑 ステップ1：プロジェクトアクセスキーを取得
+まず、dAppをSequenceインフラに接続するためのキーが必要です。このキーがプロジェクトを識別し、サービス利用を可能にします。
+
+[sequence.build](https://sequence.build)にアクセスし、サインアップまたはログインして新しいプロジェクトを作成します。[Builder Getting Started](/solutions/builder/getting-started)ガイドで手順を確認できます。
+
+ここで、あなた専用の `projectAccessKey` を取得できます。
+
+## 📦 ステップ2：コアSDKパッケージ`@0xsequence/connect`をインストール
+次に、Sequence Web SDKの主要パッケージをプロジェクトの依存関係に追加します。このパッケージには必要なフックやコンポーネント、ウォレットモーダルがすべて含まれています。
+
+プロジェクトのターミナルで、以下のインストールコマンドを実行してください。
+
+```bash
+pnpm install @0xsequence/connect
+```
+
+これでSequence SDKがプロジェクトの依存関係として追加され、すぐに利用可能です。
+
+## 🔗 ステップ3：Reactアプリに統合
+最後に、アプリケーション全体をウォレットプロバイダーでラップしてください。これにより、dApp内のどのコンポーネントでも接続機能が利用できるようになります。
+
+```tsx
+import { ThemeProvider } from "@0xsequence/design-system";
+import { SequenceConnect, createConfig } from "@0xsequence/connect";
+
+import { Homepage } from "./components/Homepage";
+
+const config = createConfig({
+  projectAccessKey: "YOUR_PROJECT_ACCESS_KEY",
+  defaultTheme: "dark",
+  signIn: {
+    projectName: "My Dapp",
+  },
+  displayedAssets: [],
+  readOnlyNetworks: [],
+  walletUrl: "https://v3.sequence-dev.app",
+  dappOrigin: window.location.origin,
+  appName: "My Dapp",
+  chainIds: [137],
+  defaultChainId: 137,
+});
+
+export const App = () => {
+  return (
+    <ThemeProvider theme="dark">
+      <SequenceConnect config={config}>
+        <SequenceWalletProvider>
+          <Homepage />
+        </SequenceWalletProvider>
+      </SequenceConnect>
+    </ThemeProvider>
+  );
+};
+```
+
+SequenceウォレットがdApp内で利用可能になりました。`useConnect()` などのwagmiフックを使って、ユーザーがソーシャルやメールでサインインし、ブロックチェーンとやり取りできるようになります。
+
+次のステップとして、セッション権限を設定し、ユーザーのウォレットポップアップを繰り返し表示しないようにできます。詳細は[セッション権限](/solutions/wallets/developers/ecosystem-wallet/permissions)をご覧ください。

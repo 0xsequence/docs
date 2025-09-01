@@ -1,0 +1,100 @@
+---
+title: 概要
+description: Sequenceインフラ上に構築された、安全な鍵管理と標準化されたブロックチェーン読み書きエンドポイントを提供するDocker化バックエンド。
+sidebarTitle: 概要
+---
+
+**Sidekick**は、シンプルなHTTPエンドポイント経由でブロックチェーンの読み書きを行うためのDocker化バックエンドです。**秘密鍵**をクライアント側に置かずに運用できます。Sequenceの各種サービス（Indexer、Transactions API、Node Gateway）と連携し、ローカルまたはKMS経由で鍵を管理可能です。
+
+## 用途
+
+- **サーバーサイドでの書き込み処理**（例：ERC-1155/721のミント、送金、エアドロップ）。
+- ローカルファイル、AWS KMS、GCP KMSによる**安全な鍵管理**。
+- **シンプルなHTTPエンドポイント**により、アプリ側で署名ロジックを組み込む必要がありません。
+
+## 基本的なセットアップ手順
+
+<Steps>
+  <Step title="コンテナの実行">
+    DockerでSidekickを起動し、アクセスキーやネットワーク、鍵ストレージ（ローカルまたはKMS）用の環境変数を設定します。
+  </Step>
+
+  <Step title="スマートアカウントの取得">
+    `/sidekick/smart-account-address` エンドポイントからSidekickのスマートアカウントアドレスを取得します。
+  </Step>
+
+  <Step title="権限の付与">
+    アクセス制御モデルに応じて、Sidekickアカウントに<code>MINTER\_ROLE</code>を付与するか、所有権を移転します。
+  </Step>
+
+  <Step title="エンドポイントの呼び出し">
+    必要に応じて、書き込み用エンドポイント（例：<code>/write/erc1155/{chainId}/{contract}/mint</code>）や読み取り用エンドポイントを利用します。
+  </Step>
+</Steps>
+
+## クイックスタート
+[GitHub Container Registry](https://github.com/0xsequence/sidekick/pkgs/container/sidekick)で公開されているDockerイメージをご利用いただけます。
+
+```shell
+docker run -p 7500:7500 -e SEQUENCE_PROJECT_ACCESS_KEY=... ghcr.io/0xsequence/sidekick:latest
+```
+
+これで、最小限の機能を備えたローカルSidekickバックエンド（ポート7500）が起動します。
+
+<Note>
+  SEQUENCE\_PROJECT\_ACCESS\_KEY の設定も推奨していますが、テスト目的の場合はデフォルトのキーも利用できます。ご自身のキーは[Sequence Builder](https://sequence.build/)から取得できます。
+</Note>
+
+本格的なセットアップについては、[クイックスタートガイド](/solutions/infrastructure/sidekick/quickstart)をご参照ください。
+
+## 機能とユースケース
+
+<CardGroup>
+  <Card horizontal title="簡単セットアップ" icon="rocket">
+    公開されているDockerイメージを利用するか、最小限の設定で開発モードを開始できます。
+  </Card>
+
+  <Card horizontal title="柔軟なウォレットオプション" icon="wallet">
+    ローカルで管理する秘密鍵を使ったSequenceスマートウォレット、またはAWS/GCP KMSと安全に連携してセキュリティを強化できます。
+  </Card>
+
+  <Card horizontal title="Webhook管理" icon="wallet">
+    高性能なSequence Indexerを活用し、独自のカスタムWebhookを構築・設定できます。
+  </Card>
+
+  <Card horizontal title="Tenderly連携" icon="bug">
+    Tenderlyを利用してトランザクションのデバッグが簡単に行えます。Sidekick経由で実行された各トランザクションにはシミュレーション用URLが付与されます。
+  </Card>
+
+  <Card horizontal title="自動コントラクト検証" icon="circle-check">
+    コントラクトの検証は手間がかかります。Sidekickはデプロイされたすべてのコントラクトを検証します。
+  </Card>
+
+  <Card horizontal title="Sequence Builderとの統合" icon="link">
+    すでにSequence Builderのプロジェクトをお持ちですか？すべてのコントラクトデータをAPIコール1回でSidekickにインポートできます。
+  </Card>
+
+  <Card horizontal title="Bull MQダッシュボード内蔵" icon="gauge">
+    バックグラウンドジョブの作成・監視・管理が可能です。
+  </Card>
+
+  <Card horizontal title="Swagger UI" icon="book">
+    APIドキュメントを確認し、Swagger UIでエンドポイントのテストが行えます。
+  </Card>
+
+  <Card horizontal title="最適化されたトランザクション実行" icon="bolt">
+    トランザクションは最適なガス価格で送信され、3ブロック以内にmempoolに含まれない場合は自動で再送信されます。
+  </Card>
+
+  <Card horizontal title="分析とモニタリング" icon="heart">
+    SidekickはGrafana、Prometheus、Blackbox Exporterと統合されており、バックエンドの状態を監視できます。
+  </Card>
+</CardGroup>
+
+## さらに詳しく知る
+
+- [クイックスタート](/solutions/infrastructure/sidekick/quickstart)
+- [ミンティングサーバーガイド](/solutions/infrastructure/sidekick/minting-server)
+- [Sidekick GitHubリポジトリ](https://github.com/0xsequence/sidekick)
+- [Sidekick Dockerイメージ](https://github.com/0xsequence/sidekick/pkgs/container/sidekick)
+- [Sidekickドキュメント](https://github.com/0xsequence/sidekick/blob/master/README.md)

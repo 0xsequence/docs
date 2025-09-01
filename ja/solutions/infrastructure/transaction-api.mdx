@@ -1,0 +1,54 @@
+---
+title: トランザクションAPI
+description: ガススポンサーシップ、バッチ処理、並列処理に対応した統合リレイヤー経由でトランザクションを送信。Sequenceまたは外部ウォレット、あらゆるEVMコントラクトで利用可能です。
+sidebarTitle: トランザクションAPI
+---
+
+**Transaction API**は、EVMチェーン上でトランザクションを送信する統合リレイヤーです。**ガススポンサーシップ**、**手数料抽象化**、**バッチ処理**、**並列処理**に対応。ノンス管理や最適なガス見積もり、自動再送信も行うため、ビジネスロジックに集中できます。
+
+<Info>
+  エンドポイントの詳細はAPIリファレンス：[Transactions API](/api-references/transactions/overview)をご覧ください。SDKの利用方法は[TypeScript SDK](/sdk/typescript/overview)や[Go SDK](/sdk/go/overview)を参照。サーバー全体の例は[リレイヤーサーバー構築ガイド](/guides/building-relaying-server)にあります。
+</Info>
+
+## 主な機能
+
+- **ガススポンサーシップ** — プロジェクト、コントラクト、トークン、アドレス単位でユーザー操作のガスを肩代わり。
+- **手数料抽象化** — ユーザーは対応ERC-20（例：USDC）で手数料を支払うことも、全額スポンサーすることも可能。
+- **バッチ処理** — 複数の呼び出しを1つのオンチェーントランザクションにまとめて送信。
+- **並列処理** — 複数の独立したトランザクションを同時に送信。
+- **あらゆるEVMコントラクトに対応** — コントラクトの変更は不要。
+
+## 利用シーン
+
+- **リトライ、適切なガス価格設定、ノンス管理**を備えた本番運用レベルの送信が必要な場合。
+- ユーザー向けに**無料**または**トークン建て**のガス提供が必要な場合。
+- **サーバー側トリガー**（例：ミント、報酬）や**クライアント側トリガー**のメタトランザクションを構築する場合。
+
+## 最小限のクライアント例（TypeScript）
+
+```ts
+import { Session } from '@0xsequence/auth'
+import { ethers } from 'ethers'
+
+const chainId = 8453 // Base mainnet, for example
+
+// Create a Sequence session for the current user or service signer
+const session = await Session.singleSigner({ signer: myEOA, projectAccessKey: '<ACCESS_KEY>' })
+const signer = session.account.getSigner(chainId)
+
+// Call any contract function
+const erc20 = new ethers.Contract('0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48', ['function transfer(address to, uint256 amount)'], signer)
+const tx = await erc20.transfer('0xRecipient', 10n ** 6n) // 1 USDC
+await tx.wait()
+```
+
+## ガススポンサーシップと手数料トークン
+**Builder**でプロジェクトのガススポンサーシップを設定できます。バンドル内に**手数料支払い**トランザクションを含めることで、エンドユーザーがリレイヤーに直接支払うことも可能です。対応手数料トークンはネットワークリレイヤーの`/rpc/Relayer/FeeTokens`で確認できます。詳細は[APIリファレンス](/api-references/transactions/overview)をご覧ください。
+
+## 参考情報
+
+- [APIリファレンス](/api-references/transactions/overview)
+- [TypeScript SDK](/sdk/typescript/overview)
+- [Go SDK](/sdk/go/overview)
+- [リレイヤートランザクションサーバーガイド](/guides/building-relaying-server)
+- [Sidekick Docker化バックエンド](/solutions/infrastructure/sidekick)
