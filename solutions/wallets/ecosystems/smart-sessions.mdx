@@ -28,7 +28,24 @@ Sequence offers two distinct types of Smart Sessions, each designed for a differ
 
 An Implicit Session is the simplest and most common type of Smart Session. Its entire purpose is to make your experience inside a single app as smooth as possible.
 
-![Implicit Session](/images/implicit-diagram.png)
+```mermaid
+flowchart TD
+    U[👤 User] --> C["Clicks 'Connect Wallet'<br/>on App"]
+    C --> S["✔️ Session Created"]
+    S --> F["🛡️ Digital Fence is Established<br/>(Scoped to the App Domain)"]
+
+    F --> SW["✔️ Swap App's Token<br/>(Instant & Pop-up Free)"]
+    F --> ST["✔️ Stake in App's Pool<br/>(Instant & Pop-up Free)"]
+    F -.-> EC["⚠️ Attempt to directly call an external contract<br/>(e.g., main USDC contract)"]
+    EC --> B["⛔ BLOCKED ON-CHAIN<br/>The session is not valid outside the fence"]
+
+    style F fill:#d9edf7,stroke:#2a6496,stroke-width:1px,color:#000
+    style S fill:#d9edf7,stroke:#2a6496,stroke-width:1px,color:#000
+    style SW fill:#fff,stroke:#666,color:#000
+    style ST fill:#fff,stroke:#666,color:#000
+    style EC fill:#fff,stroke:#666,stroke-dasharray: 3 3,color:#000
+    style B fill:#f2dede,stroke:#a94442,stroke-width:1px,color:#000
+```
 
 ### 🎯 The Core Idea
 
@@ -59,7 +76,26 @@ The app will configure the permissions in the [Sequence Builder](https://sequenc
 
 An Explicit Session is a more advanced and powerful tool. It's designed for when a app needs to perform very specific tasks that interact with other external protocols.
 
-![Explicit Session](/images/explicit-diagram.png)
+```mermaid
+flowchart TD
+    U[👤 User] --> C["Connects to App &<br/>Logs In"]
+    C --> P["📄 App Proposes Session Rules<br/>(For a seamless swap experience)"]
+    P --> R["📝 User Reviews Granular Rules:<br/>- Action: transfer() on USDC Contract<br/>- Target: Only App's Swap Router<br/>- Limit: Up to 100 USDC<br/>- Expires: 24 hours"]
+    R --> A["🙋 User Explicitly Approves<br/>This Exact Set of Rules"]
+    A --> V["⚙️ On-Chain Validation Activated"]
+
+    V -->|Invalid Action: Transfer USDC to other address| B1["⛔ BLOCKED<br/>(Target is not the Swap Router)"]
+    V -->|Valid Action: Swap using 50 USDC| OK["✔️ ALLOWED<br/>(All rules are met)"]
+    V -->|Invalid Action: Swap using 101 USDC| B2["⛔ BLOCKED<br/>(Exceeds value limit)"]
+
+    style P fill:#d9edf7,stroke:#2a6496,stroke-width:1px,color:#000
+    style R fill:#d9edf7,stroke:#2a6496,stroke-width:1px,color:#000
+    style A fill:#337ab7,stroke:#2a6496,stroke-width:1px,color:#fff
+    style V fill:#d9edf7,stroke:#2a6496,stroke-width:1px,color:#000
+    style OK fill:#dff0d8,stroke:#3c763d,stroke-width:1px,color:#000
+    style B1 fill:#f2dede,stroke:#a94442,stroke-width:1px,color:#000
+    style B2 fill:#f2dede,stroke:#a94442,stroke-width:1px,color:#000
+```
 
 ### 🎯 The Core Idea
 
