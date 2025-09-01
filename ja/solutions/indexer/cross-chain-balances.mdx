@@ -1,0 +1,70 @@
+---
+title: クロスチェーン・トークン残高
+sidebarTitle: クロスチェーン・トークン残高
+---
+
+## 1回のAPIコールで、複数のEVMチェーンにまたがるネイティブトークン、ERC20、ERC721、ERC1155トークンの一覧と残高を取得できます。
+_Sequence Indexer `GetTokenBalances` Method:_
+- Request: POST /rpc/Indexer/GetTokenBalances
+- Content-Type: application/json
+- ボディ（JSON形式）：
+  - `accountAddress` (string) -- the wallet account address
+  - `includeMetadata` (boolean - optional - default: false) -- toggle token metadata to be included in the response
+  - `metadataOptions` (object - optional) -- additional options for metadata
+    - `verifiedOnly` (boolean - optional) -- return only contracts which are 'verified' to help reduce spam
+    - `includeContracts` (\[]string - optional) -- list of specific contract addresses to always be included, even if verifiedOnly is enabled.
+  - `includeCollectionTokens` (boolean - optional - default: true) -- toggle to represent ERC721 / ERC1155 tokens as a single summary item in the response
+
+<CodeGroup>
+  ```shell Curl
+  curl -X POST https://indexer.sequence.app/rpc/IndexerGateway/GetTokenBalances \
+   -H "Content-Type: application/json" \
+   -H "X-Access-Key: AQAAAAAAAF_JvPALhBthL7VGn6jV0YDqaFY" \
+   -d '{ "accountAddress": "0x8e3E38fe7367dd3b52D1e281E4e8400447C8d8B9", "includeMetadata": true }'
+  ```
+
+  ```ts Typescript
+  // Make sure to install the @0xsequence/indexer package:
+  // npm install @0xsequence/indexer
+  // or
+  // yarn add @0xsequence/indexer
+
+  import { SequenceIndexer } from '@0xsequence/indexer'
+
+  const indexer = new SequenceIndexerGateway('https://indexer.sequence.app', 'AQAAAAAAAF_JvPALhBthL7VGn6jV0YDqaFY')
+
+  // try any account address you'd like
+  const accountAddress = '0x8e3E38fe7367dd3b52D1e281E4e8400447C8d8B9'
+
+  // query Sequence Indexer for all token balances of the account on Polygon
+  const tokenBalances = await indexer.getTokenBalances({
+  	accountAddress: accountAddress,
+  	includeMetadata: true
+  })
+
+  console.log('tokens in your account:', tokenBalances)
+  ```
+
+  ```go Go
+  import (
+  	"context"
+  	"fmt"
+  	"log"
+  	"net/http"
+
+  	"github.com/0xsequence/go-sequence/indexer"
+  )
+
+  func GetTokenBalances(accountAddress string) {
+  	seqIndexer := indexer.NewIndexerGateway("https://indexer.sequence.app", "AQAAAAAAAF_JvPALhBthL7VGn6jV0YDqaFY")
+
+  	includeMetadata := true
+
+  	tokenBalances, _, err := seqIndexer.GetTokenBalances(context.Background(), &accountAddress, nil, &includeMetadata, nil, nil)
+  	if err != nil {
+  		log.Fatal(err)
+  	}
+  	fmt.Println("tokenBalances:", tokenBalances)
+  }
+  ```
+</CodeGroup>

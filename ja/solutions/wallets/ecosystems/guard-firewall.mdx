@@ -1,0 +1,86 @@
+---
+title: Guard Firewall（ガード・ファイアウォール）
+description: エコシステム全体で動作するレビューサイナーで、すべてのトランザクションを実行前にポリシー、シミュレーション、ブラックリストに照らして評価します。
+sidebarTitle: Guard Firewall（ガード・ファイアウォール）
+---
+
+**Guard Firewall** は、Sequenceが運用するレビューサイナーで、トランザクションがオンチェーンに送信される前に評価を行います。エコシステムのポリシーを強制し、サードパーティ連携による脅威シミュレーションを実施し、**ガード署名**を付与または保留することでトランザクションを許可またはブロックします。エコシステム管理者は悪意のあるアプリやコントラクトの**ブラックリスト**も管理できます。
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant App as App
+    participant Guard as Guard Firewall
+    participant Relayer as Transaction API
+    participant Chain as EVM Chain
+    participant User as User (OTP)
+
+    App->>Guard: 1) Submit signed txn bundle
+    Guard->>Guard: 2) Run threat assessment simulation
+    Guard-->>Guard: Simulation results & risk score
+
+    alt 3) Guard accepts
+        Guard-->>App: Return co-signed transaction
+    else 4) Guard rejects
+        Guard-->>App: OTP confirmation required
+        App->>User: Prompt for OTP
+        User-->>App: Provide OTP
+        App->>Guard: Resubmit with OTP proof
+        Guard-->>App: Return co-signed transaction (requirements satisfied)
+    end
+
+    App->>Relayer: 5) Submit fully signed transaction
+    Relayer->>Chain: 6) Relay/broadcast on EVM chain
+```
+
+## ポリシーモデル
+ポリシーはエコシステムごとに設定でき、以下を含みます：
+- **アプリ登録とブラックリスト**：登録済みのアプリ／オリジンのみが送信可能。管理者はアプリやコントラクトをブラックリストに追加できます。
+- **リスク閾値**：シミュレーターが返すリスクスコアが閾値を超えたトランザクションをブロックします。
+- **メソッド・コントラクト許可リスト**：呼び出せるコントラクトや関数セレクタを制限します。
+- **支出上限とトークンルール**：トークン、受取人、アプリごとに一定期間内の送金上限を設定します。
+- **緊急停止スイッチ**：すべて、または特定範囲のトランザクションをブロックするフェイルクローズドモード。
+
+## 脅威シミュレーション
+Guardはトランザクションのペイロード（calldata、value、状態差分）に対してリアルタイムで脅威分析を行います。エコシステムの設定に基づき、Guardはポリシー閾値を適用し、署名または拒否、またはOTP認証を要求します。
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant App as App
+    participant Guard as Guard Firewall
+    participant Sims as Simulator
+    participant User as User
+
+    App->>Guard: 1) Submit txn bundle + Session Key + Attestation
+    Guard->>Sims: 2) Run threat assessment simulation
+    Sims-->>Guard: Simulation results (risk score, findings)
+    Guard->>Guard: Evaluate policies (rules, allowlist/blacklist)
+
+    alt 3) Guard accepts
+        Guard-->>App: Return co-signed transaction
+    else 4) Guard rejects
+        Guard-->>App: OTP confirmation required
+        App->>User: Prompt for OTP
+        User-->>App: Provide OTP
+        App->>Guard: Resubmit with OTP proof
+        Guard-->>App: Return co-signed transaction (requirements met)
+    end
+```
+
+## ブラックリスト管理
+
+- 管理者はアプリ、オリジン、コントラクトをブラックリストに追加できます。ブラックリストは優先され、即時に拒否されます。
+- リストはGuardに伝播され、短いTTLでキャッシュされます。更新はほぼリアルタイムです。
+
+## 運用上の注意点
+
+- **フェイルクローズド**：Guardに接続できず、レビュー署名が必要な場合はトランザクションがブロックされます。
+- **監査性**：判断は入力（ハッシュ）、シミュレーターの応答、ポリシーバージョン、理由コードとともに記録されます。
+- **パフォーマンス**：キャッシュやインクリメンタルシミュレーションにより遅延を抑制。タイムアウト時はデフォルトで拒否し、バイパスを防ぎます。
+
+## 導入ガイダンス
+
+- セッションやウォレットポリシーで**Guard署名**を必須にし、レビューをバイパスできないようにしてください。
+- エコシステム管理画面でアプリやオリジンを登録し、ポリシーやリスク閾値を設定しましょう。
+- ブラックリストを常に最新に保ち、インシデント情報に迅速に対応してください。
