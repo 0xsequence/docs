@@ -46,18 +46,26 @@ Guard puede realizar análisis de amenazas en tiempo real sobre el payload de la
 
 ```mermaid
 sequenceDiagram
-  participant Relayer
-  participant Guard
-  participant Sim as Simulator
-  Relayer->>Guard: Review(tx, session, context)
-  Guard->>Sim: Simulate(tx)
-  Sim-->>Guard: Risk(score, findings)
-  Guard->>Guard: Evaluate(policy, blacklist, allowlist)
-  alt Allowed
-    Guard-->>Relayer: ReviewSignature
-  else Denied
-    Guard-->>Relayer: Error(reason)
-  end
+    autonumber
+    participant App as App
+    participant Guard as Guard Firewall
+    participant Sims as Simulator
+    participant User as User
+
+    App->>Guard: 1) Submit txn bundle + Session Key + Attestation
+    Guard->>Sims: 2) Run threat assessment simulation
+    Sims-->>Guard: Simulation results (risk score, findings)
+    Guard->>Guard: Evaluate policies (rules, allowlist/blacklist)
+
+    alt 3) Guard accepts
+        Guard-->>App: Return co-signed transaction
+    else 4) Guard rejects
+        Guard-->>App: OTP confirmation required
+        App->>User: Prompt for OTP
+        User-->>App: Provide OTP
+        App->>Guard: Resubmit with OTP proof
+        Guard-->>App: Return co-signed transaction (requirements met)
+    end
 ```
 
 ## Controles de listas negras
