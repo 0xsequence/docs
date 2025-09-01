@@ -5,6 +5,8 @@ sidebarTitle: Primeros pasos
 ---
 
 # Configurando su Dapp
+Primero, asegúrese de haber creado una cuenta en Sequence. Si aún no tiene una, puede crearla [aquí](https://sequence.build/). Necesitará su `Project Access Key` para utilizar el Web SDK.
+
 Para utilizar el wrapper `SequenceConnect` y conectar wallets web3 a su aplicación, siga estos pasos:
 
 <Note>
@@ -37,27 +39,31 @@ Para utilizar el wrapper `SequenceConnect` y conectar wallets web3 a su aplicaci
       </Step>
 
       <Step title="Crear una configuración">
-        A continuación, deberá crear una variable de configuración para `SequenceConnect` como `waas` (es decir, un [Embedded Wallet](/sdk/headless-wallet/quickstart)).
+        A continuación, cree la configuración.
 
-        Primero obtenga una [WaaS Config Key desde Sequence Builder](https://sequence.build/) y una [clave de acceso al proyecto](/support/builder/project-settings#copy-your-access-key), luego asegúrese de que el origen de su proyecto esté en la lista blanca en la [Configuración de Embedded Wallet en Builder](https://sequence.build).
-        Si desea permitir WalletConnect también necesitará un [Wallet Connect ID](https://cloud.reown.com/sign-in).
-        Para configurar el inicio de sesión con Google, siga la [Configuración de Google para Embedded Wallet](../../solutions/builder/embedded-wallet/google-configuration).
+        Si desea permitir WalletConnect, también necesitará un [walletConnectProjectId](https://cloud.reown.com/sign-in).
+        Para configurar el inicio de sesión con Google, siga la guía [Configuración de Google para Embedded Wallet](../../solutions/builder/embedded-wallet/google-configuration).
 
         ```typescript [config.ts]
         import { createConfig } from "@0xsequence/connect";
 
-        export const config: any = createConfig("waas", {
+        export const config: any = createConfig({
           projectAccessKey: "<your-project-access-key>",
-          chainIds: [1, 137],
+          signIn: {
+            projectName: 'Sequence Web SDK Demo',
+          },
+          walletUrl: 'https://v3.sequence.app',
+          dappOrigin: window.location.origin,
+          appName: 'Sequence Web SDK Demo',
+          chainIds: [1],
           defaultChainId: 1,
-          appName: "Demo Dapp",
-          waasConfigKey: "<your-waas-config-key>", // for waas
-          google: {
-            clientId: "<your-google-client-id>",
-          },
+          google: true,
+          apple: true,
+          email: true,
           walletConnect: {
-            projectId: "<your-wallet-connect-project-id>",
+            projectId: walletConnectProjectId
           },
+          permissions: ...
         });
         ```
 
@@ -117,18 +123,6 @@ Para utilizar el wrapper `SequenceConnect` y conectar wallets web3 a su aplicaci
 
   <Tab title="Aplicación NextJS">
     <Steps>
-      <Step title="Cree un proyecto NextJS">
-        Comenzaremos creando un proyecto de [NextJS](https://nextjs.org/) con [create-next-app](https://nextjs.org/docs/getting-started):
-
-        ```sh
-        npx create-next-app@latest
-        # or
-        pnpm create next-app
-        # or
-        yarn create next-app
-        ```
-      </Step>
-
       <Step title="Instale las dependencias de Web SDK">
         ```bash
         npm install @0xsequence/connect @0xsequence/hooks wagmi ethers viem 0xsequence @tanstack/react-query
@@ -156,27 +150,31 @@ Para utilizar el wrapper `SequenceConnect` y conectar wallets web3 a su aplicaci
       </Step>
 
       <Step title="Crear una configuración">
-        A continuación, deberá crear una variable de configuración para `SequenceConnect` como `waas` (es decir, un [Embedded Wallet](/sdk/headless-wallet/quickstart)).
+        A continuación, cree la configuración.
 
-        Primero obtenga una [WaaS Config Key desde Sequence Builder](https://sequence.build/) y una [clave de acceso al proyecto](/support/builder/project-settings#copy-your-access-key), luego asegúrese de que el origen de su proyecto esté en la lista blanca en la [Configuración de Embedded Wallet en Builder](https://sequence.build).
-        Si desea permitir WalletConnect también necesitará un [Wallet Connect ID](https://cloud.reown.com/sign-in).
-        Para configurar el inicio de sesión con Google, siga la [Configuración de Google para Embedded Wallet](../../solutions/builder/embedded-wallet/google-configuration).
+        Si desea permitir WalletConnect, también necesitará un [walletConnectProjectId](https://cloud.reown.com/sign-in).
+        Para configurar el inicio de sesión con Google, siga la guía [Configuración de Google para Embedded Wallet](../../solutions/builder/embedded-wallet/google-configuration).
 
-        ```typescript [src/app/config.ts]
+        ```typescript [config.ts]
         import { createConfig } from "@0xsequence/connect";
 
-        export const config = createConfig("waas" /*or, 'universal'*/, {
+        export const config: any = createConfig({
           projectAccessKey: "<your-project-access-key>",
-          chainIds: [1, 137],
+          signIn: {
+            projectName: 'Sequence Web SDK Demo',
+          },
+          walletUrl: 'https://v3.sequence.app',
+          dappOrigin: window.location.origin,
+          appName: 'Sequence Web SDK Demo',
+          chainIds: [1],
           defaultChainId: 1,
-          appName: "Demo Dapp",
-          waasConfigKey: "<your-waas-config-key>", // for waas
-          google: {
-            clientId: "<your-google-client-id>",
-          },
+          google: true,
+          apple: true,
+          email: true,
           walletConnect: {
-            projectId: "<your-wallet-connect-project-id>",
+            projectId: walletConnectProjectId
           },
+          permissions: ...
         });
         ```
 
@@ -272,6 +270,8 @@ Para utilizar el wrapper `SequenceConnect` y conectar wallets web3 a su aplicaci
 
         Para interacciones web3, wagmi expone un conjunto de hooks de React que facilitan funciones comunes como el envío de transacciones.
       </Step>
+
+      Para interacciones web3, wagmi expone un conjunto de hooks de React que facilitan funciones comunes como el envío de transacciones.
     </Steps>
   </Tab>
 </Tabs>

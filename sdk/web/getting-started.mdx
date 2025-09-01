@@ -7,6 +7,8 @@ sidebarTitle: Getting Started
 
 # Setting Up your Dapp
 
+First make sure you have created a Sequence account, if you don't have one, you can create one [here](https://sequence.build/), you will need your `Project Access Key` in order to use the Web SDK.
+
 To utilize the `SequenceConnect` wrapper for connecting web3 wallets to your application, follow these steps:
 
 <Note>
@@ -30,7 +32,7 @@ pnpm create vite
 yarn create vite
 ```
 
-</Step>
+</Step>    
 <Step title="Install the Web SDK dependencies">
 
 ```bash
@@ -44,27 +46,31 @@ yarn add @0xsequence/connect @0xsequence/hooks wagmi ethers viem 0xsequence @tan
 </Step>
 <Step title="Create a Config">
 
-Next, a configuration variable for `SequenceConnect` will need to be created as `waas` (meaning an [Embedded Wallet](/sdk/headless-wallet/quickstart)).
+Next, create the configuration.
 
-First obtain a [WaaS Config Key from the Sequence Builder](https://sequence.build/) and a [project access key](/support/builder/project-settings#copy-your-access-key), then  make sure your project origin is whitelisted in the [Builder Embedded Wallet Configuration](https://sequence.build). 
-If you want to allow WalletConnect you will also need a [Wallet Connect ID](https://cloud.reown.com/sign-in). 
+If you want to allow WalletConnect you will also need a [walletConnectProjectId](https://cloud.reown.com/sign-in). 
 To setup Google Login follow the [Google Configuration for Embedded Wallet](../../solutions/builder/embedded-wallet/google-configuration).
 
 ```typescript [config.ts]
 import { createConfig } from "@0xsequence/connect";
 
-export const config: any = createConfig("waas", {
+export const config: any = createConfig({
   projectAccessKey: "<your-project-access-key>",
-  chainIds: [1, 137],
+  signIn: {
+    projectName: 'Sequence Web SDK Demo',
+  },
+  walletUrl: 'https://v3.sequence.app',
+  dappOrigin: window.location.origin,
+  appName: 'Sequence Web SDK Demo',
+  chainIds: [1],
   defaultChainId: 1,
-  appName: "Demo Dapp",
-  waasConfigKey: "<your-waas-config-key>", // for waas
-  google: {
-    clientId: "<your-google-client-id>",
-  },
+  google: true,
+  apple: true,
+  email: true,
   walletConnect: {
-    projectId: "<your-wallet-connect-project-id>",
+    projectId: walletConnectProjectId
   },
+  permissions: ...
 });
 ```
 
@@ -129,19 +135,6 @@ For web3 interactions, wagmi exposes a set of React hooks that make it convenien
 
 <Tab title="NextJS App">
 <Steps>
-<Step title="Create a NextJS Project">
-
-We will start by creating a [NextJS](https://nextjs.org/) project with [create-next-app](https://nextjs.org/docs/getting-started):
-
-```sh
-npx create-next-app@latest
-# or
-pnpm create next-app
-# or
-yarn create next-app
-```
-
-</Step>
 <Step title="Install the Web SDK dependencies">
 
 ```bash
@@ -174,27 +167,31 @@ This will get rid of the warnings related to `pino-pretty`.
 
 <Step title="Create a Config">
 
-Next, a configuration variable for `SequenceConnect` will need to be created as `waas` (meaning an [Embedded Wallet](/sdk/headless-wallet/quickstart)).
+Next, create the configuration.
 
-First obtain a [WaaS Config Key from the Sequence Builder](https://sequence.build/) and a [project access key](/support/builder/project-settings#copy-your-access-key), then  make sure your project origin is whitelisted in the [Builder Embedded Wallet Configuration](https://sequence.build). 
-If you want to allow WalletConnect you will also need a [Wallet Connect ID](https://cloud.reown.com/sign-in). 
+If you want to allow WalletConnect you will also need a [walletConnectProjectId](https://cloud.reown.com/sign-in). 
 To setup Google Login follow the [Google Configuration for Embedded Wallet](../../solutions/builder/embedded-wallet/google-configuration).
 
-```typescript [src/app/config.ts]
+```typescript [config.ts]
 import { createConfig } from "@0xsequence/connect";
 
-export const config = createConfig("waas" /*or, 'universal'*/, {
+export const config: any = createConfig({
   projectAccessKey: "<your-project-access-key>",
-  chainIds: [1, 137],
+  signIn: {
+    projectName: 'Sequence Web SDK Demo',
+  },
+  walletUrl: 'https://v3.sequence.app',
+  dappOrigin: window.location.origin,
+  appName: 'Sequence Web SDK Demo',
+  chainIds: [1],
   defaultChainId: 1,
-  appName: "Demo Dapp",
-  waasConfigKey: "<your-waas-config-key>", // for waas
-  google: {
-    clientId: "<your-google-client-id>",
-  },
+  google: true,
+  apple: true,
+  email: true,
   walletConnect: {
-    projectId: "<your-wallet-connect-project-id>",
+    projectId: walletConnectProjectId
   },
+  permissions: ...
 });
 ```
 
@@ -296,6 +293,8 @@ export default Home
 For web3 interactions, wagmi exposes a set of React hooks that make it convenient for common functions like sending transactions.
 
 </Step>
+
+For web3 interactions, wagmi exposes a set of React hooks that make it convenient for common functions like sending transactions.
 
 </Steps>
 </Tab>

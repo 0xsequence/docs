@@ -1,0 +1,66 @@
+---
+title: Wallet personalizado
+description: Cree un Ecosystem Wallet totalmente personalizado usando el Wallet Development Kit sobre la infraestructura de Sequence. Aloje componentes críticos usted mismo si es necesario.
+sidebarTitle: Wallet personalizado
+---
+
+El **Wallet Development Kit (WDK)** le permite construir un Ecosystem Wallet personalizado usando la infraestructura de Sequence para identidad, sesiones, transacciones y datos. Usted controla la interfaz, los flujos y las decisiones de producto, y puede alojar componentes críticos por su cuenta cuando lo requiera.
+- Paquete: `@0xsequence/wallet-wdk`
+- Repositorio: [sequence.js](https://github.com/0xsequence/sequence.js)
+
+## Qué construye usted vs qué proveemos nosotros
+
+| Área                     | Usted construye                                              | Sequence provee                                                                             |
+| ------------------------ | ------------------------------------------------------------ | ------------------------------------------------------------------------------------------- |
+| UI/UX                    | Pantallas del wallet, flujos, rutas, temas                   | Componentes de referencia y SDKs                                                            |
+| Autenticación y sesiones | Elija la experiencia de inicio de sesión, conecte los flujos | Identity Instrument (atestaciones de sesión), modelo de Smart Sessions                      |
+| Transactions             | Flujos y experiencia específicos de la app                   | [Transaction API](/solutions/infrastructure/transaction-api) para relay y patrocinio        |
+| Datos                    | Vistas personalizadas y analíticas                           | [Indexer](/solutions/indexer/overview) para saldos, NFTs, eventos, precios                  |
+| Acceso a nodos           | Proveedores personalizados opcionales                        | [Blockchain RPC](/solutions/infrastructure/blockchain-rpc) vía Node Gateway                 |
+| Backend                  | Lógica de negocio opcional                                   | [Sidekick](/solutions/infrastructure/sidekick) para endpoints seguros del lado del servidor |
+
+## Capacidades disponibles
+
+- **Smart Sessions** y atestaciones de sesión para ejecución segmentada y sin fricción.
+- **Passkeys e inicios de sesión con redes sociales** con sesiones firmadas en enclave.
+- **Cuentas cross-chain** con una sola raíz de configuración onchain (firmantes, sesiones, recuperación).
+- **Claves de recuperación programada** para soporte de frases privadas con recuperación basada en tiempo.
+- **Integraciones para desarrolladores**: Web, React Native, Unity y Unreal mediante los SDKs existentes.
+- **Servicios**: Indexer para lecturas, Transaction API para escrituras, Node Gateway RPC para llamadas directas.
+
+## Flujo de integración de alto nivel
+
+<Steps>
+  <Step title="Instale y planifique el hosting">
+    Agregue el paquete: <code>pnpm add @0xsequence/wallet-wdk</code>. Decida qué componentes alojará usted mismo (por ejemplo, UI, Identity Instrument) y cuáles utilizará hospedados.
+  </Step>
+
+  <Step title="Configure los metadatos del ecosistema">
+    Defina el dominio del wallet, las cadenas compatibles, la marca y las políticas de sesión. Use Builder para la gestión de entornos, llaves y políticas.
+  </Step>
+
+  <Step title="Conecte identidad y sesiones">
+    Utilice el Identity Instrument para las atestaciones de sesión. Implemente el flujo de inicio de sesión y callback de sesión, y almacene las llaves de sesión de forma segura.
+  </Step>
+
+  <Step title="Conecte los servicios">
+    Lea con [Indexer](/solutions/indexer/overview), escriba con [Transaction API](/solutions/infrastructure/transaction-api), y acceda a nodos con [Blockchain RPC](/solutions/infrastructure/blockchain-rpc).
+  </Step>
+
+  <Step title="Pruebe y lance">
+    Valide los alcances de Smart Session, rutas de recuperación y acciones cross-chain. Despliegue en su dominio.
+  </Step>
+</Steps>
+
+## Notas sobre el auto-hosting
+
+- **[Identity Instrument](/solutions/wallets/ecosystems/identity-instrument)** puede ser autoalojado en su propio entorno de AWS Nitro Enclave si su modelo de cumplimiento lo requiere.
+- Puede ejecutar su propio **[Sidekick](/solutions/infrastructure/sidekick)** para escrituras controladas del lado del servidor y custodia de claves.
+- Contratos, auditorías y despliegues están documentados en [Technical References](/solutions/technical-references/overview).
+
+## Próximos pasos
+
+- Explore el repositorio: [sequence.js](https://github.com/0xsequence/sequence.js).
+- Comparta [For Developers](/solutions/wallets/developers/overview) con los equipos de apps que se integran a su ecosistema.
+- Revise [Smart Sessions](/solutions/wallets/ecosystems/smart-sessions) y [For Ecosystems](/solutions/wallets/ecosystems/overview).
+- Contáctenos para comenzar: [Contáctenos](https://sequence.xyz/contact).

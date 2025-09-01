@@ -18,34 +18,34 @@ Sequence is a very flexible wallet which allow users multiple ways to connect / 
 
 3. **Mobile phone access** via [WalletConnect](https://walletconnect.com/) support within Sequence Wallet -- users are able to communicate with their wallets remotely
    via the awesome Wallet Connect protocol. This is an excellent option if using Sequence Wallet from your mobile phone and want to connect
-   your wallet to a desktop dapp.
+   your wallet to a desktop app.
 
 Sequence Wallet is built on Web Browser (W3C) and Ethereum web3 standards -- and is available everywhere that a modern browser is able to run.
 We've carefully designed the wallet for simple onboarding, while maintaining security for users, and allowing users to progressively
 increase the level of their security through additional keys and measures.
 
-This means, that if you've developed a dapp to work with MetaMask, then Sequence will work too without any changes. If you're
+This means, that if you've developed a app to work with MetaMask, then Sequence will work too without any changes. If you're
 using web3.js or ethers.js, Sequence will just work too. This is the beauty of interoperability on web3 :)
 
-## Connecting your dapp with `0xsequence`
+## Connecting your app with `0xsequence`
 
 <Note>
 [A delightful wallet without requiring your users to install anything :D]
-By integrating `0xsequence`, users may access your dapp without having to install any special extensions,
+By integrating `0xsequence`, users may access your app without having to install any special extensions,
 and the wallet also works on mobile browsers!
 </Note>
 
-Your dapp can connect to your user's wallet by first instantiating the Wallet provider:
+Your app can connect to your user's wallet by first instantiating the Wallet provider:
 
 ```ts
 import { sequence } from "0xsequence";
 
 const projectAccessKey = '<access_key>'
 
-// This assumes your dapp runs on Ethereum mainnet
+// This assumes your app runs on Ethereum mainnet
 const wallet = sequence.initWallet(projectAccessKey);
 
-// If your dapp runs on a different EVM-compatible blockchain, you can specify its name
+// If your app runs on a different EVM-compatible blockchain, you can specify its name
 // const wallet = sequence.initWallet(projectAccessKey, { defaultNetwork: 'polygon' });
 ```
 
@@ -143,7 +143,7 @@ Read more about browser popup-blocking [here](https://javascript.info/popup-wind
 
 ## Wallet Login and Connect Options
 
-Dapps with direct sequence integration can specify a `ConnectOptions` object when running `wallet.connect()`.
+apps with direct sequence integration can specify a `ConnectOptions` object when running `wallet.connect()`.
 
 ```typescript
 const connectDetails = await wallet.connect(connectOptions)
@@ -153,7 +153,7 @@ The option parameters are described below.
 
 #### **app**
 
-App name of the dapp which will be announced to user on connect screen.
+App name of the app which will be announced to user on connect screen.
 
 Example: `await wallet.connect({ app: 'My defi app' })`
 
@@ -173,7 +173,7 @@ Example: `await wallet.connect({ expiry: 36000 })`
 
 #### **authorize**
 
-`authorize` will perform an ETHAuth eip712 signing and return the proof to the dapp.
+`authorize` will perform an ETHAuth eip712 signing and return the proof to the app.
 
 Example: `await wallet.connect({ authorize: true })`
 
@@ -209,7 +209,7 @@ Example: `await wallet.connect({ settings: {theme: "light"}}`
 
 #### **settings.bannerUrl**
 
-URL of a banner image users will see when connecting or logging into your dapp. The banner image should follow a 3:1 aspect ration where 1200x400 works best.
+URL of a banner image users will see when connecting or logging into your app. The banner image should follow a 3:1 aspect ration where 1200x400 works best.
 
 Example: `await wallet.connect({ settings: {bannerUrl: "https://yoursite.com/banner-image.png"}}`
 
@@ -257,16 +257,16 @@ Whether to only allow users to purchase the default currency specified by the `d
 
 Example: `await wallet.connect({ settings: {defaultFundingCurrency: true}}`
 
-## Connecting your dapp with `web3.js` or `ethers.js`
+## Connecting your app with `web3.js` or `ethers.js`
 
-For a full example of a dapp which supports Sequence (on-demand + chrome extension), Metamask, and WalletConnect
+For a full example of a app which supports Sequence (on-demand + chrome extension), Metamask, and WalletConnect
 please see the [Demo-Dapp-Web3Modal repo](https://github.com/0xsequence/demo-dapp-web3modal).
 
 <Frame caption="Sequence Web3Modal Integration">
 ![Sequence Web3Modal Integration](/images/web3modal.png)
 </Frame>
 
-## Connecting to any Ethereum dapp with the Sequence Wallet Chrome Extension
+## Connecting to any Ethereum app with the Sequence Wallet Chrome Extension
 
 Sequence Chrome Extension: [Install](https://chrome.google.com/webstore/detail/sequence-wallet/ocmccklecaalljlflmclidjeclpcpdim?hl=en)
 
@@ -276,8 +276,8 @@ Sequence Chrome Extension: [Install](https://chrome.google.com/webstore/detail/s
 
 ## Connecting via `WalletConnect`
 
-Sequence already supports connecting to dapps via [WalletConnect](https://walletconnect.com).
-If your dapp already supports WalletConnect, and you don't need Sequence-specific functionality, nothing more needs to be done.
+Sequence already supports connecting to apps via [WalletConnect](https://walletconnect.com).
+If your app already supports WalletConnect, and you don't need Sequence-specific functionality, nothing more needs to be done.
 From the user's perspective, the WalletConnect flow behaves as follows.
 
 Taking [Uniswap](https://app.uniswap.org) as an example, the user is prompted to connect their wallet using one of multiple possible protocols.
@@ -305,7 +305,7 @@ Back in the Sequence interface, the user chooses "Scan".
     <img src="/images/walletconnect/scan-qr-code.png" />
 </Frame>
 
-The QR code from the dapp is scanned.
+The QR code from the app is scanned.
 Alternatively, the code is pasted from the OS clipboard if the user chose that previously.
 
 <Frame caption="Camera to scan a Wallet Connect QR code">
@@ -318,20 +318,20 @@ The user confirms the connection request.
     <img src="/images/walletconnect/confirm.png" />
 </Frame>
 
-The connection succeeded, and the dapp is updated to reflect that.
+The connection succeeded, and the app is updated to reflect that.
 
 <Frame caption="A success message for Wallet Connect">
     <img src="/images/walletconnect/success.png" />
 </Frame>
 
-While connected, the dapp is able to make signing requests to Sequence.
-Sequence will always prompt for confirmation from the user for any activity initiated by the dapp.
+While connected, the app is able to make signing requests to Sequence.
+Sequence will always prompt for confirmation from the user for any activity initiated by the app.
 
-<Frame caption="Confirmation by user activity to initiate a dapp transaction">
+<Frame caption="Confirmation by user activity to initiate a app transaction">
     <img src="/images/walletconnect/activity.png" />
 </Frame>
 
-Once the user has finished using the dapp, they can disconnect the wallet via the session menu.
+Once the user has finished using the app, they can disconnect the wallet via the session menu.
 
 <Frame caption="A user disconnecting from the app using Wallet Connect">
     <img src="/images/walletconnect/disconnect.png" />
