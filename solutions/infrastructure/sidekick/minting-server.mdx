@@ -1,0 +1,66 @@
+---
+title: Minting Server
+description: This example demonstrates how to build an NFT minting server using Sidekick.
+---
+
+When using Sidekick, your private key is associated with a Sequence smart account. Before performing actions like minting NFTs or transferring tokens, ensure this smart account has the necessary permissions to execute these operations.
+
+Below we will illustrate the steps to prepare and mint ERC1155's using Sidekick.
+
+<Note>
+    This example assumes the ERC1155 Access Control is Role Based. 
+</Note>
+
+<Note>
+    Your Sidekick smart wallet should be the new `owner` now if you plan to execute transactions from Sidekick. It won't work to mint new tokens if you do not transfer ownership 
+    to the Sidekick smart wallet or use Role Based Access Control and grant the minter role to the Sidekick smart wallet.
+</Note>
+
+## Mint an NFT with Role Based Access Control
+<Steps>
+    <Step title="Complete Sidekick Setup">
+        Make sure you have gone through the [Sidekick Setup](/solutions/infrastructure/sidekick/overview) guide.
+    </Step>
+    <Step title="Get your Sidekick smart wallet address">
+        Send a GET request to the `/sidekick/smart-account-address` endpoint to retrieve your Sidekick smart wallet address. This address will be used to interact with your NFT contracts.
+        <video
+            controls
+            className="w-full aspect-video"
+            src="../../../video/sidekick/sidekick_getaddress.mp4"
+        ></video>
+    </Step>
+    <Step title="Grant the minter role to the Sidekick smart wallet address from the contract" />
+    <Step title="Mint the NFT">
+        Now that your Sidekick smart wallet has the minter role, you can send a POST request to the `/write/erc1155/{chainId}/{contractAddress}/mint` endpoint to mint an NFT from the backend.
+    </Step>
+</Steps>
+
+<Note>
+    If your NFT is not Role Based, instead of granting the minter role you will need to transfer ownership of the contract to the Sidekick smart wallet.
+</Note>
+
+## Deploy and Mint from Sidekick
+
+You can also deploy your contract from Sidekick and mint, without any extra steps.
+
+<Steps>
+    <Step title="Deploy the NFT contract">
+        Deploy the NFT contract using Sidekick.
+
+        <video
+            controls
+            className="w-full aspect-video"
+            src="../../../video/sidekick/sidekick_deploy.mp4"
+        ></video>
+    </Step>
+    <Step title="Mint the NFT">
+        Mint the NFT using Sidekick.
+
+        <video
+            controls
+            className="w-full aspect-video"
+            src="../../../video/sidekick/sidekick_mint.mp4"
+        ></video>
+    </Step>
+</Steps>
+
