@@ -9,33 +9,33 @@ sidebarTitle: Guard Firewall（ガード・ファイアウォール）
 ```mermaid
 sequenceDiagram
     autonumber
-    participant Dapp as DApp
+    participant App as App
     participant Guard as Guard Firewall
     participant Relayer as Transaction API
     participant Chain as EVM Chain
     participant User as User (OTP)
 
-    Dapp->>Guard: 1) Submit signed txn bundle
+    App->>Guard: 1) Submit signed txn bundle
     Guard->>Guard: 2) Run threat assessment simulation
     Guard-->>Guard: Simulation results & risk score
 
     alt 3) Guard accepts
-        Guard-->>Dapp: Return co-signed transaction
+        Guard-->>App: Return co-signed transaction
     else 4) Guard rejects
-        Guard-->>Dapp: OTP confirmation required
-        Dapp->>User: Prompt for OTP
-        User-->>Dapp: Provide OTP
-        Dapp->>Guard: Resubmit with OTP proof
-        Guard-->>Dapp: Return co-signed transaction (requirements satisfied)
+        Guard-->>App: OTP confirmation required
+        App->>User: Prompt for OTP
+        User-->>App: Provide OTP
+        App->>Guard: Resubmit with OTP proof
+        Guard-->>App: Return co-signed transaction (requirements satisfied)
     end
 
-    Dapp->>Relayer: 5) Submit fully signed transaction
+    App->>Relayer: 5) Submit fully signed transaction
     Relayer->>Chain: 6) Relay/broadcast on EVM chain
 ```
 
 ## ポリシーモデル
 ポリシーはエコシステムごとに設定でき、以下を含みます：
-- **アプリ登録とブラックリスト**：登録済みアプリ／オリジンのみ送信可能。管理者はdappやコントラクトをブラックリスト化できます。
+- **アプリ登録とブラックリスト**：登録済みのアプリ／オリジンのみが送信可能。管理者はアプリやコントラクトをブラックリストに追加できます。
 - **リスク閾値**：シミュレーターが返すリスクスコアが閾値を超えたトランザクションをブロックします。
 - **メソッド・コントラクト許可リスト**：呼び出せるコントラクトや関数セレクタを制限します。
 - **支出上限とトークンルール**：トークン、受取人、アプリごとに一定期間内の送金上限を設定します。

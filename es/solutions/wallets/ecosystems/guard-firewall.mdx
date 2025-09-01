@@ -9,33 +9,33 @@ sidebarTitle: Guard Firewall
 ```mermaid
 sequenceDiagram
     autonumber
-    participant Dapp as DApp
+    participant App as App
     participant Guard as Guard Firewall
     participant Relayer as Transaction API
     participant Chain as EVM Chain
     participant User as User (OTP)
 
-    Dapp->>Guard: 1) Submit signed txn bundle
+    App->>Guard: 1) Submit signed txn bundle
     Guard->>Guard: 2) Run threat assessment simulation
     Guard-->>Guard: Simulation results & risk score
 
     alt 3) Guard accepts
-        Guard-->>Dapp: Return co-signed transaction
+        Guard-->>App: Return co-signed transaction
     else 4) Guard rejects
-        Guard-->>Dapp: OTP confirmation required
-        Dapp->>User: Prompt for OTP
-        User-->>Dapp: Provide OTP
-        Dapp->>Guard: Resubmit with OTP proof
-        Guard-->>Dapp: Return co-signed transaction (requirements satisfied)
+        Guard-->>App: OTP confirmation required
+        App->>User: Prompt for OTP
+        User-->>App: Provide OTP
+        App->>Guard: Resubmit with OTP proof
+        Guard-->>App: Return co-signed transaction (requirements satisfied)
     end
 
-    Dapp->>Relayer: 5) Submit fully signed transaction
+    App->>Relayer: 5) Submit fully signed transaction
     Relayer->>Chain: 6) Relay/broadcast on EVM chain
 ```
 
 ## Modelo de políticas
 Las políticas se configuran por ecosistema y pueden incluir:
-- **Registro de aplicaciones y listas negras**: solo las aplicaciones/orígenes registrados pueden enviar; los administradores pueden poner en lista negra dapps o contratos.
+- **Registro de aplicaciones y listas negras**: solo las aplicaciones/orígenes registrados pueden enviar; los administradores pueden poner en lista negra aplicaciones o contratos.
 - **Umbrales de riesgo**: bloquea transacciones que superen un puntaje de riesgo devuelto por el simulador.
 - **Listas blancas de métodos y contratos**: restringe qué contratos y funciones pueden ser llamados.
 - **Límites de gasto y reglas de tokens**: limita los egresos por intervalo según token, destinatario o aplicación.

@@ -1,31 +1,31 @@
 ---
-title: Privy と Sequence
-description: Privy を Sequence スマートウォレットの署名者として利用する方法をご紹介します。
+title: Conectar Privy con Sequence
+description: Aprenda cómo usar Privy como firmante para su Sequence Smart Wallet.
 ---
 
-このガイドでは、コアとなる`sequence.js`ライブラリを使ってPrivyとSequenceをシームレスに統合し、ユーザーがSequenceスマートウォレットを通じてサインインし、アプリとやり取りできるようにする方法を解説します。具体的には、Privyで管理されたEOAによって制御されるSequenceウォレットを作成し、そのウォレットを使ってBase Sepolia上でガスレス取引を行います。
+En esta guía, aprenderá a usar las bibliotecas principales de `sequence.js` para integrar Privy con Sequence de manera sencilla, permitiendo que sus usuarios inicien sesión e interactúen con su aplicación a través de un Smart Wallet de Sequence. Esto implica crear un wallet de Sequence controlado por el EOA gestionado por Privy del usuario, y luego usar ese wallet de Sequence para enviar transacciones sin gas en Base Sepolia.
 
 <Note>
-  Next.js 15、React 19、Tailwind CSS 4 を使用します。
+  Usaremos Next.js 15, React 19 y Tailwind CSS 4.
 </Note>
 
 <Steps>
-  <Step title="依存パッケージのインストール">
-    Sequence、Privy、wagmi/viem の各パッケージが必要です。
+  <Step title="Instalar dependencias">
+    Necesitará los paquetes de Sequence, Privy y wagmi/viem.
 
     ```bash
     pnpm install @0xsequence/account @0xsequence/core @0xsequence/network @0xsequence/sessions @0xsequence/signhub @privy-io/react-auth @privy-io/wagmi-connector wagmi @privy-io/wagmi @tanstack/react-query viem ethers
     ```
   </Step>
 
-  <Step title="Privy の App ID と Client ID を取得する">
-    Privy App ID と Client ID を取得する必要があります。[Privy Dashboard](https://dashboard.privy.io/apps) で新しいアプリを作成すると取得できます。
-    プロジェクトのルートに `.env.local` ファイルを作成し、`NEXT_PUBLIC_PRIVY_APP_ID` と `NEXT_PUBLIC_PRIVY_CLIENT_ID` を追加してください。
+  <Step title="Obtenga su Privy App ID y Client ID">
+    Necesitará obtener un Privy App ID y un Client ID. Puede conseguirlos creando una nueva aplicación en el [Privy Dashboard](https://dashboard.privy.io/apps).
+    Cree un archivo `.env.local` en la raíz de su proyecto y agregue sus valores de `NEXT_PUBLIC_PRIVY_APP_ID` y `NEXT_PUBLIC_PRIVY_CLIENT_ID`.
   </Step>
 
-  <Step title="プロバイダーのセットアップ">
-    `providers.tsx` ファイルで `WagmiProvider` と `PrivyProvider` をセットアップします。
-    これにより、アプリで Privy を認証に、wagmi をウォレット連携に利用できるようになります。
+  <Step title="Configurar los Providers">
+    Configure `WagmiProvider` y `PrivyProvider` en un archivo `providers.tsx`.
+    Esto nos permite que la aplicación use tanto Privy para autenticación como wagmi para interacciones con wallets.
 
     ```tsx [providers.tsx]
     'use client'
@@ -78,8 +78,8 @@ description: Privy を Sequence スマートウォレットの署名者として
     ```
   </Step>
 
-  <Step title="アプリのレイアウトをプロバイダーでラップする">
-    アプリのレイアウト全体をプロバイダーでラップします。
+  <Step title="Envolver el layout de la App con los Providers">
+    Envuelva el layout de la App con los Providers.
 
     ```tsx [layout.tsx]
     import type { Metadata } from 'next'
@@ -120,8 +120,8 @@ description: Privy を Sequence スマートウォレットの署名者として
     ```
   </Step>
 
-  <Step title="トランザクションタイプの追加">
-    `./constants/types.ts` に以下の型を追加してください。
+  <Step title="Agregar tipos de transacción">
+    Agregue los siguientes tipos en `./constants/types.ts`.
 
     ```tsx [./constants/types.ts]
     export type FlatTransaction = {
@@ -144,8 +144,8 @@ description: Privy を Sequence スマートウォレットの署名者として
     ```
   </Step>
 
-  <Step title="StaticSigner クラスの作成">
-    `./utils/StaticSigner.ts` に `StaticSigner` クラスを作成します。
+  <Step title="Crear una clase StaticSigner">
+    Cree una clase `StaticSigner` en `./utils/StaticSigner.ts`.
 
     ```tsx [./utils/StaticSigner.ts]
     import type { commons } from '@0xsequence/core'
@@ -202,10 +202,10 @@ description: Privy を Sequence スマートウォレットの署名者として
     ```
   </Step>
 
-  <Step title="ユーティリティメソッドの追加">
-    いくつかのユーティリティメソッドが必要です。
+  <Step title="Agregar los métodos utilitarios">
+    Necesitamos algunos métodos utilitarios.
 
-    このファイルを `./utils/index.ts` に追加してください。
+    Agregue este archivo en `./utils/index.ts`.
 
     ```tsx [index.ts]
     import { Account } from '@0xsequence/account'
@@ -394,7 +394,7 @@ description: Privy を Sequence スマートウォレットの署名者として
     ```
   </Step>
 
-  <Step title="Sequence ウォレットを作成し、ガスレス取引を送信する">
+  <Step title="Cree una Sequence Wallet y envíe una transacción sin gas">
     ```tsx [page.tsx]
     "use client"
 
@@ -550,7 +550,7 @@ description: Privy を Sequence スマートウォレットの署名者として
     ```
   </Step>
 
-  <Step title="アプリを起動する">
+  <Step title="Ejecute la aplicación">
     ```bash
     pnpm dev
     ```
