@@ -6,30 +6,6 @@ sidebarTitle: Identity Instrument
 
 **Identity Instrument** es un servicio respaldado por enclave (TEE en AWS Nitro Enclaves) responsable de autenticar usuarios mediante confirmación por correo electrónico/teléfono vía OTP o un proveedor de identidad compatible con OIDC (IdP, como Google o Apple). Vincula una **Auth Key** generada por el dispositivo al usuario autenticado y utiliza un **Identity Signer** para firmar atestaciones o resúmenes de sesión. Las aplicaciones nunca manejan directamente los secretos de cliente del IdP; Identity Instrument media el intercambio y emite la firma final.
 
-## Architecture
-A continuación se muestra un diagrama de arquitectura de alto nivel de Identity Instrument.
-
-```mermaid
-flowchart LR
-  subgraph Client["Ecosystem Wallet"]
-    AK[Generate Auth Key]
-  end
-
-  subgraph Enclave["Identity Instrument (TEE)"]
-    IS[Identity Signer store]
-    AC["Auth Commitments (encrypted)"]
-    ENC[Encryption Pool]
-  end
-
-  IdP["OIDC / OAuth Provider"]
-  DB[(DynamoDB)]
-
-  AK -->|InitiateAuth / RegisterAuth / SignDigest| Enclave
-  Enclave -->|PKCE / Token Exchange| IdP
-  Enclave <-->|Keys, Commitments| DB
-  Enclave -->|Session attestations / signatures| Client
-```
-
 ## Atestación criptográfica
 Identity Instrument se implementa desde un EIF (Enclave Image File) publicado como un release público en GitHub. Un EIF se construye de manera determinista a partir del código fuente y se derivan un conjunto de **mediciones** de todo el código incluido en la compilación. Esto significa que una compilación en un commit específico siempre producirá las mismas mediciones.
 
@@ -54,15 +30,15 @@ sequenceDiagram
   participant User
   participant Client
   participant Nitro as Identity Instrument
-  Client->>Client: Generate Auth Key
-  Client->>Nitro: InitiateAuth(OTP, Email/Phone, verifier)
-  Nitro->>Nitro: Store serverAnswer = keccak(code, challenge)
-  Nitro-->>User: Deliver OTP code
-  Nitro-->>Client: Return challenge
-  User->>Client: Enter code
-  Client->>Nitro: RegisterAuth(answer = keccak(code, challenge))
-  Nitro->>Nitro: Verify commitment, bind Auth Key to Identity
-  Nitro-->>Client: OK
+
+  Client ->> Client: Generate Auth Key
+  Client ->> Nitro: Initiate Auth
+  Nitro ->> Nitro: Generate and store Code & Challenge
+  Nitro -->> User: Send Code
+  Nitro -->> Client: Challenge
+  User ->> Client: Code
+  Client ->> Client: Combine Code & Challenge
+  Client ->> Nitro: Register Auth
 ```
 
 ### OAuth AuthCode con AuthCodePKCE
@@ -70,20 +46,23 @@ El modo de autenticación AuthCodePKCE utiliza el "Authorization Code Flow" de O
 
 ```mermaid
 sequenceDiagram
-  participant Client as Ecosystem
-  participant IdP
+  participant Client
+  participant OAuth IdP
   participant Nitro as Identity Instrument
-  Client->>Nitro: InitiateAuth(AuthCodePKCE, redirectUri)
-  Nitro->>Nitro: Generate code_verifier, challenge
-  Nitro-->>Client: Return challenge
-  Client->>IdP: Redirect user (includes PKCE challenge)
-  IdP-->>Client: Redirect back with authorization_code
-  Client->>Nitro: RegisterAuth(authorization_code)
-  Nitro->>Nitro: Verify commitment, exchange code + verifier with IdP
-  Nitro->>IdP: Token exchange
-  IdP-->>Nitro: ID token
-  Nitro->>Nitro: Verify and bind Auth Key to Identity
-  Nitro-->>Client: Identity Signer address
+  participant Secure Store
+
+  Client ->> OAuth IdP: Authenticate
+  OAuth IdP -->> Client: Authorization Code
+  Client ->> Client: Generate Auth Key
+  Client ->> Nitro: Initiate Auth
+  Nitro ->> Nitro: Store Verifier<br>(hashed authorization code)
+  Client ->> Nitro: Register Auth
+  Nitro ->> Secure Store: Request Client Secret
+  Secure Store -->> Nitro: Client Secret
+  Nitro ->> OAuth IdP: Exchange Code<br>for Access Token
+  OAuth IdP -->> Nitro: Access Token
+  Nitro ->> OAuth IdP: Request User Info
+  OAuth IdP -->> Nitro: User Info
 ```
 
 ## Encryption Pool
