@@ -1,0 +1,51 @@
+---
+title: 権限
+description: SequenceのUnity SDK用エコシステムウォレットのドキュメント
+---
+
+### パラメータ
+
+- **チェーン:** この署名者が操作できるチェーン。
+- **ターゲット:** この署名者が操作できるコントラクトアドレス。
+- **期限:** この権限の有効期限（UTCミリ秒単位のタイムスタンプ）。
+- **送信上限:** この署名者が送信できるネイティブトークンの最大合計額。
+- **パラメータルール:** この署名者がターゲットコントラクトとどのようにやり取りできるかを定義するルール。
+
+### 単一コントラクトへの権限付与
+
+```csharp
+Chain chain = Chain.TestnetAbitrumSepolia;
+Address contractAddress = new Address("0x33985d320809E26274a72E03268c8a29927Bc6dA");
+BigInteger deadline = new BigInteger(DateTimeOffset.UtcNow.ToUnixTimeSeconds() * 1000 + 1000 * 60 * 5000);
+BigInteger valueLimit = 0;
+
+IPermissions permissions = new ContractPermissions(chain, contractAddress, deadline, valueLimit);
+```
+
+### 複数ターゲットへの権限付与
+
+```csharp
+Chain chain = Chain.TestnetAbitrumSepolia;
+Address contractAddress1 = new Address("0x7F5c764cBc14f9669B88837ca1490cCa17c31607");
+Address contractAddress2 = new Address("0x33985d320809E26274a72E03268c8a29927Bc6dA");
+
+IPermissions permissions = new Permissions(chain,
+    new ContractPermissions(contractAddress1, deadline, valueLimit),
+    new ContractPermissions(contractAddress2, deadline, valueLimit));
+```
+
+### パラメータルール
+
+```csharp
+var rule = new ParameterRule
+{
+    cumulative = false,
+    operation = (int)ParameterOperation.equal,
+    value = Array.Empty<byte>(),
+    offset = new BigInt(0),
+    mask = Array.Empty<byte>(),
+};
+
+ContractPermissions permissions = new ContractPermission(...);
+permissions.AddRule(rule);
+```

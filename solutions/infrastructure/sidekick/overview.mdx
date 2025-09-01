@@ -1,0 +1,89 @@
+---
+title: "Overview"
+description: Dockerized backend that exposes standardized blockchain read/write endpoints with secure key management, built on Sequence infrastructure.
+sidebarTitle: Overview
+---
+
+**Sidekick** is a dockerized backend you can run to perform blockchain reads/writes through simple HTTP endpoints while keeping **private keys** off the client. It integrates with Sequence services (Indexer, Transactions API, Node Gateway) and can hold keys locally or via KMS.
+
+## What it's for
+
+- **Server-side write flows** (e.g., mint ERC-1155/721, transfer, airdrops).  
+- **Secure key custody** with local files, AWS KMS, or GCP KMS.  
+- **Simple HTTP endpoints** so your app doesn't need to embed signing logic.
+
+## High-level setup
+
+<Steps>
+  <Step title="Run the container">
+    Start Sidekick via Docker; configure environment variables for your access keys, networks, and key storage (local or KMS).
+  </Step>
+  <Step title="Get the smart account">
+    Retrieve the Sidekick smart account address from the `/sidekick/smart-account-address` endpoint.
+  </Step>
+  <Step title="Grant permissions">
+    Grant <code>MINTER_ROLE</code> (or transfer ownership) on your contracts to the Sidekick account, depending on your access control model.
+  </Step>
+  <Step title="Call endpoints">
+    Use write endpoints (e.g., <code>/write/erc1155/{chainId}/{contract}/mint</code>) and read endpoints as needed.
+  </Step>
+</Steps>
+
+## Quickstart
+
+There is a public docker image available on [GitHub Container Registry](https://github.com/0xsequence/sidekick/pkgs/container/sidekick).
+
+```shell
+docker run -p 7500:7500 -e SEQUENCE_PROJECT_ACCESS_KEY=... ghcr.io/0xsequence/sidekick:latest
+```
+
+This will get you started with a local Sidekick backend running on port 7500 with the minimal features.
+
+<Note>
+We recommend setting SEQUENCE_PROJECT_ACCESS_KEY as well but for testing purposes we provide a default one, you can get yours from [Sequence Builder](https://sequence.build/).
+</Note>
+
+To do a full setup, you can follow the [quickstart guide](/solutions/infrastructure/sidekick/quickstart).
+
+## Features and Use Cases
+
+<CardGroup>
+    <Card horizontal title="Effortless setup" icon="rocket">
+        Either use our public docker image or start it in dev mode with minimal configuration.
+    </Card>
+    <Card horizontal title="Flexible wallet options" icon="wallet">
+        Use a Sequence Smart Wallet with locally managed private keys or securely integrate AWS/GCP KMS for enhanced security.
+    </Card>
+    <Card horizontal title="Webhook management" icon="wallet">
+        Leverage our high-performance indexer to build and setup your own custom webhooks through the performant Sequence Indexer.
+    </Card>
+    <Card horizontal title="Tenderly integration" icon="bug">
+        Leverage Tenderly to easily debug your transactions, you get a simulation URL for every transaction executed through Sidekick.
+    </Card>
+    <Card horizontal title="Automatic contract verification" icon="circle-check">
+        Verifying contracts is cumbersome. Sidekick does it for you for every contract deployed.
+    </Card>
+    <Card horizontal title="Integrated with Sequence Builder" icon="link">
+        Already have a Sequence Builder project? Import all your contracts data into Sidekick with a single API call.
+    </Card>
+    <Card horizontal title="Built-in Bull MQ Dashboard" icon="gauge">
+        Create, monitor and manage your background jobs.
+    </Card>
+    <Card horizontal title="Swagger UI" icon="book">
+        Explore the API documentation and test the endpoints with the Swagger UI
+    </Card>
+    <Card horizontal title="Optimized transaction execution" icon="bolt">
+        Transactions are submitted at optimal gas prices, with automatic resubmission if not included in the mempool within three blocks.
+    </Card>
+    <Card horizontal title="Analytics and monitoring" icon="heart">
+        Sidekick comes integrated with Grafana, Prometheus and Blackbox Exporter to monitor your backend health.
+    </Card>
+</CardGroup>
+
+## Further Reading
+
+- [Quickstart](/solutions/infrastructure/sidekick/quickstart)
+- [Minting Server Guide](/solutions/infrastructure/sidekick/minting-server)
+- [Sidekick GitHub Repository](https://github.com/0xsequence/sidekick)
+- [Sidekick Docker Image](https://github.com/0xsequence/sidekick/pkgs/container/sidekick)
+- [Sidekick Documentation](https://github.com/0xsequence/sidekick/blob/master/README.md)

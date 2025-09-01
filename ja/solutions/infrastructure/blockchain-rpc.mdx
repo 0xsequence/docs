@@ -1,0 +1,51 @@
+---
+title: Blockchain RPC
+description: プロバイダーのフェイルオーバーやヘルスチェックを備えた高可用性RPCアクセス。各ネットワークごとにシンプルなURLを提供します。
+sidebarTitle: Blockchain RPC
+---
+
+**Blockchain RPC** は、負荷分散されたローレベルのノードアクセスサービスです。各ネットワークごとにヘルスチェック済みで負荷分散された**RPCエンドポイント**を提供し、複数のプロバイダー間で自動的にフェイルオーバーします。
+
+## 使い方
+
+1. [Builder](/solutions/builder/getting-started)でプロジェクトをセットアップし、**Project Access Key** を取得してください。
+2. クライアントまたはサーバーでNode GatewayのURLパターンを使用します。
+
+```txt
+https://nodes.sequence.app/<chain_handle>
+```
+
+<Info>
+  チェーンハンドルの一覧は、[supported networks & status](https://status.sequence.info) をご覧ください。また、[Builder](https://sequence.build/) のBlockchain RPCセクションから、アクセスキーが自動入力されたプロジェクト用の正しいURLを取得できます。
+</Info>
+
+**例（ethers v6）：**
+
+```ts
+import { JsonRpcProvider } from 'ethers'
+
+const provider = new JsonRpcProvider('https://nodes.sequence.app/base') // Chain handle from status page
+const block = await provider.getBlockNumber()
+```
+
+## 補足
+
+- Node Gatewayは自動的に正常なプロバイダーへルーティングし、データを**同期**状態に保ちます。
+- **Indexer**（高レベルの読み取り）や**Transaction API**（書き込み）と組み合わせて利用できます。
+- Builderで利用状況の監視やアクセスキーの設定（リクエスト制限など）が可能です。
+
+## パフォーマンス
+Sequence Blockchain RPCは、高負荷・高可用性アプリ向けに設計されています。複数のノードプロバイダーを集約し、自動で切り替えながら正確かつ同期したデータを提供。分散型アプリが低遅延で安定して動作することを保証します。
+
+ピークトラフィック時も心配不要です。堅牢なノードインフラにより、高いスケーラビリティと障害耐性を実現。さらに、自動ノード障害検知と復旧も備えています。
+
+## Blockchain RPCの統合例を動画で見る
+
+<Frame>
+  <video controls className="w-full aspect-video" src="/video/builder/06_Node_Gateway.mp4" />
+</Frame>
+
+## 関連情報
+
+- [Indexer](/solutions/indexer/overview)
+- [Transaction API](/solutions/infrastructure/transaction-api)

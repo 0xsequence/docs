@@ -1,0 +1,81 @@
+---
+title: "Guard Firewall"
+description: Ecosystem-level review signer that evaluates every transaction against policies, simulations, and blacklists before allowing execution.
+sidebarTitle: Guard Firewall
+---
+
+**Guard Firewall** is a Sequence-operated review signer that evaluates transactions before they are sent on-chain. It enforces ecosystem policies, performs threat simulations via third-party integrations, and can block or allow transactions by signing or withholding a **guard signature**. Ecosystem admins can also maintain **blacklists** of malicious apps or contracts.
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant App as App
+    participant Guard as Guard Firewall
+    participant Relayer as Transaction API
+    participant Chain as EVM Chain
+    participant User as User (OTP)
+
+    App->>Guard: 1) Submit signed txn bundle
+    Guard->>Guard: 2) Run threat assessment simulation
+    Guard-->>Guard: Simulation results & risk score
+
+    alt 3) Guard accepts
+        Guard-->>App: Return co-signed transaction
+    else 4) Guard rejects
+        Guard-->>App: OTP confirmation required
+        App->>User: Prompt for OTP
+        User-->>App: Provide OTP
+        App->>Guard: Resubmit with OTP proof
+        Guard-->>App: Return co-signed transaction (requirements satisfied)
+    end
+
+    App->>Relayer: 5) Submit fully signed transaction
+    Relayer->>Chain: 6) Relay/broadcast on EVM chain
+```
+
+## Policy model
+
+Policies are configured per ecosystem and can include:
+
+- **App registration and blacklists**: only registered apps/origins may submit; admins can blacklist apps or contracts.
+- **Risk thresholds**: block transactions that exceed a risk score returned by the simulator.
+- **Method and contract allowlists**: restrict which contracts and function selectors can be called.
+- **Spend limits and token rules**: cap per-interval outflows by token, recipient, or app.
+- **Emergency kill switch**: fail-closed mode that blocks all or specific scopes.
+
+## Threat simulation
+
+Guard can perform real-time threat analysis on the transaction payload (calldata, value, state deltas). Based on the ecosystem configuration, Guard applies policy thresholds and signs or denies the transaction, or requires OTP confirmation.
+
+```mermaid
+sequenceDiagram
+  participant Relayer
+  participant Guard
+  participant Sim as Simulator
+  Relayer->>Guard: Review(tx, session, context)
+  Guard->>Sim: Simulate(tx)
+  Sim-->>Guard: Risk(score, findings)
+  Guard->>Guard: Evaluate(policy, blacklist, allowlist)
+  alt Allowed
+    Guard-->>Relayer: ReviewSignature
+  else Denied
+    Guard-->>Relayer: Error(reason)
+  end
+```
+
+## Blacklist controls
+
+- Admins can blacklist apps, origins, or contracts. Blacklists take precedence and cause immediate denials.
+- Lists are propagated to the Guard and cached with short TTL; updates are near-real-time.
+
+## Operational notes
+
+- **Fail-closed**: if the Guard is unreachable and policy requires a review signature, transactions are blocked.
+- **Auditability**: decisions are logged with inputs (hashes), simulator responses, policy version, and reason codes.
+- **Performance**: caching and incremental simulation are used to keep latency low; timeouts default to deny to avoid bypass.
+
+## Implementation guidance
+
+- Require a **Guard signature** in your session or wallet policy so transactions cannot bypass review.
+- Register apps and origins in your ecosystem admin, define policies, and set risk thresholds.
+- Keep blacklists curated and respond quickly to incident intel.
