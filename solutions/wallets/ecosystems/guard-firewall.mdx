@@ -9,27 +9,27 @@ sidebarTitle: Guard Firewall
 ```mermaid
 sequenceDiagram
     autonumber
-    participant Dapp as DApp
+    participant App as App
     participant Guard as Guard Firewall
     participant Relayer as Transaction API
     participant Chain as EVM Chain
     participant User as User (OTP)
 
-    Dapp->>Guard: 1) Submit signed txn bundle
+    App->>Guard: 1) Submit signed txn bundle
     Guard->>Guard: 2) Run threat assessment simulation
     Guard-->>Guard: Simulation results & risk score
 
     alt 3) Guard accepts
-        Guard-->>Dapp: Return co-signed transaction
+        Guard-->>App: Return co-signed transaction
     else 4) Guard rejects
-        Guard-->>Dapp: OTP confirmation required
-        Dapp->>User: Prompt for OTP
-        User-->>Dapp: Provide OTP
-        Dapp->>Guard: Resubmit with OTP proof
-        Guard-->>Dapp: Return co-signed transaction (requirements satisfied)
+        Guard-->>App: OTP confirmation required
+        App->>User: Prompt for OTP
+        User-->>App: Provide OTP
+        App->>Guard: Resubmit with OTP proof
+        Guard-->>App: Return co-signed transaction (requirements satisfied)
     end
 
-    Dapp->>Relayer: 5) Submit fully signed transaction
+    App->>Relayer: 5) Submit fully signed transaction
     Relayer->>Chain: 6) Relay/broadcast on EVM chain
 ```
 
@@ -37,7 +37,7 @@ sequenceDiagram
 
 Policies are configured per ecosystem and can include:
 
-- **App registration and blacklists**: only registered apps/origins may submit; admins can blacklist dapps or contracts.
+- **App registration and blacklists**: only registered apps/origins may submit; admins can blacklist apps or contracts.
 - **Risk thresholds**: block transactions that exceed a risk score returned by the simulator.
 - **Method and contract allowlists**: restrict which contracts and function selectors can be called.
 - **Spend limits and token rules**: cap per-interval outflows by token, recipient, or app.
