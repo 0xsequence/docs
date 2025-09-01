@@ -1,0 +1,59 @@
+---
+title: "Manage Sessions"
+description: Ecosystem Wallet Documentation for Sequence's Unity SDK.
+---
+
+### Add Session
+
+Add additional sessions to your existing login method. Every session shares the same wallet address with the possibility
+of assigning different permissions for each session. You must provide a `IPermissions` object whenever you call `AddSession`.
+
+[Learn how to construct permissions.](/sdk/unity/ecosystem-wallet/permissions)
+
+```csharp
+Address contractAddress = new Address("0x33985d320809E26274a72E03268c8a29927Bc6dA");
+BigInteger deadline = new BigInteger(DateTimeOffset.UtcNow.ToUnixTimeSeconds() * 1000 + 1000 * 60 * 5000);
+
+IPermissions permissions = new ContractPermissions(Chain.TestnetAbitrumSepolia, contractAddress, deadline, 0);
+await wallet.AddSession(permissions);
+```
+
+### Disconnect
+
+Sign out will clear the local storage.
+
+```csharp
+wallet.Disconnect();
+```
+
+### Get All Session Wallets
+
+Get all available sessions that you are currently connected to.
+
+```csharp
+Address[] signerAddresses = wallet.GetAllSigners();
+```
+
+## Events
+
+### On Wallet Created
+
+The `WalletCreated` event is called whenever you sign in or you recover a wallet from storage.
+
+```csharp
+SequenceWallet.WalletCreated += wallet =>
+{
+    // Integrate your own logic to handle wallet creations.
+}
+```
+
+### On Wallet Disconnected
+
+The Disconnected event is called whenever you hit `wallet.Disconnect()`. This means, you need to re-connect.
+
+```csharp
+SequenceWallet.Disconnected += () =>
+{
+    // Integrate your own logic to handle disconnects.
+}
+```
