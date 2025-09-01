@@ -1,0 +1,98 @@
+---
+title: Permisos de Sesión
+description: Configure su dApp para solicitar permisos de aprobación y transferencia, eliminando ventanas emergentes de wallet repetidas para sus usuarios.
+sidebarTitle: Permisos de Sesión
+---
+
+Smart Sessions es una función poderosa que le permite solicitar permisos específicos de los wallets de sus usuarios antes de necesitarlos. Las solicitudes de permisos se incluyen en la solicitud de conexión, así que puede autenticar y pedir permisos en un solo paso. Luego, puede usar la clave de sesión proporcionada para ejecutar transacciones bajo las reglas que definió, sin ventanas emergentes adicionales.
+
+## 🔧 Ejemplo completo de configuración
+Aquí tiene un ejemplo completo de cómo configurar su dApp para solicitar permisos de aprobación y transferencia, usando el Web SDK.
+
+```typescript
+import { createConfig } from '@0xsequence/connect'
+import { ChainId } from '@0xsequence/network'
+import { Utils } from '@0xsequence/wallet-core'
+
+// 1. Define the addresses for your dApp
+const USDC_ADDRESS = '0xaf88d065e77c8cC2239327C5EDb3A432268e5831'
+const DAPP_CONTRACT_ADDRESS = '0x1234.....' // Your dApp's main contract
+
+// 2. Add the `permissions` object to your main configuration
+export const config = createConfig({
+  // ... your other project configurations like projectAccessKey, defaultTheme, etc.
+
+  // This is where you define the rules for the user's session
+  permissions: { 
+    // The chain where these rules apply
+    chainId: ChainId.ARBITRUM,
+
+    // The total amount of native currency (e.g., ETH) the session can spend.
+    // For token permissions, this should be 0.
+    valueLimit: 0n,
+
+    // Set a time limit for how long the session is valid (e.g., 24 hours)
+    deadline: BigInt(Math.floor(Date.now() / 1000) + 3600 * 24),
+    
+    // This array holds the specific permissions you are requesting
+    permissions: [
+
+      // Rule #1: The 'Approve' Permission
+      Utils.ERC20PermissionBuilder.buildApprove(
+        USDC_ADDRESS,
+        DAPP_CONTRACT_ADDRESS,
+        100000000n // A spending limit of 100 USDC (with 6 decimals)
+      ),
+
+      // Rule #2: The 'Transfer' Permission
+      Utils.ERC20PermissionBuilder.buildTransfer(
+        USDC_ADDRESS,
+        100000000n // A spending limit of 100 USDC (with 6 decimals)
+      )
+    ]
+  }
+})
+```
+
+---
+
+## 📋 Parámetros de configuración
+
+| Parámetro         | Type      | Description                                                                 |
+| ----------------- | --------- | --------------------------------------------------------------------------- |
+| **`chainId`**     | `ChainId` | La blockchain donde aplican los permisos                                    |
+| **`valueLimit`**  | `bigint`  | Límite de gasto de la moneda nativa (use `0n` para permisos solo de tokens) |
+| **`deadline`**    | `bigint`  | Marca de tiempo de expiración de la sesión                                  |
+| **`permissions`** | `Array`   | Lista de reglas de permisos específicas                                     |
+
+---
+
+## 🎯 Tipos de permisos
+
+### Permiso de aprobación
+
+```typescript
+Utils.ERC20PermissionBuilder.buildApprove(
+  tokenAddress,    // The ERC20 token contract
+  spenderAddress,  // Your dApp's contract that can spend tokens
+  amountLimit      // Maximum tokens that can be approved
+)
+```
+
+### Permiso de transferencia
+
+```typescript
+Utils.ERC20PermissionBuilder.buildTransfer(
+  tokenAddress,    // The ERC20 token contract
+  amountLimit      // Maximum tokens that can be transferred
+)
+```
+
+---
+
+## ✨ Resultado
+Con esta configuración:
+- **Aprobación única** cuando el usuario se conecta
+- **Cero ventanas emergentes** para acciones de approve/transfer posteriores
+- **Expiración automática** después de 24 horas o al alcanzar el límite de gasto
+- **Límites seguros** aplicados en la blockchain

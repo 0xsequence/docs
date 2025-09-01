@@ -1,0 +1,83 @@
+---
+title: Smart Sessions
+description: Las Smart Sessions de Sequence ofrecen una forma fluida de interactuar con dApps al reducir los pop-ups del wallet y mejorar la experiencia del usuario.
+---
+
+## El problema de la UX en Web3 hoy
+En Web3, la experiencia de usuario suele verse interrumpida. Cada swap, cada listado, cada acción menor requiere un pop-up del wallet, obligándole a “firmar” y aprobar. Esto genera fricción y hace que las dApps se sientan torpes en comparación con las apps fluidas que usamos a diario.
+
+## ¿Qué son las Smart Sessions?
+**Smart Sessions es la solución a este problema.**
+
+Una Smart Session es un conjunto seguro, temporal y estrictamente limitado de permisos que usted otorga a una dApp. En vez de aprobar cada transacción, usted aprueba una sesión una sola vez, permitiendo que la dApp realice una serie de acciones preacordadas en su nombre. Así se eliminan los pop-ups constantes y se habilita una experiencia fluida, similar a Web2, sin sacrificar seguridad ni autocustodia.
+
+> 💡 **Piénselo así:** No es como entregar su llave maestra (el firmador principal de su wallet), sino como dar a una aplicación una tarjeta de acceso especial con reglas y límites muy claros.
+
+## Dos tipos de Smart Sessions
+Sequence ofrece dos tipos distintos de Smart Sessions, cada uno diseñado para un propósito diferente:
+- **Implicit Sessions:** Para máxima comodidad dentro de una sola dApp confiable.
+- **Explicit Sessions:** Para control potente y granular sobre cualquier acción on-chain.
+
+---
+
+## 1. Implicit Sessions: El “Pase de Comodidad en la App”
+Una Implicit Session es el tipo más simple y común de Smart Session. Su único propósito es hacer que su experiencia dentro de una dApp sea lo más fluida posible.
+
+![Implicit Session](/images/implicit-diagram.png)
+
+### 🎯 La idea central
+Cuando usted se conecta a una dApp en la que confía, está creando un “límite de confianza” alrededor del dominio web de esa dApp. Una Implicit Session le da a esa dApp un pase para operar libremente solo dentro de sus propios límites.
+
+### ⚙️ Cómo funciona
+
+1. **Conectar y confiar:** Usted conecta su wallet a una dApp (por ejemplo, `app.my-defi-protocol.com`)
+2. **Aprobación silenciosa:** Se crea automáticamente y en silencio una sesión que está criptográficamente vinculada a ese dominio específico, sin que el usuario tenga que aprobarla.
+3. **Experiencia fluida:** Ahora puede realizar cualquier acción dentro de esa dApp—swaps, staking, listados—sin más pop-ups. Simplemente funciona.
+
+### 🔒 El resguardo de seguridad
+Esta sesión no sirve en ningún otro lugar. Si la dApp fuera maliciosa e intentara usar esta sesión para llamar a un contrato fuera de su dominio (como el contrato USDC), la transacción sería rechazada automáticamente on-chain. La sesión solo es válida para los smart contracts de la dApp.
+La dApp configurará los permisos en el [Sequence Builder](https://sequence.build)
+
+### 📊 Implicit Sessions en resumen
+
+| Aspecto                  | Detalles                                                                                                                                                             |
+| ------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Ideal para**           | Uso diario de una sola dApp (protocolos DeFi, marketplaces, juegos)                                                                                                  |
+| **Característica clave** | Máxima comodidad. Elimina todos los pop-ups de firma dentro de un entorno de dApp confiable                                                                          |
+| **Analogía**             | Una tarjeta de acceso para un edificio específico. Le permite moverse libremente entre todas las habitaciones dentro, pero no abre la puerta del edificio de al lado |
+
+---
+
+## 2. Explicit Sessions: El “Permiso Programable”
+Una Explicit Session es una herramienta más avanzada y poderosa. Está diseñada para cuando una dApp necesita realizar tareas muy específicas que interactúan con otros protocolos externos.
+
+![Explicit Session](/images/explicit-diagram.png)
+
+### 🎯 La idea central
+En lugar de confiar en toda una dApp y sus smart contracts, usted aprueba una lista precisa de reglas para un firmador temporal. Está creando un permiso personalizado que define exactamente qué se puede hacer, dónde, cuánto se puede gastar, por cuánto tiempo y para qué contratos.
+
+### ⚙️ Cómo funciona
+
+1.  **La dApp propone un “contrato”:** La dApp presenta a su wallet una lista de permisos muy específicos que necesita. Por ejemplo:
+    - "Permíteme llamar a la función `transfer` en el `USDC contract`."
+    - "...solo con la dirección de `recipient` `0x...`"
+    - "...por un total acumulado no mayor a `100` USDC."
+    - "...y este permiso expirará en `24 hours`."
+
+2.  **Usted aprueba explícitamente las reglas:** Su wallet muestra estas reglas en un formato legible. Usted revisa y aprueba este conjunto exacto de condiciones.
+
+3.  **La dApp ejecuta:** Ahora la dApp puede realizar esas acciones automáticamente, sin pop-ups.
+
+### 🔒 El resguardo de seguridad
+El poder de las Explicit Sessions está en su granularidad. Cada regla se valida on-chain. Si la dApp intenta hacer algo fuera del alcance aprobado, como gastar 101 USDC en vez de 100, o llamar a la función `approve` en vez de `transfer`, la transacción fallará.
+
+### 📊 Explicit Sessions en resumen
+
+| Aspecto                  | Detalles                                                                                                                                                                                                 |
+| ------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Ideal para**           | Autorizar acciones específicas, automatizadas o de alto valor (por ejemplo, cosecha automática de rendimientos, hacer ofertas en un NFT, configurar pagos recurrentes) o 0 pop-ups                       |
+| **Característica clave** | Control granular y programable. Usted define el alcance exacto de lo que la dApp puede hacer                                                                                                             |
+| **Analogía**             | Un cheque preautorizado. Usted lo escribe a una persona específica (target), por un monto exacto (valueLimit), y anota “solo para depósito” en el memo (rules). El banco hará cumplir todas esas reglas. |
+
+### Integraciones versátiles
+Lo mejor es que puede combinar ambos tipos de sesiones para obtener lo mejor de ambos mundos. Cuando salga del alcance de una Implicit Session, los SDKs de Sequence cambiarán automáticamente a un estado de aprobación por transacción, funcionando como un EOA. Para acciones repetidas fuera de una Implicit Session, puede solicitar una Explicit Session para una integración fluida.
