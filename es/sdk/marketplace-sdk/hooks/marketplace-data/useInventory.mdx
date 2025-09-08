@@ -1,53 +1,84 @@
 ---
 title: useInventory
-description: El hook useInventory obtiene el inventario del usuario en una colección de su Marketplace.
+description: Obtiene el inventario de coleccionables de un usuario para una colección específica con scroll infinito. Este hook combina datos tanto de la API del marketplace como del indexador para mostrar una vista completa de los coleccionables poseídos. Detecta automáticamente las colecciones LAOS ERC-721 y las gestiona adecuadamente. El hook garantiza que se devuelvan todos los tokens poseídos, incluso si no están listados en el marketplace.
 sidebarTitle: useInventory
+category: Data Fetching
 ---
 
-```ts
-import { useInventory } from "@0xsequence/marketplace-sdk/react";
+## Parámetros
 
-## Into your React component:
+| Nombre | Type | Description                                                            |
+| ------ | ---- | ---------------------------------------------------------------------- |
+| `args` |      | Configuración para obtener el inventario                               |
+| `args` |      | .accountAddress - La dirección de la wallet para obtener el inventario |
+| `args` |      | .collectionAddress - La dirección del contrato de la colección         |
+| `args` |      | .chainId - El ID de la red blockchain                                  |
+| `args` |      | .query - Configuración opcional de la consulta                         |
+| `args` |      | .query.enabled - Si se habilita la consulta (por defecto: true)        |
 
-const { data: inventoryData } = useInventory({
-  accountAddress: "0x2b54eAE39bdcDbBE1bbe001a4329C38cD58679D1",
-  chainId: 421614,
-  collectionAddress: "0x36631c1e690714192614364ae9629850b546d194"
+## Devuelve
+returns.isFetchingNextPage - Verdadero mientras se obtiene la siguiente página
+
+## Ejemplo
+Uso básico con paginación:
+
+```typescript
+const {
+data,
+fetchNextPage,
+hasNextPage,
+isLoading
+} = useInventory({
+accountAddress: '0x...',
+collectionAddress: '0x...',
+chainId: 137
 });
-
-console.log(inventoryData);
+const allCollectibles = data?.pages.flatMap(page => page.collectibles) ?? [];
+return (
+<div>
+{allCollectibles.map(item => (
+<CollectibleCard
+key={item.metadata.tokenId}
+metadata={item.metadata}
+balance={item.balance}
+/>
+))}
+{hasNextPage && (
+<button onClick={() => fetchNextPage()}>
+Load More
+</button>
+)}
+</div>
+);
 ```
 
-<ResponseField name="useInventory">
-  <ResponseField name="* params" />
+Con filtrado y visualización de balance:
 
-  <Expandable>
-    ```ts
-    interface UseInventoryArgs {
-      accountAddress: Address;
-      collectionAddress: Address;
-      chainId: number;
-      isLaos721?: boolean;
-      query?: {
-        enabled?: boolean;
-      };
-    }
-    ```
-  </Expandable>
+```typescript
+const { data } = useInventory({
+accountAddress: userAddress,
+collectionAddress: collection.address,
+chainId: collection.chainId,
+query: {
+enabled: !!userAddress && isConnected
+}
+});
+// Get all items across pages
+const inventory = data?.pages.flatMap(p => p.collectibles) ?? [];
+// Show ERC1155 balances
+inventory.forEach(item => {
+if (item.contractType === ContractType.ERC1155) {
+console.log(`Token ${item.metadata.tokenId}: ${item.balance} owned`);
+}
+});
+```
 
-  <ResponseField name="* return properties" />
+## Uso Básico
 
-  <Expandable>
-    <ParamField path="data" type="CollectiblesResponse">
-      Contiene los datos del inventario del usuario.
-    </ParamField>
+```typescript
+import { useInventory } from '@0xsequence/marketplace-sdk/react/hooks';
 
-    <ParamField path="isLoading" type="boolean">
-      Indica si los datos se están cargando actualmente.
-    </ParamField>
-
-    <ParamField path="fetchNextPage" type="(options?: FetchNextPageOptions) => Promise<UseInfiniteQueryResult>">
-      Esta función permite obtener la siguiente "página" de resultados.
-    </ParamField>
-  </Expandable>
-</ResponseField>
+const result = useInventory({
+  // Add your parameters here
+});
+```
