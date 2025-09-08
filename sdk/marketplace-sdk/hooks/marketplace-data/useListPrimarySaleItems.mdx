@@ -1,0 +1,134 @@
+---
+title: "useListPrimarySaleItems"
+description: "Hook for fetching paginated primary sale items"
+sidebarTitle: useListPrimarySaleItems
+---
+
+## Import
+
+```tsx
+import { useListPrimarySaleItems } from "@0xsequence/marketplace-sdk";
+```
+
+## Usage
+
+```tsx
+import { useListPrimarySaleItems } from "@0xsequence/marketplace-sdk";
+
+function App() {
+  const { data, isLoading, hasNextPage, fetchNextPage, isFetchingNextPage } =
+    useListPrimarySaleItems({
+      chainId: 137,
+      primarySaleContractAddress: "0x123...",
+      page: {
+        pageSize: 20,
+      },
+    });
+
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
+
+  return (
+    <div>
+      {data?.pages.map((page, i) => (
+        <div key={i}>
+          {page.items.map((item) => (
+            <div key={item.id}>
+              {item.name} - {item.price}
+            </div>
+          ))}
+        </div>
+      ))}
+
+      {hasNextPage && (
+        <button onClick={() => fetchNextPage()} disabled={isFetchingNextPage}>
+          {isFetchingNextPage ? "Loading more..." : "Load More"}
+        </button>
+      )}
+    </div>
+  );
+}
+```
+
+## Return Type: `UseInfiniteQueryResult`
+
+The hook returns a React Query infinite query result object with the following key properties:
+
+```tsx
+type UseInfiniteQueryResult = {
+  data: {
+    pages: Array<{
+      items: PrimarySaleItem[];
+      nextCursor?: string;
+    }>;
+    pageParams: unknown[];
+  };
+  isLoading: boolean;
+  error: Error | null;
+  hasNextPage: boolean;
+  fetchNextPage: () => Promise<void>;
+  isFetchingNextPage: boolean;
+  // ... other React Query infinite query properties
+};
+```
+
+### Parameters
+
+| Parameter                    | Type     | Description                                          |
+| ---------------------------- | -------- | ---------------------------------------------------- |
+| `chainId`                    | `number` | The chain ID (e.g., 1 for Ethereum, 137 for Polygon) |
+| `primarySaleContractAddress` | `string` | The primary sale contract address                    |
+| `filter`                     | `object` | (Optional) Filter parameters for the query           |
+| `filter.status`              | `string` | (Optional) Filter by item status (e.g., 'active')    |
+| `page`                       | `object` | (Optional) Pagination configuration                  |
+| `page.pageSize`              | `number` | (Optional) Number of items per page                  |
+| `query`                      | `object` | (Optional) React Query configuration options         |
+| `config`                     | `object` | (Optional) SDK configuration options                 |
+
+### Query Options
+
+You can customize the query behavior using the optional parameters:
+
+```tsx
+const { data, isLoading } = useListPrimarySaleItems({
+  chainId: 1,
+  primarySaleContractAddress: "0x...",
+  filter: {
+    status: "active",
+  },
+  page: {
+    pageSize: 20,
+  },
+  query: {
+    enabled: isReady,
+    refetchInterval: 30000, // Refetch every 30 seconds
+  },
+});
+```
+
+## Notes
+
+This hook is useful for:
+
+- Displaying a list of primary sale items with infinite scroll
+- Building marketplace primary sale pages
+- Showing available items for initial sale
+- Managing paginated data loading
+
+The hook automatically handles:
+
+- Infinite scrolling pagination
+- Data fetching and caching
+- Loading and error states
+- Type-safe responses
+
+<Warning>
+  Make sure to handle the loading states appropriately, especially
+  `isFetchingNextPage` when implementing infinite scroll functionality.
+</Warning>
+
+<Warning>
+  The `primarySaleContractAddress` must be a valid contract address that
+  supports primary sales. Invalid addresses will result in failed queries.
+</Warning>
