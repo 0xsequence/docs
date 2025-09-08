@@ -1,58 +1,346 @@
 ---
 title: useCreateListingModal
-description: useCreateListingModalフックは、マーケットプレイスでアイテムを出品する際に使用します。新しい出品を作成・管理するために必要な機能を提供します。
+description: コレクティブル販売のための出品作成モーダルインターフェースを管理するためのフック
 sidebarTitle: useCreateListingModal
 ---
 
-```ts
+## インポート
+
+```tsx
 import { useCreateListingModal } from "@0xsequence/marketplace-sdk/react";
-
-## Into your React component:
-
-const { show: showListModal } = useCreateListingModal({ onError });
-
-const onClickList = () => {
-	showListModal({
-		collectionAddress,
-		chainId,
-		collectibleId,
-		orderbookKind,
-	});
-};
-
-return <button onClick={onClickList}>List</button>
 ```
 
-<ResponseField name="useCreateListingModal">
-  <ResponseField name="* params" />
+![出品作成モーダル](/images/marketplace/create_listing_modal.png "Create Listing Modal")
 
-  <Expandable>
-    ```ts
-    interface useCreateListingModal {
-    	onSuccess?: ({ hash, orderId }: {
-    	hash?: Hash; 
-    		orderId?: string; 
-    	}) => void;
-    	onError?: (error: Error) => void;
+## 使い方
+
+### 使用例
+
+<Tabs>
+  <Tab title="基本的な出品作成">
+    `useCreateListingModal` フックを使った基本的な出品作成の実装例：
+
+    <Note>
+      この例では、marketplace-sdk の [`useCollectible`](/sdk/marketplace-sdk/hooks/marketplace-data/useCollectible) と [`useBalanceOfCollectible`](/sdk/marketplace-sdk/hooks/marketplace-data/useBalanceOfCollectible) フックを利用して、所有権の確認やコレクティブルの詳細取得を行っています。
+    </Note>
+
+    ```tsx
+
+    import {
+    useCreateListingModal,
+    useCollectible,
+    useBalanceOfCollectible,
+    } from "@0xsequence/marketplace-sdk/react";
+    import { useAccount } from "wagmi";
+    import type { Address } from "viem";
+    import type { OrderbookKind } from "@0xsequence/marketplace-sdk";
+
+    export default function BasicListingExample() {
+    const { address: accountAddress } = useAccount();
+
+    // Example values - replace with your own
+    const chainId = 1; // Ethereum mainnet
+    const collectionAddress = "0x1234567890123456789012345678901234567890" as Address;
+    const collectibleId = "1";
+    const orderbookKind = "sequence_marketplace_v2" as OrderbookKind;
+
+    // Get collectible metadata
+    const {
+    data: collectible,
+    isLoading: isLoadingCollectible,
+    isError: isErrorCollectible,
+    } = useCollectible({
+    chainId,
+    collectionAddress,
+    collectibleId,
+    });
+
+    // Check if user owns the collectible
+    const {
+    data: balance,
+    isLoading: isLoadingBalance,
+    isError: isErrorBalance,
+    } = useBalanceOfCollectible({
+    collectionAddress,
+    collectableId: collectibleId,
+    userAddress: accountAddress as Address,
+    chainId,
+    query: {
+    enabled: !!accountAddress,
+    },
+    });
+
+    const { show: showCreateListingModal } = useCreateListingModal({
+    onSuccess: ({ hash, orderId }) => {
+    console.log("Listing created successfully", { hash, orderId });
+    },
+    onError: (error) => {
+    console.error("Listing creation failed:", error.message);
+    },
+    });
+
+    const handleCreateListing = () => {
+    if (!collectible || !balance || Number(balance) === 0) return;
+
+    showCreateListingModal({
+      chainId,
+      collectionAddress,
+      collectibleId,
+      orderbookKind,
+    });
+
+    };
+
+    const isOwner = balance && Number(balance) > 0;
+    const isLoading = isLoadingCollectible || isLoadingBalance;
+    const hasError = isErrorCollectible || isErrorBalance;
+
+    return (
+
+    <div style={{ padding: "20px" }}>
+    <h3>Create Listing</h3>
+
+      {collectible && (
+        <div style={{ marginBottom: "16px" }}>
+          <p>Name: {collectible.name}</p>
+          <p>Collectible ID: {collectibleId}</p>
+          <p>Owned: {balance || "0"}</p>
+        </div>
+      )}
+
+      <button
+        onClick={handleCreateListing}
+        disabled={isLoading || hasError || !isOwner || !accountAddress}
+        style={{
+          backgroundColor: isOwner ? "#007bff" : "#6c757d",
+          color: "white",
+          border: "none",
+          padding: "12px 24px",
+          borderRadius: "8px",
+          cursor: isOwner ? "pointer" : "not-allowed",
+        }}
+      >
+        {isLoading
+          ? "Loading..."
+          : !accountAddress
+          ? "Connect Wallet"
+          : !isOwner
+          ? "You don't own this collectible"
+          : "Create Listing"}
+      </button>
+    </div>
+
+    );
+    }
+
+    ```
+  </Tab>
+
+  <Tab title="インベントリからの出品">
+    ユーザーのインベントリから出品を作成する実装例：
+
+    <Note>
+      この例では、インベントリ管理と出品モーダルを連携し、ユーザーが所有するコレクティブルを出品できるようにしています。
+    </Note>
+
+    ```tsx
+
+    import {
+    useCreateListingModal,
+    useInventory,
+    } from "@0xsequence/marketplace-sdk/react";
+    import { useAccount } from "wagmi";
+    import type { Address } from "viem";
+    import type { OrderbookKind } from "@0xsequence/marketplace-sdk";
+
+    export default function InventoryListingExample() {
+    const { address: accountAddress } = useAccount();
+
+    // Example values - replace with your own
+    const chainId = 137; // Polygon
+    const collectionAddress = "0x1234567890123456789012345678901234567890" as Address;
+    const orderbookKind = "sequence_marketplace_v2" as OrderbookKind;
+
+    // Get user's inventory for this collection
+    const {
+    data: inventoryData,
+    isLoading: isLoadingInventory,
+    error: inventoryError,
+    } = useInventory({
+    accountAddress: accountAddress as Address,
+    collectionAddress,
+    chainId,
+    query: {
+    enabled: !!accountAddress,
+    },
+    });
+
+    const { show: showCreateListingModal } = useCreateListingModal({
+    onSuccess: ({ hash, orderId }) => {
+    console.log("Listing created successfully", { hash, orderId });
+    // Optionally refetch inventory to update UI
+    },
+    onError: (error) => {
+    console.error("Failed to create listing:", error.message);
+    },
+    successActionButtons: [
+    {
+    label: "View Listing",
+    action: () => {
+    // Navigate to listing or marketplace
+    console.log("Navigate to listing");
+    },
+    },
+    ],
+    });
+
+    const handleListCollectible = (tokenId: string) => {
+    showCreateListingModal({
+    chainId,
+    collectionAddress,
+    collectibleId: tokenId,
+    orderbookKind,
+    });
+    };
+
+    if (isLoadingInventory) {
+    return <div>Loading inventory...</div>;
+    }
+
+    if (inventoryError) {
+    return <div>Error loading inventory: {inventoryError.message}</div>;
+    }
+
+    if (!inventoryData?.collectibles?.length) {
+    return <div>No collectibles found in your inventory</div>;
+    }
+
+    return (
+    <div style={{ padding: "20px" }}>
+    <h3>Your Collection - Create Listings</h3>
+
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(250px, 1fr))", gap: "16px" }}>
+        {inventoryData.collectibles.map((collectible) => (
+          <div
+            key={collectible.tokenId}
+            style={{
+              border: "1px solid #e0e0e0",
+              borderRadius: "8px",
+              padding: "16px",
+              textAlign: "center",
+            }}
+          >
+            {collectible.image && (
+              <img
+                src={collectible.image}
+                alt={collectible.name}
+                style={{ width: "100%", height: "200px", objectFit: "cover", borderRadius: "4px" }}
+              />
+            )}
+            <h4>{collectible.name}</h4>
+            <p>Collectible ID: {collectible.tokenId}</p>
+            <p>Balance: {collectible.balance}</p>
+
+            <button
+              onClick={() => handleListCollectible(collectible.tokenId)}
+              style={{
+                backgroundColor: "#28a745",
+                color: "white",
+                border: "none",
+                padding: "8px 16px",
+                borderRadius: "4px",
+                cursor: "pointer",
+                marginTop: "8px",
+              }}
+            >
+              Create Listing
+            </button>
+          </div>
+        ))}
+      </div>
+    </div>
+
+    );
     }
     ```
-  </Expandable>
+  </Tab>
+</Tabs>
 
-  <ResponseField name="* return properties" />
+## パラメータ
+このフックは、オプションで以下のプロパティを持つ `callbacks` オブジェクトを受け取ります：
 
-  <Expandable>
-    <ResponseField name="show" type="(args: ShowCreateListingModalArgs) => void">
-      ```ts
-      interface ShowCreateListingModalArgs {
-      	collectionAddress: Hex;
-      	chainId: string;
-      	collectibleId: string;
-      	orderbookKind?: OrderbookKind;
-      	callbacks?: ModalCallbacks;
-      }
-      ```
-    </ResponseField>
+```tsx
+interface ModalCallbacks {
+  onSuccess?: ({ hash, orderId }: { hash?: Hash; orderId?: string }) => void;
+  onError?: (error: Error) => void;
+  successActionButtons?: Array<{ label: string; action: () => void }>;
+}
+```
 
-    <ResponseField name="close" type="() => void" />
-  </Expandable>
-</ResponseField>
+| パラメータ                            | 型                                                                | 説明                                    |
+| -------------------------------- | ---------------------------------------------------------------- | ------------------------------------- |
+| `callbacks.onSuccess`            | `({ hash, orderId }: { hash?: Hash; orderId?: string }) => void` | 出品が正常に作成されたときに呼び出されるオプションのコールバック関数    |
+| `callbacks.onError`              | `(error: Error) => void`                                         | 出品作成中にエラーが発生した場合に呼び出されるオプションのコールバック関数 |
+| `callbacks.successActionButtons` | `Array<{ label: string; action: () => void }>`                   | 成功時に表示するアクションボタンのオプション配列              |
+
+## 返り値の型
+このフックは、以下のメソッドを持つオブジェクトを返します：
+
+```tsx
+{
+  show: (args: ShowCreateListingModalArgs) => void
+  close: () => void
+}
+```
+
+### メソッド一覧
+
+#### show
+`(args: ShowCreateListingModalArgs) => void`
+
+指定したパラメータで出品作成モーダルを開きます。
+
+```tsx
+interface ShowCreateListingModalArgs {
+  collectionAddress: Address;
+  chainId: number;
+  collectibleId: string;
+  orderbookKind?: OrderbookKind;
+}
+```
+
+| パラメータ               | 型               | 必須 | 説明                                               |
+| ------------------- | --------------- | -- | ------------------------------------------------ |
+| `collectionAddress` | `Address`       | あり | コレクションのコントラクトアドレス                                |
+| `chainId`           | `number`        | あり | ブロックチェーンネットワークID（例：Ethereumは1、Polygonは137）       |
+| `collectibleId`     | `string`        | あり | 出品するコレクティブルのID                                   |
+| `orderbookKind`     | `OrderbookKind` | なし | 使用するオーダーブックタイプ（デフォルトは sequence\_marketplace\_v2） |
+
+#### close
+`() => void`
+
+出品作成モーダルを閉じます。
+
+## 補足
+`useCreateListingModal` フックは、コレクティブル販売のための出品作成モーダルインターフェースを簡単に管理できる方法を提供します。主に以下を処理します：
+- モーダルの開閉
+- 出品作成フローの状態管理
+- 価格や数量の入力バリデーション
+- 有効期限の日付選択
+- エラー処理や成功時のコールバック対応
+- トランザクションの承認および実行ステップ
+- さまざまなオーダーブックタイプへの対応
+
+### 事前準備
+このフックを使用する前に、以下を確認してください：
+1. **ユーザー認証**：ユーザーがウォレットで接続されている必要があります
+2. **所有権の確認**：[`useBalanceOfCollectible`](/sdk/marketplace-sdk/hooks/marketplace-data/useBalanceOfCollectible) などのフックを使い、ユーザーがコレクティブルを所有していることを確認してください
+3. **コレクティブルデータ**：[`useCollectible`](/sdk/marketplace-sdk/hooks/marketplace-data/useCollectible) を使い、出品するコレクティブルのメタデータを取得してください
+4. **ネットワーク設定**：マーケットプレイスが対象チェーン向けに設定されていることを確認してください
+
+### 関連フック
+
+- [`useCollectible`](/sdk/marketplace-sdk/hooks/marketplace-data/useCollectible) - コレクティブルのメタデータ取得
+- [`useBalanceOfCollectible`](/sdk/marketplace-sdk/hooks/marketplace-data/useBalanceOfCollectible) - 所有権の確認
+- [`useInventory`](/sdk/marketplace-sdk/hooks/marketplace-data/useInventory) - ユーザーのコレクティブル取得
+- [`useListListingsForCollectible`](/sdk/marketplace-sdk/hooks/marketplace-data/useListListingsForCollectible) - 既存の出品情報取得
