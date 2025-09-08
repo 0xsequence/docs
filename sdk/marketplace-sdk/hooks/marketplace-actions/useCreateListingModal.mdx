@@ -1,54 +1,353 @@
 ---
-title: useCreateListingModal
-description: The useCreateListingModal hook is used to list an item for sale on the Marketplace. It provides the necessary functionality to create and manage a new listing.
-sidebarTitle: useCreateListingModal
+title: "useCreateListingModal"
+description: "Hook for managing the create listing modal interface for collectible sales"
+sidebarTitle: "useCreateListingModal"
 ---
 
-```ts
+## Import
+
+```tsx
 import { useCreateListingModal } from "@0xsequence/marketplace-sdk/react";
-
-## Into your React component:
-
-const { show: showListModal } = useCreateListingModal({ onError });
-
-const onClickList = () => {
-	showListModal({
-		collectionAddress,
-		chainId,
-		collectibleId,
-		orderbookKind,
-	});
-};
-
-return <button onClick={onClickList}>List</button>
 ```
 
-<ResponseField name="useCreateListingModal">
-	<ResponseField name="* params"/>
-  <Expandable>
-		```ts
-		interface useCreateListingModal {
-			onSuccess?: ({ hash, orderId }: {
-			hash?: Hash; 
-				orderId?: string; 
-			}) => void;
-			onError?: (error: Error) => void;
-		}
-		```
-  </Expandable>
-	<ResponseField name="* return properties"/>
-  <Expandable>
-    <ResponseField name="show" type="(args: ShowCreateListingModalArgs) => void">
-		```ts
-		interface ShowCreateListingModalArgs {
-			collectionAddress: Hex;
-			chainId: string;
-			collectibleId: string;
-			orderbookKind?: OrderbookKind;
-			callbacks?: ModalCallbacks;
-		}
-		```
-		</ResponseField>
-    <ResponseField name="close" type="() => void"></ResponseField>
-  </Expandable>
-</ResponseField>
+![Create Listing Modal](/images/marketplace/create_listing_modal.png "Create Listing Modal")
+
+## Usage
+
+### Examples
+
+<Tabs>
+  <Tab title="Basic Listing Creation">
+    Example of implementing a basic listing creation using the `useCreateListingModal` hook:
+
+    <Note>
+      This example uses the [`useCollectible`](/sdk/marketplace-sdk/hooks/marketplace-data/useCollectible) and [`useBalanceOfCollectible`](/sdk/marketplace-sdk/hooks/marketplace-data/useBalanceOfCollectible) hooks from marketplace-sdk to verify ownership and get collectible details.
+    </Note>
+
+    ```tsx
+
+import {
+  useCreateListingModal,
+  useCollectible,
+  useBalanceOfCollectible,
+} from "@0xsequence/marketplace-sdk/react";
+import { useAccount } from "wagmi";
+import type { Address } from "viem";
+import type { OrderbookKind } from "@0xsequence/marketplace-sdk";
+
+export default function BasicListingExample() {
+  const { address: accountAddress } = useAccount();
+  
+  // Example values - replace with your own
+  const chainId = 1; // Ethereum mainnet
+  const collectionAddress = "0x1234567890123456789012345678901234567890" as Address;
+  const collectibleId = "1";
+  const orderbookKind = "sequence_marketplace_v2" as OrderbookKind;
+
+// Get collectible metadata
+const {
+data: collectible,
+isLoading: isLoadingCollectible,
+isError: isErrorCollectible,
+} = useCollectible({
+chainId,
+collectionAddress,
+collectibleId,
+});
+
+// Check if user owns the collectible
+const {
+data: balance,
+isLoading: isLoadingBalance,
+isError: isErrorBalance,
+} = useBalanceOfCollectible({
+collectionAddress,
+collectableId: collectibleId,
+userAddress: accountAddress as Address,
+chainId,
+query: {
+enabled: !!accountAddress,
+},
+});
+
+const { show: showCreateListingModal } = useCreateListingModal({
+onSuccess: ({ hash, orderId }) => {
+console.log("Listing created successfully", { hash, orderId });
+},
+onError: (error) => {
+console.error("Listing creation failed:", error.message);
+},
+});
+
+const handleCreateListing = () => {
+if (!collectible || !balance || Number(balance) === 0) return;
+
+    showCreateListingModal({
+      chainId,
+      collectionAddress,
+      collectibleId,
+      orderbookKind,
+    });
+
+};
+
+const isOwner = balance && Number(balance) > 0;
+const isLoading = isLoadingCollectible || isLoadingBalance;
+const hasError = isErrorCollectible || isErrorBalance;
+
+return (
+<div style={{ padding: "20px" }}>
+<h3>Create Listing</h3>
+
+      {collectible && (
+        <div style={{ marginBottom: "16px" }}>
+          <p>Name: {collectible.name}</p>
+          <p>Token ID: {collectibleId}</p>
+          <p>Owned: {balance || "0"}</p>
+        </div>
+      )}
+
+      <button
+        onClick={handleCreateListing}
+        disabled={isLoading || hasError || !isOwner || !accountAddress}
+        style={{
+          backgroundColor: isOwner ? "#007bff" : "#6c757d",
+          color: "white",
+          border: "none",
+          padding: "12px 24px",
+          borderRadius: "8px",
+          cursor: isOwner ? "pointer" : "not-allowed",
+        }}
+      >
+        {isLoading
+          ? "Loading..."
+          : !accountAddress
+          ? "Connect Wallet"
+          : !isOwner
+          ? "You don't own this collectible"
+          : "Create Listing"}
+      </button>
+    </div>
+
+);
+}
+```
+
+  </Tab>
+  <Tab title="Inventory Listing">
+    Example of implementing listing creation from a user's inventory:
+
+    <Note>
+      This example demonstrates how to integrate the listing modal with inventory management, allowing users to list collectibles they own.
+    </Note>
+
+    ```tsx
+
+import {
+  useCreateListingModal,
+  useInventory,
+} from "@0xsequence/marketplace-sdk/react";
+import { useAccount } from "wagmi";
+import type { Address } from "viem";
+import type { OrderbookKind } from "@0xsequence/marketplace-sdk";
+
+export default function InventoryListingExample() {
+  const { address: accountAddress } = useAccount();
+  
+  // Example values - replace with your own
+  const chainId = 137; // Polygon
+  const collectionAddress = "0x1234567890123456789012345678901234567890" as Address;
+  const orderbookKind = "sequence_marketplace_v2" as OrderbookKind;
+
+// Get user's inventory for this collection
+const {
+data: inventoryData,
+isLoading: isLoadingInventory,
+error: inventoryError,
+} = useInventory({
+accountAddress: accountAddress as Address,
+collectionAddress,
+chainId,
+query: {
+enabled: !!accountAddress,
+},
+});
+
+const { show: showCreateListingModal } = useCreateListingModal({
+onSuccess: ({ hash, orderId }) => {
+console.log("Listing created successfully", { hash, orderId });
+// Optionally refetch inventory to update UI
+},
+onError: (error) => {
+console.error("Failed to create listing:", error.message);
+},
+successActionButtons: [
+{
+label: "View Listing",
+action: () => {
+// Navigate to listing or marketplace
+console.log("Navigate to listing");
+},
+},
+],
+});
+
+const handleListCollectible = (tokenId: string) => {
+showCreateListingModal({
+chainId,
+collectionAddress,
+collectibleId: tokenId,
+orderbookKind,
+});
+};
+
+if (isLoadingInventory) {
+return <div>Loading inventory...</div>;
+}
+
+if (inventoryError) {
+return <div>Error loading inventory: {inventoryError.message}</div>;
+}
+
+if (!inventoryData?.collectibles?.length) {
+return <div>No collectibles found in your inventory</div>;
+}
+
+return (
+<div style={{ padding: "20px" }}>
+<h3>Your Collection - Create Listings</h3>
+
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(250px, 1fr))", gap: "16px" }}>
+        {inventoryData.collectibles.map((collectible) => (
+          <div
+            key={collectible.tokenId}
+            style={{
+              border: "1px solid #e0e0e0",
+              borderRadius: "8px",
+              padding: "16px",
+              textAlign: "center",
+            }}
+          >
+            {collectible.image && (
+              <img
+                src={collectible.image}
+                alt={collectible.name}
+                style={{ width: "100%", height: "200px", objectFit: "cover", borderRadius: "4px" }}
+              />
+            )}
+            <h4>{collectible.name}</h4>
+            <p>Token ID: {collectible.tokenId}</p>
+            <p>Balance: {collectible.balance}</p>
+
+            <button
+              onClick={() => handleListCollectible(collectible.tokenId)}
+              style={{
+                backgroundColor: "#28a745",
+                color: "white",
+                border: "none",
+                padding: "8px 16px",
+                borderRadius: "4px",
+                cursor: "pointer",
+                marginTop: "8px",
+              }}
+            >
+              Create Listing
+            </button>
+          </div>
+        ))}
+      </div>
+    </div>
+
+);
+}
+```
+
+  </Tab>
+</Tabs>
+
+## Parameters
+
+The hook accepts an optional `callbacks` object with the following properties:
+
+```tsx
+interface ModalCallbacks {
+  onSuccess?: ({ hash, orderId }: { hash?: Hash; orderId?: string }) => void;
+  onError?: (error: Error) => void;
+  successActionButtons?: Array<{ label: string; action: () => void }>;
+}
+```
+
+| Parameter                        | Type                                                             | Description                                                                    |
+| -------------------------------- | ---------------------------------------------------------------- | ------------------------------------------------------------------------------ |
+| `callbacks.onSuccess`            | `({ hash, orderId }: { hash?: Hash; orderId?: string }) => void` | Optional callback function called when the listing is created successfully     |
+| `callbacks.onError`              | `(error: Error) => void`                                         | Optional callback function called when an error occurs during listing creation |
+| `callbacks.successActionButtons` | `Array<{ label: string; action: () => void }>`                   | Optional array of action buttons to show on success                            |
+
+## Return Type
+
+The hook returns an object with the following methods:
+
+```tsx
+{
+  show: (args: ShowCreateListingModalArgs) => void
+  close: () => void
+}
+```
+
+### Methods
+
+#### show
+
+`(args: ShowCreateListingModalArgs) => void`
+
+Opens the create listing modal with the specified parameters.
+
+```tsx
+interface ShowCreateListingModalArgs {
+  collectionAddress: Address;
+  chainId: number;
+  collectibleId: string;
+  orderbookKind?: OrderbookKind;
+}
+```
+
+| Parameter           | Type            | Required | Description                                                       |
+| ------------------- | --------------- | -------- | ----------------------------------------------------------------- |
+| `collectionAddress` | `Address`       | Yes      | The contract address of the NFT collection                        |
+| `chainId`           | `number`        | Yes      | The blockchain network ID (e.g., 1 for Ethereum, 137 for Polygon) |
+| `collectibleId`     | `string`        | Yes      | The token ID of the collectible to list                           |
+| `orderbookKind`     | `OrderbookKind` | No       | The orderbook type to use (defaults to sequence_marketplace_v2)   |
+
+#### close
+
+`() => void`
+
+Closes the create listing modal.
+
+## Notes
+
+The `useCreateListingModal` hook provides a convenient way to manage the create listing modal interface for collectible sales. It handles:
+
+- Opening and closing the modal
+- Managing the listing creation flow state
+- Price and quantity input validation
+- Expiration date selection
+- Error handling and success callbacks
+- Transaction approval and execution steps
+- Support for different orderbook types
+
+### Prerequisites
+
+Before using this hook, ensure:
+
+1. **User Authentication**: The user must be connected with a wallet
+2. **Ownership Verification**: Use hooks like [`useBalanceOfCollectible`](/sdk/marketplace-sdk/hooks/marketplace-data/useBalanceOfCollectible) to verify the user owns the collectible
+3. **Collectible Data**: Use [`useCollectible`](/sdk/marketplace-sdk/hooks/marketplace-data/useCollectible) to get metadata for the collectible being listed
+4. **Network Configuration**: Ensure the marketplace is configured for the target chain
+
+### Related Hooks
+
+- [`useCollectible`](/sdk/marketplace-sdk/hooks/marketplace-data/useCollectible) - Get collectible metadata
+- [`useBalanceOfCollectible`](/sdk/marketplace-sdk/hooks/marketplace-data/useBalanceOfCollectible) - Check ownership
+- [`useInventory`](/sdk/marketplace-sdk/hooks/marketplace-data/useInventory) - Get user's collectibles
+- [`useListListingsForCollectible`](/sdk/marketplace-sdk/hooks/marketplace-data/useListListingsForCollectible) - Get existing listings

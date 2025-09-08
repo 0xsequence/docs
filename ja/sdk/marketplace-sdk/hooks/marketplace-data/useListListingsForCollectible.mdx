@@ -1,0 +1,70 @@
+---
+title: useListListingsForCollectible
+description: 特定のコレクティブルの出品情報を取得するためのフックです。マーケットプレイスから特定トークンのアクティブな出品（販売）情報を、フィルタリングやページネーションに対応して取得します。
+sidebarTitle: useListListingsForCollectible
+category: Data Fetching
+---
+
+## パラメータ
+
+| 名前       | 型 | 説明                                             |
+| -------- | - | ---------------------------------------------- |
+| `params` |   | 設定パラメータ                                        |
+| `params` |   | .chainId - チェーンID（数値、例：Ethereumは1、Polygonは137） |
+| `params` |   | .collectionAddress - コレクションのコントラクトアドレス         |
+| `params` |   | .collectibleId - 出品情報を取得する特定のトークンID            |
+| `params` |   | .filter - オプションのフィルタリングパラメータ（マーケットプレイス、通貨など）   |
+| `params` |   | .page - オプションのページネーションパラメータ                    |
+| `params` |   | .query - オプションのReact Query設定                   |
+
+## 戻り値
+コレクティブルの出品データを含むクエリ結果
+
+## 例
+基本的な使い方：
+
+```typescript
+const { data, isLoading } = useListListingsForCollectible({
+chainId: 137,
+collectionAddress: '0x...',
+collectibleId: '123'
+})
+```
+
+ページネーションを使う場合：
+
+```typescript
+const { data } = useListListingsForCollectible({
+chainId: 1,
+collectionAddress: '0x...',
+collectibleId: '456',
+page: {
+page: 2,
+pageSize: 20
+}
+})
+```
+
+フィルタリングを使う場合：
+
+```typescript
+const { data } = useListListingsForCollectible({
+chainId: 137,
+collectionAddress: '0x...',
+collectibleId: '789',
+filter: {
+marketplace: [MarketplaceKind.sequence_marketplace_v2],
+currencies: ['0x...'] // Specific currency addresses
+}
+})
+```
+
+## 基本的な使い方
+
+```typescript
+import { useListListingsForCollectible } from '@0xsequence/marketplace-sdk/react/hooks';
+
+const result = useListListingsForCollectible({
+  // Add your parameters here
+});
+```

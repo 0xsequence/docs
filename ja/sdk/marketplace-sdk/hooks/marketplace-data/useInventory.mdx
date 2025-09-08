@@ -1,53 +1,84 @@
 ---
 title: useInventory
-description: useInventoryフックは、Marketplace内のコレクションにおけるユーザーのインベントリを取得します。
+description: 特定コレクションのユーザーコレクティブルインベントリを無限スクロールで取得 このフックは、マーケットプレイスAPIとインデクサーの両方からデータを組み合わせて、所有しているコレクティブルを完全に表示します。LAOS ERC-721コレクションも自動的に検出し、適切に処理します。マーケットプレイスに出品されていないトークンも含め、すべての所有トークンが返されることを保証します。
 sidebarTitle: useInventory
+category: Data Fetching
 ---
 
-```ts
-import { useInventory } from "@0xsequence/marketplace-sdk/react";
+## パラメータ
 
-## Into your React component:
+| 名前     | 型 | 説明                                         |
+| ------ | - | ------------------------------------------ |
+| `args` |   | インベントリ取得のための設定                             |
+| `args` |   | .accountAddress - インベントリを取得するウォレットアドレス     |
+| `args` |   | .collectionAddress - コレクションのコントラクトアドレス     |
+| `args` |   | .chainId - ブロックチェーンネットワークID                |
+| `args` |   | .query - オプションのクエリ設定                       |
+| `args` |   | .query.enabled - クエリを有効にするかどうか（デフォルト：true） |
 
-const { data: inventoryData } = useInventory({
-  accountAddress: "0x2b54eAE39bdcDbBE1bbe001a4329C38cD58679D1",
-  chainId: 421614,
-  collectionAddress: "0x36631c1e690714192614364ae9629850b546d194"
+## 戻り値
+returns.isFetchingNextPage - 次のページを取得中は true です
+
+## 例
+ページネーションを利用した基本的な使い方：
+
+```typescript
+const {
+data,
+fetchNextPage,
+hasNextPage,
+isLoading
+} = useInventory({
+accountAddress: '0x...',
+collectionAddress: '0x...',
+chainId: 137
 });
-
-console.log(inventoryData);
+const allCollectibles = data?.pages.flatMap(page => page.collectibles) ?? [];
+return (
+<div>
+{allCollectibles.map(item => (
+<CollectibleCard
+key={item.metadata.tokenId}
+metadata={item.metadata}
+balance={item.balance}
+/>
+))}
+{hasNextPage && (
+<button onClick={() => fetchNextPage()}>
+Load More
+</button>
+)}
+</div>
+);
 ```
 
-<ResponseField name="useInventory">
-  <ResponseField name="* params" />
+フィルタリングや残高表示を含めた使い方：
 
-  <Expandable>
-    ```ts
-    interface UseInventoryArgs {
-      accountAddress: Address;
-      collectionAddress: Address;
-      chainId: number;
-      isLaos721?: boolean;
-      query?: {
-        enabled?: boolean;
-      };
-    }
-    ```
-  </Expandable>
+```typescript
+const { data } = useInventory({
+accountAddress: userAddress,
+collectionAddress: collection.address,
+chainId: collection.chainId,
+query: {
+enabled: !!userAddress && isConnected
+}
+});
+// Get all items across pages
+const inventory = data?.pages.flatMap(p => p.collectibles) ?? [];
+// Show ERC1155 balances
+inventory.forEach(item => {
+if (item.contractType === ContractType.ERC1155) {
+console.log(`Token ${item.metadata.tokenId}: ${item.balance} owned`);
+}
+});
+```
 
-  <ResponseField name="* return properties" />
+## 基本的な使い方
 
-  <Expandable>
-    <ParamField path="data" type="CollectiblesResponse">
-      ユーザーインベントリデータを含みます。
-    </ParamField>
+```typescript
+import { useInventory } from '@0xsequence/marketplace-sdk/react/hooks';
 
-    <ParamField path="isLoading" type="boolean">
-      データが現在読み込み中かどうかを示します。
-    </ParamField>
-
-    <ParamField path="fetchNextPage" type="(options?: FetchNextPageOptions) => Promise<UseInfiniteQueryResult>">
-      この関数で次の「ページ」の結果を取得できます。
-    </ParamField>
-  </Expandable>
-</ResponseField>
+const result = useInventory({
+  // Add your parameters here
+});
+```
