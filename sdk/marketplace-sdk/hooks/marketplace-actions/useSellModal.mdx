@@ -1,54 +1,248 @@
 ---
-title: useSellModal
-description: The useSellModal hook is used to sell an NFT by accepting an existing offer. It provides the necessary functionality to complete the selling process.
-sidebarTitle: useSellModal
+title: "useSellModal"
+description: "Hook for managing the sell modal interface for accepting offers on collectibles"
+sidebarTitle: "useSellModal"
 ---
 
-```ts
+## Import
+
+```tsx
 import { useSellModal } from "@0xsequence/marketplace-sdk/react";
-
-## Into your React component:
-
-const { show: showSellModal } = useSellModal({ onError });
-
-const onAcceptOffer = () => {
-	showSellModal({
-		collectionAddress,
-		chainId,
-		tokenId,
-		order,
-	});
-};
-
-return <button onClick={onAcceptOffer}>Accept Offer</button>
 ```
 
-<ResponseField name="useSellModal">
-	<ResponseField name="* params"/>
-  <Expandable>
-		```ts
-		interface useSellModal {
-			onSuccess?: ({ hash, orderId }: {
-				hash?: Hash;
-				orderId?: string;
-			}) => void;
-			onError?: (error: Error) => void;
-		}
-		```
-  </Expandable>
-	<ResponseField name="* return properties"/>
-  <Expandable>
-    <ResponseField name="show" type="(args: ShowSellModalArgs) => void">
-		```ts
-		interface ShowSellModalArgs {
-			collectionAddress: Hex;
-			chainId: string;
-			tokenId: string;
-			order: Order;
-			callbacks?: ModalCallbacks;
-		}
-		```
-		</ResponseField>
-    <ResponseField name="close" type="() => void"></ResponseField>
-  </Expandable>
-</ResponseField>
+![Sell Modal](/images/marketplace/sell_modal.png "Sell Modal")
+
+## Usage
+
+The `useSellModal` hook provides a convenient way to manage the sell modal interface for accepting offers on collectibles. This modal is specifically used when a user wants to sell their collectible to an existing offer (bid) on the marketplace.
+
+### Basic Example
+
+<Note>
+  This example uses the
+  [`useBalanceOfCollectible`](/sdk/marketplace-sdk/hooks/marketplace-data/useBalanceOfCollectible)
+  hook from marketplace-sdk to verify ownership before showing the sell modal.
+</Note>
+
+```tsx
+import {
+  useSellModal,
+  useBalanceOfCollectible,
+  useListOffersForCollectible,
+} from "@0xsequence/marketplace-sdk/react";
+import { useAccount } from "wagmi";
+import type { Address } from "viem";
+import type { Order } from "@0xsequence/marketplace-sdk";
+
+export default function SellToOfferExample() {
+  const { address: accountAddress } = useAccount();
+
+  // Example values - replace with your own
+  const chainId = 137; // Polygon
+  const collectionAddress =
+    "0x1234567890123456789012345678901234567890" as Address;
+  const tokenId = "1";
+
+  // Check if user owns the collectible
+  const {
+    data: balance,
+    isLoading: isLoadingBalance,
+    isError: isErrorBalance,
+  } = useBalanceOfCollectible({
+    collectionAddress,
+    collectableId: tokenId,
+    userAddress: accountAddress as Address,
+    chainId,
+    query: {
+      enabled: !!accountAddress,
+    },
+  });
+
+  // Get available offers for this collectible
+  const {
+    data: offersData,
+    isLoading: isLoadingOffers,
+    error: offersError,
+  } = useListOffersForCollectible({
+    chainId,
+    collectionAddress,
+    collectibleId: tokenId,
+  });
+
+  const { show: showSellModal } = useSellModal({
+    onSuccess: ({ hash, orderId }) => {
+      console.log("Sale completed successfully", { hash, orderId });
+    },
+    onError: (error) => {
+      console.error("Sale failed:", error.message);
+    },
+  });
+
+  const handleSellToOffer = (offer: Order) => {
+    if (!balance || Number(balance) === 0) return;
+
+    showSellModal({
+      chainId,
+      collectionAddress,
+      tokenId,
+      order: offer,
+    });
+  };
+
+  const isOwner = balance && Number(balance) > 0;
+  const isLoading = isLoadingBalance || isLoadingOffers;
+  const hasError = isErrorBalance || offersError;
+  const hasOffers = offersData?.orders && offersData.orders.length > 0;
+
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
+
+  if (hasError) {
+    return <div>Error loading data</div>;
+  }
+
+  if (!isOwner) {
+    return <div>You don't own this collectible</div>;
+  }
+
+  if (!hasOffers) {
+    return <div>No offers available for this collectible</div>;
+  }
+
+  return (
+    <div style={{ padding: "20px" }}>
+      <h3>Available Offers</h3>
+      <p>Collectible ID: {tokenId}</p>
+      <p>Your Balance: {balance}</p>
+
+      <div style={{ marginTop: "16px" }}>
+        {offersData.orders.map((offer) => (
+          <div
+            key={offer.orderId}
+            style={{
+              border: "1px solid #e0e0e0",
+              borderRadius: "8px",
+              padding: "16px",
+              marginBottom: "12px",
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+            }}
+          >
+            <div>
+              <p>
+                Price: {offer.priceAmount} {offer.priceCurrency?.symbol}
+              </p>
+              <p>From: {offer.createdBy}</p>
+              <p>
+                Expires:{" "}
+                {new Date(offer.validUntil * 1000).toLocaleDateString()}
+              </p>
+            </div>
+
+            <button
+              onClick={() => handleSellToOffer(offer)}
+              style={{
+                backgroundColor: "#28a745",
+                color: "white",
+                border: "none",
+                padding: "8px 16px",
+                borderRadius: "4px",
+                cursor: "pointer",
+              }}
+            >
+              Accept Offer
+            </button>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+```
+
+## Parameters
+
+The hook accepts an optional `callbacks` object with the following properties:
+
+```tsx
+interface ModalCallbacks {
+  onSuccess?: ({ hash, orderId }: { hash?: Hash; orderId?: string }) => void;
+  onError?: (error: Error) => void;
+  successActionButtons?: Array<{ label: string; action: () => void }>;
+}
+```
+
+| Parameter                        | Type                                                             | Description                                                               |
+| -------------------------------- | ---------------------------------------------------------------- | ------------------------------------------------------------------------- |
+| `callbacks.onSuccess`            | `({ hash, orderId }: { hash?: Hash; orderId?: string }) => void` | Optional callback function called when the sale is completed successfully |
+| `callbacks.onError`              | `(error: Error) => void`                                         | Optional callback function called when an error occurs during the sale    |
+| `callbacks.successActionButtons` | `Array<{ label: string; action: () => void }>`                   | Optional array of action buttons to show on success                       |
+
+## Return Type
+
+The hook returns an object with the following methods:
+
+```tsx
+{
+  show: (args: ShowSellModalArgs) => void
+  close: () => void
+}
+```
+
+### Methods
+
+#### show
+
+`(args: ShowSellModalArgs) => void`
+
+Opens the sell modal with the specified parameters to accept an offer.
+
+```tsx
+interface ShowSellModalArgs {
+  collectionAddress: Address;
+  chainId: number;
+  tokenId: string;
+  order: Order;
+}
+```
+
+| Parameter           | Type      | Required | Description                                                       |
+| ------------------- | --------- | -------- | ----------------------------------------------------------------- |
+| `collectionAddress` | `Address` | Yes      | The contract address of the collection                            |
+| `chainId`           | `number`  | Yes      | The blockchain network ID (e.g., 1 for Ethereum, 137 for Polygon) |
+| `tokenId`           | `string`  | Yes      | The collectible ID of the collectible being sold                  |
+| `order`             | `Order`   | Yes      | The offer order object containing price, buyer, and other details |
+
+#### close
+
+`() => void`
+
+Closes the sell modal.
+
+## Notes
+
+The `useSellModal` hook provides a convenient way to manage the sell modal interface for accepting offers on collectibles. It handles:
+
+- Opening and closing the modal
+- Managing the sale transaction flow state
+- Token approval steps (if required)
+- Transaction execution and signature steps
+- Error handling and success callbacks
+- Support for different marketplace types
+- Integration with WaaS (Wallet as a Service) fee options
+
+### Prerequisites
+
+Before using this hook, ensure:
+
+1. **User Authentication**: The user must be connected with a wallet
+2. **Ownership Verification**: Use hooks like [`useBalanceOfCollectible`](/sdk/marketplace-sdk/hooks/marketplace-data/useBalanceOfCollectible) to verify the user owns the collectible
+3. **Valid Offer**: Ensure there's a valid offer (Order object) to accept
+4. **Network Configuration**: Ensure the marketplace is configured for the target chain
+
+### Related Hooks
+
+- [`useBalanceOfCollectible`](/sdk/marketplace-sdk/hooks/marketplace-data/useBalanceOfCollectible) - Check ownership
+- [`useListOffersForCollectible`](/sdk/marketplace-sdk/hooks/marketplace-data/useListOffersForCollectible) - Get available offers
