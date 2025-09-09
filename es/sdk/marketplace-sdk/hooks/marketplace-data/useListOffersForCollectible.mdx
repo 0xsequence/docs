@@ -1,0 +1,91 @@
+---
+title: useListOffersForCollectible
+description: Obtiene todas las ofertas para un coleccionable específico. Este hook recupera una lista de ofertas activas realizadas sobre un coleccionable, incluyendo detalles como precio, expiración e información del creador. Los resultados pueden filtrarse y paginarse según sea necesario.
+sidebarTitle: useListOffersForCollectible
+category: Data Fetching
+---
+
+## Parámetros
+
+| Nombre | Type | Description                                                    |
+| ------ | ---- | -------------------------------------------------------------- |
+| `args` |      | Configuración para obtener ofertas                             |
+| `args` |      | .chainId - El ID de la red blockchain                          |
+| `args` |      | .collectionAddress - La dirección del contrato de la colección |
+| `args` |      | .collectibleId - El ID específico del token                    |
+| `args` |      | .filter - Filtro opcional para ofertas                         |
+| `args` |      | .page - Configuración opcional de paginación                   |
+
+## Devuelve
+returns.error - Objeto de error si obtener falla
+
+## Ejemplo
+Uso básico:
+
+```typescript
+const { data, isLoading } = useListOffersForCollectible({
+  chainId: 137,
+  collectionAddress: "0x...",
+  collectibleId: "123",
+});
+if (isLoading) return <div>Loading offers...</div>;
+return (
+  <div>
+    <h3>{data?.offers.length || 0} offers</h3>
+    {data?.offers.map((offer) => (
+      <OfferCard key={offer.orderId} offer={offer} />
+    ))}
+  </div>
+);
+```
+
+Con filtrado y paginación:
+
+```typescript
+const { data } = useListOffersForCollectible({
+  chainId: 1,
+  collectionAddress: collectionAddress,
+  collectibleId: tokenId,
+  filter: {
+    isValid: true,
+    priceMin: "1000000000000000000", // 1 ETH minimum
+  },
+  page: {
+    page: 1,
+    pageSize: 20,
+    sort: [
+      {
+        column: "PRICE_PER_TOKEN",
+        order: "DESC",
+      },
+    ],
+  },
+});
+// Show highest offers first
+const topOffers = data?.offers.slice(0, 3);
+```
+
+Verificando las ofertas del usuario:
+
+```typescript
+const { address } = useAccount();
+const { data } = useListOffersForCollectible({
+  chainId,
+  collectionAddress,
+  collectibleId,
+  filter: {
+    makers: address ? [address] : [],
+  },
+});
+const hasUserOffer = (data?.offers.length || 0) > 0;
+```
+
+## Uso Básico
+
+```typescript
+import { useListOffersForCollectible } from "@0xsequence/marketplace-sdk/react/hooks";
+
+const result = useListOffersForCollectible({
+  // Add your parameters here
+});
+```
