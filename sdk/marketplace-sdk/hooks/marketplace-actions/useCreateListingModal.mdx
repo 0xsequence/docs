@@ -6,7 +6,7 @@ sidebarTitle: "useCreateListingModal"
 
 ## Import
 
-```tsx
+```typescript
 import { useCreateListingModal } from "@0xsequence/marketplace-sdk/react";
 ```
 
@@ -24,8 +24,7 @@ import { useCreateListingModal } from "@0xsequence/marketplace-sdk/react";
       This example uses the [`useCollectible`](/sdk/marketplace-sdk/hooks/marketplace-data/useCollectible) and [`useBalanceOfCollectible`](/sdk/marketplace-sdk/hooks/marketplace-data/useBalanceOfCollectible) hooks from marketplace-sdk to verify ownership and get collectible details.
     </Note>
 
-    ```tsx
-
+```typescript
 import {
   useCreateListingModal,
   useCollectible,
@@ -37,50 +36,51 @@ import type { OrderbookKind } from "@0xsequence/marketplace-sdk";
 
 export default function BasicListingExample() {
   const { address: accountAddress } = useAccount();
-  
+
   // Example values - replace with your own
   const chainId = 1; // Ethereum mainnet
-  const collectionAddress = "0x1234567890123456789012345678901234567890" as Address;
+  const collectionAddress =
+    "0x1234567890123456789012345678901234567890" as Address;
   const collectibleId = "1";
   const orderbookKind = "sequence_marketplace_v2" as OrderbookKind;
 
-// Get collectible metadata
-const {
-data: collectible,
-isLoading: isLoadingCollectible,
-isError: isErrorCollectible,
-} = useCollectible({
-chainId,
-collectionAddress,
-collectibleId,
-});
+  // Get collectible metadata
+  const {
+    data: collectible,
+    isLoading: isLoadingCollectible,
+    isError: isErrorCollectible,
+  } = useCollectible({
+    chainId,
+    collectionAddress,
+    collectibleId,
+  });
 
-// Check if user owns the collectible
-const {
-data: balance,
-isLoading: isLoadingBalance,
-isError: isErrorBalance,
-} = useBalanceOfCollectible({
-collectionAddress,
-collectableId: collectibleId,
-userAddress: accountAddress as Address,
-chainId,
-query: {
-enabled: !!accountAddress,
-},
-});
+  // Check if user owns the collectible
+  const {
+    data: balance,
+    isLoading: isLoadingBalance,
+    isError: isErrorBalance,
+  } = useBalanceOfCollectible({
+    collectionAddress,
+    collectableId: collectibleId,
+    userAddress: accountAddress as Address,
+    chainId,
+    query: {
+      enabled: !!accountAddress,
+    },
+  });
 
-const { show: showCreateListingModal } = useCreateListingModal({
-onSuccess: ({ hash, orderId }) => {
-console.log("Listing created successfully", { hash, orderId });
-},
-onError: (error) => {
-console.error("Listing creation failed:", error.message);
-},
-});
+  const { show: showCreateListingModal } = useCreateListingModal({
+    onSuccess: ({ hash, orderId }) => {
+      console.log("Listing created successfully", { hash, orderId });
+    },
+    onError: (error) => {
+      console.error("Listing creation failed:", error.message);
+    },
+  });
 
-const handleCreateListing = () => {
-if (!collectible || !balance || Number(balance) === 0) return;
+  const handleCreateListing = () => {
+    if (!collectible || !balance || Number(balance) === 0) return;
 
     showCreateListingModal({
       chainId,
@@ -88,17 +88,15 @@ if (!collectible || !balance || Number(balance) === 0) return;
       collectibleId,
       orderbookKind,
     });
+  };
 
-};
+  const isOwner = balance && Number(balance) > 0;
+  const isLoading = isLoadingCollectible || isLoadingBalance;
+  const hasError = isErrorCollectible || isErrorBalance;
 
-const isOwner = balance && Number(balance) > 0;
-const isLoading = isLoadingCollectible || isLoadingBalance;
-const hasError = isErrorCollectible || isErrorBalance;
-
-return (
-
-<div style={{ padding: "20px" }}>
-<h3>Create Listing</h3>
+  return (
+    <div style={{ padding: "20px" }}>
+      <h3>Create Listing</h3>
 
       {collectible && (
         <div style={{ marginBottom: "16px" }}>
@@ -129,11 +127,9 @@ return (
           : "Create Listing"}
       </button>
     </div>
-
-);
+  );
 }
-
-````
+```
 
   </Tab>
   <Tab title="Inventory Listing">
@@ -143,8 +139,7 @@ return (
       This example demonstrates how to integrate the listing modal with inventory management, allowing users to list collectibles they own.
     </Note>
 
-    ```tsx
-
+```typescript
 import {
   useCreateListingModal,
   useInventory,
@@ -158,68 +153,75 @@ export default function InventoryListingExample() {
 
   // Example values - replace with your own
   const chainId = 137; // Polygon
-  const collectionAddress = "0x1234567890123456789012345678901234567890" as Address;
+  const collectionAddress =
+    "0x1234567890123456789012345678901234567890" as Address;
   const orderbookKind = "sequence_marketplace_v2" as OrderbookKind;
 
-// Get user's inventory for this collection
-const {
-data: inventoryData,
-isLoading: isLoadingInventory,
-error: inventoryError,
-} = useInventory({
-accountAddress: accountAddress as Address,
-collectionAddress,
-chainId,
-query: {
-enabled: !!accountAddress,
-},
-});
+  // Get user's inventory for this collection
+  const {
+    data: inventoryData,
+    isLoading: isLoadingInventory,
+    error: inventoryError,
+  } = useInventory({
+    accountAddress: accountAddress as Address,
+    collectionAddress,
+    chainId,
+    query: {
+      enabled: !!accountAddress,
+    },
+  });
 
-const { show: showCreateListingModal } = useCreateListingModal({
-onSuccess: ({ hash, orderId }) => {
-console.log("Listing created successfully", { hash, orderId });
-// Optionally refetch inventory to update UI
-},
-onError: (error) => {
-console.error("Failed to create listing:", error.message);
-},
-successActionButtons: [
-{
-label: "View Listing",
-action: () => {
-// Navigate to listing or marketplace
-console.log("Navigate to listing");
-},
-},
-],
-});
+  const { show: showCreateListingModal } = useCreateListingModal({
+    onSuccess: ({ hash, orderId }) => {
+      console.log("Listing created successfully", { hash, orderId });
+      // Optionally refetch inventory to update UI
+    },
+    onError: (error) => {
+      console.error("Failed to create listing:", error.message);
+    },
+    successActionButtons: [
+      {
+        label: "View Listing",
+        action: () => {
+          // Navigate to listing or marketplace
+          console.log("Navigate to listing");
+        },
+      },
+    ],
+  });
 
-const handleListCollectible = (tokenId: string) => {
-showCreateListingModal({
-chainId,
-collectionAddress,
-collectibleId: tokenId,
-orderbookKind,
-});
-};
+  const handleListCollectible = (tokenId: string) => {
+    showCreateListingModal({
+      chainId,
+      collectionAddress,
+      collectibleId: tokenId,
+      orderbookKind,
+    });
+  };
 
-if (isLoadingInventory) {
-return <div>Loading inventory...</div>;
-}
+  if (isLoadingInventory) {
+    return <div>Loading inventory...</div>;
+  }
 
-if (inventoryError) {
-return <div>Error loading inventory: {inventoryError.message}</div>;
-}
+  if (inventoryError) {
+    return <div>Error loading inventory: {inventoryError.message}</div>;
+  }
 
-if (!inventoryData?.collectibles?.length) {
-return <div>No collectibles found in your inventory</div>;
-}
+  if (!inventoryData?.collectibles?.length) {
+    return <div>No collectibles found in your inventory</div>;
+  }
 
-return (
-<div style={{ padding: "20px" }}>
-<h3>Your Collection - Create Listings</h3>
+  return (
+    <div style={{ padding: "20px" }}>
+      <h3>Your Collection - Create Listings</h3>
 
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(250px, 1fr))", gap: "16px" }}>
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fill, minmax(250px, 1fr))",
+          gap: "16px",
+        }}
+      >
         {inventoryData.collectibles.map((collectible) => (
           <div
             key={collectible.tokenId}
@@ -234,7 +236,12 @@ return (
               <img
                 src={collectible.image}
                 alt={collectible.name}
-                style={{ width: "100%", height: "200px", objectFit: "cover", borderRadius: "4px" }}
+                style={{
+                  width: "100%",
+                  height: "200px",
+                  objectFit: "cover",
+                  borderRadius: "4px",
+                }}
               />
             )}
             <h4>{collectible.name}</h4>
@@ -259,10 +266,9 @@ return (
         ))}
       </div>
     </div>
-
-);
+  );
 }
-````
+```
 
   </Tab>
 </Tabs>
@@ -271,7 +277,7 @@ return (
 
 The hook accepts an optional `callbacks` object with the following properties:
 
-```tsx
+```typescript
 interface ModalCallbacks {
   onSuccess?: ({ hash, orderId }: { hash?: Hash; orderId?: string }) => void;
   onError?: (error: Error) => void;
@@ -304,7 +310,7 @@ The hook returns an object with the following methods:
 
 Opens the create listing modal with the specified parameters.
 
-```tsx
+```typescript
 interface ShowCreateListingModalArgs {
   collectionAddress: Address;
   chainId: number;

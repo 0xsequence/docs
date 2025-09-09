@@ -6,7 +6,7 @@ sidebarTitle: "useBuyModal"
 
 ## Import
 
-```tsx
+```typescript
 import { useBuyModal } from "@0xsequence/marketplace-sdk/react";
 ```
 
@@ -22,8 +22,7 @@ import { useBuyModal } from "@0xsequence/marketplace-sdk/react";
       This example uses the [`useLowestListing`](/sdk/marketplace-sdk/hooks/marketplace-data/useLowestListing) hook from marketplace-sdk. If there is no lowestListing with the given parameters, it means there is no orderId available, and therefore the item cannot be bought.
     </Note>
 
-    ```tsx
-
+```typescript
 import type { MarketplaceKind } from "@0xsequence/marketplace-sdk";
 import {
   useBuyModal,
@@ -87,8 +86,7 @@ return (
 
 );
 }
-
-    ```
+```
 
   </Tab>
   <Tab title="Shop Purchase">
@@ -98,82 +96,79 @@ return (
       This example uses the [`useListPrimarySaleItems`](/sdk/marketplace-sdk/hooks/marketplace-data/useListPrimarySaleItems) hook from marketplace-sdk. The hook fetches primary sale items from a specific contract. If there is no primarySaleItem with the given parameters or if the supply is 0, the item cannot be bought.
     </Note>
 
-    ```tsx
-
+```typescript
 import {
   useBuyModal,
   useListPrimarySaleItems,
-} from '@0xsequence/marketplace-sdk/react';
-import type { Address } from 'viem';
+} from "@0xsequence/marketplace-sdk/react";
+import type { Address } from "viem";
 
 export default function ShopPurchaseExample() {
   // Example values - replace with your own
   const chainId = 1; // Ethereum mainnet
   const saleContractAddress =
-    '0x1234567890123456789012345678901234567890' as Address;
+    "0x1234567890123456789012345678901234567890" as Address;
   const collectionAddress =
-    '0x0987654321098765432109876543210987654321' as Address;
-  const tokenId = '1';
+    "0x0987654321098765432109876543210987654321" as Address;
+  const tokenId = "1";
 
-const { show: showBuyModal } = useBuyModal({
-onSuccess: ({ hash }) => {
-console.log('Shop purchase successful', { hash });
-},
-onError: (error) => {
-console.error('Shop purchase failed:', error.message);
-},
-});
+  const { show: showBuyModal } = useBuyModal({
+    onSuccess: ({ hash }) => {
+      console.log("Shop purchase successful", { hash });
+    },
+    onError: (error) => {
+      console.error("Shop purchase failed:", error.message);
+    },
+  });
 
-// Fetch primary sale items - replace parameters with your own
-const { data: primarySaleItems } = useListPrimarySaleItems({
-chainId: chainId,
-primarySaleContractAddress: saleContractAddress,
-filter: {
-includeEmpty: true,
-},
-});
+  // Fetch primary sale items - replace parameters with your own
+  const { data: primarySaleItems } = useListPrimarySaleItems({
+    chainId: chainId,
+    primarySaleContractAddress: saleContractAddress,
+    filter: {
+      includeEmpty: true,
+    },
+  });
 
-const primarySaleItem =
-primarySaleItems?.pages[0]?.primarySaleItems[0]?.primarySaleItem;
+  const primarySaleItem =
+    primarySaleItems?.pages[0]?.primarySaleItems[0]?.primarySaleItem;
 
-const handleShopBuy = () => {
-if (!primarySaleItem) return;
+  const handleShopBuy = () => {
+    if (!primarySaleItem) return;
 
     showBuyModal({
       chainId: chainId,
       collectionAddress: collectionAddress,
       salesContractAddress: saleContractAddress,
-      marketplaceType: 'shop',
+      marketplaceType: "shop",
       quantityDecimals: 0,
       quantityRemaining: Number(primarySaleItem.supply),
       items: [
         {
           tokenId: tokenId,
-          quantity: '1',
+          quantity: "1",
         },
       ],
       salePrice: {
-        amount: primarySaleItem.priceAmount ?? '0',
-        currencyAddress: (primarySaleItem.currencyAddress as Address) ?? '0x',
+        amount: primarySaleItem.priceAmount ?? "0",
+        currencyAddress: (primarySaleItem.currencyAddress as Address) ?? "0x",
       },
     });
+  };
 
-};
-
-return (
-
-<div>
-  <p>Available: {primarySaleItem?.supply ?? 0}</p>
-  <button
-    onClick={handleShopBuy}
-    disabled={!primarySaleItem || Number(primarySaleItem.supply) === 0}
-  >
-    Buy from Shop
-  </button>
-</div>
-); }
-
-    ```
+  return (
+    <div>
+      <p>Available: {primarySaleItem?.supply ?? 0}</p>
+      <button
+        onClick={handleShopBuy}
+        disabled={!primarySaleItem || Number(primarySaleItem.supply) === 0}
+      >
+        Buy from Shop
+      </button>
+    </div>
+  );
+}
+```
 
   </Tab>
 </Tabs>
@@ -182,7 +177,7 @@ return (
 
 The hook accepts an optional `callbacks` object with the following properties:
 
-```tsx
+```typescript
 interface ModalCallbacks {
   onSuccess?: ({ hash, orderId }: { hash?: Hash; orderId?: string }) => void;
   onError?: (error: Error) => void;
@@ -200,7 +195,7 @@ interface ModalCallbacks {
 
 The hook returns an object with the following methods:
 
-```tsx
+```typescript
 {
   show: (args: BuyModalProps) => void
   close: () => void
@@ -217,7 +212,7 @@ Opens the buy modal with the specified parameters. The `BuyModalProps` can be ei
 
 For market purchases (Secondary sales):
 
-```tsx
+```typescript
 interface MarketplaceBuyModalProps extends BuyModalBaseProps {
   marketplaceType?: "market";
   collectibleId: string;
@@ -228,7 +223,7 @@ interface MarketplaceBuyModalProps extends BuyModalBaseProps {
 
 For shop purchases (Primary sales):
 
-```tsx
+```typescript
 interface ShopBuyModalProps extends BuyModalBaseProps {
   marketplaceType: "shop";
   salesContractAddress: Address;
@@ -245,7 +240,7 @@ interface ShopBuyModalProps extends BuyModalBaseProps {
 
 Both types extend from `BuyModalBaseProps`:
 
-```tsx
+```typescript
 interface BuyModalBaseProps {
   chainId: number;
   collectionAddress: Address;
