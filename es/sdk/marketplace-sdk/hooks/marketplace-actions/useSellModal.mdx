@@ -15,6 +15,10 @@ import { useSellModal } from "@0xsequence/marketplace-sdk/react";
 ## Uso
 El hook `useSellModal` ofrece una forma práctica de gestionar la interfaz del modal de venta para aceptar ofertas en coleccionables. Este modal se utiliza específicamente cuando un usuario desea vender su coleccionable a una oferta (puja) existente en el marketplace.
 
+<Note>
+  Asegúrese de haber seguido la guía de [Primeros pasos](https://docs.sequence.xyz/sdk/marketplace-sdk/getting-started) para obtener la dirección de la colección y el chainId.
+</Note>
+
 ### Ejemplo básico
 
 <Note>
@@ -35,12 +39,14 @@ import type { Order } from "@0xsequence/marketplace-sdk";
 
 export default function SellToOfferExample() {
   const { address: accountAddress } = useAccount();
+  const { data: marketplaceConfig, isLoading: isMarketplaceConfigLoading } =
+    useMarketplaceConfig();
 
-  // Example values - replace with your own
-  const chainId = 137; // Polygon
-  const collectionAddress =
-    "0x1234567890123456789012345678901234567890" as Address;
-  const tokenId = "1";
+  const collection = marketplaceConfig?.market.collections[0];
+  const chainId = collection?.chainId as number;
+  const collectionAddress = collection?.itemsAddress as Address;
+  // Replace with your collectible ID that has at least one offer
+  const collectibleId = "0";
 
   // Check if user owns the collectible
   const {
@@ -49,7 +55,7 @@ export default function SellToOfferExample() {
     isError: isErrorBalance,
   } = useBalanceOfCollectible({
     collectionAddress,
-    collectableId: tokenId,
+    collectableId: collectibleId,
     userAddress: accountAddress,
     chainId,
   });
@@ -62,7 +68,7 @@ export default function SellToOfferExample() {
   } = useListOffersForCollectible({
     chainId,
     collectionAddress,
-    collectibleId: tokenId,
+    collectibleId,
   });
 
   const { show: showSellModal } = useSellModal({
@@ -80,7 +86,7 @@ export default function SellToOfferExample() {
     showSellModal({
       chainId,
       collectionAddress,
-      tokenId,
+      tokenId: collectibleId,
       order: offer,
     });
   };
@@ -109,7 +115,7 @@ export default function SellToOfferExample() {
   return (
     <div style={{ padding: "20px" }}>
       <h3>Available Offers</h3>
-      <p>Collectible ID: {tokenId}</p>
+      <p>Collectible ID: {collectibleId}</p>
       <p>Your Balance: {balance}</p>
 
       <div style={{ marginTop: "16px" }}>

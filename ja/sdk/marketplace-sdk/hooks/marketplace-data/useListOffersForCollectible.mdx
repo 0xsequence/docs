@@ -19,16 +19,30 @@ category: Data Fetching
 ## 戻り値
 returns.error - 取得に失敗した場合のエラーオブジェクト
 
+<Note>
+  コレクションアドレスとchainIdを取得するために、必ず[Getting Started](https://docs.sequence.xyz/sdk/marketplace-sdk/getting-started)ガイドに従ってください。
+</Note>
+
 ## 例
 基本的な使い方：
 
 ```typescript
+const { data: marketplaceConfig, isLoading: isMarketplaceConfigLoading } =
+  useMarketplaceConfig();
+
+const collection = marketplaceConfig?.market.collections[0];
+const chainId = collection?.chainId as number;
+const collectionAddress = collection?.itemsAddress as Address;
+const collectibleId = "0";
+
 const { data, isLoading } = useListOffersForCollectible({
-  chainId: 137,
-  collectionAddress: "0x...",
-  collectibleId: "123",
+  chainId,
+  collectionAddress,
+  collectibleId,
 });
+
 if (isLoading) return <div>Loading offers...</div>;
+
 return (
   <div>
     <h3>{data?.offers.length || 0} offers</h3>
@@ -74,7 +88,7 @@ const { data } = useListOffersForCollectible({
   collectionAddress,
   collectibleId,
   filter: {
-    createdBy: [String(userAddress)]
+    createdBy: [String(userAddress)],
   },
 });
 const hasUserOffer = (data?.offers.length || 0) > 0;
