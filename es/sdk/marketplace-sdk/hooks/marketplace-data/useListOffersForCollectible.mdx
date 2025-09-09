@@ -53,27 +53,18 @@ return (
 );
 ```
 
-Con filtrado y paginación:
+Con ordenamiento y paginación:
 
 ```typescript
 const { data } = useListOffersForCollectible({
   chainId: 1,
   collectionAddress: collectionAddress,
   collectibleId: tokenId,
-  filter: {
-    isValid: true,
-    priceMin: "1000000000000000000", // 1 ETH minimum
-  },
   page: {
     page: 1,
     pageSize: 20,
-    sort: [
-      {
-        column: "PRICE_PER_TOKEN",
-        order: "DESC",
-      },
-    ],
   },
+  sort:[{column: "price_usd", order: SortOrder.DESC}]
 });
 // Show highest offers first
 const topOffers = data?.offers.slice(0, 3);
