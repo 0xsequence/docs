@@ -20,17 +20,33 @@ category: "Data Fetching"
 
 returns.error - Error object if fetching fails
 
+<Note>
+  Make sure you have followed the [Getting
+  Started](https://docs.sequence.xyz/sdk/marketplace-sdk/getting-started) guide
+  to get the collection address and chainId.
+</Note>
+
 ## Example
 
 Basic usage:
 
 ```typescript
+const { data: marketplaceConfig, isLoading: isMarketplaceConfigLoading } =
+  useMarketplaceConfig();
+
+const collection = marketplaceConfig?.market.collections[0];
+const chainId = collection?.chainId as number;
+const collectionAddress = collection?.itemsAddress as Address;
+const collectibleId = "0";
+
 const { data, isLoading } = useListOffersForCollectible({
-  chainId: 137,
-  collectionAddress: "0x...",
-  collectibleId: "123",
+  chainId,
+  collectionAddress,
+  collectibleId,
 });
+
 if (isLoading) return <div>Loading offers...</div>;
+
 return (
   <div>
     <h3>{data?.offers.length || 0} offers</h3>
@@ -76,7 +92,7 @@ const { data } = useListOffersForCollectible({
   collectionAddress,
   collectibleId,
   filter: {
-    createdBy: [String(userAddress)]
+    createdBy: [String(userAddress)],
   },
 });
 const hasUserOffer = (data?.offers.length || 0) > 0;
