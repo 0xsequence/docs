@@ -6,7 +6,7 @@ sidebarTitle: useBuyModal
 
 ## インポート
 
-```tsx
+```typescript
 import { useBuyModal } from "@0xsequence/marketplace-sdk/react";
 ```
 
@@ -22,31 +22,30 @@ import { useBuyModal } from "@0xsequence/marketplace-sdk/react";
       この例では、marketplace-sdk の [`useLowestListing`](/sdk/marketplace-sdk/hooks/marketplace-data/useLowestListing) フックを使用しています。指定したパラメータで lowestListing が存在しない場合、orderId が取得できず、そのアイテムは購入できません。
     </Note>
 
-    ```tsx
-
+    ```typescript
     import type { MarketplaceKind } from "@0xsequence/marketplace-sdk";
     import {
-    useBuyModal,
-    useLowestListing,
+      useBuyModal,
+      useLowestListing,
     } from "@0xsequence/marketplace-sdk/react";
     import type { Address } from "viem";
 
     export default function MarketPurchaseExample() {
-    const {
-    data: lowestListing,
-    isLoading: isLoadingLowestListing,
-    isError: isErrorLowestListing,
-    } = useLowestListing({
-    collectionAddress: "0x1234567890123456789012345678901234567890" as Address // Replace with your collection address
-    chainId: 1 // Replace with your chain id
-    tokenId: "1", // Replace with your token id
-    });
-    const chainId = lowestListing?.chainId as number;
-    const collectionAddress = lowestListing?.collectionContractAddress as Address;
-    const tokenId = lowestListing?.tokenId as string;
-    const orderId = lowestListing?.orderId as string;
-    const marketplace = lowestListing?.marketplace as MarketplaceKind;
-    const priceUSDFormatted = lowestListing?.priceUSDFormatted as string;
+      const {
+        data: lowestListing,
+        isLoading: isLoadingLowestListing,
+        isError: isErrorLowestListing,
+      } = useLowestListing({
+        collectionAddress: "0x1234567890123456789012345678901234567890" as Address // Replace with your collection address
+        chainId: 1 // Replace with your chain id
+        tokenId: "1", // Replace with your token id
+      });
+      const chainId = lowestListing?.chainId as number;
+      const collectionAddress = lowestListing?.collectionContractAddress as Address;
+      const tokenId = lowestListing?.tokenId as string;
+      const orderId = lowestListing?.orderId as string;
+      const marketplace = lowestListing?.marketplace as MarketplaceKind;
+      const priceUSDFormatted = lowestListing?.priceUSDFormatted as string;
 
     const { show: showMarketModal } = useBuyModal({
     onSuccess: ({ hash, orderId }) => {
@@ -60,13 +59,13 @@ import { useBuyModal } from "@0xsequence/marketplace-sdk/react";
     const handleMarketBuy = () => {
     if (!lowestListing || isLoadingLowestListing) return;
 
-    showMarketModal({
-      chainId,
-      collectionAddress,
-      collectibleId: tokenId,
-      orderId,
-      marketplace,
-    });
+        showMarketModal({
+          chainId,
+          collectionAddress,
+          collectibleId: tokenId,
+          orderId,
+          marketplace,
+        });
 
     };
 
@@ -75,19 +74,18 @@ import { useBuyModal } from "@0xsequence/marketplace-sdk/react";
     <div style={{ padding: "20px" }}>
     <h3>Market Purchase</h3>
 
-      <p>Price: ${priceUSDFormatted}</p>
+          <p>Price: ${priceUSDFormatted}</p>
 
-      <button
-        onClick={handleMarketBuy}
-        disabled={isLoadingLowestListing || isErrorLowestListing}
-      >
-        Buy from Market
-      </button>
-    </div>
+          <button
+            onClick={handleMarketBuy}
+            disabled={isLoadingLowestListing || isErrorLowestListing}
+          >
+            Buy from Market
+          </button>
+        </div>
 
     );
     }
-
     ```
   </Tab>
 
@@ -98,81 +96,78 @@ import { useBuyModal } from "@0xsequence/marketplace-sdk/react";
       この例では、marketplace-sdk の [`useListPrimarySaleItems`](/sdk/marketplace-sdk/hooks/marketplace-data/useListPrimarySaleItems) フックを使用しています。このフックは、特定のコントラクトからプライマリーセールアイテムを取得します。指定したパラメータで primarySaleItem が存在しない場合や、supply が 0 の場合、そのアイテムは購入できません。
     </Note>
 
-    ```tsx
-
+    ```typescript
     import {
-    useBuyModal,
-    useListPrimarySaleItems,
-    } from '@0xsequence/marketplace-sdk/react';
-    import type { Address } from 'viem';
+      useBuyModal,
+      useListPrimarySaleItems,
+    } from "@0xsequence/marketplace-sdk/react";
+    import type { Address } from "viem";
 
     export default function ShopPurchaseExample() {
-    // Example values - replace with your own
-    const chainId = 1; // Ethereum mainnet
-    const saleContractAddress =
-    '0x1234567890123456789012345678901234567890' as Address;
-    const collectionAddress =
-    '0x0987654321098765432109876543210987654321' as Address;
-    const tokenId = '1';
+      // Example values - replace with your own
+      const chainId = 1; // Ethereum mainnet
+      const saleContractAddress =
+        "0x1234567890123456789012345678901234567890" as Address;
+      const collectionAddress =
+        "0x0987654321098765432109876543210987654321" as Address;
+      const tokenId = "1";
 
-    const { show: showBuyModal } = useBuyModal({
-    onSuccess: ({ hash }) => {
-    console.log('Shop purchase successful', { hash });
-    },
-    onError: (error) => {
-    console.error('Shop purchase failed:', error.message);
-    },
-    });
-
-    // Fetch primary sale items - replace parameters with your own
-    const { data: primarySaleItems } = useListPrimarySaleItems({
-    chainId: chainId,
-    primarySaleContractAddress: saleContractAddress,
-    filter: {
-    includeEmpty: true,
-    },
-    });
-
-    const primarySaleItem =
-    primarySaleItems?.pages[0]?.primarySaleItems[0]?.primarySaleItem;
-
-    const handleShopBuy = () => {
-    if (!primarySaleItem) return;
-
-    showBuyModal({
-      chainId: chainId,
-      collectionAddress: collectionAddress,
-      salesContractAddress: saleContractAddress,
-      marketplaceType: 'shop',
-      quantityDecimals: 0,
-      quantityRemaining: Number(primarySaleItem.supply),
-      items: [
-        {
-          tokenId: tokenId,
-          quantity: '1',
+      const { show: showBuyModal } = useBuyModal({
+        onSuccess: ({ hash }) => {
+          console.log("Shop purchase successful", { hash });
         },
-      ],
-      salePrice: {
-        amount: primarySaleItem.priceAmount ?? '0',
-        currencyAddress: (primarySaleItem.currencyAddress as Address) ?? '0x',
-      },
-    });
+        onError: (error) => {
+          console.error("Shop purchase failed:", error.message);
+        },
+      });
 
-    };
+      // Fetch primary sale items - replace parameters with your own
+      const { data: primarySaleItems } = useListPrimarySaleItems({
+        chainId: chainId,
+        primarySaleContractAddress: saleContractAddress,
+        filter: {
+          includeEmpty: true,
+        },
+      });
 
-    return (
+      const primarySaleItem =
+        primarySaleItems?.pages[0]?.primarySaleItems[0]?.primarySaleItem;
 
-    <div>
-    <p>Available: {primarySaleItem?.supply ?? 0}</p>
-    <button
-    onClick={handleShopBuy}
-    disabled={!primarySaleItem || Number(primarySaleItem.supply) === 0}
-    >
-    Buy from Shop
-    </button>
-    </div>
-    ); }
+      const handleShopBuy = () => {
+        if (!primarySaleItem) return;
 
+        showBuyModal({
+          chainId: chainId,
+          collectionAddress: collectionAddress,
+          salesContractAddress: saleContractAddress,
+          marketplaceType: "shop",
+          quantityDecimals: 0,
+          quantityRemaining: Number(primarySaleItem.supply),
+          items: [
+            {
+              tokenId: tokenId,
+              quantity: "1",
+            },
+          ],
+          salePrice: {
+            amount: primarySaleItem.priceAmount ?? "0",
+            currencyAddress: (primarySaleItem.currencyAddress as Address) ?? "0x",
+          },
+        });
+      };
+
+      return (
+        <div>
+          <p>Available: {primarySaleItem?.supply ?? 0}</p>
+          <button
+            onClick={handleShopBuy}
+            disabled={!primarySaleItem || Number(primarySaleItem.supply) === 0}
+          >
+            Buy from Shop
+          </button>
+        </div>
+      );
+    }
     ```
   </Tab>
 </Tabs>
@@ -180,7 +175,7 @@ import { useBuyModal } from "@0xsequence/marketplace-sdk/react";
 ## パラメータ
 このフックは、オプションで以下のプロパティを持つ `callbacks` オブジェクトを受け取ります：
 
-```tsx
+```typescript
 interface ModalCallbacks {
   onSuccess?: ({ hash, orderId }: { hash?: Hash; orderId?: string }) => void;
   onError?: (error: Error) => void;
@@ -197,7 +192,7 @@ interface ModalCallbacks {
 ## 返り値の型
 このフックは、以下のメソッドを持つオブジェクトを返します：
 
-```tsx
+```typescript
 {
   show: (args: BuyModalProps) => void
   close: () => void
@@ -213,7 +208,7 @@ interface ModalCallbacks {
 
 マーケット購入（セカンダリーセール）の場合：
 
-```tsx
+```typescript
 interface MarketplaceBuyModalProps extends BuyModalBaseProps {
   marketplaceType?: "market";
   collectibleId: string;
@@ -224,7 +219,7 @@ interface MarketplaceBuyModalProps extends BuyModalBaseProps {
 
 ショップ購入（プライマリーセール）の場合：
 
-```tsx
+```typescript
 interface ShopBuyModalProps extends BuyModalBaseProps {
   marketplaceType: "shop";
   salesContractAddress: Address;
@@ -241,7 +236,7 @@ interface ShopBuyModalProps extends BuyModalBaseProps {
 
 どちらのタイプも `BuyModalBaseProps` を継承しています：
 
-```tsx
+```typescript
 interface BuyModalBaseProps {
   chainId: number;
   collectionAddress: Address;
