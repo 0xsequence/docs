@@ -26,73 +26,130 @@ import { useBuyModal } from "@0xsequence/marketplace-sdk/react";
       Este ejemplo utiliza el hook [`useLowestListing`](/sdk/marketplace-sdk/hooks/marketplace-data/useLowestListing) de marketplace-sdk. Si no existe un lowestListing con los parámetros indicados, significa que no hay un orderId disponible y, por lo tanto, el artículo no se puede comprar.
     </Note>
 
-    ```typescript
-    import type { MarketplaceKind } from "@0xsequence/marketplace-sdk";
-    import {
-      useBuyModal,
-      useLowestListing,
-    } from "@0xsequence/marketplace-sdk/react";
-    import type { Address } from "viem";
+    <Steps>
+      <Step title="Configurar el componente manejador con validación de la configuración del marketplace">
+        Primero, cree un componente principal que se encargue de cargar y validar la configuración del marketplace:
 
-    export default function MarketPurchaseExample() {
-      const { data: marketplaceConfig, isLoading: isMarketplaceConfigLoading } =
-        useMarketplaceConfig();
+        ```typescript
+        import {
+          useBuyModal,
+          useLowestListing,
+          useMarketplaceConfig,
+        } from '@0xsequence/marketplace-sdk/react';
+        import type { Address } from 'viem';
 
-      const collection = marketplaceConfig?.market.collections[0];
-      const chainId = collection?.chainId as number;
-      const collectionAddress = collection?.itemsAddress as Address;
-      const collectibleId = "0";
-      const {
-        data: lowestListing,
-        isLoading: isLoadingLowestListing,
-        isError: isErrorLowestListing,
-      } = useLowestListing({
-        collectionAddress,
-        chainId,
-        tokenId: collectibleId,
-      });
-      const orderId = lowestListing?.orderId as string;
-      const marketplace = lowestListing?.marketplace as MarketplaceKind;
-      const priceUSDFormatted = lowestListing?.priceUSDFormatted as string;
+        function MarketPurchaseExample() {
+          const { data: marketplaceConfig, isLoading: isMarketplaceConfigLoading } =
+            useMarketplaceConfig();
 
-      const { show: showMarketModal } = useBuyModal({
-        onSuccess: ({ hash, orderId }) => {
-          console.log("Market purchase successful", { hash, orderId });
-        },
-        onError: (error) => {
-          console.error("Market purchase failed:", error.message);
-        },
-      });
+          // Handle loading states
+          if (isMarketplaceConfigLoading) {
+            return <div style={{ padding: '20px' }}>Loading marketplace config...</div>;
+          }
 
-      const handleMarketBuy = () => {
-        if (!lowestListing || isLoadingLowestListing) return;
+          if (!marketplaceConfig) {
+            return (
+              <div style={{ padding: '20px' }}>No marketplace config available</div>
+            );
+          }
 
-        showMarketModal({
+          const collection = marketplaceConfig.market.collections[0];
+
+          if (!collection) {
+            return <div style={{ padding: '20px' }}>No collections available</div>;
+          }
+
+          const chainId = collection.chainId;
+          const collectionAddress = collection.itemsAddress as Address;
+
+          return (
+            <MarketPurchase
+              chainId={chainId}
+              collectionAddress={collectionAddress}
+              collectibleId="0"
+            />
+          );
+        }
+        ```
+      </Step>
+
+      <Step title="Crear el componente de compra del marketplace">
+        A continuación, cree el componente real de compra del marketplace que utilice los datos validados correctamente:
+
+        ```typescript
+        interface MarketPurchaseProps {
+          chainId: number;
+          collectionAddress: Address;
+          collectibleId: string;
+        }
+
+        function MarketPurchase({
           chainId,
           collectionAddress,
           collectibleId,
-          orderId,
-          marketplace,
-        });
-      };
+        }: MarketPurchaseProps) {
+          const {
+            data: lowestListing,
+            isLoading: isLoadingLowestListing,
+            isError: isErrorLowestListing,
+          } = useLowestListing({
+            collectionAddress,
+            chainId,
+            tokenId: collectibleId,
+          });
 
-      return (
-        <div style={{ padding: "20px" }}>
-          <h3>Market Purchase</h3>
+          const { show: showMarketModal } = useBuyModal({
+            onSuccess: ({ hash, orderId }) => {
+              console.log('Market purchase successful', { hash, orderId });
+            },
+            onError: (error) => {
+              console.error('Market purchase failed:', error.message);
+            },
+          });
 
-          <p>Price: ${priceUSDFormatted}</p>
+          const handleMarketBuy = () => {
+            if (!lowestListing || isLoadingLowestListing) return;
 
-          <button
-            type="button"
-            onClick={handleMarketBuy}
-            disabled={isLoadingLowestListing || isErrorLowestListing}
-          >
-            Buy from Market
-          </button>
-        </div>
-      );
-    }
-    ```
+            showMarketModal({
+              chainId,
+              collectionAddress,
+              collectibleId,
+              orderId: lowestListing.orderId,
+              marketplace: lowestListing.marketplace,
+            });
+          };
+
+          if (isLoadingLowestListing) {
+            return <div style={{ padding: '20px' }}>Loading listing...</div>;
+          }
+
+          if (isErrorLowestListing || !lowestListing) {
+            return (
+              <div style={{ padding: '20px' }}>
+                Error loading listing or no listing found
+              </div>
+            );
+          }
+
+          return (
+            <div style={{ padding: '20px' }}>
+              <h3>Market Purchase</h3>
+
+              <p>Price: ${lowestListing.priceUSDFormatted}</p>
+
+              <button
+                type="button"
+                onClick={handleMarketBuy}
+                disabled={isLoadingLowestListing || isErrorLowestListing}
+              >
+                Buy from Market
+              </button>
+            </div>
+          );
+        }
+        ```
+      </Step>
+    </Steps>
   </Tab>
 
   <Tab title="Compra en la tienda">
@@ -102,81 +159,145 @@ import { useBuyModal } from "@0xsequence/marketplace-sdk/react";
       Este ejemplo utiliza el hook [`useListPrimarySaleItems`](/sdk/marketplace-sdk/hooks/marketplace-data/useListPrimarySaleItems) de marketplace-sdk. El hook obtiene los artículos de venta primaria de un contrato específico. Si no existe un primarySaleItem con los parámetros indicados o si el suministro es 0, el artículo no se puede comprar.
     </Note>
 
-    ```typescript
-    import {
-      useBuyModal,
-      useListPrimarySaleItems,
-    } from "@0xsequence/marketplace-sdk/react";
-    import type { Address } from "viem";
+    <Steps>
+      <Step title="Configurar el componente manejador con validación de la configuración del marketplace">
+        Primero, cree un componente principal que se encargue de cargar y validar la configuración del marketplace:
 
-    export default function ShopPurchaseExample() {
-      const { data: marketplaceConfig, isLoading: isMarketplaceConfigLoading } =
-        useMarketplaceConfig();
+        ```typescript
+        import {
+          useBuyModal,
+          useListPrimarySaleItems,
+          useMarketplaceConfig,
+        } from '@0xsequence/marketplace-sdk/react';
+        import type { Address } from 'viem';
 
-      const collection = marketplaceConfig?.shop.collections[0];
-      const chainId = collection?.chainId as number;
-      const collectionAddress = collection?.itemsAddress as Address;
-      const saleContractAddress = collection?.saleAddress as Address;
-      const collectibleId = "0";
+        function ShopPurchaseExample() {
+          const { data: marketplaceConfig, isLoading: isMarketplaceConfigLoading } =
+            useMarketplaceConfig();
 
-      const { show: showBuyModal } = useBuyModal({
-        onSuccess: ({ hash }) => {
-          console.log("Shop purchase successful", { hash });
-        },
-        onError: (error) => {
-          console.error("Shop purchase failed:", error.message);
-        },
-      });
+          // Handle loading states
+          if (isMarketplaceConfigLoading) {
+            return <div style={{ padding: '20px' }}>Loading marketplace config...</div>;
+          }
 
-      // Fetch primary sale items - replace parameters with your own
-      const { data: primarySaleItems } = useListPrimarySaleItems({
-        chainId: chainId,
-        primarySaleContractAddress: saleContractAddress,
-        filter: {
-          includeEmpty: true,
-        },
-      });
+          if (!marketplaceConfig) {
+            return (
+              <div style={{ padding: '20px' }}>No marketplace config available</div>
+            );
+          }
 
-      const primarySaleItem =
-        primarySaleItems?.pages[0]?.primarySaleItems[0]?.primarySaleItem;
+          const collection = marketplaceConfig.shop.collections[0];
 
-      const handleShopBuy = () => {
-        if (!primarySaleItem) return;
+          if (!collection) {
+            return <div style={{ padding: '20px' }}>No shop collections available</div>;
+          }
 
-        showBuyModal({
-          chainId: chainId,
-          collectionAddress: collectionAddress,
-          salesContractAddress: saleContractAddress,
-          cardType: "shop",
-          quantityDecimals: 0,
-          quantityRemaining: Number(primarySaleItem.supply),
-          items: [
-            {
-              tokenId: collectibleId,
-              quantity: "1",
+          const chainId = collection.chainId;
+          const collectionAddress = collection.itemsAddress as Address;
+          const saleContractAddress = collection.saleAddress as Address;
+
+          return (
+            <ShopPurchase
+              chainId={chainId}
+              collectionAddress={collectionAddress}
+              saleContractAddress={saleContractAddress}
+              collectibleId="0"
+            />
+          );
+        }
+        ```
+      </Step>
+
+      <Step title="Crear el componente de compra en la tienda">
+        Luego, cree el componente real de compra en la tienda que utilice los datos validados correctamente:
+
+        ```typescript
+        interface ShopPurchaseProps {
+          chainId: number;
+          collectionAddress: Address;
+          saleContractAddress: Address;
+          collectibleId: string;
+        }
+
+        function ShopPurchase({
+          chainId,
+          collectionAddress,
+          saleContractAddress,
+          collectibleId,
+        }: ShopPurchaseProps) {
+          const { show: showBuyModal } = useBuyModal({
+            onSuccess: ({ hash }) => {
+              console.log('Shop purchase successful', { hash });
             },
-          ],
-          salePrice: {
-            amount: primarySaleItem.priceAmount ?? "0",
-            currencyAddress: (primarySaleItem.currencyAddress as Address) ?? "0x",
-          },
-        });
-      };
+            onError: (error) => {
+              console.error('Shop purchase failed:', error.message);
+            },
+          });
 
-      return (
-        <div>
-          <p>Available: {primarySaleItem?.supply ?? 0}</p>
-          <button
-            type="button"
-            onClick={handleShopBuy}
-            disabled={!primarySaleItem || Number(primarySaleItem.supply) === 0}
-          >
-            Buy from Shop
-          </button>
-        </div>
-      );
-    }
-    ```
+          // Fetch primary sale items
+          const { data: primarySaleItems, isLoading: isLoadingPrimarySale } = useListPrimarySaleItems({
+            chainId,
+            primarySaleContractAddress: saleContractAddress,
+            filter: {
+              includeEmpty: true,
+            },
+          });
+
+          const primarySaleItem =
+            primarySaleItems?.pages[0]?.primarySaleItems[0]?.primarySaleItem;
+
+          const handleShopBuy = () => {
+            if (!primarySaleItem) return;
+
+            showBuyModal({
+              chainId,
+              collectionAddress,
+              salesContractAddress: saleContractAddress,
+              cardType: 'shop',
+              quantityDecimals: 0,
+              quantityRemaining: Number(primarySaleItem.supply),
+              items: [
+                {
+                  tokenId: collectibleId,
+                  quantity: '1',
+                },
+              ],
+              salePrice: {
+                amount: primarySaleItem.priceAmount ?? '0',
+                currencyAddress: (primarySaleItem.currencyAddress as Address) ?? '0x',
+              },
+            });
+          };
+
+          if (isLoadingPrimarySale) {
+            return <div style={{ padding: '20px' }}>Loading primary sale items...</div>;
+          }
+
+          if (!primarySaleItem) {
+            return (
+              <div style={{ padding: '20px' }}>No primary sale items available</div>
+            );
+          }
+
+          return (
+            <div style={{ padding: '20px' }}>
+              <h3>Shop Purchase</h3>
+
+              <p>Available: {primarySaleItem.supply ?? 0}</p>
+
+              <button
+                type="button"
+                onClick={handleShopBuy}
+                disabled={!primarySaleItem || Number(primarySaleItem.supply) === 0}
+              >
+                Buy from Shop
+              </button>
+            </div>
+          );
+        }
+        ```
+      </Step>
+    </Steps>
   </Tab>
 </Tabs>
 
