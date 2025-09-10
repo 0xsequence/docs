@@ -12,6 +12,12 @@ import { useBuyModal } from "@0xsequence/marketplace-sdk/react";
 
 ## Usage
 
+<Note>
+  Make sure you have followed the [Getting
+  Started](https://docs.sequence.xyz/sdk/marketplace-sdk/getting-started) guide
+  to get the collection address and chainId.
+</Note>
+
 ### Examples
 
 <Tabs>
@@ -31,60 +37,62 @@ import {
 import type { Address } from "viem";
 
 export default function MarketPurchaseExample() {
+  const { data: marketplaceConfig, isLoading: isMarketplaceConfigLoading } =
+    useMarketplaceConfig();
+
+  const collection = marketplaceConfig?.market.collections[0];
+  const chainId = collection?.chainId as number;
+  const collectionAddress = collection?.itemsAddress as Address;
+  const collectibleId = "0";
   const {
     data: lowestListing,
     isLoading: isLoadingLowestListing,
     isError: isErrorLowestListing,
   } = useLowestListing({
-    collectionAddress: "0x1234567890123456789012345678901234567890" as Address // Replace with your collection address
-    chainId: 1 // Replace with your chain id
-    tokenId: "1", // Replace with your token id
+    collectionAddress,
+    chainId,
+    tokenId: collectibleId,
   });
-  const chainId = lowestListing?.chainId as number;
-  const collectionAddress = lowestListing?.collectionContractAddress as Address;
-  const tokenId = lowestListing?.tokenId as string;
   const orderId = lowestListing?.orderId as string;
   const marketplace = lowestListing?.marketplace as MarketplaceKind;
   const priceUSDFormatted = lowestListing?.priceUSDFormatted as string;
 
-const { show: showMarketModal } = useBuyModal({
-onSuccess: ({ hash, orderId }) => {
-console.log("Market purchase successful", { hash, orderId });
-},
-onError: (error) => {
-console.error("Market purchase failed:", error.message);
-},
-});
+  const { show: showMarketModal } = useBuyModal({
+    onSuccess: ({ hash, orderId }) => {
+      console.log("Market purchase successful", { hash, orderId });
+    },
+    onError: (error) => {
+      console.error("Market purchase failed:", error.message);
+    },
+  });
 
-const handleMarketBuy = () => {
-if (!lowestListing || isLoadingLowestListing) return;
+  const handleMarketBuy = () => {
+    if (!lowestListing || isLoadingLowestListing) return;
 
     showMarketModal({
       chainId,
       collectionAddress,
-      collectibleId: tokenId,
+      collectibleId,
       orderId,
       marketplace,
     });
+  };
 
-};
-
-return (
-
-<div style={{ padding: "20px" }}>
-<h3>Market Purchase</h3>
+  return (
+    <div style={{ padding: "20px" }}>
+      <h3>Market Purchase</h3>
 
       <p>Price: ${priceUSDFormatted}</p>
 
       <button
+        type="button"
         onClick={handleMarketBuy}
         disabled={isLoadingLowestListing || isErrorLowestListing}
       >
         Buy from Market
       </button>
     </div>
-
-);
+  );
 }
 ```
 
@@ -104,13 +112,14 @@ import {
 import type { Address } from "viem";
 
 export default function ShopPurchaseExample() {
-  // Example values - replace with your own
-  const chainId = 1; // Ethereum mainnet
-  const saleContractAddress =
-    "0x1234567890123456789012345678901234567890" as Address;
-  const collectionAddress =
-    "0x0987654321098765432109876543210987654321" as Address;
-  const tokenId = "1";
+  const { data: marketplaceConfig, isLoading: isMarketplaceConfigLoading } =
+    useMarketplaceConfig();
+
+  const collection = marketplaceConfig?.shop.collections[0];
+  const chainId = collection?.chainId as number;
+  const collectionAddress = collection?.itemsAddress as Address;
+  const saleContractAddress = collection?.saleAddress as Address;
+  const collectibleId = "0";
 
   const { show: showBuyModal } = useBuyModal({
     onSuccess: ({ hash }) => {
@@ -140,12 +149,12 @@ export default function ShopPurchaseExample() {
       chainId: chainId,
       collectionAddress: collectionAddress,
       salesContractAddress: saleContractAddress,
-      marketplaceType: "shop",
+      cardType: "shop",
       quantityDecimals: 0,
       quantityRemaining: Number(primarySaleItem.supply),
       items: [
         {
-          tokenId: tokenId,
+          tokenId: collectibleId,
           quantity: "1",
         },
       ],
@@ -160,6 +169,7 @@ export default function ShopPurchaseExample() {
     <div>
       <p>Available: {primarySaleItem?.supply ?? 0}</p>
       <button
+        type="button"
         onClick={handleShopBuy}
         disabled={!primarySaleItem || Number(primarySaleItem.supply) === 0}
       >
