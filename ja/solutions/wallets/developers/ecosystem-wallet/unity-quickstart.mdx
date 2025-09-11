@@ -5,24 +5,16 @@ sidebarTitle: Unity クイックスタート
 ---
 
 ## 🛠️ ステップ 1：Sequence の Unity SDK をインストールする
-[SDK の GitHub リリース（v5.0.0）](https://github.com/0xsequence/sequence-unity/releases/tag/v5-beta) からダウンロードして、Ecosystem Wallets を利用しましょう。`.unitypackage` ファイルとしてダウンロードし、Unity プロジェクトに追加するだけです。
+[SDKのGitHubリリースからv5をダウンロード](https://github.com/0xsequence/sequence-unity/releases/tag/v5-beta)し、Ecosystem Walletsにアクセスしましょう。`.unitypackage` ファイルとしてダウンロードし、Unityプロジェクトに追加してください。
 
 Ecosystem Wallets の動作を確認したい場合は、[組み込みデモをお試しください。](/sdk/unity/ecosystem-wallet/setup#try-our-built-in-demo)
 
-## 🔑 ステップ 2：プロジェクトアクセスキーを追加する
+## 🔑 ステップ2：Unityプロジェクトの設定
 [sequence.build](https://sequence.build)にアクセスし、サインアップまたはログインして新しいプロジェクトを作成します。[Builder Getting Started](/solutions/builder/getting-started)ガイドで手順を確認できます。
 
-次に、Unity プロジェクト内で `SequenceConfig.asset` ファイルを作成し、`projectAccessKey` を設定の「Builder API Key」欄に入力してください。
+[Unityセットアップガイド](/sdk/unity/ecosystem-wallet/setup)に従ってUnity SDKを設定してください。
 
-## 🌐 ステップ 3：Ecosystem を定義する
-まず、`SequenceConnect` インターフェースのインスタンスを定義しましょう。
-
-```csharp
-EcosystemType ecosystem = EcosystemType.Sequence;
-SequenceConnect connect = new SequenceConnect(ecosystem);
-```
-
-## 💼 ステップ 4：権限付きセッションを作成する
+## 💼 ステップ3：権限付きセッションの作成
 特定のコントラクトにトランザクションを送信するには、必要な権限を持つセッションを最初に作成する必要があります。
 
 ```csharp
@@ -34,14 +26,15 @@ BigInteger valueLimit = 0;
 IPermissions permissions = new ContractPermissions(chain, contractAddress, deadline, valueLimit);
 ```
 
-次に、これらの権限を使って `SequenceConnect` インターフェースでウォレットセッションを作成します。
-他の[ログインオプションはこちら。](/sdk/unity/ecosystem-wallet/setup#try-our-built-in-demo)
+次に、これらの権限を持つ `SequenceConnect` インターフェースを作成してウォレットセッションを開始します。
+他の[ログインオプションはこちら](/sdk/unity/ecosystem-wallet/setup#try-our-built-in-demo)をご覧ください。
 
 ```csharp
+SequenceConnect connect = new SequenceConnect();
 IWallet wallet = await connect.SignInWithGoogle(permissions);
 ```
 
-## 📨 ステップ 5：トランザクションを送信する
+## 📨 ステップ4：トランザクションを送信する
 最後に、作成したウォレットセッションを使って、権限で指定したコントラクトアドレスへトランザクションを送信しましょう。
 
 ```csharp
