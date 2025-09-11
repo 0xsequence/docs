@@ -1,60 +1,149 @@
 ---
 title: useMakeOfferModal
-description: useMakeOfferModalフックは、ユーザーがNFTに対してオファーを出すことを可能にします。マーケットプレイス内でオファーの作成と送信をサポートします。
+description: コレクティブルへのオファー作成用モーダルインターフェースを管理するためのフック
 sidebarTitle: useMakeOfferModal
 ---
 
-```ts
+## インポート
+
+```typescript
 import { useMakeOfferModal } from "@0xsequence/marketplace-sdk/react";
-
-## Into your React component:
-
-const { show: showOfferModal } = useMakeOfferModal({
-	onError,
-});
-
-const onClickOffer = () => {
-	showOfferModal({
-		collectionAddress,
-		chainId,
-		collectibleId,
-		orderbookKind,
-	});
-};
-
-return <button onClick={onClickOffer}>Make Offer</button>
 ```
 
-<ResponseField name="useMakeOfferModal">
-  <ResponseField name="* params" />
+## 使い方
 
-  <Expandable>
-    ```ts
-    interface useMakeOfferModal {
-    	onSuccess?: ({ hash, orderId }: {
-    			hash?: Hash;
-    			orderId?: string;
-    	}) => void;
-    	onError?: (error: Error) => void;
-    }
-    ```
-  </Expandable>
+<Note>
+  コレクションアドレスとchainIdを取得するために、必ず[Getting Started](https://docs.sequence.xyz/sdk/marketplace-sdk/getting-started)ガイドに従ってください。
+</Note>
 
-  <ResponseField name="* return properties" />
+### 例
+`useMakeOfferModal` フックを使ってオファー作成機能を実装する例：
 
-  <Expandable>
-    <ResponseField name="show" type="(args: ShowMakeOfferModalArgs) => void">
-      ```ts
-      interface ShowMakeOfferModalArgs {
-      	collectionAddress: Hex;
-      	chainId: string;
-      	collectibleId: string;
-      	orderbookKind?: OrderbookKind;
-      	callbacks?: ModalCallbacks;
-      }
-      ```
-    </ResponseField>
+```typescript
+export default function MakeOfferExample() {
+  const { data: marketplaceConfig, isLoading: isMarketplaceConfigLoading } =
+    useMarketplaceConfig();
 
-    <ResponseField name="close" type="() => void" />
-  </Expandable>
-</ResponseField>
+  const collection = marketplaceConfig?.market.collections[0];
+  const chainId = collection?.chainId as number;
+  const collectionAddress = collection?.itemsAddress as Address;
+  const collectibleId = '0';
+  const orderbookKind = collection?.destinationMarketplace;
+
+  const { show: showMakeOfferModal } = useMakeOfferModal({
+    onSuccess: ({ hash }) => {
+      console.log('Offer created successfully', { hash });
+    },
+    onError: (error) => {
+      console.error('Failed to create offer:', error.message);
+    },
+  });
+
+  const handleMakeOffer = () => {
+    showMakeOfferModal({
+      chainId,
+      collectionAddress,
+      collectibleId,
+      orderbookKind, // Optional - defaults to sequence_marketplace_v2
+    });
+  };
+
+  return (
+    <div style={{ padding: '20px' }}>
+      <h3>Make Offer</h3>
+
+      <button
+        type="button"
+        onClick={handleMakeOffer}
+        disabled={isMarketplaceConfigLoading}
+      >
+        Make Offer
+      </button>
+    </div>
+  );
+}
+```
+
+## パラメータ
+このフックは、オプションで以下のプロパティを持つ `callbacks` オブジェクトを受け取ります：
+
+```typescript
+interface ModalCallbacks {
+  onSuccess?: ({ hash, orderId }: { hash?: Hash; orderId?: string }) => void;
+  onError?: (error: Error) => void;
+  successActionButtons?: Array<{ label: string; action: () => void }>;
+}
+```
+
+| パラメータ                            | 型                                                                | 説明                                    |
+| -------------------------------- | ---------------------------------------------------------------- | ------------------------------------- |
+| `callbacks.onSuccess`            | `({ hash, orderId }: { hash?: Hash; orderId?: string }) => void` | オファーが正常に作成されたときに呼び出される、任意のコールバック関数    |
+| `callbacks.onError`              | `(error: Error) => void`                                         | オファー作成中にエラーが発生した場合に呼び出される、任意のコールバック関数 |
+| `callbacks.successActionButtons` | `Array<{ label: string; action: () => void }>`                   | 成功時に表示するアクションボタンのオプション配列              |
+
+## 返り値の型
+このフックは、以下のメソッドを持つオブジェクトを返します：
+
+```typescript
+{
+  show: (args: ShowMakeOfferModalArgs) => void
+  close: () => void
+}
+```
+
+### メソッド一覧
+
+#### show
+`(args: ShowMakeOfferModalArgs) => void`
+
+指定したパラメータでオファー作成用モーダルを開きます。
+
+```typescript
+interface ShowMakeOfferModalArgs {
+  collectionAddress: Address;
+  chainId: number;
+  collectibleId: string;
+  orderbookKind?: OrderbookKind;
+}
+```
+
+| パラメータ               | 型               | 説明                                                         |
+| ------------------- | --------------- | ---------------------------------------------------------- |
+| `collectionAddress` | `Address`       | NFTコレクションのコントラクトアドレス                                       |
+| `chainId`           | `number`        | コレクションが存在するブロックチェーンネットワークのチェーンID                           |
+| `collectibleId`     | `string`        | オファーを出す対象となる特定のコレクティブルのトークンID                              |
+| `orderbookKind`     | `OrderbookKind` | 任意。使用するマーケットプレイスのオーダーブック（デフォルトは `sequence_marketplace_v2`） |
+
+#### OrderbookKind の値
+
+```typescript
+enum OrderbookKind {
+  unknown = "unknown",
+  sequence_marketplace_v1 = "sequence_marketplace_v1",
+  sequence_marketplace_v2 = "sequence_marketplace_v2",
+  blur = "blur",
+  opensea = "opensea",
+  looks_rare = "looks_rare",
+}
+```
+
+#### close
+`() => void`
+
+オファー作成用モーダルを閉じます。
+
+## 補足
+`useMakeOfferModal` フックは、コレクティブルへのオファー作成用モーダルインターフェースを簡単に管理できる方法を提供します。主に以下を処理します：
+- モーダルの開閉
+- オファー作成フローの状態管理
+- オファー通貨のトークン承認（必要な場合）
+- エラー処理や成功時のコールバック対応
+- さまざまなマーケットプレイスのオーダーブックへの対応
+- オファーの有効期限管理（デフォルトは7日間）
+- 通貨の選択と価格入力のバリデーション
+
+このモーダルでは、ユーザーが以下を行えます：
+- オファー価格と通貨の選択
+- オファー数量の設定（ERC-1155トークンの場合）
+- オファーの有効期限を設定
+- 必要なブロックチェーントランザクション（承認＋オファー作成）を完了する
