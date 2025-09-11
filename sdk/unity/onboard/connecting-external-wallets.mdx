@@ -7,22 +7,30 @@ description: The content provides detailed instructions on how to connect extern
 
 While the majority of user interactions will happen using the embedded wallet, some of your users may have existing wallets they wish to connect with your games. This allows you to validate a user holds a token(s) without requiring them to transfer it to their embedded wallet.
 
-You can [connect an external wallet with an embedded wallet](/sdk/web/overview) via a web interface.
+You can connect an external wallet with an embedded wallet via a web interface. This gives you read-only access to any external wallet you linked to your Embedded Wallet.
 
-First, you'll want to configure a server to facilitate this connection. Please [read this guide](/sdk/web/overview) and come back once you've configured your server (you can skip the first few steps on Builder configuration and integrating embedded wallet into a web app since you've already done this on the Unity side; similarly, you can skip the sections on signing the session auth proof).
+First, you'll want to configure a web app to facilitate this connection. Please [read this guide](/solutions/wallets/developers/embedded-wallet/wallet-linking) and come back once you've configured your web app.
 
-Now that you've configured your server, you can create an `EOAWalletLinker`.
+Now that you've configured your web app, you can link players to your url. Once they sign in on your web app, they are free to link their EOA wallets.
+
+### Link Users to your Web App
 
 ```csharp
-EOAWalletLinker linker = new EOAWalletLinker(wallet, "yourServersBaseUrl/generateNonce");
+Application.OpenURL("https://your-web-app.io/");
 ```
 
-You can generate the url for wallet linking with 
-```csharp
-string url = await linker.GenerateEOAWalletlink(chain);
+Once a wallet is linked, you can simply call the following Unity APIs to get all linked wallets or unlink a wallet.
+
+### Get Linked Wallets
+
+``` csharp
+EOAWalletLinker linker = new EOAWalletLinker(wallet, Chain.Polygon);
+LinkedWalletData[] wallets = await linker.GetLinkedWallets();
 ```
 
-or you can generate it and open it with the device's default browser (via [Application.OpenURL](https://docs.unity3d.com/ScriptReference/Application.OpenURL.html))
+### Unlink Wallet
+
 ```csharp
-linker.OpenEOAWalletLink(chain); // note: this is an awaitable async method.
+EOAWalletLinker linker = new EOAWalletLinker(wallet, Chain.Polygon);
+bool result = await linker.UnlinkWallet("0xabc...");
 ```

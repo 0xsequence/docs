@@ -6,27 +6,18 @@ sidebarTitle: Unity Quickstart
 
 ## 🛠️ Step 1: Install Sequence's Unity SDK
 
-Download [v5.0.0 from the SDK's GitHub Releases](https://github.com/0xsequence/sequence-unity/releases/tag/v5-beta)
+Download [v5 from the SDK's GitHub Releases](https://github.com/0xsequence/sequence-unity/releases/tag/v5-beta)
 to access Ecosystem Wallets. You can download it as a `.unitypackage` file and simply add it to your Unity project.
 
 To see Ecosystem Wallets in action, [try our Built-In Demo.](/sdk/unity/ecosystem-wallet/setup#try-our-built-in-demo)
 
-## 🔑 Step 2: Add Your Project Access Key
+## 🔑 Step 2: Configure your Unity Project
 
 Go to [sequence.build](https://sequence.build), sign up or log in, and create a new project. You can follow the [Builder Getting Started](/solutions/builder/getting-started) guide to get a step by step flow.
 
-Next, create a `SequenceConfig.asset` file in your Unity project and add the `projectAccessKey` to the configs `Builder API Key` field.
+Follow our [Unity Setup](/sdk/unity/ecosystem-wallet/setup) to configure the Unity SDK.
 
-## 🌐 Step 3: Define your Ecosystem
-
-Let's start by defining an instance of the `SequenceConnect` interface.
-
-```csharp
-EcosystemType ecosystem = EcosystemType.Sequence;
-SequenceConnect connect = new SequenceConnect(ecosystem);
-```
-
-## 💼 Step 4: Create a Session with Permissions
+## 💼 Step 3: Create a Session with Permissions
 
 To send a transaction to a specific contract, you must first create a session with the required permissions.
 
@@ -39,14 +30,15 @@ BigInteger valueLimit = 0;
 IPermissions permissions = new ContractPermissions(chain, contractAddress, deadline, valueLimit);
 ```
 
-Next, let’s use the `SequenceConnect` interface with these permissions to create a wallet session.
+Next, let’s create the `SequenceConnect` interface with these permissions to create a wallet session.
 Checkout other [login options here.](/sdk/unity/ecosystem-wallet/setup#try-our-built-in-demo)
 
 ```csharp
+SequenceConnect connect = new SequenceConnect();
 IWallet wallet = await connect.SignInWithGoogle(permissions);
 ```
 
-## 📨 Step 5: Send Transactions
+## 📨 Step 4: Send Transactions
 
 Finally, let’s use our wallet session to send a transaction to the contract address specified in our permissions.
 
