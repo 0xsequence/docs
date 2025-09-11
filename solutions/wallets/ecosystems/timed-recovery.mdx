@@ -34,18 +34,18 @@ At recovery start, the user provides a recipient wallet address; the system queu
 ```mermaid
 sequenceDiagram
   participant User
-  participant WalletApp as Wallet
+  participant WalletApp as Ecosystem Wallet
   participant RecoveryContract as Recovery contract
   participant Recipient as Recipient wallet
   participant EOA as EOA wallet
 
-  User->>WalletApp: Start Recovery (logged out)
-  WalletApp->>User: User enters 24 word passphrase
-  User-->>WalletApp: Recovery EOA derived and validated
+  User->>WalletApp: Start Recovery with 24 word passphrase
+  WalletApp-->>WalletApp: Recovery wallet derived and validated
   WalletApp-->>User: Inventory preview
-  User->>WalletApp: Provide recipient address
-  WalletApp->>RecoveryContract: Queue recovery payload (transfer bundle)
-  RecoveryContract-->>WalletApp: Payload queued (timestamped)
+  User->>WalletApp: Provide EOA recipient address + inventory items to transfer
+  WalletApp->>EOA: Prepared recovery payload with transfers bundle
+  EOA->>RecoveryContract: Sign and queue recovery payload
+  RecoveryContract-->>WalletApp: Payload queued and timestamped
 
   Note over User,RecoveryContract: 30-day countdown
 
@@ -55,9 +55,10 @@ sequenceDiagram
     WalletApp-->>User: Detect active recovery and show countdown
   end
 
-  User->>EOA: At T+30, connect EOA (MetaMask)
+  User->>WalletApp: At T+30, re-connect EOA (i.e. MetaMask)
+  WalletApp->>EOA: Prepare final proof
   EOA->>RecoveryContract: Submit final proof
-  RecoveryContract->>WalletApp: Authorize transfer bundle
+  RecoveryContract->>WalletApp: Authorize transfers bundle
   WalletApp-->>Recipient: Assets transferred
   Recipient-->>User: Continue on recipient wallet
 ```
@@ -84,4 +85,4 @@ Q: What are the costs?
 A: Gas to queue the payload, gas to finalize, and gas for the transfer bundle.
 
 Q: What if the user loses the 24-word phrase?  
-A: If both main access and the recovery phrase are lost, recovery is not possible. Users are guidede to maintain offline storage plus an encrypted backup.
+A: If both main access and the recovery phrase are lost, recovery is not possible. Users are guided to maintain offline storage plus an encrypted backup. If the user still has at least one open session on a device, they can start recovery using the active session, even if they never created a recovery key.
