@@ -1,0 +1,86 @@
+---
+title: useListOffersForCollectible
+description: Obtiene todas las ofertas para un coleccionable específico. Este hook recupera una lista de ofertas activas realizadas sobre un coleccionable, incluyendo detalles como precio, expiración e información del creador. Los resultados pueden filtrarse y paginarse según sea necesario.
+sidebarTitle: useListOffersForCollectible
+category: Data Fetching
+---
+
+## Parámetros
+
+| Nombre | Type | Description                                                    |
+| ------ | ---- | -------------------------------------------------------------- |
+| `args` |      | Configuración para obtener ofertas                             |
+| `args` |      | .chainId - El ID de la red blockchain                          |
+| `args` |      | .collectionAddress - La dirección del contrato de la colección |
+| `args` |      | .collectibleId - El ID específico del token                    |
+| `args` |      | .filter - Filtro opcional para ofertas                         |
+| `args` |      | .page - Configuración opcional de paginación                   |
+
+## Devuelve
+returns.error - Objeto de error si obtener falla
+
+<Note>
+  Asegúrese de haber seguido la guía de [Primeros pasos](https://docs.sequence.xyz/sdk/marketplace-sdk/getting-started) para obtener la dirección de la colección y el chainId.
+</Note>
+
+## Ejemplo
+Uso básico:
+
+```typescript
+const { data: marketplaceConfig, isLoading: isMarketplaceConfigLoading } =
+  useMarketplaceConfig();
+
+const collection = marketplaceConfig?.market.collections[0];
+const chainId = collection?.chainId as number;
+const collectionAddress = collection?.itemsAddress as Address;
+const collectibleId = "0";
+
+const { data, isLoading } = useListOffersForCollectible({
+  chainId,
+  collectionAddress,
+  collectibleId,
+});
+
+if (isLoading) return <div>Loading offers...</div>;
+
+return (
+  <div>
+    <h3>{data?.offers.length || 0} offers</h3>
+    {data?.offers.map((offer) => (
+      <OfferCard key={offer.orderId} offer={offer} />
+    ))}
+  </div>
+);
+```
+
+Con ordenamiento y paginación:
+
+```typescript
+const { data } = useListOffersForCollectible({
+  chainId: 1,
+  collectionAddress: collectionAddress,
+  collectibleId: tokenId,
+  page: {
+    page: 1,
+    pageSize: 20,
+  },
+  sort:[{column: "price_usd", order: SortOrder.DESC}]
+});
+// Show highest offers first
+const topOffers = data?.offers.slice(0, 3);
+```
+
+Verificando las ofertas del usuario:
+
+```typescript
+const { address } = useAccount();
+const { data } = useListOffersForCollectible({
+  chainId,
+  collectionAddress,
+  collectibleId,
+  filter: {
+    createdBy: [String(userAddress)],
+  },
+});
+const hasUserOffer = (data?.offers.length || 0) > 0;
+```

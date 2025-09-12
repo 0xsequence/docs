@@ -1,0 +1,86 @@
+---
+title: useListOffersForCollectible
+description: 特定のコレクティブルに対するすべてのオファーを取得します。このフックは、特定のコレクティブルに対して出されたアクティブなオファーの一覧を取得し、価格・有効期限・作成者情報などの詳細を含みます。必要に応じてフィルタリングやページネーションも可能です。
+sidebarTitle: useListOffersForCollectible
+category: Data Fetching
+---
+
+## パラメータ
+
+| 名前     | 型 | 説明                                     |
+| ------ | - | -------------------------------------- |
+| `args` |   | オファー取得のための設定                           |
+| `args` |   | .chainId - ブロックチェーンネットワークID            |
+| `args` |   | .collectionAddress - コレクションのコントラクトアドレス |
+| `args` |   | .collectibleId - 対象となるトークンID           |
+| `args` |   | .filter - オファーのためのオプションのフィルター          |
+| `args` |   | .page - オプションのページネーション設定               |
+
+## 戻り値
+returns.error - 取得に失敗した場合のエラーオブジェクト
+
+<Note>
+  コレクションアドレスとchainIdを取得するために、必ず[Getting Started](https://docs.sequence.xyz/sdk/marketplace-sdk/getting-started)ガイドに従ってください。
+</Note>
+
+## 例
+基本的な使い方：
+
+```typescript
+const { data: marketplaceConfig, isLoading: isMarketplaceConfigLoading } =
+  useMarketplaceConfig();
+
+const collection = marketplaceConfig?.market.collections[0];
+const chainId = collection?.chainId as number;
+const collectionAddress = collection?.itemsAddress as Address;
+const collectibleId = "0";
+
+const { data, isLoading } = useListOffersForCollectible({
+  chainId,
+  collectionAddress,
+  collectibleId,
+});
+
+if (isLoading) return <div>Loading offers...</div>;
+
+return (
+  <div>
+    <h3>{data?.offers.length || 0} offers</h3>
+    {data?.offers.map((offer) => (
+      <OfferCard key={offer.orderId} offer={offer} />
+    ))}
+  </div>
+);
+```
+
+ソートとページネーションを使用する場合:
+
+```typescript
+const { data } = useListOffersForCollectible({
+  chainId: 1,
+  collectionAddress: collectionAddress,
+  collectibleId: tokenId,
+  page: {
+    page: 1,
+    pageSize: 20,
+  },
+  sort:[{column: "price_usd", order: SortOrder.DESC}]
+});
+// Show highest offers first
+const topOffers = data?.offers.slice(0, 3);
+```
+
+ユーザー自身のオファーを確認する場合：
+
+```typescript
+const { address } = useAccount();
+const { data } = useListOffersForCollectible({
+  chainId,
+  collectionAddress,
+  collectibleId,
+  filter: {
+    createdBy: [String(userAddress)],
+  },
+});
+const hasUserOffer = (data?.offers.length || 0) > 0;
+```
