@@ -1,60 +1,154 @@
 ---
 title: useMakeOfferModal
-description: El hook useMakeOfferModal permite a los usuarios hacer una oferta por un NFT. Facilita la creación y el envío de ofertas dentro del Marketplace.
+description: Hook para gestionar la interfaz del modal de creación de ofertas en coleccionables
 sidebarTitle: useMakeOfferModal
 ---
 
-```ts
+## Importar
+
+```typescript
 import { useMakeOfferModal } from "@0xsequence/marketplace-sdk/react";
-
-## Into your React component:
-
-const { show: showOfferModal } = useMakeOfferModal({
-	onError,
-});
-
-const onClickOffer = () => {
-	showOfferModal({
-		collectionAddress,
-		chainId,
-		collectibleId,
-		orderbookKind,
-	});
-};
-
-return <button onClick={onClickOffer}>Make Offer</button>
 ```
 
-<ResponseField name="useMakeOfferModal">
-  <ResponseField name="* params" />
+## Uso
 
-  <Expandable>
-    ```ts
-    interface useMakeOfferModal {
-    	onSuccess?: ({ hash, orderId }: {
-    			hash?: Hash;
-    			orderId?: string;
-    	}) => void;
-    	onError?: (error: Error) => void;
-    }
-    ```
-  </Expandable>
+<Note>
+  Asegúrese de haber seguido la guía de [Primeros pasos](https://docs.sequence.xyz/sdk/marketplace-sdk/getting-started) para obtener la dirección de la colección y el chainId.
+</Note>
 
-  <ResponseField name="* return properties" />
+### Ejemplo
+Ejemplo de cómo implementar la funcionalidad de crear una oferta usando el hook `useMakeOfferModal`:
 
-  <Expandable>
-    <ResponseField name="show" type="(args: ShowMakeOfferModalArgs) => void">
-      ```ts
-      interface ShowMakeOfferModalArgs {
-      	collectionAddress: Hex;
-      	chainId: string;
-      	collectibleId: string;
-      	orderbookKind?: OrderbookKind;
-      	callbacks?: ModalCallbacks;
-      }
-      ```
-    </ResponseField>
+```typescript
+export default function MakeOfferExample() {
+  const { data: marketplaceConfig, isLoading: isMarketplaceConfigLoading } =
+    useMarketplaceConfig();
 
-    <ResponseField name="close" type="() => void" />
-  </Expandable>
-</ResponseField>
+  const collection = marketplaceConfig?.market.collections[0];
+  const chainId = collection?.chainId as number;
+  const collectionAddress = collection?.itemsAddress as Address;
+  const collectibleId = '0';
+  const orderbookKind = collection?.destinationMarketplace;
+
+  const { show: showMakeOfferModal } = useMakeOfferModal({
+    onSuccess: ({ hash }) => {
+      console.log('Offer created successfully', { hash });
+    },
+    onError: (error) => {
+      console.error('Failed to create offer:', error.message);
+    },
+  });
+
+  const handleMakeOffer = () => {
+    showMakeOfferModal({
+      chainId,
+      collectionAddress,
+      collectibleId,
+      orderbookKind, // Optional - defaults to sequence_marketplace_v2
+    });
+  };
+
+  return (
+    <div style={{ padding: '20px' }}>
+      <h3>Make Offer</h3>
+
+      <button
+        type="button"
+        onClick={handleMakeOffer}
+        disabled={isMarketplaceConfigLoading}
+      >
+        Make Offer
+      </button>
+    </div>
+  );
+}
+```
+
+## Parámetros
+El hook acepta un objeto opcional `callbacks` con las siguientes propiedades:
+
+```typescript
+interface ModalCallbacks {
+  onSuccess?: ({ hash, orderId }: { hash?: Hash; orderId?: string }) => void;
+  onError?: (error: Error) => void;
+  successActionButtons?: Array<{ label: string; action: () => void }>;
+}
+```
+
+| Parámetro                        | Type                                                             | Description                                                                                     |
+| -------------------------------- | ---------------------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
+| `callbacks.onSuccess`            | `({ hash, orderId }: { hash?: Hash; orderId?: string }) => void` | Función de callback opcional que se ejecuta cuando la oferta se crea exitosamente               |
+| `callbacks.onError`              | `(error: Error) => void`                                         | Función de callback opcional que se ejecuta si ocurre un error durante la creación de la oferta |
+| `callbacks.successActionButtons` | `Array<{ label: string; action: () => void }>`                   | Arreglo opcional de botones de acción para mostrar en caso de éxito                             |
+
+## Tipo de retorno
+El hook retorna un objeto con los siguientes métodos:
+
+```typescript
+{
+  show: (args: ShowMakeOfferModalArgs) => void
+  close: () => void
+}
+```
+
+### Métodos
+
+#### show
+`(args: ShowMakeOfferModalArgs) => void`
+
+Abre el modal de creación de ofertas con los parámetros especificados.
+
+```typescript
+interface ShowMakeOfferModalArgs {
+  collectionAddress: Address;
+  chainId: number;
+  collectibleId: string;
+  orderbookKind?: OrderbookKind;
+}
+```
+
+| Parámetro           | Type            | Description                                                                                  |
+| ------------------- | --------------- | -------------------------------------------------------------------------------------------- |
+| `collectionAddress` | `Address`       | La dirección del contrato de la colección NFT                                                |
+| `chainId`           | `number`        | El chain ID de la red blockchain donde existe la colección                                   |
+| `collectibleId`     | `string`        | El token ID del coleccionable específico al que se le quiere hacer una oferta                |
+| `orderbookKind`     | `OrderbookKind` | Opcional. El orderbook del marketplace a utilizar (por defecto es `sequence_marketplace_v2`) |
+
+#### Valores de OrderbookKind
+Puede importar el tipo `OrderbookKind` desde el SDK de marketplace:
+
+```typescript
+import { OrderbookKind } from "@0xsequence/marketplace-sdk";
+```
+
+```typescript
+enum OrderbookKind {
+  unknown = "unknown",
+  sequence_marketplace_v1 = "sequence_marketplace_v1",
+  sequence_marketplace_v2 = "sequence_marketplace_v2",
+  blur = "blur",
+  opensea = "opensea",
+  looks_rare = "looks_rare",
+}
+```
+
+#### close
+`() => void`
+
+Cierra el modal de creación de ofertas.
+
+## Notas
+El hook `useMakeOfferModal` ofrece una forma práctica de gestionar la interfaz del modal para crear ofertas en coleccionables. Se encarga de:
+- Abrir y cerrar el modal
+- Gestionar el estado del flujo de creación de la oferta
+- Aprobar el token para la moneda de la oferta (si es necesario)
+- Manejo de errores y callbacks de éxito
+- Soporte para diferentes orderbooks de marketplace
+- Gestión de la fecha de expiración de la oferta (por defecto, 7 días)
+- Selección de moneda y validación del precio ingresado
+
+El modal permite a los usuarios:
+- Seleccionar el precio y la moneda de la oferta
+- Definir la cantidad de la oferta (para tokens ERC-1155)
+- Elegir una fecha de expiración para la oferta
+- Completar las transacciones necesarias en blockchain (aprobación + creación de la oferta)
