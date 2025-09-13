@@ -14,6 +14,10 @@ import { useCreateListingModal } from "@0xsequence/marketplace-sdk/react";
 
 ## 使い方
 
+<Note>
+  コレクションアドレスとchainIdを取得するために、必ず[Getting Started](https://docs.sequence.xyz/sdk/marketplace-sdk/getting-started)ガイドに従ってください。
+</Note>
+
 ### 使用例
 
 <Tabs>
@@ -25,24 +29,16 @@ import { useCreateListingModal } from "@0xsequence/marketplace-sdk/react";
     </Note>
 
     ```typescript
-    import {
-      useCreateListingModal,
-      useCollectible,
-      useBalanceOfCollectible,
-    } from "@0xsequence/marketplace-sdk/react";
-    import { useAccount } from "wagmi";
-    import type { Address } from "viem";
-    import type { OrderbookKind } from "@0xsequence/marketplace-sdk";
-
     export default function BasicListingExample() {
       const { address: accountAddress } = useAccount();
+      const { data: marketplaceConfig, isLoading: isMarketplaceConfigLoading } =
+        useMarketplaceConfig();
 
-      // Example values - replace with your own
-      const chainId = 1; // Ethereum mainnet
-      const collectionAddress =
-        "0x1234567890123456789012345678901234567890" as Address;
-      const collectibleId = "1";
-      const orderbookKind = "sequence_marketplace_v2" as OrderbookKind;
+      const collection = marketplaceConfig?.market.collections[0];
+      const chainId = collection?.chainId as number;
+      const collectionAddress = collection?.itemsAddress as Address;
+      const collectibleId = '0';
+      const orderbookKind = OrderbookKind.sequence_marketplace_v2;
 
       // Get collectible metadata
       const {
@@ -72,10 +68,10 @@ import { useCreateListingModal } from "@0xsequence/marketplace-sdk/react";
 
       const { show: showCreateListingModal } = useCreateListingModal({
         onSuccess: ({ hash, orderId }) => {
-          console.log("Listing created successfully", { hash, orderId });
+          console.log('Listing created successfully', { hash, orderId });
         },
         onError: (error) => {
-          console.error("Listing creation failed:", error.message);
+          console.error('Listing creation failed:', error.message);
         },
       });
 
@@ -95,36 +91,37 @@ import { useCreateListingModal } from "@0xsequence/marketplace-sdk/react";
       const hasError = isErrorCollectible || isErrorBalance;
 
       return (
-        <div style={{ padding: "20px" }}>
+        <div style={{ padding: '20px' }}>
           <h3>Create Listing</h3>
 
           {collectible && (
-            <div style={{ marginBottom: "16px" }}>
+            <div style={{ marginBottom: '16px' }}>
               <p>Name: {collectible.name}</p>
               <p>Collectible ID: {collectibleId}</p>
-              <p>Owned: {balance || "0"}</p>
+              <p>Owned: {balance?.balance || '0'}</p>
             </div>
           )}
 
           <button
+            type="button"
             onClick={handleCreateListing}
             disabled={isLoading || hasError || !isOwner || !accountAddress}
             style={{
-              backgroundColor: isOwner ? "#007bff" : "#6c757d",
-              color: "white",
-              border: "none",
-              padding: "12px 24px",
-              borderRadius: "8px",
-              cursor: isOwner ? "pointer" : "not-allowed",
+              backgroundColor: isOwner ? '#007bff' : '#6c757d',
+              color: 'white',
+              border: 'none',
+              padding: '12px 24px',
+              borderRadius: '8px',
+              cursor: isOwner ? 'pointer' : 'not-allowed',
             }}
           >
             {isLoading
-              ? "Loading..."
+              ? 'Loading...'
               : !accountAddress
-              ? "Connect Wallet"
-              : !isOwner
-              ? "You don't own this collectible"
-              : "Create Listing"}
+                ? 'Connect Wallet'
+                : !isOwner
+                  ? "You don't own this collectible"
+                  : 'Create Listing'}
           </button>
         </div>
       );
@@ -140,22 +137,16 @@ import { useCreateListingModal } from "@0xsequence/marketplace-sdk/react";
     </Note>
 
     ```typescript
-    import {
-      useCreateListingModal,
-      useInventory,
-    } from "@0xsequence/marketplace-sdk/react";
-    import { useAccount } from "wagmi";
-    import type { Address } from "viem";
-    import type { OrderbookKind } from "@0xsequence/marketplace-sdk";
-
     export default function InventoryListingExample() {
       const { address: accountAddress } = useAccount();
 
-      // Example values - replace with your own
-      const chainId = 137; // Polygon
-      const collectionAddress =
-        "0x1234567890123456789012345678901234567890" as Address;
-      const orderbookKind = "sequence_marketplace_v2" as OrderbookKind;
+      const { data: marketplaceConfig, isLoading: isMarketplaceConfigLoading } =
+        useMarketplaceConfig();
+
+      const collection = marketplaceConfig?.market.collections[0];
+      const chainId = collection?.chainId as number;
+      const collectionAddress = collection?.itemsAddress as Address;
+      const orderbookKind = OrderbookKind.sequence_marketplace_v2;
 
       // Get user's inventory for this collection
       const {
@@ -173,18 +164,18 @@ import { useCreateListingModal } from "@0xsequence/marketplace-sdk/react";
 
       const { show: showCreateListingModal } = useCreateListingModal({
         onSuccess: ({ hash, orderId }) => {
-          console.log("Listing created successfully", { hash, orderId });
+          console.log('Listing created successfully', { hash, orderId });
           // Optionally refetch inventory to update UI
         },
         onError: (error) => {
-          console.error("Failed to create listing:", error.message);
+          console.error('Failed to create listing:', error.message);
         },
         successActionButtons: [
           {
-            label: "View Listing",
+            label: 'View Listing',
             action: () => {
               // Navigate to listing or marketplace
-              console.log("Navigate to listing");
+              console.log('Navigate to listing');
             },
           },
         ],
@@ -212,52 +203,55 @@ import { useCreateListingModal } from "@0xsequence/marketplace-sdk/react";
       }
 
       return (
-        <div style={{ padding: "20px" }}>
+        <div style={{ padding: '20px' }}>
           <h3>Your Collection - Create Listings</h3>
 
           <div
             style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(auto-fill, minmax(250px, 1fr))",
-              gap: "16px",
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))',
+              gap: '16px',
             }}
           >
             {inventoryData.collectibles.map((collectible) => (
               <div
-                key={collectible.tokenId}
+                key={collectible.metadata.tokenId}
                 style={{
-                  border: "1px solid #e0e0e0",
-                  borderRadius: "8px",
-                  padding: "16px",
-                  textAlign: "center",
+                  border: '1px solid #e0e0e0',
+                  borderRadius: '8px',
+                  padding: '16px',
+                  textAlign: 'center',
                 }}
               >
-                {collectible.image && (
+                {collectible.metadata.image && (
                   <img
-                    src={collectible.image}
-                    alt={collectible.name}
+                    src={collectible.metadata.image}
+                    alt={collectible.metadata.name}
                     style={{
-                      width: "100%",
-                      height: "200px",
-                      objectFit: "cover",
-                      borderRadius: "4px",
+                      width: '100%',
+                      height: '200px',
+                      objectFit: 'cover',
+                      borderRadius: '4px',
                     }}
                   />
                 )}
-                <h4>{collectible.name}</h4>
-                <p>Collectible ID: {collectible.tokenId}</p>
+                <h4>{collectible.metadata.name}</h4>
+                <p>Collectible ID: {collectible.metadata.tokenId}</p>
                 <p>Balance: {collectible.balance}</p>
 
                 <button
-                  onClick={() => handleListCollectible(collectible.tokenId)}
+                  type="button"
+                  onClick={() =>
+                    handleListCollectible(collectible.metadata.tokenId)
+                  }
                   style={{
-                    backgroundColor: "#28a745",
-                    color: "white",
-                    border: "none",
-                    padding: "8px 16px",
-                    borderRadius: "4px",
-                    cursor: "pointer",
-                    marginTop: "8px",
+                    backgroundColor: '#28a745',
+                    color: 'white',
+                    border: 'none',
+                    padding: '8px 16px',
+                    borderRadius: '4px',
+                    cursor: 'pointer',
+                    marginTop: '8px',
                   }}
                 >
                   Create Listing
