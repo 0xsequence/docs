@@ -1,0 +1,297 @@
+---
+sidebarTitle: ユーティリティ
+---
+
+Smart Sessionの作成を簡単にするため、いくつかのヘルパー関数を用意しています。
+
+## `createExplicitSession`
+これはSmart Sessionを構築する際に主に使う関数です。1つのオプションオブジェクトを受け取り、ウォレットが必要とする最終形式にまとめます。
+
+### 例
+
+```typescript
+import { createExplicitSession } from "@0xsequence/connect";
+import { parseEther } from "viem";
+
+const mySession = createExplicitSession({
+    chainId: 42161,
+    nativeTokenSpending: {
+        valueLimit: parseEther('0.01')
+    },
+    expiresIn: {
+        hours: 3,
+        minutes: 30
+    }
+    permissions: [ ... ]
+});
+```
+
+### パラメータ
+
+```typescript
+/**
+ * The configuration object for the {@link createExplicitSession} helper function.
+ */
+export type CreateExplicitSessionOptions = {
+  /** The chain ID for which the session will be valid. */
+  chainId: number
+
+  /**
+   * An object ({@link NativeTokenSpending}) that defines the maximum amount of native currency that can be spent during the session and allowed recipients for the native currency.
+   */
+  nativeTokenSpending: NativeTokenSpending
+
+  /**
+   * The desired duration of the session. {@link SessionDuration}
+   */
+  expiresIn: SessionDuration
+
+  /**
+   * An array of fully-built permission objects. {@link Permission}
+   */
+  permissions: Permission[]
+}
+```
+
+#### `chainId`
+セッションの権限が有効となるSequence対応チェーンのチェーンID。
+
+[対応チェーン一覧](https://status.sequence.info/)をご覧ください。
+
+#### `nativeTokenSpending`
+このオブジェクトは、ユーザーのネイティブ通貨へのセッションのアクセス権を制御します。
+- `valueLimit`: セッション中にすべてのコントラクト呼び出しや手数料で消費できるネイティブ通貨の累積最大額（wei単位）。
+- `allowedRecipients`: これらのアドレスへの直接的なネイティブ送金を許可します。
+
+```typescript
+type NativeTokenSpending = {
+  valueLimit: bigint
+  allowedRecipients?: Address[]
+}
+```
+
+#### `expiresIn`
+セッションの有効期限を定義するオブジェクトです。
+- `days`: セッションが有効な日数。
+- `hours`: セッションが有効な時間（時単位）。
+- `minutes`: セッションが有効な時間（分単位）。
+
+```typescript
+type SessionDuration = {
+  days?: number
+  hours?: number
+  minutes?: number
+}
+```
+
+#### `permissions`
+権限オブジェクトの配列です。
+- `target`: 操作対象となるコントラクトのアドレス。
+- `rules`: `target`アドレスに対するルールの配列。
+
+```typescript
+type Permission = {
+  target: Address.Address
+  rules: ParameterRule[]
+}
+```
+
+各`target`スマートコントラクトにはルールセットを持たせることができます。
+- `cumulative`: ルールが累積的かどうか。
+- `operation`: `value`に対して実行する操作。
+- `value`: 比較に使う期待値（bytes32形式で保存）。
+- `offset`: コールデータから32バイトのパラメータを抽出する際のバイトオフセット。
+- `mask`: 抽出したデータに適用するビットマスク。これにより、より大きなデータ構造内に埋め込まれている場合でも、関連するビットだけを検証できます。
+
+```typescript
+type ParameterRule = {
+  cumulative: boolean
+  operation: ParameterOperation
+  value: Bytes.Bytes
+  offset: bigint
+  mask: Bytes.Bytes
+}
+
+enum ParameterOperation {
+  EQUAL = 0,
+  NOT_EQUAL = 1,
+  GREATER_THAN_OR_EQUAL = 2,
+  LESS_THAN_OR_EQUAL = 3,
+}
+```
+
+### 戻り値の型
+`ExplicitParams`オブジェクトを返します。
+
+```typescript
+type ExplicitSession = {
+    chainId: number;
+    valueLimit: bigint;
+    deadline: bigint;
+    permissions: [Permission.Permission, ...Permission.Permission[]];
+}
+```
+
+## `createContractPermission`
+このヘルパー関数は、スマートコントラクト関数への権限を作成するために使います。
+
+### 例
+
+```typescript
+import { createContractPermission } from "@0xsequence/connect";
+
+const AAVE_V3_POOL_ADDRESS_ARBITRUM = '0x794a61358D6845594F94dc1DB02A252b5b4814aD'
+
+const permission = createContractPermission({
+    address: AAVE_V3_POOL_ADDRESS_ARBITRUM,
+    functionSignature: 'function supply(address asset, uint256 amount, address onBehalfOf, uint16 referralCode)',
+    rules: [
+        {
+            param: 'asset',
+            type: 'address',
+            condition: 'EQUAL',
+            value: USDC_ADDRESS_ARBITRUM
+        },
+        {
+            param: 'amount',
+            type: 'uint256',
+            condition: 'LESS_THAN_OR_EQUAL',
+            value: parseUnits('1', 6),
+            cumulative: true
+        }
+    ]
+});
+```
+
+### パラメータ
+
+```typescript
+type CreateContractPermissionOptions = {
+  /** The address of the target contract. */
+  address: Address
+
+  /**
+   * The human-readable function signature.
+   * Example: 'function transfer(address to, uint256 amount)'
+   */
+  functionSignature?: string
+
+  /** An array of rules to apply to the function's arguments. */
+  rules?: Rule[]
+
+  /**
+   * If true, this function can only be successfully called once during the session.
+   * @default false
+   */
+  onlyOnce?: boolean
+}
+```
+
+#### `address`
+対象コントラクトのアドレス。
+
+#### `functionSignature`
+人間が読める関数シグネチャ。
+
+#### `rules`
+関数の引数に適用するルールの配列。
+
+```typescript
+type Rule = {
+  /** The name of the parameter from the function signature (e.g., 'to', 'amount'). */
+  param: string
+
+  /** The type of the parameter (address, uint256, etc.). */
+  type: ParamType
+
+  /** The comparison to perform on the parameter (EQUAL, NOT_EQUAL, GREATER_THAN_OR_EQUAL, LESS_THAN_OR_EQUAL). */
+  condition: RuleCondition
+
+  /** The value to compare against. Must match the `type`. */
+  value: string | number | bigint | boolean
+
+  /**
+   * Determines if the rule's value is a cumulative total across all calls to this function.
+   * @example
+   * For a `transfer` function on an ERC20 token, if we set a rule for the `amount` parameter to be 10 and we set `cumulative`
+   * to `true` then the dApp can make as many transfer calls as it wants but in total it cannot transfer more than 10 tokens.
+   * If `cumulative` is `false` then the dApp can transfer 10 tokens as many times as it wants if other conditions are met.
+   * This makes sense only for number values like amount of transfers, etc.
+   * @default true 
+   */
+  cumulative?: boolean
+}
+```
+
+#### `onlyOnce`
+trueの場合、この関数はセッション中に1回だけ成功させることができます。
+
+### 戻り値の型
+Permissionを返します。
+
+```typescript
+type Permission = {
+  target: Address.Address
+  rules: ParameterRule[]
+}
+```
+
+## `createContractPermissions`
+[`createContractPermission`](#createcontractpermission)と同様ですが、同じコントラクトに対して複数の権限を作成します。
+
+### 例
+
+```typescript
+import { createContractPermissions } from "@0xsequence/connect";
+
+const permissions = createContractPermissions({
+    address: AAVE_V3_POOL_ADDRESS_ARBITRUM,
+    functionSignatures: [
+        'function supply(address asset, uint256 amount, address onBehalfOf, uint16 referralCode)',
+        'function withdraw(address asset, uint256 amount, address to)',
+    ],
+    rules: [
+        {
+            param: 'asset',
+            type: 'address',
+            condition: 'EQUAL',
+            value: USDC_ADDRESS_ARBITRUM
+        }
+        {
+            param: 'amount',
+            type: 'uint256',
+            condition: 'LESS_THAN_OR_EQUAL',
+            value: parseUnits('1', 6),
+            cumulative: true
+        }
+    ]
+});
+```
+
+### パラメータ
+[CreateContractPermission](#createcontractpermission)と非常に似ていますが、`functions`の配列を使います。
+
+```typescript
+/**
+ * The options object for creating permissions.
+ */
+export type CreateContractPermissionsOptions = {
+  /** The address of the target contract. */
+  address: Address
+
+  /** An array of permissions for one or more functions on this contract. */
+  functions?: FunctionPermission[] | undefined | null
+}
+```
+
+### 戻り値の型
+`Permission[]`を返します。
+
+```typescript
+type Permission = {
+  target: Address.Address
+  rules: ParameterRule[]
+}
+```
+
+これらのユーティリティの実例は[こちら](/sdk/web/wallet-sdk/ecosystem/smart-sessions/guides#supply-usdc-to-aave-v3)をご覧ください。
