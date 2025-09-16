@@ -1,62 +1,390 @@
 ---
 title: useBuyModal
-description: useBuyModalフックは、マーケットプレイスで販売中のNFTを購入するためのものです。購入手続きやトランザクションの実行を担当します。
+description: コレクティブル購入用の購入モーダルインターフェースを管理するためのフック
 sidebarTitle: useBuyModal
 ---
 
-```ts
+## インポート
+
+```typescript
 import { useBuyModal } from "@0xsequence/marketplace-sdk/react";
-
-## Into your React component:
-
-const { show: showBuyModal } = useBuyModal({
-	onSuccess(hash) {
-		console.log("Buy transaction sent with hash: ", hash);
-	},
-	onError,
-});
-
-const onClickBuy = () => {
-	showBuyModal({
-		chainId,
-		collectionAddress,
-		tokenId,
-		order,
-	});
-};
-
-return <button onClick={onClickBuy}>Buy</button>
 ```
 
-<ResponseField name="useBuyModal">
-  <ResponseField name="* params" />
+## 使い方
 
-  <Expandable>
-    ```ts
-    interface useBuyModal {
-    	onSuccess?: ({ hash, orderId }: {
-    			hash?: Hash;
-    			orderId?: string;
-    	}) => void;
-    	onError?: (error: Error) => void;
-    }
-    ```
-  </Expandable>
+<Note>
+  コレクションアドレスとchainIdを取得するために、必ず[Getting Started](https://docs.sequence.xyz/sdk/marketplace-sdk/getting-started)ガイドに従ってください。
+</Note>
 
-  <ResponseField name="* return properties" />
+### 使用例
 
-  <Expandable>
-    <ResponseField name="show" type="(args: ShowBuyModalArgs) => void">
-      ```ts
-      interface ShowBuyModalArgs {
-      	chainId: string;
-      	collectionAddress: Hex;
-      	tokenId: string;
-      	order: Order;
-      }
-      ```
-    </ResponseField>
+<Tabs>
+  <Tab title="マーケット購入">
+    `useBuyModal` フックを使ってマーケット購入（二次販売）を実装する例：
 
-    <ResponseField name="close" type="() => void" />
-  </Expandable>
-</ResponseField>
+    <Note>
+      この例では、marketplace-sdk の [`useLowestListing`](/sdk/marketplace-sdk/hooks/marketplace-data/useLowestListing) フックを使用しています。指定したパラメータで lowestListing が存在しない場合、orderId が取得できず、そのアイテムは購入できません。
+    </Note>
+
+    <Steps>
+      <Step title="マーケットプレイス設定の検証を行うハンドラーコンポーネントのセットアップ">
+        まず、マーケットプレイスの設定を読み込み・検証するメインコンポーネントを作成します。
+
+        ```typescript
+        import {
+          useBuyModal,
+          useLowestListing,
+          useMarketplaceConfig,
+        } from '@0xsequence/marketplace-sdk/react';
+        import type { Address } from 'viem';
+
+        function MarketPurchaseExample() {
+          const { data: marketplaceConfig, isLoading: isMarketplaceConfigLoading } =
+            useMarketplaceConfig();
+
+          // Handle loading states
+          if (isMarketplaceConfigLoading) {
+            return <div style={{ padding: '20px' }}>Loading marketplace config...</div>;
+          }
+
+          if (!marketplaceConfig) {
+            return (
+              <div style={{ padding: '20px' }}>No marketplace config available</div>
+            );
+          }
+
+          const collection = marketplaceConfig.market.collections[0];
+
+          if (!collection) {
+            return <div style={{ padding: '20px' }}>No collections available</div>;
+          }
+
+          const chainId = collection.chainId;
+          const collectionAddress = collection.itemsAddress as Address;
+
+          return (
+            <MarketPurchase
+              chainId={chainId}
+              collectionAddress={collectionAddress}
+              collectibleId="0"
+            />
+          );
+        }
+        ```
+      </Step>
+
+      <Step title="マーケット購入用コンポーネントの作成">
+        次に、正しく検証されたデータを利用する実際のマーケット購入用コンポーネントを作成します。
+
+        ```typescript
+        interface MarketPurchaseProps {
+          chainId: number;
+          collectionAddress: Address;
+          collectibleId: string;
+        }
+
+        function MarketPurchase({
+          chainId,
+          collectionAddress,
+          collectibleId,
+        }: MarketPurchaseProps) {
+          const {
+            data: lowestListing,
+            isLoading: isLoadingLowestListing,
+            isError: isErrorLowestListing,
+          } = useLowestListing({
+            collectionAddress,
+            chainId,
+            tokenId: collectibleId,
+          });
+
+          const { show: showMarketModal } = useBuyModal({
+            onSuccess: ({ hash, orderId }) => {
+              console.log('Market purchase successful', { hash, orderId });
+            },
+            onError: (error) => {
+              console.error('Market purchase failed:', error.message);
+            },
+          });
+
+          const handleMarketBuy = () => {
+            if (!lowestListing || isLoadingLowestListing) return;
+
+            showMarketModal({
+              chainId,
+              collectionAddress,
+              collectibleId,
+              orderId: lowestListing.orderId,
+              marketplace: lowestListing.marketplace,
+            });
+          };
+
+          if (isLoadingLowestListing) {
+            return <div style={{ padding: '20px' }}>Loading listing...</div>;
+          }
+
+          if (isErrorLowestListing || !lowestListing) {
+            return (
+              <div style={{ padding: '20px' }}>
+                Error loading listing or no listing found
+              </div>
+            );
+          }
+
+          return (
+            <div style={{ padding: '20px' }}>
+              <h3>Market Purchase</h3>
+
+              <p>Price: ${lowestListing.priceUSDFormatted}</p>
+
+              <button
+                type="button"
+                onClick={handleMarketBuy}
+                disabled={isLoadingLowestListing || isErrorLowestListing}
+              >
+                Buy from Market
+              </button>
+            </div>
+          );
+        }
+        ```
+      </Step>
+    </Steps>
+  </Tab>
+
+  <Tab title="ショップ購入">
+    `useBuyModal` フックを使ってショップ購入（一次販売）を実装する例：
+
+    <Note>
+      この例では、marketplace-sdk の [`useListPrimarySaleItems`](/sdk/marketplace-sdk/hooks/marketplace-data/useListPrimarySaleItems) フックを使用しています。このフックは、特定のコントラクトからプライマリーセールアイテムを取得します。指定したパラメータで primarySaleItem が存在しない場合や、supply が 0 の場合、そのアイテムは購入できません。
+    </Note>
+
+    <Steps>
+      <Step title="マーケットプレイス設定の検証を行うハンドラーコンポーネントのセットアップ">
+        まず、マーケットプレイスの設定を読み込み・検証するメインコンポーネントを作成します。
+
+        ```typescript
+        import {
+          useBuyModal,
+          useListPrimarySaleItems,
+          useMarketplaceConfig,
+        } from '@0xsequence/marketplace-sdk/react';
+        import type { Address } from 'viem';
+
+        function ShopPurchaseExample() {
+          const { data: marketplaceConfig, isLoading: isMarketplaceConfigLoading } =
+            useMarketplaceConfig();
+
+          // Handle loading states
+          if (isMarketplaceConfigLoading) {
+            return <div style={{ padding: '20px' }}>Loading marketplace config...</div>;
+          }
+
+          if (!marketplaceConfig) {
+            return (
+              <div style={{ padding: '20px' }}>No marketplace config available</div>
+            );
+          }
+
+          const collection = marketplaceConfig.shop.collections[0];
+
+          if (!collection) {
+            return <div style={{ padding: '20px' }}>No shop collections available</div>;
+          }
+
+          const chainId = collection.chainId;
+          const collectionAddress = collection.itemsAddress as Address;
+          const saleContractAddress = collection.saleAddress as Address;
+
+          return (
+            <ShopPurchase
+              chainId={chainId}
+              collectionAddress={collectionAddress}
+              saleContractAddress={saleContractAddress}
+              collectibleId="0"
+            />
+          );
+        }
+        ```
+      </Step>
+
+      <Step title="ショップ購入用コンポーネントの作成">
+        次に、正しく検証されたデータを利用する実際のショップ購入用コンポーネントを作成します。
+
+        ```typescript
+        interface ShopPurchaseProps {
+          chainId: number;
+          collectionAddress: Address;
+          saleContractAddress: Address;
+          collectibleId: string;
+        }
+
+        function ShopPurchase({
+          chainId,
+          collectionAddress,
+          saleContractAddress,
+          collectibleId,
+        }: ShopPurchaseProps) {
+          const { show: showBuyModal } = useBuyModal({
+            onSuccess: ({ hash }) => {
+              console.log('Shop purchase successful', { hash });
+            },
+            onError: (error) => {
+              console.error('Shop purchase failed:', error.message);
+            },
+          });
+
+          // Fetch primary sale items
+          const { data: primarySaleItems, isLoading: isLoadingPrimarySale } = useListPrimarySaleItems({
+            chainId,
+            primarySaleContractAddress: saleContractAddress,
+            filter: {
+              includeEmpty: true,
+            },
+          });
+
+          const primarySaleItem =
+            primarySaleItems?.pages[0]?.primarySaleItems[0]?.primarySaleItem;
+
+          const handleShopBuy = () => {
+            if (!primarySaleItem) return;
+
+            showBuyModal({
+              chainId,
+              collectionAddress,
+              salesContractAddress: saleContractAddress,
+              cardType: 'shop',
+              quantityDecimals: 0,
+              quantityRemaining: Number(primarySaleItem.supply),
+              items: [
+                {
+                  tokenId: collectibleId,
+                  quantity: '1',
+                },
+              ],
+              salePrice: {
+                amount: primarySaleItem.priceAmount ?? '0',
+                currencyAddress: (primarySaleItem.currencyAddress as Address) ?? '0x',
+              },
+            });
+          };
+
+          if (isLoadingPrimarySale) {
+            return <div style={{ padding: '20px' }}>Loading primary sale items...</div>;
+          }
+
+          if (!primarySaleItem) {
+            return (
+              <div style={{ padding: '20px' }}>No primary sale items available</div>
+            );
+          }
+
+          return (
+            <div style={{ padding: '20px' }}>
+              <h3>Shop Purchase</h3>
+
+              <p>Available: {primarySaleItem.supply ?? 0}</p>
+
+              <button
+                type="button"
+                onClick={handleShopBuy}
+                disabled={!primarySaleItem || Number(primarySaleItem.supply) === 0}
+              >
+                Buy from Shop
+              </button>
+            </div>
+          );
+        }
+        ```
+      </Step>
+    </Steps>
+  </Tab>
+</Tabs>
+
+## パラメータ
+このフックは、オプションで以下のプロパティを持つ `callbacks` オブジェクトを受け取ります：
+
+```typescript
+interface ModalCallbacks {
+  onSuccess?: ({ hash, orderId }: { hash?: Hash; orderId?: string }) => void;
+  onError?: (error: Error) => void;
+  successActionButtons?: Array<{ label: string; action: () => void }>;
+}
+```
+
+| パラメータ                            | 型                                                                | 説明                                  |
+| -------------------------------- | ---------------------------------------------------------------- | ----------------------------------- |
+| `callbacks.onSuccess`            | `({ hash, orderId }: { hash?: Hash; orderId?: string }) => void` | 購入が成功した際に呼び出されるオプションのコールバック関数       |
+| `callbacks.onError`              | `(error: Error) => void`                                         | 購入時にエラーが発生した場合に呼び出されるオプションのコールバック関数 |
+| `callbacks.successActionButtons` | `Array<{ label: string; action: () => void }>`                   | 成功時に表示するアクションボタンのオプション配列            |
+
+## 返り値の型
+このフックは、以下のメソッドを持つオブジェクトを返します：
+
+```typescript
+{
+  show: (args: BuyModalProps) => void
+  close: () => void
+}
+```
+
+### メソッド一覧
+
+#### show
+`(args: BuyModalProps) => void`
+
+指定したパラメータで購入モーダルを開きます。`BuyModalProps` は購入タイプに応じて `ShopBuyModalProps` または `MarketplaceBuyModalProps` のいずれかになります。
+
+マーケット購入（セカンダリーセール）の場合：
+
+```typescript
+interface MarketplaceBuyModalProps extends BuyModalBaseProps {
+  marketplaceType?: "market";
+  collectibleId: string;
+  marketplace: MarketplaceKind;
+  orderId: string;
+}
+```
+
+ショップ購入（プライマリーセール）の場合：
+
+```typescript
+interface ShopBuyModalProps extends BuyModalBaseProps {
+  marketplaceType: "shop";
+  salesContractAddress: Address;
+  items: Array<Partial<CheckoutOptionsItem> & { tokenId?: string }>;
+  quantityDecimals: number;
+  quantityRemaining: number;
+  salePrice: {
+    amount: string;
+    currencyAddress: Address;
+  };
+  unlimitedSupply?: boolean;
+}
+```
+
+どちらのタイプも `BuyModalBaseProps` を継承しています：
+
+```typescript
+interface BuyModalBaseProps {
+  chainId: number;
+  collectionAddress: Address;
+  skipNativeBalanceCheck?: boolean;
+  nativeTokenAddress?: Address;
+  marketplaceType?: MarketplaceType;
+  customCreditCardProviderCallback?: (buyStep: Step) => void;
+  successActionButtons?: Array<{ label: string; action: () => void }>;
+}
+```
+
+#### close
+`() => void`
+
+購入モーダルを閉じます。
+
+## 補足
+`useBuyModal` フックは、コレクティブル購入のための購入モーダルインターフェースを簡単に管理できるようにします。これにより、次のことが可能です:
+- モーダルの開閉
+- 購入フローの状態管理
+- エラー処理や成功時のコールバック対応
+- プライマリーセールとセカンダリーセールの両方に対応

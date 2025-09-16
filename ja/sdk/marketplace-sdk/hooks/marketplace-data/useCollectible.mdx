@@ -1,0 +1,54 @@
+---
+title: useCollectible
+description: 特定のコレクティブルのメタデータを取得するためのフック このフックは、コレクション内の個別NFTのメタデータ（名前、説明、画像、属性など）を取得します。
+sidebarTitle: useCollectible
+category: Data Fetching
+---
+
+## パラメータ
+
+| 名前       | 型 | 説明                                             |
+| -------- | - | ---------------------------------------------- |
+| `params` |   | 設定パラメータ                                        |
+| `params` |   | .chainId - チェーンID（数値、例：Ethereumは1、Polygonは137） |
+| `params` |   | .collectionAddress - コレクションのコントラクトアドレス         |
+| `params` |   | .collectibleId - コレクティブルのトークンID                |
+| `params` |   | .query - オプションのReact Query設定                   |
+
+## 戻り値
+コレクティブルのメタデータを含むクエリ結果
+
+## 例
+基本的な使い方：
+
+```typescript
+const { data: collectible, isLoading } = useCollectible({
+chainId: 137,
+collectionAddress: '0x631998e91476da5b870d741192fc5cbc55f5a52e',
+collectibleId: '12345'
+})
+```
+
+カスタムクエリオプションを使う場合：
+
+```typescript
+const { data } = useCollectible({
+chainId: 137,
+collectionAddress: '0x631998e91476da5b870d741192fc5cbc55f5a52e',
+collectibleId: '12345',
+query: {
+enabled: Boolean(collectionAddress && tokenId),
+staleTime: 30_000
+}
+})
+```
+
+## 基本的な使い方
+
+```typescript
+import { useCollectible } from '@0xsequence/marketplace-sdk/react/hooks';
+
+const result = useCollectible({
+  // Add your parameters here
+});
+```

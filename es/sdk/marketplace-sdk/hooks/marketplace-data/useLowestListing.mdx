@@ -1,0 +1,91 @@
+---
+title: useLowestListing
+description: Hook para obtener el listado con el precio más bajo de un coleccionable
+sidebarTitle: useLowestListing
+---
+
+## Importar
+
+```tsx
+import { useLowestListing } from "@0xsequence/marketplace-sdk";
+```
+
+## Uso
+
+```tsx
+import { useLowestListing } from "@0xsequence/marketplace-sdk";
+
+function App() {
+  const { data, isLoading } = useLowestListing({
+    chainId: 137,
+    collectionAddress: "0x123...",
+    tokenId: "1",
+  });
+
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
+
+  return (
+    <div>
+      {data ? (
+        <div>Lowest price: {data.price}</div>
+      ) : (
+        <div>No listings available</div>
+      )}
+    </div>
+  );
+}
+```
+
+## Tipo de retorno: `UseQueryResult`
+El hook retorna un objeto de resultado de consulta de React Query con las siguientes propiedades clave:
+
+```tsx
+type UseQueryResult = {
+  data: LowestListingData | null;
+  isLoading: boolean;
+  error: Error | null;
+  // ... other React Query properties
+};
+```
+
+### Parámetros
+
+| Parámetro           | Type     | Description                                                         |
+| ------------------- | -------- | ------------------------------------------------------------------- |
+| `chainId`           | `number` | El ID de la cadena (por ejemplo, 1 para Ethereum, 137 para Polygon) |
+| `collectionAddress` | `string` | La dirección del contrato de la colección                           |
+| `tokenId`           | `string` | El ID del token dentro de la colección                              |
+| `query`             | `object` | (Opcional) Opciones de configuración de React Query                 |
+| `config`            | `object` | (Opcional) Opciones de configuración del SDK                        |
+
+### Opciones de consulta
+Puede personalizar el comportamiento de la consulta usando el parámetro opcional `query`:
+
+```tsx
+const { data, isLoading } = useLowestListing({
+  chainId: 1,
+  collectionAddress: "0x...",
+  tokenId: "42",
+  query: {
+    refetchInterval: 15000, // Refetch every 15 seconds
+    enabled: hasTokenId, // Only run query when tokenId is available
+    // ... other React Query options
+  },
+});
+```
+
+## Notas
+Este hook es útil para:
+- Mostrar el precio más bajo actual para un coleccionable específico
+- Crear funciones de comparación de precios
+
+El hook maneja automáticamente:
+- Obtención y caché de datos
+- Estados de carga y error
+- Respuestas con tipado seguro
+
+<Warning>
+  Asegúrese de proporcionar IDs de cadena y direcciones de contrato válidas. Los parámetros inválidos resultarán en consultas fallidas.
+</Warning>

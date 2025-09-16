@@ -1,58 +1,241 @@
 ---
 title: useSellModal
-description: useSellModalフックは、既存のオファーを受け入れてNFTを販売する際に使用します。販売手続きを完了するための機能を提供します。
+description: コレクティブルへのオファーを受け入れるための売却モーダルインターフェースを管理するためのフック
 sidebarTitle: useSellModal
 ---
 
-```ts
+## インポート
+
+```typescript
 import { useSellModal } from "@0xsequence/marketplace-sdk/react";
-
-## Into your React component:
-
-const { show: showSellModal } = useSellModal({ onError });
-
-const onAcceptOffer = () => {
-	showSellModal({
-		collectionAddress,
-		chainId,
-		tokenId,
-		order,
-	});
-};
-
-return <button onClick={onAcceptOffer}>Accept Offer</button>
 ```
 
-<ResponseField name="useSellModal">
-  <ResponseField name="* params" />
+![売却モーダル](/images/marketplace/sell_modal.png "Sell Modal")
 
-  <Expandable>
-    ```ts
-    interface useSellModal {
-    	onSuccess?: ({ hash, orderId }: {
-    		hash?: Hash;
-    		orderId?: string;
-    	}) => void;
-    	onError?: (error: Error) => void;
-    }
-    ```
-  </Expandable>
+## 使い方
+`useSellModal` フックは、コレクティブルへのオファーを受け入れるための売却モーダルインターフェースを簡単に管理できる方法を提供します。このモーダルは、ユーザーがマーケットプレイス上の既存のオファー（入札）に対して自分のコレクティブルを売却したい場合に使用されます。
 
-  <ResponseField name="* return properties" />
+<Note>
+  コレクションアドレスとchainIdを取得するために、必ず[Getting Started](https://docs.sequence.xyz/sdk/marketplace-sdk/getting-started)ガイドに従ってください。
+</Note>
 
-  <Expandable>
-    <ResponseField name="show" type="(args: ShowSellModalArgs) => void">
-      ```ts
-      interface ShowSellModalArgs {
-      	collectionAddress: Hex;
-      	chainId: string;
-      	tokenId: string;
-      	order: Order;
-      	callbacks?: ModalCallbacks;
-      }
-      ```
-    </ResponseField>
+### 基本的な例
 
-    <ResponseField name="close" type="() => void" />
-  </Expandable>
-</ResponseField>
+<Note>
+  この例では、
+  [`useBalanceOfCollectible`](/sdk/marketplace-sdk/hooks/marketplace-data/useBalanceOfCollectible)
+  フック（marketplace-sdkより）を使って、売却モーダルを表示する前に所有権を確認しています。
+</Note>
+
+```typescript
+import {
+  useSellModal,
+  useBalanceOfCollectible,
+  useListOffersForCollectible,
+} from "@0xsequence/marketplace-sdk/react";
+import { useAccount } from "wagmi";
+import type { Address } from "viem";
+import type { Order } from "@0xsequence/marketplace-sdk";
+
+export default function SellToOfferExample() {
+  const { address: accountAddress } = useAccount();
+  const { data: marketplaceConfig, isLoading: isMarketplaceConfigLoading } =
+    useMarketplaceConfig();
+
+  const collection = marketplaceConfig?.market.collections[0];
+  const chainId = collection?.chainId as number;
+  const collectionAddress = collection?.itemsAddress as Address;
+  // Replace with your collectible ID that has at least one offer
+  const collectibleId = "0";
+
+  // Check if user owns the collectible
+  const {
+    data: balance,
+    isLoading: isLoadingBalance,
+    isError: isErrorBalance,
+  } = useBalanceOfCollectible({
+    collectionAddress,
+    collectableId: collectibleId,
+    userAddress: accountAddress,
+    chainId,
+  });
+
+  // Get available offers for this collectible
+  const {
+    data: offersData,
+    isLoading: isLoadingOffers,
+    error: offersError,
+  } = useListOffersForCollectible({
+    chainId,
+    collectionAddress,
+    collectibleId,
+  });
+
+  const { show: showSellModal } = useSellModal({
+    onSuccess: ({ hash, orderId }) => {
+      console.log("Sale completed successfully", { hash, orderId });
+    },
+    onError: (error) => {
+      console.error("Sale failed:", error.message);
+    },
+  });
+
+  const handleSellToOffer = (offer: Order) => {
+    if (!balance || Number(balance) === 0) return;
+
+    showSellModal({
+      chainId,
+      collectionAddress,
+      tokenId: collectibleId,
+      order: offer,
+    });
+  };
+
+  const isOwner = balance && Number(balance) > 0;
+  const isLoading = isLoadingBalance || isLoadingOffers;
+  const hasError = isErrorBalance || offersError;
+  const hasOffers = offersData?.orders && offersData.orders.length > 0;
+
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
+
+  if (hasError) {
+    return <div>Error loading data</div>;
+  }
+
+  if (!isOwner) {
+    return <div>You don't own this collectible</div>;
+  }
+
+  if (!hasOffers) {
+    return <div>No offers available for this collectible</div>;
+  }
+
+  return (
+    <div style={{ padding: "20px" }}>
+      <h3>Available Offers</h3>
+      <p>Collectible ID: {collectibleId}</p>
+      <p>Your Balance: {balance}</p>
+
+      <div style={{ marginTop: "16px" }}>
+        {offersData.orders.map((offer) => (
+          <div
+            key={offer.orderId}
+            style={{
+              border: "1px solid #e0e0e0",
+              borderRadius: "8px",
+              padding: "16px",
+              marginBottom: "12px",
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+            }}
+          >
+            <div>
+              <p>
+                Price: {offer.priceAmount} {offer.priceCurrency?.symbol}
+              </p>
+              <p>From: {offer.createdBy}</p>
+              <p>
+                Expires:{" "}
+                {new Date(offer.validUntil * 1000).toLocaleDateString()}
+              </p>
+            </div>
+
+            <button
+              onClick={() => handleSellToOffer(offer)}
+              style={{
+                backgroundColor: "#28a745",
+                color: "white",
+                border: "none",
+                padding: "8px 16px",
+                borderRadius: "4px",
+                cursor: "pointer",
+              }}
+            >
+              Accept Offer
+            </button>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+```
+
+## パラメータ
+このフックは、オプションで以下のプロパティを持つ `callbacks` オブジェクトを受け取ります：
+
+```typescript
+interface ModalCallbacks {
+  onSuccess?: ({ hash, orderId }: { hash?: Hash; orderId?: string }) => void;
+  onError?: (error: Error) => void;
+  successActionButtons?: Array<{ label: string; action: () => void }>;
+}
+```
+
+| パラメータ                            | 型                                                                | 説明                                 |
+| -------------------------------- | ---------------------------------------------------------------- | ---------------------------------- |
+| `callbacks.onSuccess`            | `({ hash, orderId }: { hash?: Hash; orderId?: string }) => void` | 売却が正常に完了した際に呼び出されるオプションのコールバック関数   |
+| `callbacks.onError`              | `(error: Error) => void`                                         | 売却中にエラーが発生した際に呼び出されるオプションのコールバック関数 |
+| `callbacks.successActionButtons` | `Array<{ label: string; action: () => void }>`                   | 成功時に表示するアクションボタンのオプション配列           |
+
+## 返り値の型
+このフックは、以下のメソッドを持つオブジェクトを返します：
+
+```tsx
+{
+  show: (args: ShowSellModalArgs) => void
+  close: () => void
+}
+```
+
+### メソッド一覧
+
+#### show
+`(args: ShowSellModalArgs) => void`
+
+指定したパラメータで売却モーダルを開き、オファーを受け入れます。
+
+```typescript
+interface ShowSellModalArgs {
+  collectionAddress: Address;
+  chainId: number;
+  tokenId: string;
+  order: Order;
+}
+```
+
+| パラメータ               | 型         | 必須 | 説明                                         |
+| ------------------- | --------- | -- | ------------------------------------------ |
+| `collectionAddress` | `Address` | あり | コレクションのコントラクトアドレス                          |
+| `chainId`           | `number`  | あり | ブロックチェーンネットワークID（例：Ethereumは1、Polygonは137） |
+| `tokenId`           | `string`  | あり | 売却するコレクティブルのID                             |
+| `order`             | `Order`   | あり | 価格や購入者などの詳細を含むオファー注文オブジェクト                 |
+
+#### close
+`() => void`
+
+売却モーダルを閉じます。
+
+## 補足
+`useSellModal` フックは、コレクティブルへのオファーを受け入れるための売却モーダルインターフェースを簡単に管理できる方法を提供します。主に以下を担当します：
+- モーダルの開閉
+- 売却取引フローの状態管理
+- （必要に応じて）トークン承認ステップの管理
+- 取引実行および署名ステップの管理
+- エラー処理や成功時のコールバック対応
+- さまざまなマーケットプレイスタイプへの対応
+- WaaS（Wallet as a Service）の手数料オプションとの連携
+
+### 事前準備
+このフックを使用する前に、以下を確認してください：
+1. **ユーザー認証**：ユーザーがウォレットで接続されている必要があります
+2. **所有権の確認**：[`useBalanceOfCollectible`](/sdk/marketplace-sdk/hooks/marketplace-data/useBalanceOfCollectible) などのフックを使い、ユーザーがコレクティブルを所有していることを確認してください
+3. **有効なオファー**：受け入れるための有効なオファー（Orderオブジェクト）が存在することを確認してください
+
+### 関連フック
+
+- [`useBalanceOfCollectible`](/sdk/marketplace-sdk/hooks/marketplace-data/useBalanceOfCollectible) - 所有権の確認
+- [`useListOffersForCollectible`](/sdk/marketplace-sdk/hooks/marketplace-data/useListOffersForCollectible) - 利用可能なオファーを取得
