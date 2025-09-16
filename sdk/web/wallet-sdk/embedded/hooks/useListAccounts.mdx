@@ -1,0 +1,107 @@
+---
+title: "useListAccounts"
+description: Hook to list all accounts associated with the current WaaS session
+sidebarTitle: useListAccounts
+---
+
+## Import
+
+```tsx
+import { useListAccounts } from '@0xsequence/connect'
+```
+
+## Usage
+
+```tsx
+import { useListAccounts } from '@0xsequence/connect'
+
+function AccountsList() {
+  const { data, isLoading, error, refetch } = useListAccounts()
+
+  if (isLoading) return <div>Loading accounts...</div>
+  if (error) return <div>Error: {error.message}</div>
+
+  return (
+    <div>
+      <button onClick={() => refetch()}>Refresh Accounts</button>
+      <div>Current Account ID: {data?.currentAccountId}</div>
+      {data?.accounts.map(account => (
+        <div key={account.id} className="account-item">
+          <div>ID: {account.id}</div>
+          <div>Type: {account.type}</div>
+          {account.email && <div>Email: {account.email}</div>}
+          {account.issuer && <div>Issuer: {account.issuer}</div>}
+        </div>
+      ))}
+    </div>
+  )
+}
+```
+
+## Return Type: `UseListAccountsResult`
+
+The hook returns an object with the following properties:
+
+```tsx
+interface UseListAccountsResult {
+  /** The accounts data if available */
+  data?: IntentResponseAccountList
+  /** Whether the query is currently loading */
+  isLoading: boolean
+  /** Any error that occurred during the query */
+  error: Error | null
+  /** Function to manually refetch the accounts */
+  refetch: () => Promise<void>
+}
+
+enum IdentityType {
+    None = "None",
+    Guest = "Guest",
+    OIDC = "OIDC",
+    Email = "Email",
+    PlayFab = "PlayFab",
+    Stytch = "Stytch"
+}
+
+interface Account {
+    id: string;
+    type: IdentityType;
+    issuer?: string;
+    email?: string;
+}
+
+interface IntentResponseAccountList {
+    accounts: Array<Account>;
+    currentAccountId: string;
+}
+```
+
+### Properties
+
+#### data
+`IntentResponseAccountList | undefined`
+
+The list of accounts if the query was successful. Contains an array of account objects with properties like `id` and `address`.
+
+#### isLoading
+`boolean`
+
+Whether the query is currently in progress. Useful for showing loading states.
+
+#### error
+`Error | null`
+
+Any error that occurred during the query. Will be `null` if no error occurred.
+
+#### refetch
+`() => Promise<void>`
+
+Function to manually trigger a refresh of the accounts list.
+
+## Features
+
+- **Automatic Data Fetching**: Automatically fetches accounts when WaaS connection is available
+- **Caching**: Results are cached for 1 minute to prevent unnecessary refetches
+- **Error Handling**: Proper error handling for missing WaaS connector or initialization issues
+- **Type Safety**: Full TypeScript support for all returned data
+- **React Query Integration**: Uses React Query for efficient state management and caching
