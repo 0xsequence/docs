@@ -1,0 +1,189 @@
+---
+title: "useFeeOptions"
+description: Hook for handling fee options for unsponsored transactions
+sidebarTitle: useFeeOptions
+---
+
+## Import
+
+```tsx
+import { useFeeOptions } from '@0xsequence/connect'
+```
+
+## Usage
+
+```tsx
+import { useFeeOptions } from '@0xsequence/connect'
+import { useEffect, useState } from 'react'
+
+function App() {
+  // Use the hook with default balance checking
+  // This will return the wallet balance for each fee option
+  const [
+    pendingFeeOptionConfirmation,
+    confirmPendingFeeOption,
+    rejectPendingFeeOption
+  ] = useFeeOptions()
+  
+  // Or skip balance checking if needed
+  // const [pendingFeeOptionConfirmation, confirmPendingFeeOption, rejectPendingFeeOption] =
+  //   useFeeOptions({ skipFeeBalanceCheck: true })
+  
+  const [selectedFeeOptionTokenAddress, setSelectedFeeOptionTokenAddress] = useState<string>()
+  
+  // Initialize with first option when fee options become available
+  useEffect(() => {
+    if (pendingFeeOptionConfirmation) {
+      console.log('Pending fee options: ', pendingFeeOptionConfirmation.options)
+      
+      // You could select the first fee option by default
+      if (pendingFeeOptionConfirmation.options.length > 0) {
+        const firstOption = pendingFeeOptionConfirmation.options[0]
+        setSelectedFeeOptionTokenAddress(firstOption.token.contractAddress || '')
+      }
+    }
+  }, [pendingFeeOptionConfirmation])
+  
+  // Handle fee option selection and confirmation
+  const handleConfirmFee = (tokenAddress: string) => {
+    if (pendingFeeOptionConfirmation) {
+      confirmPendingFeeOption(pendingFeeOptionConfirmation.id, tokenAddress)
+    }
+  }
+  
+  // Handle fee option rejection
+  const handleRejectFee = () => {
+    if (pendingFeeOptionConfirmation) {
+      rejectPendingFeeOption(pendingFeeOptionConfirmation.id)
+    }
+  }
+  
+  // Render fee options UI
+  if (pendingFeeOptionConfirmation) {
+    return (
+      <div>
+        <h2>Select Fee Payment Token</h2>
+        <div>
+          {pendingFeeOptionConfirmation.options.map((option) => (
+            <div key={option.token.contractAddress || 'native'}>
+              <input
+                type="radio"
+                name="feeOption"
+                checked={selectedFeeOptionTokenAddress === (option.token.contractAddress || '')}
+                onChange={() => setSelectedFeeOptionTokenAddress(option.token.contractAddress || '')}
+              />
+              <label>
+                {option.token.symbol} - {option.token.contractAddress || 'Native Token'}
+                {/* Display balance info if extended with balance data */}
+                {'balanceFormatted' in option && 
+                  ` (Balance: ${option.balanceFormatted} ${option.token.symbol})`}
+                {'hasEnoughBalanceForFee' in option && !option.hasEnoughBalanceForFee &&
+                  ' (Insufficient Balance)'}
+              </label>
+            </div>
+          ))}
+        </div>
+        <div>
+          <button 
+            onClick={() => handleConfirmFee(selectedFeeOptionTokenAddress || '')}
+            disabled={!selectedFeeOptionTokenAddress}
+          >
+            Confirm
+          </button>
+          <button onClick={handleRejectFee}>Cancel</button>
+        </div>
+      </div>
+    )
+  }
+  
+  return <div>No pending fee confirmation</div>
+}
+```
+
+## Parameters
+
+The hook accepts an optional configuration object with the following properties:
+
+```tsx
+interface FeeOptionsConfig {
+  skipFeeBalanceCheck?: boolean
+}
+```
+
+| Parameter | Type | Description |
+| --------- | ---- | ----------- |
+| `skipFeeBalanceCheck` | `boolean` | Whether to skip checking token balances (default: `false`) |
+
+## Return Type: `UseFeeOptionsReturnType`
+
+The hook returns a tuple with the following elements:
+
+```tsx
+type UseFeeOptionsReturnType = [
+  pendingFeeOptionConfirmation: FeeOptionConfirmation | undefined,
+  confirmPendingFeeOption: (id: string, feeTokenAddress: string) => void,
+  rejectPendingFeeOption: (id: string) => void
+]
+```
+
+### Properties
+
+#### pendingFeeOptionConfirmation
+
+`FeeOptionConfirmation | undefined`
+
+Object containing the current fee confirmation details if a transaction is pending, or `undefined` if no transaction is pending confirmation.
+
+```tsx
+type FeeOptionConfirmation = {
+  id: string                                    // Unique identifier for the fee confirmation
+  options: Relayer.FeeOption[] | FeeOptionExtended[] // Available fee options with balance information
+  chainId: number                               // Chain ID where the transaction will be executed
+}
+```
+
+When `skipFeeBalanceCheck` is `false`, the options will be of type `FeeOptionExtended`, which includes balance information:
+
+```tsx
+type FeeOptionExtended = Relayer.FeeOption & {
+  balance: string                 // Raw balance string
+  balanceFormatted: string        // Formatted balance with proper decimals
+  hasEnoughBalanceForFee: boolean // Indicates if wallet has enough balance
+}
+```
+
+#### confirmPendingFeeOption
+
+`(id: string, feeTokenAddress: string) => void`
+
+Function to confirm the selected fee option.
+
+| Parameter | Type | Description |
+| --------- | ---- | ----------- |
+| `id` | `string` | The fee confirmation ID |
+| `feeTokenAddress` | `string` | The address of the token to use for fee payment (use empty string for native token) |
+
+#### rejectPendingFeeOption
+
+`(id: string) => void`
+
+Function to reject the current fee option selection.
+
+| Parameter | Type | Description |
+| --------- | ---- | ----------- |
+| `id` | `string` | The fee confirmation ID to reject |
+
+## Notes
+
+This hook provides functionality for handling Sequence V3 fee options for unsponsored transactions.
+
+Key features:
+- Intercept fee options for a transaction in Native Token and ERC20 tokens
+- Automatically fetch user wallet balances for each fee option (unless `skipFeeBalanceCheck` is `true`)
+- Allow users to select their preferred fee token through a UI component
+- Confirm or reject fee selections
+- Shared state management across multiple hook instances
+
+The hook integrates with the Sequence V3 connector to intercept fee confirmation requests and presents a user interface to allow selection of the fee token. It uses shared state management to ensure consistent behavior across multiple instances of the hook.
+
+For a detailed guide on how to use the hook, see the [Pay gas in ERC20](/sdk/web/guides/pay-gas-in-erc20) guide.
