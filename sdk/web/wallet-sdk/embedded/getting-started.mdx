@@ -1,0 +1,300 @@
+---
+title: "Getting Started with Web SDK for Embedded Wallet"
+description: Learn how to get started with Web SDK by installing the necessary packages and using the wagmi connectors to utilize an Embedded Wallet or Native EOA Wallet for authentication.
+sidebarTitle: Getting Started
+---
+
+# Setting Up your Dapp
+
+First make sure you have created a Sequence account, if you don't have one, you can create one [here](https://sequence.build/), you will need your `Project Access Key` in order to use the Web SDK.
+
+To utilize the `SequenceConnect` wrapper for connecting web3 wallets to your application, follow these steps:
+
+<Note>
+  Web SDK is built on top of wagmi, so for advanced configurations, sending
+  transactions, calling contracts, etc., please refer to the [wagmi
+  documentation](https://wagmi.sh/react/WagmiConfig).
+</Note>
+
+<Tabs>
+<Tab title="Vite App">
+<Steps>
+<Step title="Create a React Project with Vite">
+
+We will start by creating a [React](https://react.dev/) project with [vite](https://vitejs.dev/):
+
+```sh
+npm create vite
+# or
+pnpm create vite
+# or
+yarn create vite
+```
+
+</Step>    
+<Step title="Install the Web SDK dependencies">
+
+```bash
+npm install @0xsequence/connect @0xsequence/hooks wagmi ethers viem 0xsequence @tanstack/react-query
+# or
+pnpm install @0xsequence/connect @0xsequence/hooks wagmi ethers viem 0xsequence @tanstack/react-query
+# or
+yarn add @0xsequence/connect @0xsequence/hooks wagmi ethers viem 0xsequence @tanstack/react-query
+```
+
+</Step>
+<Step title="Create a Config">
+
+Next, create the configuration.
+
+If you want to allow WalletConnect you will also need a [walletConnectProjectId](https://cloud.reown.com/sign-in). 
+To setup Google Login follow the [Google Configuration for Embedded Wallet](../../../../solutions/builder/embedded-wallet/google-configuration).
+
+```typescript [config.ts]
+import { createConfig } from "@0xsequence/connect";
+
+export const config: any = createConfig({
+  projectAccessKey: "<your-project-access-key>",
+  signIn: {
+    projectName: 'Sequence Web SDK Demo',
+  },
+  walletUrl: 'https://v3.sequence.app',
+  dappOrigin: window.location.origin,
+  appName: 'Sequence Web SDK Demo',
+  chainIds: [1],
+  defaultChainId: 1,
+  google: true,
+  apple: true,
+  email: true,
+  walletConnect: {
+    projectId: walletConnectProjectId
+  },
+  permissions: ...
+});
+```
+
+In order to customize further, [you can view additional configuration parameters.](/sdk/web/wallet-sdk/embedded/custom-configuration)
+</Step>
+
+<Step title="Setup Provider Component">
+
+The configuration we created in [step 3](/sdk/web/wallet-sdk/embedded/getting-started#create-a-config) needs to be passed into the providers below in the `main.tsx`.
+
+```typescript [main.tsx]
+import React from "react";
+import ReactDOM from "react-dom/client";
+import "./index.css";
+
+import App from "./App";
+import { config } from "./config";
+import { SequenceConnect } from "@0xsequence/connect";
+
+function Dapp() {
+  return (
+    <SequenceConnect config={config}>
+      <App />
+    </SequenceConnect>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")!).render(
+  <React.StrictMode>
+    <Dapp />
+  </React.StrictMode>
+);
+```
+
+</Step>
+
+<Step title="Trigger the Connection Modal">
+
+```typescript [App.tsx]
+import './App.css'
+import { useOpenConnectModal } from '@0xsequence/connect'
+
+function App() {
+  const {setOpenConnectModal} = useOpenConnectModal()
+  
+  return (
+    <>
+      <button onClick={() => setOpenConnectModal(true)}>Connect</button>
+    </>
+  )
+}
+
+export default App
+```
+
+For web3 interactions, wagmi exposes a set of React hooks that make it convenient for common functions like sending transactions.
+
+</Step>
+
+</Steps>
+</Tab>
+
+<Tab title="NextJS App">
+<Steps>
+<Step title="Install the Web SDK dependencies">
+
+```bash
+npm install @0xsequence/connect @0xsequence/hooks wagmi ethers viem 0xsequence @tanstack/react-query
+# or
+pnpm install @0xsequence/connect @0xsequence/hooks wagmi ethers viem 0xsequence @tanstack/react-query
+# or
+yarn add @0xsequence/connect @0xsequence/hooks wagmi ethers viem 0xsequence @tanstack/react-query
+```
+
+</Step>
+
+<Step title="Setup NextJS Config">
+
+For compatibility reasons with wagmi and [@walletconnect](https://docs.reown.com/appkit/next/core/installation#extra-configuration) packages, we need to add the following to our next.config.js file:
+
+```bash
+// Path: next.config.js
+const nextConfig = {
+  webpack: (config) => {
+    config.externals.push("pino-pretty", "lokijs", "encoding");
+    return config;
+  },
+};
+```
+
+This will get rid of the warnings related to `pino-pretty`.
+
+</Step>
+
+<Step title="Create a Config">
+
+Next, create the configuration.
+
+If you want to allow WalletConnect you will also need a [walletConnectProjectId](https://cloud.reown.com/sign-in). 
+To setup Google Login follow the [Google Configuration for Embedded Wallet](../../../../solutions/builder/embedded-wallet/google-configuration).
+
+```typescript [config.ts]
+import { createConfig } from "@0xsequence/connect";
+
+export const config: any = createConfig({
+  projectAccessKey: "<your-project-access-key>",
+  signIn: {
+    projectName: 'Sequence Web SDK Demo',
+  },
+  walletUrl: 'https://v3.sequence.app',
+  dappOrigin: window.location.origin,
+  appName: 'Sequence Web SDK Demo',
+  chainIds: [1],
+  defaultChainId: 1,
+  google: true,
+  apple: true,
+  email: true,
+  walletConnect: {
+    projectId: walletConnectProjectId
+  },
+  permissions: ...
+});
+```
+
+In order to customize further, [you can view additional configuration parameters.](/sdk/web/wallet-sdk/embedded/custom-configuration)
+</Step>
+
+<Step title="Setup Provider Component">
+
+The configuration we created in [step 3](/sdk/web/wallet-sdk/embedded/getting-started#create-a-config) needs to be passed to the SequenceConnect provider.
+
+Create a separate "providers.tsx" file to wrap your app in the Providers component.
+
+```typescript [src/app/providers.tsx]
+"use client";
+
+import React from "react"
+import { config } from "./config"
+import { SequenceConnect } from "@0xsequence/connect"
+
+const Providers = ({ children }: { children: React.ReactNode }) => {
+    return (
+        <SequenceConnect config={config}>
+            {children}
+        </SequenceConnect>
+    )
+}
+
+export default Providers;
+```
+
+</Step>
+
+<Step title="Wrap your App in the Providers">
+
+Wrap your app in the Providers component.
+
+```typescript [src/app/layout.tsx]
+import type { Metadata } from "next";
+import { Geist, Geist_Mono } from "next/font/google";
+import "./globals.css";
+import Providers from "./providers";
+
+const geistSans = Geist({
+  variable: "--font-geist-sans",
+  subsets: ["latin"],
+});
+
+const geistMono = Geist_Mono({
+  variable: "--font-geist-mono",
+  subsets: ["latin"],
+});
+
+export const metadata: Metadata = {
+  title: "Create Next App",
+  description: "Generated by create next app",
+};
+
+export default function RootLayout({
+  children,
+}: Readonly<{
+  children: React.ReactNode;
+}>) {
+  return (
+    <html lang="en">
+      <body
+        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+      >
+        <Providers>
+          {children}
+        </Providers>
+      </body>
+    </html>
+  );
+}
+```
+
+</Step>
+
+<Step title="Trigger the Connection Modal">
+
+```typescript [App.tsx]
+"use client"
+
+import { useOpenConnectModal } from '@0xsequence/connect'
+
+function Home() {
+  const { setOpenConnectModal } = useOpenConnectModal()
+
+  return (
+    <>
+      <button onClick={() => setOpenConnectModal(true)}>Connect</button>
+    </>
+  )
+}
+
+export default Home
+```
+
+For web3 interactions, wagmi exposes a set of React hooks that make it convenient for common functions like sending transactions.
+
+</Step>
+
+For web3 interactions, wagmi exposes a set of React hooks that make it convenient for common functions like sending transactions.
+
+</Steps>
+</Tab>
+</Tabs>

@@ -1,0 +1,128 @@
+---
+title: "useWalletSettings"
+description: Hook to access and modify wallet configuration settings
+sidebarTitle: useWalletSettings
+---
+
+## Import
+
+```tsx
+import { useWalletSettings } from '@0xsequence/connect'
+```
+
+## Usage
+
+```tsx
+import { useWalletSettings } from '@0xsequence/connect'
+
+function WalletConfigPanel() {
+  const { displayedAssets, readOnlyNetworks, setDisplayedAssets } = useWalletSettings()
+  
+  // Example function to add a new asset
+  const addNewAsset = (contractAddress: string, chainId: number) => {
+    setDisplayedAssets([
+      ...displayedAssets,
+      { contractAddress, chainId }
+    ])
+  }
+  
+  // Example function to check if network is read-only
+  const isNetworkReadOnly = (chainId: number) => {
+    return readOnlyNetworks?.includes(chainId)
+  }
+  
+  return (
+    <div>
+      <h2>Wallet Settings</h2>
+      
+      <div>
+        <h3>Displayed Assets</h3>
+        <ul>
+          {displayedAssets.map(asset => (
+            <li key={`${asset.chainId}-${asset.contractAddress}`}>
+              Chain ID: {asset.chainId}, Contract: {asset.contractAddress}
+            </li>
+          ))}
+        </ul>
+        
+        <button
+          onClick={() => addNewAsset('0x1234...', 1)}
+          disabled={isNetworkReadOnly(1)}
+        >
+          Add ETH Mainnet Asset
+        </button>
+      </div>
+      
+      <div>
+        <h3>Network Status</h3>
+        <ul>
+          {[1, 137, 10].map(chainId => (
+            <li key={chainId}>
+              Chain {chainId}: {isNetworkReadOnly(chainId) ? 'Read-only' : 'Active'}
+            </li>
+          ))}
+        </ul>
+      </div>
+    </div>
+  )
+}
+```
+
+## Return Type
+
+```tsx
+interface WalletSettingsReturn {
+  displayedAssets: Array<{
+    contractAddress: string
+    chainId: number
+  }>
+  readOnlyNetworks: number[] | undefined
+  setDisplayedAssets: (assets: Array<{
+    contractAddress: string
+    chainId: number
+  }>) => void
+}
+```
+
+### Properties
+
+#### displayedAssets
+
+`Array<{ contractAddress: string, chainId: number }>`
+
+Array of assets to display in the wallet interface. Each asset is defined by:
+- `contractAddress`: The token contract address
+- `chainId`: The network ID where the token exists
+
+#### readOnlyNetworks
+
+`number[] | undefined`
+
+Array of network IDs where transactions are disabled. These networks are available for viewing balances and transaction history, but users cannot initiate new transactions.
+
+#### setDisplayedAssets
+
+`(assets: Array<{ contractAddress: string, chainId: number }>) => void`
+
+Function to update the list of displayed assets. Takes an array of asset objects, each containing a contract address and chain ID.
+
+## Notes
+
+This hook provides access to wallet display settings and network status information.
+
+Key features:
+- Asset display list management
+- Read-only network status information
+- Type-safe configuration updates
+
+Common use cases:
+- Managing visible token list
+- Checking if networks are read-only
+- Building settings interfaces
+
+Best practices:
+- Validate contract addresses before adding to displayed assets
+- Check network read-only status before attempting transactions
+- Keep displayed assets list up to date
+
+The hook is commonly used in wallet configuration interfaces to manage which assets are displayed and check network status.
