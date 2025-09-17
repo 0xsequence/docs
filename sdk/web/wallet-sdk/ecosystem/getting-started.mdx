@@ -29,8 +29,8 @@ yarn add @0xsequence/connect wagmi viem
 
 Next, create the Ecosystem Wallet configuration.
 
-- To setup Google Login follow the [Google Configuration for Embedded Wallet](../../solutions/builder/embedded-wallet/google-configuration).
-- To setup Apple Login follow the [Apple Configuration for Embedded Wallet](../../solutions/builder/embedded-wallet/apple-configuration).
+- To setup Google Login follow the [Google Configuration for Embedded Wallet](../../../../solutions/builder/embedded-wallet/google-configuration).
+- To setup Apple Login follow the [Apple Configuration for Embedded Wallet](../../../../solutions/builder/embedded-wallet/apple-configuration).
 
 ```typescript [config.ts]
 import { createConfig } from "@0xsequence/connect";
@@ -51,20 +51,20 @@ export const config: any = createConfig({
   walletConnect: {
     projectId: walletConnectProjectId
   },
-  permissions: ...
+  explicitSession: {...}
 });
 ```
 
-The `walletUrl` is the URL of the Ecosystem Wallet you DApp will use, for our demo, we are using the Sequence Wallet [https://v3.sequence.app](https://v3.sequence.app).
+The `walletUrl` is the URL of the Ecosystem Wallet your dApp will use, for our demo, we are using the Sequence Ecosystem Wallet [https://v3.sequence.app](https://v3.sequence.app).
 
 The `dappOrigin` is the origin of your dapp, used to verify where the user is coming from.
 
 The `explicitSession` object allows your dapp to request specific permissions from the user upon connection. 
-These permissions can authorize your dapp to perform certain actions on the user's behalf for a defined period, creating a more seamless user experience with no transaction prompts.
+These permissions can authorize your dapp to perform certain actions on the user's behalf for a defined period, creating a more seamless user experience with no transaction prompts or allowing automations.
 
 For example, let's create an explicit session that allows your dapp to `deposit 100 USDC into the AAVE V3 pool on Arbitrum, on behalf of the user for the next 24 hours`
 
-```typescript [config.ts]
+```typescript [config.ts] focus={7-38, 56}
 import { createConfig, createExplicitSession, createContractPermission } from "@0xsequence/connect";
 import { parseEther, parseUnits } from "viem";
 
@@ -105,7 +105,21 @@ const aaveSupplySession = createExplicitSession({
 })
 
 export const config: any = createConfig({
-  // ... your other config options
+  projectAccessKey: "<your-project-access-key>",
+  signIn: {
+    projectName: 'Sequence Web SDK Demo',
+  },
+  walletUrl: 'https://v3.sequence.app',
+  dappOrigin: window.location.origin,
+  appName: 'Sequence Web SDK Demo',
+  chainIds: [42161],
+  defaultChainId: 42161,
+  google: true,
+  apple: true,
+  email: true,
+  walletConnect: {
+    projectId: walletConnectProjectId
+  },
   explicitSession: aaveSupplySession
 });
 ```
@@ -117,7 +131,7 @@ actions like supplying USDC to AAVE can be executed without requiring additional
 
 <Step title="Setup Provider Component">
 
-The configuration we created in [step 2](/sdk/web/wallet-sdk/ecosystem/getting-started#create-a-config) needs to `SequenceConnect config`
+The configuration we created in [step 2](/sdk/web/wallet-sdk/ecosystem/getting-started#create-a-config) needs to be passed into the `SequenceConnect config`
 
 ```typescript [main.tsx]
 import React from "react";
@@ -176,8 +190,6 @@ The user will be prompted to approve the permissions when connecting.
 </Step>
 </Steps>
 
-Head over to the [AAVE DeFi Guide](/sdk/web/ecosystem/guides/aave) if you wish to build a DApp that interacts with AAVE v3 to deposit and withdraw with 0 popup prompts.
-
 </Tab>
 
 <Tab title="NextJS App">
@@ -198,8 +210,8 @@ yarn add @0xsequence/connect wagmi viem
 
 Next, create the Ecosystem Wallet configuration.
 
-- To setup Google Login follow the [Google Configuration for Embedded Wallet](../../solutions/builder/embedded-wallet/google-configuration).
-- To setup Apple Login follow the [Apple Configuration for Embedded Wallet](../../solutions/builder/embedded-wallet/apple-configuration).
+- To setup Google Login follow the [Google Configuration for Embedded Wallet](../../../../solutions/builder/embedded-wallet/google-configuration).
+- To setup Apple Login follow the [Apple Configuration for Embedded Wallet](../../../../solutions/builder/embedded-wallet/apple-configuration).
 
 ```typescript [config.ts]
 import { createConfig } from "@0xsequence/connect";
@@ -224,7 +236,7 @@ export const config: any = createConfig({
 });
 ```
 
-The `walletUrl` is the URL of the Ecosystem Wallet you DApp will use, for our demo, we are using the Sequence Wallet [https://v3.sequence.app](https://v3.sequence.app).
+The `walletUrl` is the URL of the Ecosystem Wallet you dApp will use, for our demo, we are using the Sequence Wallet [https://v3.sequence.app](https://v3.sequence.app).
 
 The `dappOrigin` is the origin of your dapp, used to verify where the user is coming from.
 
@@ -233,7 +245,7 @@ These permissions can authorize your dapp to perform certain actions on the user
 
 For example, let's create an explicit session that allows your dapp to `deposit 100 USDC into the AAVE V3 pool on Arbitrum, on behalf of the user for the next 24 hours`
 
-```typescript [config.ts]
+```typescript [config.ts] focus={7-38, 56}
 import { createConfig, createExplicitSession, createContractPermission } from "@0xsequence/connect";
 import { parseEther, parseUnits } from "viem";
 
@@ -274,7 +286,21 @@ const aaveSupplySession = createExplicitSession({
 })
 
 export const config: any = createConfig({
-  // ... your other config options
+  projectAccessKey: "<your-project-access-key>",
+  signIn: {
+    projectName: 'Sequence Web SDK Demo',
+  },
+  walletUrl: 'https://v3.sequence.app',
+  dappOrigin: window.location.origin,
+  appName: 'Sequence Web SDK Demo',
+  chainIds: [42161],
+  defaultChainId: 42161,
+  google: true,
+  apple: true,
+  email: true,
+  walletConnect: {
+    projectId: walletConnectProjectId
+  },
   explicitSession: aaveSupplySession
 });
 ```
@@ -285,7 +311,7 @@ actions like supplying USDC to AAVE can be executed without requiring additional
 </Step>
 <Step title="Setup Provider Component">
 
-The configuration we created in [step 2](/sdk/web/wallet-sdk/ecosystem/getting-started#create-a-config) needs to `SequenceConnect config`
+The configuration we created in [step 2](/sdk/web/wallet-sdk/ecosystem/getting-started#create-a-config) needs to be passed into the `SequenceConnect config`
 
 Create a separate "providers.tsx" file to wrap your app in the Providers component.
 
