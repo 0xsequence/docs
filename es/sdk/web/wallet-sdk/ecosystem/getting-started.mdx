@@ -26,8 +26,8 @@ Primero asegúrese de haber creado una cuenta de Sequence. Si aún no tiene una,
       <Step title="Cree su configuración de Wallet">
         A continuación, cree la configuración de Ecosystem Wallet.
 
-        - Para configurar Google Login siga la [Configuración de Google para Embedded Wallet](../../solutions/builder/embedded-wallet/google-configuration).
-        - Para configurar Apple Login siga la [Configuración de Apple para Embedded Wallet](../../solutions/builder/embedded-wallet/apple-configuration).
+        - Para configurar Google Login siga la [Configuración de Google para Embedded Wallet](../../../../solutions/builder/embedded-wallet/google-configuration).
+        - Para configurar Apple Login siga la [Configuración de Apple para Embedded Wallet](../../../../solutions/builder/embedded-wallet/apple-configuration).
 
         ```typescript [config.ts]
         import { createConfig } from "@0xsequence/connect";
@@ -48,20 +48,20 @@ Primero asegúrese de haber creado una cuenta de Sequence. Si aún no tiene una,
           walletConnect: {
             projectId: walletConnectProjectId
           },
-          permissions: ...
+          explicitSession: {...}
         });
         ```
 
-        El `walletUrl` es la URL de la Ecosystem Wallet que su DApp usará; para nuestro demo, estamos usando la Sequence Wallet [https://v3.sequence.app](https://v3.sequence.app).
+        El `walletUrl` es la URL del Ecosystem Wallet que su dApp utilizará; para nuestra demo, usamos Sequence Ecosystem Wallet [https://v3.sequence.app](https://v3.sequence.app).
 
         El `dappOrigin` es el origen de su dapp, usado para verificar de dónde proviene el usuario.
 
         El objeto `explicitSession` permite que su dapp solicite permisos específicos al usuario al conectarse.
-        Estos permisos pueden autorizar a su dapp a realizar ciertas acciones en nombre del usuario por un periodo definido, creando una experiencia más fluida sin ventanas emergentes de transacción.
+        Estos permisos pueden autorizar a su dapp a realizar ciertas acciones en nombre del usuario durante un período definido, creando una experiencia más fluida sin avisos de transacción o permitiendo automatizaciones.
 
         Por ejemplo, creemos una sesión explícita que permita a su dapp `depositar 100 USDC en el pool de AAVE V3 en Arbitrum, en nombre del usuario durante las próximas 24 horas`
 
-        ```typescript [config.ts]
+        ```typescript [config.ts] focus={7-38, 56}
         import { createConfig, createExplicitSession, createContractPermission } from "@0xsequence/connect";
         import { parseEther, parseUnits } from "viem";
 
@@ -102,7 +102,21 @@ Primero asegúrese de haber creado una cuenta de Sequence. Si aún no tiene una,
         })
 
         export const config: any = createConfig({
-          // ... your other config options
+          projectAccessKey: "<your-project-access-key>",
+          signIn: {
+            projectName: 'Sequence Web SDK Demo',
+          },
+          walletUrl: 'https://v3.sequence.app',
+          dappOrigin: window.location.origin,
+          appName: 'Sequence Web SDK Demo',
+          chainIds: [42161],
+          defaultChainId: 42161,
+          google: true,
+          apple: true,
+          email: true,
+          walletConnect: {
+            projectId: walletConnectProjectId
+          },
           explicitSession: aaveSupplySession
         });
         ```
@@ -112,7 +126,7 @@ Primero asegúrese de haber creado una cuenta de Sequence. Si aún no tiene una,
       </Step>
 
       <Step title="Configurar el componente Provider">
-        La configuración que creamos en el [paso 2](/sdk/web/wallet-sdk/ecosystem/getting-started#create-a-config) necesita el `SequenceConnect config`
+        La configuración que creamos en el [paso 2](/sdk/web/wallet-sdk/ecosystem/getting-started#create-a-config) debe pasarse al `SequenceConnect config`
 
         ```typescript [main.tsx]
         import React from "react";
@@ -162,8 +176,6 @@ Primero asegúrese de haber creado una cuenta de Sequence. Si aún no tiene una,
         <img src="/images/wallet_permissions.png" alt="Interfaz principal del dashboard" height="200" className="rounded-lg" />
       </Step>
     </Steps>
-
-    Vaya a la [Guía DeFi de AAVE](/sdk/web/ecosystem/guides/aave) si desea crear una DApp que interactúe con AAVE v3 para depositar y retirar sin ventanas emergentes.
   </Tab>
 
   <Tab title="Aplicación NextJS">
@@ -181,8 +193,8 @@ Primero asegúrese de haber creado una cuenta de Sequence. Si aún no tiene una,
       <Step title="Cree su configuración de Wallet">
         A continuación, cree la configuración de Ecosystem Wallet.
 
-        - Para configurar Google Login siga la [Configuración de Google para Embedded Wallet](../../solutions/builder/embedded-wallet/google-configuration).
-        - Para configurar Apple Login siga la [Configuración de Apple para Embedded Wallet](../../solutions/builder/embedded-wallet/apple-configuration).
+        - Para configurar Google Login siga la [Configuración de Google para Embedded Wallet](../../../../solutions/builder/embedded-wallet/google-configuration).
+        - Para configurar Apple Login siga la [Configuración de Apple para Embedded Wallet](../../../../solutions/builder/embedded-wallet/apple-configuration).
 
         ```typescript [config.ts]
         import { createConfig } from "@0xsequence/connect";
@@ -207,7 +219,7 @@ Primero asegúrese de haber creado una cuenta de Sequence. Si aún no tiene una,
         });
         ```
 
-        El `walletUrl` es la URL de la Ecosystem Wallet que su DApp usará; para nuestro demo, estamos usando la Sequence Wallet [https://v3.sequence.app](https://v3.sequence.app).
+        El `walletUrl` es la URL del Ecosystem Wallet que su dApp utilizará; para nuestra demo, usamos Sequence Ecosystem Wallet [https://v3.sequence.app](https://v3.sequence.app).
 
         El `dappOrigin` es el origen de su dapp, usado para verificar de dónde proviene el usuario.
 
@@ -216,7 +228,7 @@ Primero asegúrese de haber creado una cuenta de Sequence. Si aún no tiene una,
 
         Por ejemplo, creemos una sesión explícita que permita a su dapp `depositar 100 USDC en el pool de AAVE V3 en Arbitrum, en nombre del usuario durante las próximas 24 horas`
 
-        ```typescript [config.ts]
+        ```typescript [config.ts] focus={7-38, 56}
         import { createConfig, createExplicitSession, createContractPermission } from "@0xsequence/connect";
         import { parseEther, parseUnits } from "viem";
 
@@ -257,7 +269,21 @@ Primero asegúrese de haber creado una cuenta de Sequence. Si aún no tiene una,
         })
 
         export const config: any = createConfig({
-          // ... your other config options
+          projectAccessKey: "<your-project-access-key>",
+          signIn: {
+            projectName: 'Sequence Web SDK Demo',
+          },
+          walletUrl: 'https://v3.sequence.app',
+          dappOrigin: window.location.origin,
+          appName: 'Sequence Web SDK Demo',
+          chainIds: [42161],
+          defaultChainId: 42161,
+          google: true,
+          apple: true,
+          email: true,
+          walletConnect: {
+            projectId: walletConnectProjectId
+          },
           explicitSession: aaveSupplySession
         });
         ```
@@ -267,7 +293,7 @@ Primero asegúrese de haber creado una cuenta de Sequence. Si aún no tiene una,
       </Step>
 
       <Step title="Configurar el componente Provider">
-        La configuración que creamos en el [paso 2](/sdk/web/wallet-sdk/ecosystem/getting-started#create-a-config) necesita el `SequenceConnect config`
+        La configuración que creamos en el [paso 2](/sdk/web/wallet-sdk/ecosystem/getting-started#create-a-config) debe pasarse al `SequenceConnect config`
 
         Cree un archivo separado "providers.tsx" para envolver su aplicación en el componente Providers.
 

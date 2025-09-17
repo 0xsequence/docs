@@ -1,0 +1,100 @@
+---
+title: Descripción general
+description: Backend dockerizado que expone endpoints estandarizados de lectura/escritura blockchain con gestión segura de claves, construido sobre la infraestructura de Sequence.
+sidebarTitle: Descripción general
+---
+
+**Sidekick** es un backend dockerizado que puede ejecutar para realizar lecturas/escrituras blockchain mediante endpoints HTTP simples, manteniendo las **claves privadas** fuera del cliente. Se integra con los servicios de Sequence (Indexer, Transactions API, Node Gateway) y puede almacenar claves localmente o mediante KMS.
+
+## Para qué sirve
+
+- **Flujos de escritura del lado del servidor** (por ejemplo, mintear ERC-1155/721, transferencias, airdrops).
+- **Custodia segura de claves** con archivos locales, AWS KMS o GCP KMS.
+- **Endpoints HTTP simples** para que su aplicación no tenga que incluir lógica de firmado.
+
+## Configuración general
+
+<Steps>
+  <Step title="Ejecute el contenedor">
+    Inicie Sidekick mediante Docker; configure las variables de entorno para sus claves de acceso, redes y almacenamiento de claves (local o KMS).
+  </Step>
+
+  <Step title="Obtenga la smart account">
+    Obtenga la dirección de la smart account de Sidekick desde el endpoint `/sidekick/smart-account-address`.
+  </Step>
+
+  <Step title="Otorgue permisos">
+    Otorgue el <code>MINTER\_ROLE</code> (o transfiera la propiedad) en sus contratos a la cuenta Sidekick, según su modelo de control de acceso.
+  </Step>
+
+  <Step title="Llame a los endpoints">
+    Utilice endpoints de escritura (por ejemplo, <code>/write/erc1155/`{chainId}`/`{contract address}`/mint</code>) y endpoints de lectura según sea necesario.
+  </Step>
+</Steps>
+
+## Inicio rápido
+Hay una imagen pública de Docker disponible en [GitHub Container Registry](https://github.com/0xsequence/sidekick/pkgs/container/sidekick).
+
+```shell
+docker run -p 7500:7500 -e SEQUENCE_PROJECT_ACCESS_KEY=... ghcr.io/0xsequence/sidekick:latest
+```
+
+Esto le permitirá comenzar con un backend local de Sidekick ejecutándose en el puerto 7500 con las funciones mínimas.
+
+<Note>
+  Recomendamos también configurar SEQUENCE\_PROJECT\_ACCESS\_KEY, pero para pruebas proporcionamos uno predeterminado. Puedes obtener tu clave en [Sequence Builder](https://sequence.build/).
+</Note>
+
+Para una configuración completa, puede seguir la [guía rápida](/solutions/infrastructure/sidekick/quickstart).
+
+## Características y casos de uso
+
+<CardGroup>
+  <Card horizontal title="Configuración sin complicaciones" icon="rocket">
+    Puede usar nuestra imagen pública de Docker o iniciarlo en modo de desarrollo con una configuración mínima.
+  </Card>
+
+  <Card horizontal title="Opciones flexibles de wallet" icon="wallet">
+    Utilice una Sequence Smart Wallet con claves privadas gestionadas localmente o integre de forma segura AWS/GCP KMS para mayor seguridad.
+  </Card>
+
+  <Card horizontal title="Gestión de webhooks" icon="wallet">
+    Aproveche nuestro indexador de alto rendimiento para crear y configurar sus propios webhooks personalizados mediante el eficiente Sequence Indexer.
+  </Card>
+
+  <Card horizontal title="Integración con Tenderly" icon="bug">
+    Utilice Tenderly para depurar fácilmente sus transacciones; obtiene una URL de simulación para cada transacción ejecutada a través de Sidekick.
+  </Card>
+
+  <Card horizontal title="Verificación automática de contratos" icon="circle-check">
+    La verificación de contratos suele ser tediosa. Sidekick lo hace automáticamente en cada contrato que despliegas.
+  </Card>
+
+  <Card horizontal title="Integrado con Sequence Builder" icon="link">
+    ¿Ya tiene un proyecto en Sequence Builder? Importe todos los datos de sus contratos a Sidekick con una sola llamada a la API.
+  </Card>
+
+  <Card horizontal title="Panel integrado de Bull MQ" icon="gauge">
+    Cree, monitoree y gestione sus tareas en segundo plano.
+  </Card>
+
+  <Card horizontal title="Swagger UI" icon="book">
+    Explore la documentación de la API y pruebe los endpoints con Swagger UI
+  </Card>
+
+  <Card horizontal title="Ejecución de transacciones optimizada" icon="bolt">
+    Las transacciones se envían con precios de gas óptimos y se reenvían automáticamente si no se incluyen en el mempool en tres bloques.
+  </Card>
+
+  <Card horizontal title="Analítica y monitoreo" icon="heart">
+    Sidekick viene integrado con Grafana, Prometheus y Blackbox Exporter para monitorear la salud de su backend.
+  </Card>
+</CardGroup>
+
+## Lecturas adicionales
+
+- [Guía rápida](/solutions/infrastructure/sidekick/quickstart)
+- [Guía de servidor de minteo](/solutions/infrastructure/sidekick/minting-server)
+- [Repositorio de Sidekick en GitHub](https://github.com/0xsequence/sidekick)
+- [Imagen Docker de Sidekick](https://github.com/0xsequence/sidekick/pkgs/container/sidekick)
+- [Documentación de Sidekick](https://github.com/0xsequence/sidekick/blob/master/README.md)

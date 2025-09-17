@@ -1,20 +1,20 @@
 ---
-title: 手数料オプション
-description: この内容では、SequenceスタックのEmbedded Walletを使ってトランザクションを送信する際のガス代に関する手数料オプションの実装方法について詳しく説明しています。
-sidebarTitle: 手数料オプション
+title: Opciones de Comisión
+description: Este contenido brinda información detallada sobre cómo implementar Opciones de Comisión para tarifas de gas al enviar transacciones usando un Embedded Wallet con el stack de Sequence.
+sidebarTitle: Opciones de Comisión
 ---
 
-Embedded Walletを導入する際、本番ネットワークでトランザクションを送信するためにはガス代を支払う必要があります。
+Al implementar un Embedded Wallet, será necesario poder pagar las tarifas de gas en una red que no sea testnet para enviar una transacción.
 
-手数料オプションは、一定期間のみ有効なガス代の見積もりを提供します（これはSequenceスタック特有の仕組みです）。
+Las opciones de comisión ofrecen una cotización para cubrir las tarifas de gas, utilizable solo por un periodo de tiempo determinado (lo cual es exclusivo de Sequence).
 
-トランザクションを正常に送信するには、いくつかの方法があります：
-- **テストネット**：テストネットを利用する場合、Sequenceでのトランザクションは無料で、SDK呼び出し時に手数料オプションを入力する必要はありません。
-- **スポンサー付きコントラクトまたはウォレット**：スマートコントラクトやウォレットがスポンサーされている場合、SDK呼び出し時に手数料オプションの入力が不要です。コントラクトやウォレットのスポンサー方法については[こちら](/solutions/builder/gas-sponsorship.mdx)をご覧ください。
-- **手数料オプション**：Sequence APIを使ってカスタムの手数料見積もりと手数料オプションオブジェクトを取得し、両方をwaas sdk呼び出しに渡します。[詳細はこちら](/sdk/headless-wallet/fee-options#implementing-fee-options)。
+Para enviar una transacción con éxito, tienes varias alternativas:
+- **Testnets**: Usando una testnet, las transacciones con Sequence son gratuitas y no requieren ingresar una opción de comisión en la llamada al SDK.
+- **Contrato o Wallet patrocinado**: Tener el smart contract o wallet patrocinado, sin requerir la opción de comisión en la llamada al SDK. Puede aprender cómo patrocinar un contrato o wallet [aquí](/solutions/builder/gas-sponsorship.mdx).
+- **Opciones de comisión**: Usando la API de Sequence para obtener una cotización personalizada y un objeto de opciones de comisión, pase ambos a la llamada del waas sdk. [Vea más abajo](/sdk/headless-wallet/fee-options#implementing-fee-options).
 
 <Note>
-  WaaS APIから以下のレスポンスが返ってきた場合は、コントラクトやウォレットのスポンサー設定、または手数料オプションの実装が必要です。
+  Sabrás si necesitas patrocinar tu contrato o wallet, o implementar opciones de comisión si recibes la siguiente respuesta de la API de WaaS:
 
   ```shell
   {
@@ -27,23 +27,23 @@ Embedded Walletを導入する際、本番ネットワークでトランザク�
   ```
 </Note>
 
-## 手数料オプションの実装方法
-以下の「手数料オプション」フローを実装する前に、対象ネットワークのネイティブ通貨でトランザクションを実行するための十分な資金がウォレットにあることを確認してください。
+## Implementando Opciones de Comisión
+Antes de implementar el siguiente flujo de "Opciones de Comisión", debe asegurarse de que su wallet tenga fondos suficientes para pagar su transacción en la red específica y en la moneda nativa.
 
-トークンをウォレットに送金するか、Web SDKソリューションの[オンランプ機能](/sdk/web/wallet-sdk/embedded/guides/on-ramp)を利用できます。
+Puede transferir tokens a su wallet, o utilizar la [función de on-ramp](/sdk/web/wallet-sdk/embedded/guides/on-ramp) con la solución Web SDK.
 
-また、以下のパッケージがインストールされていることを確認してください。
+Asegúrese de tener instalados los siguientes paquetes:
 
 ```shell
 pnpm install @0xsequence/waas ethers
 ```
 
 <Steps>
-  <Step title="手数料オプション＆手数料見積もりの汎用API">
-    リクエストに手数料オプションを渡すには、まず`sequence.feeOptions({...})`を呼び出す必要があります。これは次の`checkTransactionFeeOptions`関数でラップされています：
+  <Step title="API generalizada para Opciones de Comisión y Cotización">
+    Para implementar las opciones de comisión en la solicitud, primero debe llamar a `sequence.feeOptions({...})`, que está envuelta en la siguiente función `checkTransactionFeeOptions`:
 
     <Note>
-      以下の例では、`sequence`変数は`@0xsequence/waas` npmパッケージから`WaasConfigKey`と`ProjectAccessKey`を使って初期化されたEmbedded ウォレットオブジェクトです。方法は[こちら](/sdk/headless-wallet/quickstart)をご覧ください。
+      En los siguientes ejemplos, la variable `sequence` es un objeto Embedded Wallet inicializado desde el paquete npm `@0xsequence/waas` con el `WaasConfigKey` y el `ProjectAccessKey`. Descubre cómo hacerlo [aquí](/sdk/headless-wallet/quickstart)
     </Note>
 
     ```typescript
@@ -65,8 +65,8 @@ pnpm install @0xsequence/waas ethers
     ```
   </Step>
 
-  <Step title="トランザクションとともに手数料オプション＆手数料見積もりを作成する方法">
-    #### ERC20トランザクションの実装方法
+  <Step title="Creando Opciones de Comisión y Cotización junto con la transacción">
+    #### Implementando una transacción ERC20
 
     ```typescript
     import { ethers } from 'ethers'
@@ -93,9 +93,9 @@ pnpm install @0xsequence/waas ethers
     })
     ```
 
-    #### ERC1155 / ERC721トランザクションの実装方法
+    #### Implementando una transacción ERC1155 / ERC721
 
-    ERC721の場合は、`erc1155({...})`を`erc721({...})`に置き換え、`sequence.sendERC721({...})`を呼び出してください。
+    Para ERC721 solo reemplace `erc1155({...})` por `erc721({...})` y llame a `sequence.sendERC721({...})`
 
     ```typescript
     import { ethers } from 'ethers'
@@ -128,7 +128,7 @@ pnpm install @0xsequence/waas ethers
     })
     ```
 
-    #### ネイティブ通貨トランザクションの実装方法
+    #### Implementando una transacción con moneda nativa
 
     ```typescript
     import { ethers } from 'ethers'
@@ -152,7 +152,7 @@ pnpm install @0xsequence/waas ethers
     })
     ```
 
-    #### カスタムコントラクトトランザクションの実装方法
+    #### Implementando una transacción de contrato personalizado
 
     ```typescript
     import { delayedEncode } from '@0xsequence/waas'

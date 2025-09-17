@@ -1,30 +1,30 @@
 ---
-title: カスタムマーケットプレイスの構築
-description: このガイドでは、Sequenceスタックを使ってカスタムマーケットプレイスを構築する手順を解説します。トークンのミント、ウォレット認証、コレクションの表示、出品・購入、オファーの作成と承認、インベントリ管理など、すべてを埋め込みウォレットとWeb SDKでシームレスに統合する方法を紹介します。
-sidebarTitle: カスタムマーケットプレイスの構築
+title: Cree un Marketplace Personalizado
+description: Esta guía le guía paso a paso para crear un marketplace personalizado utilizando el stack de Sequence. Cubre el minteo de tokens, la autenticación de wallet, la visualización de colecciones, la creación y compra de listados, la realización y aceptación de ofertas, y la gestión de inventario, todo integrado de forma fluida con un wallet embebido y el Web SDK.
+sidebarTitle: Cree un Marketplace Personalizado
 ---
 
-このガイドでは、Sequenceスタックのシンプルなツールを使ってカスタムマーケットプレイスを作成する手順を説明します。
+En esta guía repasaremos el proceso de crear un marketplace personalizado usando algunas herramientas simples del stack de Sequence.
 
-これらのツールで以下のことが可能になります：
-1. [ミント](/guides/custom-marketplace#1-minting)：Sequence Builderからウォレットへトークンをミント
-2. [ウォレット認証](/guides/custom-marketplace#2-wallet-authentication)：Web SDKを使ったユーザー認証
-3. [Marketplace SDKのセットアップ](/guides/custom-marketplace#3-marketplace-sdk-set-up)：Marketplace SDKの基本的な設定ガイド
-4. [コレクションの表示](/guides/custom-marketplace#4-displaying-collections)：マーケットプレイスで利用可能なコレクションを取得し、表示します。
-5. [出品とオファー](/guides/custom-marketplace#5-listings-and-offers)：ユーザーがトークンを出品したり、オファーを出せるようにします。
+Estas herramientas le permitirán realizar:
+1. [Minteo](/guides/custom-marketplace#1-minting): Minteo de tokens a su wallet desde el Sequence Builder
+2. [Autenticación de Wallet](/guides/custom-marketplace#2-wallet-authentication): Uso del Web SDK para autenticar a un usuario
+3. [Configuración del Marketplace SDK](/guides/custom-marketplace#3-marketplace-sdk-set-up): Guía básica para configurar el Marketplace SDK
+4. [Visualización de colecciones](/guides/custom-marketplace#4-displaying-collections): Obtener y mostrar las colecciones disponibles en el marketplace.
+5. [Publicaciones y Ofertas](/guides/custom-marketplace#5-listings-and-offers): Permita que los usuarios publiquen tokens en venta o realicen ofertas
 
-## 1. ミント
-まずはSequence Builderでコレクティブルを作成し、いくつかトークンをミントします。これは[こちらのガイド](/solutions/builder/contracts/deploy-an-item-collection)で行えます。次のステップでは、ミントした`tokenId`を使って注文の照会や実行を行います。
+## 1. Minteo
+El primer paso es crear un coleccionable desde Sequence Builder y mintear algunos tokens, lo cual puede lograrse con esta [guía](/solutions/builder/contracts/deploy-an-item-collection). Luego, utilice el `tokenId` que minteó en los siguientes pasos para consultar y completar órdenes.
 
-## 2. ウォレット認証
-プロジェクトには、ユーザーをウォレットで認証する仕組みが必要です。
+## 2. Autenticación de Wallet
+Para su proyecto, necesitará una forma de autenticar a su usuario con un wallet.
 
-このガイドでは、GoogleやApple認証に加え、CoinbaseやMetamaskなどユーザー自身のウォレットも利用できる、`Embedded Wallet`と`Web SDK`コネクタを使用します。
+Para esta guía usaremos un `Embedded Wallet` con conector `Web SDK`, que puede autenticar usuarios usando inicio de sesión con redes sociales de Google o Apple, además de wallets traídas por el usuario como Coinbase o Metamask.
 
-### パッケージのインストール
-すでに優れたUIと統合された[Marketplace Boilerplate](/solutions/payments/marketplace/custom)から始めることもできますし、ここではReactをゼロから使う方法もご案内します。
+### Instalar Paquetes
+Puede comenzar con una excelente base usando nuestro [Marketplace Boilerplate](/solutions/payments/marketplace/custom), que ya incluye todo esto integrado con una gran interfaz, o aquí le mostraremos cómo usar React desde cero.
 
-まず、任意のフォルダ名でプロジェクトを作成します。
+Comience creando un proyecto en una carpeta con el nombre que prefiera:
 
 ```bash npm
 npm create vite --template react-ts
@@ -34,7 +34,7 @@ pnpm create vite --template react-ts
 yarn create vite --template react-ts
 ```
 
-次に、`<project_name>フォルダ`で必要なパッケージをインストールします。
+Luego, instale los paquetes requeridos en la carpeta `<project_name>`
 
 ```bash pnpm
 npm install @0xsequence/connect @0xsequence/hooks wagmi ethers viem 0xsequence @tanstack/react-query
@@ -44,7 +44,7 @@ pnpm install @0xsequence/connect @0xsequence/hooks wagmi ethers viem 0xsequence 
 yarn add @0xsequence/connect @0xsequence/hooks wagmi ethers viem 0xsequence @tanstack/react-query
 ```
 
-### 設定ファイルを作成する
+### Cree una configuración
 
 ```ts config.ts
 import { createConfig } from "@0xsequence/connect";
@@ -70,10 +70,10 @@ export const config: any = createConfig("waas", {
 ```
 
 <Warning>
-  使用するすべてのchainIdを追加してください。
+  Asegúrese de agregar todos los chainIds que va a utilizar
 </Warning>
 
-### main.tsxでレイアウトを作成します。
+### Cree un layout en el main.tsx
 
 ```ts main.tsx
 import { StrictMode } from 'react'
@@ -100,8 +100,8 @@ createRoot(document.getElementById('root')!).render(
 export default Dapp;
 ```
 
-### 認証コンポーネント
-認証を完了するには、認証用コンポーネントが必要です。
+### Componente de Autenticación
+Para completar la autenticación, necesitará el componente de autenticación
 
 ```ts App.tsx
 import { useAccount, useDisconnect } from "wagmi";
@@ -135,8 +135,8 @@ function App() {
 export default App;
 ```
 
-## 3. Marketplace SDKのセットアップ
-Marketplace SDKは、私たちのマーケットプレイスをアプリケーションにシームレスに統合できる包括的なツールキットです。詳しくは[Marketplace SDK](/sdk/web/marketplace-sdk/overview)をご覧ください。
+## 3. Configuración del Marketplace SDK
+Marketplace SDK es un conjunto de herramientas completo que integra de manera sencilla nuestros Marketplaces en sus aplicaciones. Más información sobre [Marketplace SDK](/sdk/web/marketplace-sdk/overview)
 
 ```bash
 npm install @0xsequence/connect @0xsequence/checkout @0xsequence/wallet-widget @0xsequence/marketplace-sdk @0xsequence/design-system @0xsequence/network @0xsequence/indexer @0xsequence/metadata wagmi ethers@^6 viem 0xsequence @tanstack/react-query @tanstack/react-query-devtools @legendapp/state framer-motion pino-pretty tailwindcss @tailwindcss/vite
@@ -146,7 +146,7 @@ pnpm add @0xsequence/connect @0xsequence/checkout @0xsequence/wallet-widget @0xs
 yarn add @0xsequence/connect @0xsequence/checkout @0xsequence/wallet-widget @0xsequence/marketplace-sdk @0xsequence/design-system @0xsequence/network @0xsequence/indexer @0xsequence/metadata wagmi ethers@^6 viem 0xsequence @tanstack/react-query @tanstack/react-query-devtools @legendapp/state framer-motion pino-pretty tailwindcss @tailwindcss/vite
 ```
 
-### 必要なCSSインポートをメインのスタイルファイルに追加します。
+### Agregue las importaciones CSS requeridas a su archivo principal de estilos
 
 ```ts index.css
 @import 'tailwindcss';
@@ -154,7 +154,7 @@ yarn add @0xsequence/connect @0xsequence/checkout @0xsequence/wallet-widget @0xs
 @import '@0xsequence/design-system/preset';
 ```
 
-### vite.config.tsでTailwind CSSプラグインを設定します。
+### Configure el plugin de Tailwind CSS en vite.config.ts
 
 ```ts vite.config.ts
 import { defineConfig } from "vite";
@@ -167,7 +167,7 @@ export default defineConfig({
 });
 ```
 
-### Marketplace SDK の設定を追加する
+### Necesitamos agregar la configuración del Marketplace SDK
 
 ```ts config.ts
 import { createConfig } from "@0xsequence/connect";
@@ -200,7 +200,7 @@ export const marketplaceConfig = {
 } satisfies SdkConfig;
 ```
 
-### Marketplace SDK プロバイダーを Web SDK プロバイダーと一緒に追加
+### Agregue los proveedores de Marketplace SDK junto con los proveedores de su Web SDK
 
 ```ts main.tsx
 import { StrictMode } from 'react'
@@ -243,8 +243,8 @@ createRoot(document.getElementById('root')!).render(
 export default Dapp;
 ```
 
-## 4. コレクションの表示
-マーケットプレイスのコレクションを表示するために、`src/components` ディレクトリ内に `Collections` というフォルダを作成します。このフォルダ内に、`index.tsx` と `Collection.tsx` の2つのファイルを作成します。
+## 4. Visualización de colecciones
+Para mostrar las colecciones del marketplace, necesitamos crear una carpeta llamada `Collections` dentro del directorio `src/components`. Dentro de esta carpeta, crearemos dos archivos: `index.tsx` y `Collection.tsx`.
 
 ```ts Collection.tsx
 import type { MarketCollection } from "@0xsequence/marketplace-sdk";
@@ -314,7 +314,7 @@ export const Collections = ({ onSelectCollection }: { onSelectCollection: (value
 };
 ```
 
-最後に、App.tsxにCollectionsコンポーネントを追加します。
+Para finalizar, agregaremos el componente Collections en el App.tsx
 
 ```ts
 import { useAccount, useDisconnect } from "wagmi";
@@ -370,11 +370,11 @@ function App() {
 export default App;
 ```
 
-## 5. 出品とオファー
-このセクションでは、マーケットプレイスの出品とオファーをUIに統合します。
+## 5. Listados y Ofertas
+Esta sección es para integrar las publicaciones y ofertas de nuestro marketplace en la interfaz de usuario.
 
-### 型定義ファイルの作成
-始める前に、`src/utils`内にコンポーネント用の型をまとめたファイルを用意します。これを使って関数に型を付け、コードベースの一貫性と保守性を高めます。
+### Cree un archivo de tipos
+Antes de comenzar esto, necesitamos un archivo con algunos tipos para nuestros componentes dentro de `src/utils`. Usaremos esto para tipar nuestras funciones y mantener el código consistente y fácil de mantener.
 
 ```ts types.ts
 import type {
@@ -426,8 +426,8 @@ export type ShowSellModalArgs = {
 };
 ```
 
-### コレクティブル用コンポーネントのセットアップ
-アイテムページおよびそのコンポーネントを作成するために、`src/components` ディレクトリ内に`Collectibles`という新しいフォルダを追加します。このフォルダ内に`index.tsx`と`Collectible.tsx`の2つのファイルを作成します。
+### Configure los componentes de coleccionables
+Para crear la página de ítems y sus componentes, debemos agregar una nueva carpeta llamada Collectibles dentro del directorio `src/components`. Dentro de esta carpeta, crearemos dos archivos: `index.tsx` y `Collectible.tsx`.
 
 ```ts Collectible.tsx
 import type {
@@ -632,7 +632,7 @@ export const Collectibles = ({
 };
 ```
 
-最後に、出品とオファー用のコンポーネントを`App.tsx`ファイルに追加します。
+Finalmente, agregue el componente de Publicaciones y Ofertas en nuestro archivo `App.tsx`
 
 ```ts App.tsx
 import { useAccount, useDisconnect } from "wagmi";
@@ -695,5 +695,5 @@ function App() {
 export default App;
 ```
 
-### 実行とテスト
-新しいページにアイテムが正常に追加され、UI上で表示されるようになりました。動作を確認するには、pnpm devを実行してください。ランディングページから任意のコレクションを選択し、その中のNFTを表示できます。出品、購入、オファーの作成や承認など、主要なフローをテストして、すべてが期待通りに動作するか確認しましょう。
+### Ejecute y pruebe
+Ha agregado exitosamente los artículos a su nueva página y ahora deberían ser visibles en la interfaz. Para verlos en acción, ejecute pnpm dev. Desde la página principal, seleccione cualquiera de sus colecciones para ver los NFTs que contiene. Asegúrese de que todo funcione correctamente probando los flujos clave como publicar, comprar, hacer ofertas y aceptar ofertas en un NFT.

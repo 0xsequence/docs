@@ -25,8 +25,8 @@ sidebarTitle: はじめに
       <Step title="ウォレット設定を作成します">
         次に、Ecosystem Walletの設定を作成します。
 
-        - Googleログインの設定方法は[Embedded WalletのGoogle設定ガイド](../../solutions/builder/embedded-wallet/google-configuration)をご覧ください。
-        - Appleログインの設定方法は[Embedded WalletのApple設定ガイド](../../solutions/builder/embedded-wallet/apple-configuration)をご覧ください。
+        - Googleログインの設定方法は、[Embedded WalletのGoogle設定ガイド](../../../../solutions/builder/embedded-wallet/google-configuration)をご参照ください。
+        - Appleログインの設定方法は、[Embedded WalletのApple設定ガイド](../../../../solutions/builder/embedded-wallet/apple-configuration)をご参照ください。
 
         ```typescript [config.ts]
         import { createConfig } from "@0xsequence/connect";
@@ -47,20 +47,20 @@ sidebarTitle: はじめに
           walletConnect: {
             projectId: walletConnectProjectId
           },
-          permissions: ...
+          explicitSession: {...}
         });
         ```
 
-        `walletUrl`はDAppが利用するEcosystem WalletのURLです。デモではSequence Wallet [https://v3.sequence.app](https://v3.sequence.app)を使用しています。
+        `walletUrl`は、dAppが利用するEcosystem WalletのURLです。デモではSequence Ecosystem Wallet [https://v3.sequence.app](https://v3.sequence.app)を使用しています。
 
         `dappOrigin`はdappのオリジンで、ユーザーのアクセス元を確認するために使われます。
 
-        `explicitSession`オブジェクトを使うと、接続時にユーザーから特定の権限をリクエストできます。
-        これにより、一定期間ユーザーの代理で特定の操作を実行でき、取引プロンプトなしでシームレスな体験を提供します。
+        `explicitSession`オブジェクトを使うことで、dAppが接続時にユーザーから特定の権限をリクエストできます。
+        これらの権限により、ユーザーに取引確認を求めずに一定期間dAppが特定の操作を代行でき、よりシームレスな体験や自動化が可能になります。
 
         例として、「次の24時間、ユーザーの代理でArbitrum上のAAVE V3プールに100 USDCを入金する」ための明示的セッションを作成してみましょう。
 
-        ```typescript [config.ts]
+        ```typescript [config.ts] focus={7-38, 56}
         import { createConfig, createExplicitSession, createContractPermission } from "@0xsequence/connect";
         import { parseEther, parseUnits } from "viem";
 
@@ -101,7 +101,21 @@ sidebarTitle: はじめに
         })
 
         export const config: any = createConfig({
-          // ... your other config options
+          projectAccessKey: "<your-project-access-key>",
+          signIn: {
+            projectName: 'Sequence Web SDK Demo',
+          },
+          walletUrl: 'https://v3.sequence.app',
+          dappOrigin: window.location.origin,
+          appName: 'Sequence Web SDK Demo',
+          chainIds: [42161],
+          defaultChainId: 42161,
+          google: true,
+          apple: true,
+          email: true,
+          walletConnect: {
+            projectId: walletConnectProjectId
+          },
           explicitSession: aaveSupplySession
         });
         ```
@@ -110,7 +124,7 @@ sidebarTitle: はじめに
       </Step>
 
       <Step title="プロバイダーコンポーネントの設定">
-        [ステップ2](/sdk/web/wallet-sdk/ecosystem/getting-started#create-a-config)で作成した設定が`SequenceConnect config`として必要です。
+        [ステップ2](/sdk/web/wallet-sdk/ecosystem/getting-started#create-a-config)で作成した設定は、`SequenceConnect config`に渡す必要があります。
 
         ```typescript [main.tsx]
         import React from "react";
@@ -160,8 +174,6 @@ sidebarTitle: はじめに
         <img src="/images/wallet_permissions.png" alt="メインダッシュボード画面" height="200" className="rounded-lg" />
       </Step>
     </Steps>
-
-    AAVE v3と連携し、ポップアップなしで入出金できるDAppを構築したい場合は、[AAVE DeFiガイド](/sdk/web/ecosystem/guides/aave)をご覧ください。
   </Tab>
 
   <Tab title="NextJSアプリ">
@@ -179,8 +191,8 @@ sidebarTitle: はじめに
       <Step title="ウォレット設定を作成します">
         次に、Ecosystem Walletの設定を作成します。
 
-        - Googleログインの設定方法は[Embedded WalletのGoogle設定ガイド](../../solutions/builder/embedded-wallet/google-configuration)をご覧ください。
-        - Appleログインの設定方法は[Embedded WalletのApple設定ガイド](../../solutions/builder/embedded-wallet/apple-configuration)をご覧ください。
+        - Googleログインの設定方法は、[Embedded WalletのGoogle設定ガイド](../../../../solutions/builder/embedded-wallet/google-configuration)をご参照ください。
+        - Appleログインの設定方法は、[Embedded WalletのApple設定ガイド](../../../../solutions/builder/embedded-wallet/apple-configuration)をご参照ください。
 
         ```typescript [config.ts]
         import { createConfig } from "@0xsequence/connect";
@@ -205,7 +217,7 @@ sidebarTitle: はじめに
         });
         ```
 
-        `walletUrl`はDAppが利用するEcosystem WalletのURLです。デモではSequence Wallet [https://v3.sequence.app](https://v3.sequence.app)を使用しています。
+        `walletUrl`は、dAppが利用するEcosystem WalletのURLです。デモではSequence Ecosystem Wallet [https://v3.sequence.app](https://v3.sequence.app)を使用しています。
 
         `dappOrigin`はdappのオリジンで、ユーザーのアクセス元を確認するために使われます。
 
@@ -214,7 +226,7 @@ sidebarTitle: はじめに
 
         例として、「次の24時間、ユーザーの代理でArbitrum上のAAVE V3プールに100 USDCを入金する」ための明示的セッションを作成してみましょう。
 
-        ```typescript [config.ts]
+        ```typescript [config.ts] focus={7-38, 56}
         import { createConfig, createExplicitSession, createContractPermission } from "@0xsequence/connect";
         import { parseEther, parseUnits } from "viem";
 
@@ -255,7 +267,21 @@ sidebarTitle: はじめに
         })
 
         export const config: any = createConfig({
-          // ... your other config options
+          projectAccessKey: "<your-project-access-key>",
+          signIn: {
+            projectName: 'Sequence Web SDK Demo',
+          },
+          walletUrl: 'https://v3.sequence.app',
+          dappOrigin: window.location.origin,
+          appName: 'Sequence Web SDK Demo',
+          chainIds: [42161],
+          defaultChainId: 42161,
+          google: true,
+          apple: true,
+          email: true,
+          walletConnect: {
+            projectId: walletConnectProjectId
+          },
           explicitSession: aaveSupplySession
         });
         ```
@@ -264,7 +290,7 @@ sidebarTitle: はじめに
       </Step>
 
       <Step title="プロバイダーコンポーネントの設定">
-        [ステップ2](/sdk/web/wallet-sdk/ecosystem/getting-started#create-a-config)で作成した設定が`SequenceConnect config`として必要です。
+        [ステップ2](/sdk/web/wallet-sdk/ecosystem/getting-started#create-a-config)で作成した設定は、`SequenceConnect config`に渡す必要があります。
 
         アプリ全体をProvidersコンポーネントでラップするため、別途「providers.tsx」ファイルを作成します。
 
