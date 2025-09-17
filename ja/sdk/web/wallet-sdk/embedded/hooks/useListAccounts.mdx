@@ -1,0 +1,106 @@
+---
+title: useListAccounts
+description: 現在のWaaSセッションに紐づくすべてのアカウントを一覧取得するフック
+sidebarTitle: useListAccounts
+---
+
+## インポート
+
+```tsx
+import { useListAccounts } from '@0xsequence/connect'
+```
+
+## 使い方
+
+```tsx
+import { useListAccounts } from '@0xsequence/connect'
+
+function AccountsList() {
+  const { data, isLoading, error, refetch } = useListAccounts()
+
+  if (isLoading) return <div>Loading accounts...</div>
+  if (error) return <div>Error: {error.message}</div>
+
+  return (
+    <div>
+      <button onClick={() => refetch()}>Refresh Accounts</button>
+      <div>Current Account ID: {data?.currentAccountId}</div>
+      {data?.accounts.map(account => (
+        <div key={account.id} className="account-item">
+          <div>ID: {account.id}</div>
+          <div>Type: {account.type}</div>
+          {account.email && <div>Email: {account.email}</div>}
+          {account.issuer && <div>Issuer: {account.issuer}</div>}
+        </div>
+      ))}
+    </div>
+  )
+}
+```
+
+## 返却型：`UseListAccountsResult`
+このフックは以下のプロパティを持つオブジェクトを返します。
+
+```tsx
+interface UseListAccountsResult {
+  /** The accounts data if available */
+  data?: IntentResponseAccountList
+  /** Whether the query is currently loading */
+  isLoading: boolean
+  /** Any error that occurred during the query */
+  error: Error | null
+  /** Function to manually refetch the accounts */
+  refetch: () => Promise<void>
+}
+
+enum IdentityType {
+    None = "None",
+    Guest = "Guest",
+    OIDC = "OIDC",
+    Email = "Email",
+    PlayFab = "PlayFab",
+    Stytch = "Stytch"
+}
+
+interface Account {
+    id: string;
+    type: IdentityType;
+    issuer?: string;
+    email?: string;
+}
+
+interface IntentResponseAccountList {
+    accounts: Array<Account>;
+    currentAccountId: string;
+}
+```
+
+### プロパティ
+
+#### data
+`IntentResponseAccountList | undefined`
+
+クエリが成功した場合のアカウント一覧。`id`や`address`などのプロパティを持つアカウントオブジェクトの配列です。
+
+#### isLoading
+`boolean`
+
+クエリが現在進行中かどうか。ローディング状態の表示に便利です。
+
+#### エラー
+`Error | null`
+
+クエリ中に発生したエラー。エラーがなければ`null`になります。
+
+#### refetch
+`() => Promise<void>`
+
+アカウント一覧を手動でリフレッシュする関数です。
+
+## 特徴
+
+- **自動データ取得**：WaaS接続が利用可能な場合、自動的にアカウントを取得します
+- **キャッシュ**：結果は1分間キャッシュされ、不要な再取得を防ぎます
+- **エラー処理**：WaaSコネクタの未接続や初期化エラーなどを適切に処理します
+- **型安全性**：返却されるすべてのデータにTypeScriptの完全な型サポート
+- **React Query連携**：効率的な状態管理とキャッシュのためにReact Queryを利用

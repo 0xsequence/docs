@@ -1,0 +1,385 @@
+---
+description: Ecosystem Wallet Web SDKの始め方をご案内します
+sidebarTitle: はじめに
+---
+
+まず、Sequenceアカウントを作成してください。まだお持ちでない場合は[こちら](https://sequence.build/)から作成できます。続行には`Project Access Key`が必要です。
+
+<Note>
+  当社のWeb SDKはwagmiの上に構築されています。高度な設定やトランザクション送信、コントラクト呼び出しなどについては、[wagmiのドキュメント](https://wagmi.sh/react/WagmiConfig)をご参照ください。
+</Note>
+
+<Tabs>
+  <Tab title="Viteアプリ">
+    <Steps>
+      <Step title="必要なライブラリをインストールします">
+        ```bash
+        npm install @0xsequence/connect wagmi viem 
+        # or
+        pnpm install @0xsequence/connect wagmi viem 
+        # or
+        yarn add @0xsequence/connect wagmi viem 
+        ```
+      </Step>
+
+      <Step title="ウォレット設定を作成します">
+        次に、Ecosystem Walletの設定を作成します。
+
+        - Googleログインの設定方法は、[Embedded WalletのGoogle設定ガイド](../../../../solutions/builder/embedded-wallet/google-configuration)をご参照ください。
+        - Appleログインの設定方法は、[Embedded WalletのApple設定ガイド](../../../../solutions/builder/embedded-wallet/apple-configuration)をご参照ください。
+
+        ```typescript [config.ts]
+        import { createConfig } from "@0xsequence/connect";
+
+        export const config: any = createConfig({
+          projectAccessKey: "<your-project-access-key>",
+          signIn: {
+            projectName: 'Sequence Web SDK Demo',
+          },
+          walletUrl: 'https://v3.sequence.app',
+          dappOrigin: window.location.origin,
+          appName: 'Sequence Web SDK Demo',
+          chainIds: [42161],
+          defaultChainId: 42161,
+          google: true,
+          apple: true,
+          email: true,
+          walletConnect: {
+            projectId: walletConnectProjectId
+          },
+          explicitSession: {...}
+        });
+        ```
+
+        `walletUrl`は、dAppが利用するEcosystem WalletのURLです。デモではSequence Ecosystem Wallet [https://v3.sequence.app](https://v3.sequence.app)を使用しています。
+
+        `dappOrigin`はdappのオリジンで、ユーザーのアクセス元を確認するために使われます。
+
+        `explicitSession`オブジェクトを使うことで、dAppが接続時にユーザーから特定の権限をリクエストできます。
+        これらの権限により、ユーザーに取引確認を求めずに一定期間dAppが特定の操作を代行でき、よりシームレスな体験や自動化が可能になります。
+
+        例として、「次の24時間、ユーザーの代理でArbitrum上のAAVE V3プールに100 USDCを入金する」ための明示的セッションを作成してみましょう。
+
+        ```typescript [config.ts] focus={7-38, 56}
+        import { createConfig, createExplicitSession, createContractPermission } from "@0xsequence/connect";
+        import { parseEther, parseUnits } from "viem";
+
+        export const USDC_ADDRESS_ARBITRUM = '0xaf88d065e77c8cC2239327C5EDb3A432268e5831'
+        export const AAVE_V3_POOL_ADDRESS_ARBITRUM = '0x794a61358D6845594F94dc1DB02A252b5b4814aD'
+
+        // Define the session configuration using the helper functions
+        const aaveSupplySession = createExplicitSession({
+            chainId: 42161,
+            nativeTokenSpending: {
+                valueLimit: parseEther('0.01'), // Allow spending up to 0.01 ETH for gas fees
+            },
+            expiresIn: {
+                hours: 24, // Session lasts for 24 hours
+            },
+            permissions: [
+                // Create a specific permission for the AAVE supply function
+                createContractPermission({
+                    address: AAVE_V3_POOL_ADDRESS_ARBITRUM,
+                    functionSignature: 'function supply(address asset, uint256 amount, address onBehalfOf, uint16 referralCode)',
+                    rules: [
+                        {
+                            param: 'asset',
+                            type: 'address',
+                            condition: 'EQUAL',
+                            value: USDC_ADDRESS_ARBITRUM
+                        },
+                        {
+                            param: 'amount',
+                            type: 'uint256',
+                            condition: 'LESS_THAN_OR_EQUAL',
+                            value: parseUnits('100', 6), // Max cumulative amount of 100 USDC
+                            cumulative: true
+                        }
+                    ]
+                })
+            ]
+        })
+
+        export const config: any = createConfig({
+          projectAccessKey: "<your-project-access-key>",
+          signIn: {
+            projectName: 'Sequence Web SDK Demo',
+          },
+          walletUrl: 'https://v3.sequence.app',
+          dappOrigin: window.location.origin,
+          appName: 'Sequence Web SDK Demo',
+          chainIds: [42161],
+          defaultChainId: 42161,
+          google: true,
+          apple: true,
+          email: true,
+          walletConnect: {
+            projectId: walletConnectProjectId
+          },
+          explicitSession: aaveSupplySession
+        });
+        ```
+
+        ユーザーがウォレットを接続すると、dAppに権限を付与するよう求められます。承認されると、AAVEへのUSDC供給などの操作が追加のポップアップなしで実行でき、ユーザーがオフラインでも自動化が可能です。
+      </Step>
+
+      <Step title="プロバイダーコンポーネントの設定">
+        [ステップ2](/sdk/web/wallet-sdk/ecosystem/getting-started#create-a-config)で作成した設定は、`SequenceConnect config`に渡す必要があります。
+
+        ```typescript [main.tsx]
+        import React from "react";
+        import ReactDOM from "react-dom/client";
+        import "./index.css";
+
+        import App from "./App";
+        import { config } from "./config";
+        import { SequenceConnect } from "@0xsequence/connect";
+
+        function Dapp() {
+          return (
+            <SequenceConnect config={config}>
+              <App />
+            </SequenceConnect>
+          );
+        }
+
+        ReactDOM.createRoot(document.getElementById("root")!).render(
+          <React.StrictMode>
+            <Dapp />
+          </React.StrictMode>
+        );
+        ```
+      </Step>
+
+      <Step title="接続モーダルの表示">
+        ```typescript [App.tsx]
+        import './App.css'
+        import { useOpenConnectModal } from '@0xsequence/connect'
+
+        function App() {
+          const {setOpenConnectModal} = useOpenConnectModal()
+          
+          return (
+            <>
+              <button onClick={() => setOpenConnectModal(true)}>Connect</button>
+            </>
+          )
+        }
+
+        export default App
+        ```
+
+        接続時にユーザーに権限の承認が求められます。
+
+        <img src="/images/wallet_permissions.png" alt="メインダッシュボード画面" height="200" className="rounded-lg" />
+      </Step>
+    </Steps>
+  </Tab>
+
+  <Tab title="NextJSアプリ">
+    <Steps>
+      <Step title="Web SDKの依存パッケージをインストール">
+        ```bash
+        npm install @0xsequence/connect wagmi viem 
+        # or
+        pnpm install @0xsequence/connect wagmi viem 
+        # or
+        yarn add @0xsequence/connect wagmi viem 
+        ```
+      </Step>
+
+      <Step title="ウォレット設定を作成します">
+        次に、Ecosystem Walletの設定を作成します。
+
+        - Googleログインの設定方法は、[Embedded WalletのGoogle設定ガイド](../../../../solutions/builder/embedded-wallet/google-configuration)をご参照ください。
+        - Appleログインの設定方法は、[Embedded WalletのApple設定ガイド](../../../../solutions/builder/embedded-wallet/apple-configuration)をご参照ください。
+
+        ```typescript [config.ts]
+        import { createConfig } from "@0xsequence/connect";
+
+        export const config: any = createConfig({
+          projectAccessKey: '<your-project-access-key>',
+          signIn: {
+            projectName: 'Sequence Web SDK Demo',
+          },
+          walletUrl: 'https://v3.sequence.app',
+          dappOrigin: window.location.origin,
+          appName: 'Sequence Web SDK Demo',
+          chainIds: [42161],
+          defaultChainId: 42161,
+          google: true,
+          apple: true,
+          email: true,
+          walletConnect: {
+            projectId: walletConnectProjectId
+          },
+          explicitSession: { ... }
+        });
+        ```
+
+        `walletUrl`は、dAppが利用するEcosystem WalletのURLです。デモではSequence Ecosystem Wallet [https://v3.sequence.app](https://v3.sequence.app)を使用しています。
+
+        `dappOrigin`はdappのオリジンで、ユーザーのアクセス元を確認するために使われます。
+
+        `explicitSession`オブジェクトを使うと、接続時にユーザーから特定の権限をリクエストできます。
+        これにより、一定期間ユーザーの代理で特定の操作を実行でき、取引プロンプトなしでシームレスな体験を提供します。
+
+        例として、「次の24時間、ユーザーの代理でArbitrum上のAAVE V3プールに100 USDCを入金する」ための明示的セッションを作成してみましょう。
+
+        ```typescript [config.ts] focus={7-38, 56}
+        import { createConfig, createExplicitSession, createContractPermission } from "@0xsequence/connect";
+        import { parseEther, parseUnits } from "viem";
+
+        export const USDC_ADDRESS_ARBITRUM = '0xaf88d065e77c8cC2239327C5EDb3A432268e5831'
+        export const AAVE_V3_POOL_ADDRESS_ARBITRUM = '0x794a61358D6845594F94dc1DB02A252b5b4814aD'
+
+        // Define the session configuration using the helper functions
+        const aaveSupplySession = createExplicitSession({
+            chainId: 42161,
+            nativeTokenSpending: {
+                valueLimit: parseEther('0.01'), // Allow spending up to 0.01 ETH for gas fees
+            },
+            expiresIn: {
+                hours: 24, // Session lasts for 24 hours
+            },
+            permissions: [
+                // Create a specific permission for the AAVE supply function
+                createContractPermission({
+                    address: AAVE_V3_POOL_ADDRESS_ARBITRUM,
+                    functionSignature: 'function supply(address asset, uint256 amount, address onBehalfOf, uint16 referralCode)',
+                    rules: [
+                        {
+                            param: 'asset',
+                            type: 'address',
+                            condition: 'EQUAL',
+                            value: USDC_ADDRESS_ARBITRUM
+                        },
+                        {
+                            param: 'amount',
+                            type: 'uint256',
+                            condition: 'LESS_THAN_OR_EQUAL',
+                            value: parseUnits('100', 6), // Max cumulative amount of 100 USDC
+                            cumulative: true
+                        }
+                    ]
+                })
+            ]
+        })
+
+        export const config: any = createConfig({
+          projectAccessKey: "<your-project-access-key>",
+          signIn: {
+            projectName: 'Sequence Web SDK Demo',
+          },
+          walletUrl: 'https://v3.sequence.app',
+          dappOrigin: window.location.origin,
+          appName: 'Sequence Web SDK Demo',
+          chainIds: [42161],
+          defaultChainId: 42161,
+          google: true,
+          apple: true,
+          email: true,
+          walletConnect: {
+            projectId: walletConnectProjectId
+          },
+          explicitSession: aaveSupplySession
+        });
+        ```
+
+        ユーザーがウォレットを接続すると、dAppに権限を付与するよう求められます。承認されると、AAVEへのUSDC供給などの操作が追加のポップアップなしで実行でき、ユーザーがオフラインでも自動化が可能です。
+      </Step>
+
+      <Step title="プロバイダーコンポーネントの設定">
+        [ステップ2](/sdk/web/wallet-sdk/ecosystem/getting-started#create-a-config)で作成した設定は、`SequenceConnect config`に渡す必要があります。
+
+        アプリ全体をProvidersコンポーネントでラップするため、別途「providers.tsx」ファイルを作成します。
+
+        ```typescript [src/app/providers.tsx]
+        "use client";
+
+        import React from "react"
+        import { config } from "./config"
+        import { SequenceConnect } from "@0xsequence/connect"
+
+        const Providers = ({ children }: { children: React.ReactNode }) => {
+            return (
+                <SequenceConnect config={config}>
+                    {children}
+                </SequenceConnect>
+            )
+        }
+
+        export default Providers;
+        ```
+      </Step>
+
+      <Step title="アプリをProvidersでラップ">
+        アプリ全体をProvidersコンポーネントでラップします。
+
+        ```typescript [src/app/layout.tsx]
+        import type { Metadata } from "next";
+        import { Geist, Geist_Mono } from "next/font/google";
+        import "./globals.css";
+        import Providers from "./providers";
+
+        const geistSans = Geist({
+          variable: "--font-geist-sans",
+          subsets: ["latin"],
+        });
+
+        const geistMono = Geist_Mono({
+          variable: "--font-geist-mono",
+          subsets: ["latin"],
+        });
+
+        export const metadata: Metadata = {
+          title: "Create Next App",
+          description: "Generated by create next app",
+        };
+
+        export default function RootLayout({
+          children,
+        }: Readonly<{
+          children: React.ReactNode;
+        }>) {
+          return (
+            <html lang="en">
+              <body
+                className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+              >
+                <Providers>
+                  {children}
+                </Providers>
+              </body>
+            </html>
+          );
+        }
+        ```
+      </Step>
+
+      <Step title="接続モーダルの表示">
+        ```typescript [App.tsx]
+        "use client"
+
+        import { useOpenConnectModal } from '@0xsequence/connect'
+
+        function Home() {
+          const { setOpenConnectModal } = useOpenConnectModal()
+
+          return (
+            <>
+              <button onClick={() => setOpenConnectModal(true)}>Connect</button>
+            </>
+          )
+        }
+
+        export default Home
+        ```
+
+        接続時にユーザーに権限の承認が求められます。
+
+        <img src="/images/wallet_permissions.png" alt="メインダッシュボード画面" height="200" className="rounded-lg" />
+      </Step>
+    </Steps>
+  </Tab>
+</Tabs>
