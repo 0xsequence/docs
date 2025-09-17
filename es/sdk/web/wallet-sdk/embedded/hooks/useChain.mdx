@@ -1,0 +1,140 @@
+---
+title: useChain
+description: Hook para obtener información de configuración de la red (chain)
+sidebarTitle: useChain
+---
+
+## Importar
+
+```tsx
+import { useChain } from '@0xsequence/connect'
+```
+
+## Uso
+
+```tsx
+import { useChain } from '@0xsequence/connect'
+
+function App() {
+  // Get current chain configuration
+  const currentChain = useChain()
+  
+  // Get configuration for a specific chain (e.g., Ethereum Mainnet)
+  const ethereumChain = useChain(1)
+  
+  return (
+    <div>
+      <h2>Current Chain</h2>
+      {currentChain && (
+        <div>
+          <p>Name: {currentChain.name}</p>
+          <p>Chain ID: {currentChain.id}</p>
+          <p>Network: {currentChain.network}</p>
+          <p>Native Currency: {currentChain.nativeCurrency.symbol}</p>
+        </div>
+      )}
+      
+      <h2>Ethereum Mainnet</h2>
+      {ethereumChain && (
+        <div>
+          <p>Name: {ethereumChain.name}</p>
+          <p>Chain ID: {ethereumChain.id}</p>
+          <p>Network: {ethereumChain.network}</p>
+          <p>Native Currency: {ethereumChain.nativeCurrency.symbol}</p>
+        </div>
+      )}
+    </div>
+  )
+}
+```
+
+## Parámetros
+
+| Parámetro | Type     | Description |                                                                                                                                         |
+| --------- | -------- | ----------- | --------------------------------------------------------------------------------------------------------------------------------------- |
+| `chainId` | \`number | undefined\` | Chain ID opcional para obtener la configuración de una red específica. Si no se proporciona, retorna la configuración de la red actual. |
+
+## Tipo de retorno: `Chain | undefined`
+El hook retorna un objeto `Chain` de las configuraciones de wagmi o `undefined` si no se encuentra la red.
+
+```tsx
+interface Chain {
+  id: number
+  name: string
+  network: string
+  nativeCurrency: {
+    name: string
+    symbol: string
+    decimals: number
+  }
+  rpcUrls: {
+    default: {
+      http: string[]
+      webSocket?: string[]
+    }
+    public: {
+      http: string[]
+      webSocket?: string[]
+    }
+  }
+  blockExplorers?: {
+    default: {
+      name: string
+      url: string
+    }
+  }
+  // ... other chain-specific properties
+}
+```
+
+### Propiedades
+
+#### id
+`number`
+
+El identificador único de la red blockchain.
+
+#### name
+`string`
+
+El nombre legible de la red blockchain.
+
+#### network
+`string`
+
+El identificador de la red como string.
+
+#### nativeCurrency
+`object`
+
+Información sobre la moneda nativa de la red.
+
+```tsx
+{
+  name: string      // Full name of the currency
+  symbol: string    // Currency symbol
+  decimals: number  // Number of decimal places
+}
+```
+
+#### rpcUrls
+`object`
+
+URLs para conectar con los endpoints RPC de la red.
+
+#### blockExplorers
+`object | undefined`
+
+Información sobre los exploradores de bloques para la red.
+
+## Notas
+Este hook facilita el acceso a la información de configuración de la red a partir de las configuraciones de wagmi. Es especialmente útil cuando necesita:
+- Acceder a detalles sobre la red conectada actualmente
+- Obtener la configuración de una red específica por ID
+- Obtener información específica de la red como:
+  - Detalles de la red
+  - Información de la moneda nativa
+  - Endpoints RPC
+  - URLs de exploradores de bloques
+
+El hook se usa comúnmente junto con otros hooks de Sequence al trabajar con transacciones, clientes indexadores o funciones específicas de la red.

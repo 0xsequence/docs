@@ -1,0 +1,61 @@
+---
+title: useSignInEmail
+description: Hook para obtener el correo electrónico asociado a la wallet conectada
+sidebarTitle: useSignInEmail
+---
+
+## Importar
+
+```tsx
+import { useSignInEmail } from '@0xsequence/connect'
+```
+
+## Uso
+
+```tsx
+import { useSignInEmail } from '@0xsequence/connect'
+
+function App() {
+  const email = useSignInEmail()
+  
+  return (
+    <div>
+      <h2>User Information</h2>
+      {email ? (
+        <div>
+          <p>Connected with email: {email}</p>
+        </div>
+      ) : (
+        <p>No email associated with connected wallet</p>
+      )}
+    </div>
+  )
+}
+```
+
+## Tipo de retorno
+
+```tsx
+string | null
+```
+
+El hook retorna:
+- Un `string` con el correo electrónico cuando hay una wallet conectada y tiene un correo asociado
+- `null` cuando:
+  - No hay wallet conectada
+  - La wallet conectada no tiene correo electrónico asociado
+  - La wallet ha sido desconectada
+
+## Gestión de Estado
+El hook gestiona el estado del correo electrónico mediante:
+1. Monitoreo del estado de conexión de la wallet
+2. Obtención del correo almacenado cuando se conecta una wallet
+3. Eliminación del correo cuando se desconecta la wallet
+4. Persistencia del correo en el almacenamiento local usando la clave `WaasSignInEmail`
+
+## Notas
+Este hook está diseñado para funcionar tanto con:
+- Wallets Sequence WaaS (Wallet-as-a-Service)
+- Tipos de wallet universales
+
+El hook se integra con el sistema de almacenamiento de Sequence para mantener la persistencia del correo electrónico entre sesiones, asegurando una limpieza adecuada cuando se desconectan las wallets.
