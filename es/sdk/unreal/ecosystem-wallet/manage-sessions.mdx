@@ -1,0 +1,25 @@
+---
+title: Gestionar sesiones
+description: Documentación de Ecosystem Wallet para el SDK de Unreal de Sequence.
+---
+
+### Agregar sesión
+Agregue sesiones adicionales a su método de inicio de sesión existente. Cada sesión comparte la misma dirección de wallet con la posibilidad de asignar diferentes permisos para cada sesión. Debe proporcionar un objeto `IPermissions` cada vez que llame a `AddSession`.
+
+<Tabs>
+  <Tab title="Blueprint">
+    <Frame>
+      <img src="/images/unreal/ecosystem/add_session.png" />
+    </Frame>
+  </Tab>
+
+  <Tab title="C++">
+    ```cpp
+    const TSuccessCallback<bool> SuccessCallback = [OnSuccess](const bool& Result) { };
+    const FFailureCallback FailureCallback = [OnFailure](const FSequenceError& Error) { };
+
+    USequenceWallet* Wallet = NewObject<USequenceWallet>();
+    Wallet->AddSession(Permissions, SuccessCallback, FailureCallback);
+    ```
+  </Tab>
+</Tabs>

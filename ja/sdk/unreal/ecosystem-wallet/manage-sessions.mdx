@@ -1,0 +1,25 @@
+---
+title: セッションの管理
+description: エコシステムウォレット ドキュメント for SequenceのUnreal SDK
+---
+
+### セッションを追加する
+既存のログイン方法に追加のセッションを追加できます。すべてのセッションは同じウォレットアドレスを共有し、各セッションごとに異なる権限を割り当てることが可能です。`AddSession`を呼び出す際は必ず`IPermissions`オブジェクトを指定してください。
+
+<Tabs>
+  <Tab title="ブループリント">
+    <Frame>
+      <img src="/images/unreal/ecosystem/add_session.png" />
+    </Frame>
+  </Tab>
+
+  <Tab title="C++">
+    ```cpp
+    const TSuccessCallback<bool> SuccessCallback = [OnSuccess](const bool& Result) { };
+    const FFailureCallback FailureCallback = [OnFailure](const FSequenceError& Error) { };
+
+    USequenceWallet* Wallet = NewObject<USequenceWallet>();
+    Wallet->AddSession(Permissions, SuccessCallback, FailureCallback);
+    ```
+  </Tab>
+</Tabs>
