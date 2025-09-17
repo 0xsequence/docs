@@ -3,7 +3,7 @@ description: Learn how to get started with Ecosystem Wallet Web SDK
 sidebarTitle: Getting Started
 ---
 
-First make sure you have created a Sequence account, if you don't have one, you can create one [here](https://sequence.build/), you will need your `Project Access Key` in order to continue.
+First make sure you have created a Sequence Project account, if you don't have one, you can create one [here](https://sequence.build/), you will need your `Project Access Key` in order to continue.
 
 <Note>
   Our Web SDKs are built on top of wagmi, so for advanced configurations, sending
@@ -15,7 +15,6 @@ First make sure you have created a Sequence account, if you don't have one, you 
 <Tab title="Vite App">
 <Steps>
 <Step title="Install the required libraries">
-
 ```bash
 npm install @0xsequence/connect wagmi viem 
 # or
@@ -58,7 +57,7 @@ These permissions can authorize your dapp to perform certain actions on the user
 
 For example, let's create an explicit session that allows your dapp to `deposit 100 USDC into the AAVE V3 pool on Arbitrum, on behalf of the user for the next 24 hours`
 
-```typescript [config.ts] focus={7-38, 56}
+```typescript [config.ts] focus={7-38, 53}
 import { createConfig, createExplicitSession, createContractPermission } from "@0xsequence/connect";
 import { parseEther, parseUnits } from "viem";
 
@@ -120,9 +119,11 @@ actions like supplying USDC to AAVE can be executed without requiring additional
 
 </Step>
 
-<Step title="Setup Provider Component">
+<Step title="Wrap your App with the Provider">
 
-The configuration we created in [step 2](/sdk/web/wallet-sdk/ecosystem/getting-started#create-a-config) needs to be passed into the `SequenceConnect config`
+Wrap your application with the  `SequenceConnect` Provider to enable the use of the package’s hooks and components throughout your application.
+
+The configuration we created in [step 2](/sdk/web/wallet-sdk/ecosystem/getting-started#create-a-config) needs to be passed into the `config` of the provider.
 
 ```typescript [main.tsx]
 import React from "react";
@@ -230,7 +231,7 @@ These permissions can authorize your dapp to perform certain actions on the user
 
 For example, let's create an explicit session that allows your dapp to `deposit 100 USDC into the AAVE V3 pool on Arbitrum, on behalf of the user for the next 24 hours`
 
-```typescript [config.ts] focus={7-38, 56}
+```typescript [config.ts] focus={7-38, 53}
 import { createConfig, createExplicitSession, createContractPermission } from "@0xsequence/connect";
 import { parseEther, parseUnits } from "viem";
 
@@ -291,11 +292,11 @@ When a user connects their wallet, they will be prompted to grant permissions to
 actions like supplying USDC to AAVE can be executed without requiring additional pop-ups, and can even be automated while the user is offline.
 
 </Step>
-<Step title="Setup Provider Component">
+<Step title="Wrap your App with the Provider">
 
-The configuration we created in [step 2](/sdk/web/wallet-sdk/ecosystem/getting-started#create-a-config) needs to be passed into the `SequenceConnect config`
+Wrap your application with the  `SequenceConnect` Provider to enable the use of the package’s hooks and components throughout your application.
 
-Create a separate "providers.tsx" file to wrap your app in the Providers component.
+The configuration we created in [step 2](/sdk/web/wallet-sdk/ecosystem/getting-started#create-a-config) needs to be passed into the `config` of the provider.
 
 ```typescript [src/app/providers.tsx]
 "use client";
