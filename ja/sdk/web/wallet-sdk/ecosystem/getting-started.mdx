@@ -3,7 +3,7 @@ description: Ecosystem Wallet Web SDKの始め方をご案内します
 sidebarTitle: はじめに
 ---
 
-まず、Sequenceアカウントを作成してください。まだお持ちでない場合は[こちら](https://sequence.build/)から作成できます。続行には`Project Access Key`が必要です。
+まず、Sequence Projectアカウントを作成していることを確認してください。まだお持ちでない場合は[こちら](https://sequence.build/)から作成できます。続行するには`Project Access Key`が必要です。
 
 <Note>
   当社のWeb SDKはwagmiの上に構築されています。高度な設定やトランザクション送信、コントラクト呼び出しなどについては、[wagmiのドキュメント](https://wagmi.sh/react/WagmiConfig)をご参照ください。
@@ -54,7 +54,7 @@ sidebarTitle: はじめに
 
         例として、「次の24時間、ユーザーの代理でArbitrum上のAAVE V3プールに100 USDCを入金する」ための明示的セッションを作成してみましょう。
 
-        ```typescript [config.ts] focus={7-38, 56}
+        ```typescript [config.ts] focus={7-38, 53}
         import { createConfig, createExplicitSession, createContractPermission } from "@0xsequence/connect";
         import { parseEther, parseUnits } from "viem";
 
@@ -114,8 +114,10 @@ sidebarTitle: はじめに
         ユーザーがウォレットを接続すると、dAppに権限を付与するよう求められます。承認されると、AAVEへのUSDC供給などの操作が追加のポップアップなしで実行でき、ユーザーがオフラインでも自動化が可能です。
       </Step>
 
-      <Step title="プロバイダーコンポーネントの設定">
-        [ステップ2](/sdk/web/wallet-sdk/ecosystem/getting-started#create-a-config)で作成した設定は、`SequenceConnect config`に渡す必要があります。
+      <Step title="アプリをProviderでラップする">
+        アプリケーション全体でパッケージのフックやコンポーネントを利用できるよう、アプリケーションを`SequenceConnect` Providerでラップしてください。
+
+        [ステップ2](/sdk/web/wallet-sdk/ecosystem/getting-started#create-a-config)で作成した設定を、Providerの`config`に渡す必要があります。
 
         ```typescript [main.tsx]
         import React from "react";
@@ -211,7 +213,7 @@ sidebarTitle: はじめに
 
         例として、「次の24時間、ユーザーの代理でArbitrum上のAAVE V3プールに100 USDCを入金する」ための明示的セッションを作成してみましょう。
 
-        ```typescript [config.ts] focus={7-38, 56}
+        ```typescript [config.ts] focus={7-38, 53}
         import { createConfig, createExplicitSession, createContractPermission } from "@0xsequence/connect";
         import { parseEther, parseUnits } from "viem";
 
@@ -271,10 +273,10 @@ sidebarTitle: はじめに
         ユーザーがウォレットを接続すると、dAppに権限を付与するよう求められます。承認されると、AAVEへのUSDC供給などの操作が追加のポップアップなしで実行でき、ユーザーがオフラインでも自動化が可能です。
       </Step>
 
-      <Step title="プロバイダーコンポーネントの設定">
-        [ステップ2](/sdk/web/wallet-sdk/ecosystem/getting-started#create-a-config)で作成した設定は、`SequenceConnect config`に渡す必要があります。
+      <Step title="アプリをProviderでラップする">
+        アプリケーション全体でパッケージのフックやコンポーネントを利用できるよう、アプリケーションを`SequenceConnect` Providerでラップしてください。
 
-        アプリ全体をProvidersコンポーネントでラップするため、別途「providers.tsx」ファイルを作成します。
+        [ステップ2](/sdk/web/wallet-sdk/ecosystem/getting-started#create-a-config)で作成した設定を、Providerの`config`に渡す必要があります。
 
         ```typescript [src/app/providers.tsx]
         "use client";
