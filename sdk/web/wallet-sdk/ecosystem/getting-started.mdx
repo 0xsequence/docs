@@ -1,0 +1,417 @@
+---
+description: Learn how to get started with Ecosystem Wallet Web SDK
+sidebarTitle: Getting Started
+---
+
+First make sure you have created a Sequence account, if you don't have one, you can create one [here](https://sequence.build/), you will need your `Project Access Key` in order to continue.
+
+<Note>
+  Our Web SDKs are built on top of wagmi, so for advanced configurations, sending
+  transactions, calling contracts, etc., please refer to the [wagmi
+  documentation](https://wagmi.sh/react/WagmiConfig).
+</Note>
+
+<Tabs>
+<Tab title="Vite App">
+<Steps>
+<Step title="Install the required libraries">
+
+```bash
+npm install @0xsequence/connect wagmi viem 
+# or
+pnpm install @0xsequence/connect wagmi viem 
+# or
+yarn add @0xsequence/connect wagmi viem 
+```
+
+</Step>
+<Step title="Create your Wallet Configuration">
+
+Next, create the Ecosystem Wallet configuration.
+
+- To setup Google Login follow the [Google Configuration for Embedded Wallet](../../../../solutions/builder/embedded-wallet/google-configuration).
+- To setup Apple Login follow the [Apple Configuration for Embedded Wallet](../../../../solutions/builder/embedded-wallet/apple-configuration).
+
+```typescript [config.ts]
+import { createConfig } from "@0xsequence/connect";
+
+export const config: any = createConfig({
+  projectAccessKey: "<your-project-access-key>",
+  signIn: {
+    projectName: 'Sequence Web SDK Demo',
+  },
+  walletUrl: 'https://v3.sequence.app',
+  dappOrigin: window.location.origin,
+  appName: 'Sequence Web SDK Demo',
+  chainIds: [42161],
+  defaultChainId: 42161,
+  google: true,
+  apple: true,
+  email: true,
+  walletConnect: {
+    projectId: walletConnectProjectId
+  },
+  explicitSession: {...}
+});
+```
+
+The `walletUrl` is the URL of the Ecosystem Wallet your dApp will use, for our demo, we are using the Sequence Ecosystem Wallet [https://v3.sequence.app](https://v3.sequence.app).
+
+The `dappOrigin` is the origin of your dapp, used to verify where the user is coming from.
+
+The `explicitSession` object allows your dapp to request specific permissions from the user upon connection. 
+These permissions can authorize your dapp to perform certain actions on the user's behalf for a defined period, creating a more seamless user experience with no transaction prompts or allowing automations.
+
+For example, let's create an explicit session that allows your dapp to `deposit 100 USDC into the AAVE V3 pool on Arbitrum, on behalf of the user for the next 24 hours`
+
+```typescript [config.ts] focus={7-38, 56}
+import { createConfig, createExplicitSession, createContractPermission } from "@0xsequence/connect";
+import { parseEther, parseUnits } from "viem";
+
+export const USDC_ADDRESS_ARBITRUM = '0xaf88d065e77c8cC2239327C5EDb3A432268e5831'
+export const AAVE_V3_POOL_ADDRESS_ARBITRUM = '0x794a61358D6845594F94dc1DB02A252b5b4814aD'
+
+// Define the session configuration using the helper functions
+const aaveSupplySession = createExplicitSession({
+    chainId: 42161,
+    nativeTokenSpending: {
+        valueLimit: parseEther('0.01'), // Allow spending up to 0.01 ETH for gas fees
+    },
+    expiresIn: {
+        hours: 24, // Session lasts for 24 hours
+    },
+    permissions: [
+        // Create a specific permission for the AAVE supply function
+        createContractPermission({
+            address: AAVE_V3_POOL_ADDRESS_ARBITRUM,
+            functionSignature: 'function supply(address asset, uint256 amount, address onBehalfOf, uint16 referralCode)',
+            rules: [
+                {
+                    param: 'asset',
+                    type: 'address',
+                    condition: 'EQUAL',
+                    value: USDC_ADDRESS_ARBITRUM
+                },
+                {
+                    param: 'amount',
+                    type: 'uint256',
+                    condition: 'LESS_THAN_OR_EQUAL',
+                    value: parseUnits('100', 6), // Max cumulative amount of 100 USDC
+                    cumulative: true
+                }
+            ]
+        })
+    ]
+})
+
+export const config: any = createConfig({
+  projectAccessKey: "<your-project-access-key>",
+  signIn: {
+    projectName: 'Sequence Web SDK Demo',
+  },
+  walletUrl: 'https://v3.sequence.app',
+  dappOrigin: window.location.origin,
+  appName: 'Sequence Web SDK Demo',
+  chainIds: [42161],
+  defaultChainId: 42161,
+  google: true,
+  apple: true,
+  email: true,
+  walletConnect: {
+    projectId: walletConnectProjectId
+  },
+  explicitSession: aaveSupplySession
+});
+```
+
+When a user connects their wallet, they will be prompted to grant permissions to the dApp. Once approved, 
+actions like supplying USDC to AAVE can be executed without requiring additional pop-ups, and can even be automated while the user is offline.
+
+</Step>
+
+<Step title="Setup Provider Component">
+
+The configuration we created in [step 2](/sdk/web/wallet-sdk/ecosystem/getting-started#create-a-config) needs to be passed into the `SequenceConnect config`
+
+```typescript [main.tsx]
+import React from "react";
+import ReactDOM from "react-dom/client";
+import "./index.css";
+
+import App from "./App";
+import { config } from "./config";
+import { SequenceConnect } from "@0xsequence/connect";
+
+function Dapp() {
+  return (
+    <SequenceConnect config={config}>
+      <App />
+    </SequenceConnect>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")!).render(
+  <React.StrictMode>
+    <Dapp />
+  </React.StrictMode>
+);
+```
+
+</Step>
+
+<Step title="Trigger the Connection Modal">
+
+```typescript [App.tsx]
+import './App.css'
+import { useOpenConnectModal } from '@0xsequence/connect'
+
+function App() {
+  const {setOpenConnectModal} = useOpenConnectModal()
+  
+  return (
+    <>
+      <button onClick={() => setOpenConnectModal(true)}>Connect</button>
+    </>
+  )
+}
+
+export default App
+```
+
+The user will be prompted to approve the permissions when connecting.
+
+<img 
+  src="/images/wallet_permissions.png" 
+  alt="Main dashboard interface"
+  height="200"
+  className="rounded-lg"
+/>
+
+</Step>
+</Steps>
+
+</Tab>
+
+<Tab title="NextJS App">
+<Steps>
+<Step title="Install the Web SDK dependencies">
+
+```bash
+npm install @0xsequence/connect wagmi viem 
+# or
+pnpm install @0xsequence/connect wagmi viem 
+# or
+yarn add @0xsequence/connect wagmi viem 
+```
+
+</Step>
+
+<Step title="Create your Wallet Configuration">
+
+Next, create the Ecosystem Wallet configuration.
+
+- To setup Google Login follow the [Google Configuration for Embedded Wallet](../../../../solutions/builder/embedded-wallet/google-configuration).
+- To setup Apple Login follow the [Apple Configuration for Embedded Wallet](../../../../solutions/builder/embedded-wallet/apple-configuration).
+
+```typescript [config.ts]
+import { createConfig } from "@0xsequence/connect";
+
+export const config: any = createConfig({
+  projectAccessKey: '<your-project-access-key>',
+  signIn: {
+    projectName: 'Sequence Web SDK Demo',
+  },
+  walletUrl: 'https://v3.sequence.app',
+  dappOrigin: window.location.origin,
+  appName: 'Sequence Web SDK Demo',
+  chainIds: [42161],
+  defaultChainId: 42161,
+  google: true,
+  apple: true,
+  email: true,
+  walletConnect: {
+    projectId: walletConnectProjectId
+  },
+  explicitSession: { ... }
+});
+```
+
+The `walletUrl` is the URL of the Ecosystem Wallet you dApp will use, for our demo, we are using the Sequence Wallet [https://v3.sequence.app](https://v3.sequence.app).
+
+The `dappOrigin` is the origin of your dapp, used to verify where the user is coming from.
+
+The `explicitSession` object allows your dapp to request specific permissions from the user upon connection. 
+These permissions can authorize your dapp to perform certain actions on the user's behalf for a defined period, creating a more seamless user experience with no transaction prompts.
+
+For example, let's create an explicit session that allows your dapp to `deposit 100 USDC into the AAVE V3 pool on Arbitrum, on behalf of the user for the next 24 hours`
+
+```typescript [config.ts] focus={7-38, 56}
+import { createConfig, createExplicitSession, createContractPermission } from "@0xsequence/connect";
+import { parseEther, parseUnits } from "viem";
+
+export const USDC_ADDRESS_ARBITRUM = '0xaf88d065e77c8cC2239327C5EDb3A432268e5831'
+export const AAVE_V3_POOL_ADDRESS_ARBITRUM = '0x794a61358D6845594F94dc1DB02A252b5b4814aD'
+
+// Define the session configuration using the helper functions
+const aaveSupplySession = createExplicitSession({
+    chainId: 42161,
+    nativeTokenSpending: {
+        valueLimit: parseEther('0.01'), // Allow spending up to 0.01 ETH for gas fees
+    },
+    expiresIn: {
+        hours: 24, // Session lasts for 24 hours
+    },
+    permissions: [
+        // Create a specific permission for the AAVE supply function
+        createContractPermission({
+            address: AAVE_V3_POOL_ADDRESS_ARBITRUM,
+            functionSignature: 'function supply(address asset, uint256 amount, address onBehalfOf, uint16 referralCode)',
+            rules: [
+                {
+                    param: 'asset',
+                    type: 'address',
+                    condition: 'EQUAL',
+                    value: USDC_ADDRESS_ARBITRUM
+                },
+                {
+                    param: 'amount',
+                    type: 'uint256',
+                    condition: 'LESS_THAN_OR_EQUAL',
+                    value: parseUnits('100', 6), // Max cumulative amount of 100 USDC
+                    cumulative: true
+                }
+            ]
+        })
+    ]
+})
+
+export const config: any = createConfig({
+  projectAccessKey: "<your-project-access-key>",
+  signIn: {
+    projectName: 'Sequence Web SDK Demo',
+  },
+  walletUrl: 'https://v3.sequence.app',
+  dappOrigin: window.location.origin,
+  appName: 'Sequence Web SDK Demo',
+  chainIds: [42161],
+  defaultChainId: 42161,
+  google: true,
+  apple: true,
+  email: true,
+  walletConnect: {
+    projectId: walletConnectProjectId
+  },
+  explicitSession: aaveSupplySession
+});
+```
+
+When a user connects their wallet, they will be prompted to grant permissions to the dApp. Once approved, 
+actions like supplying USDC to AAVE can be executed without requiring additional pop-ups, and can even be automated while the user is offline.
+
+</Step>
+<Step title="Setup Provider Component">
+
+The configuration we created in [step 2](/sdk/web/wallet-sdk/ecosystem/getting-started#create-a-config) needs to be passed into the `SequenceConnect config`
+
+Create a separate "providers.tsx" file to wrap your app in the Providers component.
+
+```typescript [src/app/providers.tsx]
+"use client";
+
+import React from "react"
+import { config } from "./config"
+import { SequenceConnect } from "@0xsequence/connect"
+
+const Providers = ({ children }: { children: React.ReactNode }) => {
+    return (
+        <SequenceConnect config={config}>
+            {children}
+        </SequenceConnect>
+    )
+}
+
+export default Providers;
+```
+
+</Step>
+
+<Step title="Wrap your App in the Providers">
+
+Wrap your app in the Providers component.
+
+```typescript [src/app/layout.tsx]
+import type { Metadata } from "next";
+import { Geist, Geist_Mono } from "next/font/google";
+import "./globals.css";
+import Providers from "./providers";
+
+const geistSans = Geist({
+  variable: "--font-geist-sans",
+  subsets: ["latin"],
+});
+
+const geistMono = Geist_Mono({
+  variable: "--font-geist-mono",
+  subsets: ["latin"],
+});
+
+export const metadata: Metadata = {
+  title: "Create Next App",
+  description: "Generated by create next app",
+};
+
+export default function RootLayout({
+  children,
+}: Readonly<{
+  children: React.ReactNode;
+}>) {
+  return (
+    <html lang="en">
+      <body
+        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+      >
+        <Providers>
+          {children}
+        </Providers>
+      </body>
+    </html>
+  );
+}
+```
+
+</Step>
+
+<Step title="Trigger the Connection Modal">
+
+```typescript [App.tsx]
+"use client"
+
+import { useOpenConnectModal } from '@0xsequence/connect'
+
+function Home() {
+  const { setOpenConnectModal } = useOpenConnectModal()
+
+  return (
+    <>
+      <button onClick={() => setOpenConnectModal(true)}>Connect</button>
+    </>
+  )
+}
+
+export default Home
+```
+The user will be prompted to approve the permissions when connecting.
+
+<img 
+  src="/images/wallet_permissions.png" 
+  alt="Main dashboard interface"
+  height="200"
+  className="rounded-lg"
+/>
+
+</Step>
+</Steps>
+</Tab>
+</Tabs>
+
+

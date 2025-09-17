@@ -11,7 +11,7 @@ In Web3 today, the user experience is often interrupted. Every swap, every listi
 
 **Smart Sessions is a solution to this problem.**
 
-A Smart Session is a secure, temporary, and strictly limited set of permissions that you grant to a app. Instead of approving every single transaction, you approve a session once, allowing the app to perform a range of pre-agreed actions on your behalf. This eliminates constant pop-ups and unlocks a fluid, Web2-like experience without sacrificing security or self-custody.
+A Smart Session is a secure, temporary, and strictly limited set of permissions that you grant to an app. Instead of approving every single transaction, you approve a session once, allowing the app to perform a range of pre-agreed actions on your behalf. This eliminates constant pop-ups and unlocks a fluid, Web2-like experience without sacrificing security or self-custody.
 
 > 💡 **Think of it this way:** It's less like handing over your master key (your main wallet signer) and more like giving an application a special-purpose keycard with very clear rules and limitations.
 
@@ -49,11 +49,11 @@ flowchart TD
 
 ### 🎯 The Core Idea
 
-When you connect to a app you trust, you are creating a "trust boundary" around that app's website domain. An Implicit Session gives that app a pass to operate freely only within its own walls.
+When you connect to an app you trust, you are creating a "trust boundary" around that app's website domain. An Implicit Session gives that app a pass to operate freely only within its own walls.
 
 ### ⚙️ How It Works
 
-1. **Connect & Trust:** You connect your wallet to a app (e.g., `app.my-defi-protocol.com`)
+1. **Connect & Trust:** You connect your wallet to an app (e.g., `app.my-defi-protocol.com`)
 2. **Silent Approval:** A session is automatically and silently created that is cryptographically locked to that specific domain without the user having to approve it.
 3. **Seamless Experience:** You can now perform any action inside that app, swapping, staking, listing, without any further pop-ups. It just works.
 
@@ -62,19 +62,24 @@ When you connect to a app you trust, you are creating a "trust boundary" around 
 This session is useless anywhere else. If the app was malicious and tried to use this session to call a contract outside its domain (like the USDC contract), the transaction would be automatically rejected on-chain. The session is only valid for the app's own smart contracts.
 The app will configure the permissions in the [Sequence Builder](https://sequence.build)
 
+<Warning>
+All transactions must be sponsored by the DApp itself when using Implicit Sessions since using any other currency as a fee option is treated as an external contract interaction and will be blocked.
+</Warning>
+
 ### 📊 Implicit Sessions at a Glance
 
 | Aspect | Details |
 |--------|---------|
-| **Best For** | Day-to-day use of a single app (DeFi protocols, marketplaces, games) |
+| **Best For** | Day-to-day use of a fully gas sponsored DApp, 0 pop-ups, with no need for external contract interactions. |
 | **Key Feature** | Maximum convenience. Eliminates all signing pop-ups within a trusted app environment |
-| **Analogy** | A keycard for a specific building. It lets you move freely between all the rooms inside, but it won't open the door to the building next door |
+| **Analogy** | A keycard for a specific building. It lets you move freely between all the rooms inside, but it won't open the door to the building next door. |
+| **Drawback:** | The DApp has to sponsor the gas fees for all transactions and it cannot interact with any external smart contract, locked to the app's own smart contracts. |
 
 ---
 
 ## 2. Explicit Sessions: The "Programmable Permission Slip"
 
-An Explicit Session is a more advanced and powerful tool. It's designed for when a app needs to perform very specific tasks that interact with other external protocols.
+An Explicit Session is a more advanced and powerful tool. It's designed for when an app needs to perform very specific tasks that interact with other external protocols.
 
 ```mermaid
 flowchart TD
@@ -99,15 +104,15 @@ flowchart TD
 
 ### 🎯 The Core Idea
 
-Instead of just trusting a whole app and its smart contracts, you are approving a precise list of rules for a temporary signer. You are building a custom permission slip that says exactly what can be done, where it can be done, how much can be spent, for how long, and for which contracts.
+Instead of trusting an app and its smart contracts only, you are approving a precise list of rules for a temporary signer that can interact with any smart contract. You are building a custom permission slip that says exactly what can be done, where it can be done, how much can be spent, for how long, and for which contracts.
 
 ### ⚙️ How It Works
 
-1. **The app Proposes a "Contract":** The app presents your wallet with a list of very specific permissions it needs. For example:
+1. **The app proposal:** The app presents your wallet with a list of very specific permissions it needs. For example:
    - "Allow me to call the `transfer` function on the `USDC contract`."
    - "... with the `recipient` address `0x...` only"
    - "...for a `cumulative` total of no more than `100` USDC."
-   - "...and this permission will `expire` in `24 hours`."
+   - "...for a duration of `24 hours`."
 
 2. **You Explicitly Approve the Rules:** Your wallet displays these rules in a human-readable format. You review and approve this exact set of conditions.
 
@@ -121,9 +126,10 @@ The power of Explicit Sessions comes from their granularity. Each rule is valida
 
 | Aspect | Details |
 |--------|---------|
-| **Best For** | Authorizing specific, automated, or high-value actions (e.g., automated yield harvesting, placing bids on an NFT, setting up recurring payments) or 0 pop-ups |
-| **Key Feature** | Granular, programmable control. You define the exact scope of what the app is allowed to do |
-| **Analogy** | A pre-authorized check. You write it out to a specific person (target), for an exact amount (valueLimit), and write "for deposit only" in the memo (rules). The bank will enforce all those rules |
+| **Best For** | Granular control over any action, not tied to your app's smart contracts only. |
+| **Key Feature** | Granular, programmable control. You define the exact scope of what the app is allowed to do with no restrictions. |
+| **Analogy** | A keycard that can work for many buildings but you have to first sign a contract defining the exact rules for each building, only then you can use it. |
+| **Drawback:** | The user has to carefully review and approve the DApp's permissions adding 1 extra step in the UX. |
 
 ### Versatile Integrations
 

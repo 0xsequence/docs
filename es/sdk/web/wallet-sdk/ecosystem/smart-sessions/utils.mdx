@@ -1,0 +1,297 @@
+---
+sidebarTitle: Utilidades
+---
+
+Para facilitar la creación de smart sessions, ofrecemos un conjunto de funciones auxiliares.
+
+## `createExplicitSession`
+Esta es la función principal que usará para construir su smart session. Recibe un único objeto de opciones y agrupa todo en el formato final requerido por la wallet.
+
+### Ejemplo
+
+```typescript
+import { createExplicitSession } from "@0xsequence/connect";
+import { parseEther } from "viem";
+
+const mySession = createExplicitSession({
+    chainId: 42161,
+    nativeTokenSpending: {
+        valueLimit: parseEther('0.01')
+    },
+    expiresIn: {
+        hours: 3,
+        minutes: 30
+    }
+    permissions: [ ... ]
+});
+```
+
+### Parámetros
+
+```typescript
+/**
+ * The configuration object for the {@link createExplicitSession} helper function.
+ */
+export type CreateExplicitSessionOptions = {
+  /** The chain ID for which the session will be valid. */
+  chainId: number
+
+  /**
+   * An object ({@link NativeTokenSpending}) that defines the maximum amount of native currency that can be spent during the session and allowed recipients for the native currency.
+   */
+  nativeTokenSpending: NativeTokenSpending
+
+  /**
+   * The desired duration of the session. {@link SessionDuration}
+   */
+  expiresIn: SessionDuration
+
+  /**
+   * An array of fully-built permission objects. {@link Permission}
+   */
+  permissions: Permission[]
+}
+```
+
+#### `chainId`
+El chain ID de una cadena compatible con Sequence donde los permisos de la sesión serán válidos.
+
+Consulte [Cadenas compatibles](https://status.sequence.info/).
+
+#### `nativeTokenSpending`
+Este objeto controla el acceso de la sesión a la moneda nativa del usuario.
+- `valueLimit`: El monto máximo acumulado de la moneda nativa (en wei) que se puede gastar en todas las llamadas a contratos y comisiones durante la sesión.
+- `allowedRecipients`: Permite transferencias directas de tokens nativos a estas direcciones.
+
+```typescript
+type NativeTokenSpending = {
+  valueLimit: bigint
+  allowedRecipients?: Address[]
+}
+```
+
+#### `expiresIn`
+Un objeto para definir la expiración de la sesión.
+- `days`: Número de días que la sesión será válida.
+- `hours`: Número de horas que la sesión será válida.
+- `minutes`: Número de minutos que la sesión será válida.
+
+```typescript
+type SessionDuration = {
+  days?: number
+  hours?: number
+  minutes?: number
+}
+```
+
+#### `permissions`
+Un array de objetos de permisos.
+- `target`: La dirección del contrato con el que se interactuará.
+- `rules`: Un array de reglas para la dirección `target`.
+
+```typescript
+type Permission = {
+  target: Address.Address
+  rules: ParameterRule[]
+}
+```
+
+Cada contrato inteligente `target` puede tener un conjunto de reglas.
+- `cumulative`: Indica si la regla es acumulativa.
+- `operation`: La operación a realizar sobre el `value`.
+- `value`: El valor esperado (almacenado como bytes32) usado para la comparación.
+- `offset`: El desplazamiento de bytes en los datos de la llamada desde donde se extrae el parámetro de 32 bytes.
+- `mask`: Una máscara de bits aplicada a los datos extraídos. Esto aísla los bits relevantes, permitiendo la validación incluso cuando el campo está dentro de una estructura de datos más grande.
+
+```typescript
+type ParameterRule = {
+  cumulative: boolean
+  operation: ParameterOperation
+  value: Bytes.Bytes
+  offset: bigint
+  mask: Bytes.Bytes
+}
+
+enum ParameterOperation {
+  EQUAL = 0,
+  NOT_EQUAL = 1,
+  GREATER_THAN_OR_EQUAL = 2,
+  LESS_THAN_OR_EQUAL = 3,
+}
+```
+
+### Tipo de retorno
+Devuelve un objeto `ExplicitParams`.
+
+```typescript
+type ExplicitSession = {
+    chainId: number;
+    valueLimit: bigint;
+    deadline: bigint;
+    permissions: [Permission.Permission, ...Permission.Permission[]];
+}
+```
+
+## `createContractPermission`
+Esta función auxiliar se utiliza para crear un permiso para una función de contrato inteligente.
+
+### Ejemplo
+
+```typescript
+import { createContractPermission } from "@0xsequence/connect";
+
+const AAVE_V3_POOL_ADDRESS_ARBITRUM = '0x794a61358D6845594F94dc1DB02A252b5b4814aD'
+
+const permission = createContractPermission({
+    address: AAVE_V3_POOL_ADDRESS_ARBITRUM,
+    functionSignature: 'function supply(address asset, uint256 amount, address onBehalfOf, uint16 referralCode)',
+    rules: [
+        {
+            param: 'asset',
+            type: 'address',
+            condition: 'EQUAL',
+            value: USDC_ADDRESS_ARBITRUM
+        },
+        {
+            param: 'amount',
+            type: 'uint256',
+            condition: 'LESS_THAN_OR_EQUAL',
+            value: parseUnits('1', 6),
+            cumulative: true
+        }
+    ]
+});
+```
+
+### Parámetros
+
+```typescript
+type CreateContractPermissionOptions = {
+  /** The address of the target contract. */
+  address: Address
+
+  /**
+   * The human-readable function signature.
+   * Example: 'function transfer(address to, uint256 amount)'
+   */
+  functionSignature?: string
+
+  /** An array of rules to apply to the function's arguments. */
+  rules?: Rule[]
+
+  /**
+   * If true, this function can only be successfully called once during the session.
+   * @default false
+   */
+  onlyOnce?: boolean
+}
+```
+
+#### `address`
+La dirección del contrato objetivo.
+
+#### `functionSignature`
+La firma legible de la función.
+
+#### `rules`
+Un array de reglas a aplicar a los argumentos de la función.
+
+```typescript
+type Rule = {
+  /** The name of the parameter from the function signature (e.g., 'to', 'amount'). */
+  param: string
+
+  /** The type of the parameter (address, uint256, etc.). */
+  type: ParamType
+
+  /** The comparison to perform on the parameter (EQUAL, NOT_EQUAL, GREATER_THAN_OR_EQUAL, LESS_THAN_OR_EQUAL). */
+  condition: RuleCondition
+
+  /** The value to compare against. Must match the `type`. */
+  value: string | number | bigint | boolean
+
+  /**
+   * Determines if the rule's value is a cumulative total across all calls to this function.
+   * @example
+   * For a `transfer` function on an ERC20 token, if we set a rule for the `amount` parameter to be 10 and we set `cumulative`
+   * to `true` then the dApp can make as many transfer calls as it wants but in total it cannot transfer more than 10 tokens.
+   * If `cumulative` is `false` then the dApp can transfer 10 tokens as many times as it wants if other conditions are met.
+   * This makes sense only for number values like amount of transfers, etc.
+   * @default true 
+   */
+  cumulative?: boolean
+}
+```
+
+#### `onlyOnce`
+Si es verdadero, esta función solo podrá llamarse exitosamente una vez durante la sesión.
+
+### Tipo de retorno
+Devuelve un Permission.
+
+```typescript
+type Permission = {
+  target: Address.Address
+  rules: ParameterRule[]
+}
+```
+
+## `createContractPermissions`
+Igual que [`createContractPermission`](#createcontractpermission), pero crea múltiples permisos para el mismo contrato.
+
+### Ejemplo
+
+```typescript
+import { createContractPermissions } from "@0xsequence/connect";
+
+const permissions = createContractPermissions({
+    address: AAVE_V3_POOL_ADDRESS_ARBITRUM,
+    functionSignatures: [
+        'function supply(address asset, uint256 amount, address onBehalfOf, uint16 referralCode)',
+        'function withdraw(address asset, uint256 amount, address to)',
+    ],
+    rules: [
+        {
+            param: 'asset',
+            type: 'address',
+            condition: 'EQUAL',
+            value: USDC_ADDRESS_ARBITRUM
+        }
+        {
+            param: 'amount',
+            type: 'uint256',
+            condition: 'LESS_THAN_OR_EQUAL',
+            value: parseUnits('1', 6),
+            cumulative: true
+        }
+    ]
+});
+```
+
+### Parámetros
+Muy similar a [CreateContractPermission](#createcontractpermission), pero utiliza un array de `functions`.
+
+```typescript
+/**
+ * The options object for creating permissions.
+ */
+export type CreateContractPermissionsOptions = {
+  /** The address of the target contract. */
+  address: Address
+
+  /** An array of permissions for one or more functions on this contract. */
+  functions?: FunctionPermission[] | undefined | null
+}
+```
+
+### Tipo de retorno
+Devuelve un `Permission[]`.
+
+```typescript
+type Permission = {
+  target: Address.Address
+  rules: ParameterRule[]
+}
+```
+
+Vea estas utilidades en acción [aquí](/sdk/web/wallet-sdk/ecosystem/smart-sessions/guides#supply-usdc-to-aave-v3).
