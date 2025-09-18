@@ -1,0 +1,68 @@
+---
+title: useOpenConnectModal
+description: Connectモーダルを開くためのフック
+sidebarTitle: useOpenConnectModal
+---
+
+## インポート
+
+```tsx
+import { useOpenConnectModal } from '@0xsequence/connect'
+```
+
+## 使い方
+
+```tsx
+import { useOpenConnectModal } from '@0xsequence/connect'
+
+function App() {
+  const { setOpenConnectModal, openConnectModalState } = useOpenConnectModal()
+  
+  const handleConnect = () => {
+    setOpenConnectModal(true) // Open the connect modal
+  }
+  
+  return (
+    <>
+      <button onClick={handleConnect}>
+        Connect Wallet
+      </button>
+      
+      {openConnectModalState && (
+        <div>Connect modal is open!</div>
+      )}
+    </>
+  )
+}
+```
+
+## 返却型：`UseOpenConnectModalReturnType`
+このフックは以下のプロパティを持つオブジェクトを返します。
+
+```tsx
+type UseOpenConnectModalReturnType = {
+  setOpenConnectModal: (isOpen: boolean) => void
+  openConnectModalState: boolean
+}
+```
+
+### プロパティ
+
+#### setOpenConnectModal
+`(isOpen: boolean) => void`
+
+Connectモーダルを開閉する関数です。
+
+**パラメータ：**
+
+| パラメータ    | 型         | 説明                                  |
+| -------- | --------- | ----------------------------------- |
+| `isOpen` | `boolean` | モーダルが開いているか（`true`）、閉じているか（`false`） |
+
+#### openConnectModalState
+`boolean`
+
+Connectモーダルの現在の開閉状態（開いていれば`true`、閉じていれば`false`）
+
+## 補足
+このフックは、ユーザーがウォレットをアプリケーションに接続できるConnectモーダルの制御メソッドを提供します。Connectモーダルでは、Sequenceウォレットや外部ウォレットなど、さまざまなウォレット接続オプションが利用できます。
