@@ -6,7 +6,7 @@ sidebarTitle: Getting Started
 
 # Setting Up your Dapp
 
-First make sure you have created a Sequence account, if you don't have one, you can create one [here](https://sequence.build/), you will need your `Project Access Key` in order to use the Web SDK.
+First make sure you have created a Sequence account, if you don't have one, you can create one [here](https://sequence.build/), you will need your `Project Access Key` and `Waas Config Key` in order to use the Web SDK.
 
 To utilize the `SequenceConnect` wrapper for connecting web3 wallets to your application, follow these steps:
 
@@ -47,30 +47,58 @@ yarn add @0xsequence/connect @0xsequence/hooks wagmi ethers viem 0xsequence @tan
 
 Next, create the configuration.
 
-If you want to allow WalletConnect you will also need a [walletConnectProjectId](https://cloud.reown.com/sign-in). 
-To setup Google Login follow the [Google Configuration for Embedded Wallet](../../../../solutions/builder/embedded-wallet/google-configuration).
+- If you want to allow WalletConnect you will also need a [walletConnectProjectId](https://cloud.reown.com/sign-in). 
+- To setup Google Login follow the [Google Configuration for Embedded Wallet](../../../../solutions/builder/embedded-wallet/google-configuration).
+- To setup Apple Login follow the [Apple Configuration for Embedded Wallet](../../../../solutions/builder/embedded-wallet/apple-configuration).
+- To setup X (Twitter) Login follow the [X (Twitter) Configuration for Embedded Wallet](../../../../solutions/builder/embedded-wallet/x-configuration).
+- To setup Gues Mode follow the [Guest Mode Configuration for Embedded Wallet](../../../../solutions/builder/embedded-wallet/guest-wallet-configuration).
 
 ```typescript [config.ts]
 import { createConfig } from "@0xsequence/connect";
 
-export const config: any = createConfig({
+// Waas config
+export const waasConfig: any = createConfig('waas', {
   projectAccessKey: "<your-project-access-key>",
+  defaultTheme: 'dark',
   signIn: {
     projectName: 'Sequence Web SDK Demo',
   },
-  walletUrl: 'https://v3.sequence.app',
-  dappOrigin: window.location.origin,
   appName: 'Sequence Web SDK Demo',
   chainIds: [1],
   defaultChainId: 1,
-  google: true,
-  apple: true,
+  waasConfigKey: 'waas-config-key',
+  guest: true,
   email: true,
+  google: {
+    clientId 'your-google-client-id'
+  },
+  apple: {
+    clientId: 'your-apple-client-id',
+    redirectURI: window.location.origin + window.location.pathname
+  },
+  X: {
+    clientId: 'MVZ6aHMyNmMtSF9mNHVldFR6TV86MTpjaQ',
+    redirectURI: window.location.origin + '/auth-callback-X'
+  },
   walletConnect: {
     projectId: walletConnectProjectId
   },
-  permissions: ...
 });
+
+// Universal config
+export const universalConfig: any = createConfig('universal', {
+  projectAccessKey: "<your-project-access-key>",
+  defaultTheme: 'dark',
+  signIn: {
+    projectName: 'Sequence Web SDK Demo',
+  },
+  appName: 'Sequence Web SDK Demo',
+  chainIds: [1],
+  defaultChainId: 1,
+  walletConnect: {
+    projectId: walletConnectProjectId
+  }
+})
 ```
 
 In order to customize further, [you can view additional configuration parameters.](/sdk/web/wallet-sdk/embedded/custom-configuration)
@@ -168,30 +196,58 @@ This will get rid of the warnings related to `pino-pretty`.
 
 Next, create the configuration.
 
-If you want to allow WalletConnect you will also need a [walletConnectProjectId](https://cloud.reown.com/sign-in). 
-To setup Google Login follow the [Google Configuration for Embedded Wallet](../../../../solutions/builder/embedded-wallet/google-configuration).
+- If you want to allow WalletConnect you will also need a [walletConnectProjectId](https://cloud.reown.com/sign-in). 
+- To setup Google Login follow the [Google Configuration for Embedded Wallet](../../../../solutions/builder/embedded-wallet/google-configuration).
+- To setup Apple Login follow the [Apple Configuration for Embedded Wallet](../../../../solutions/builder/embedded-wallet/apple-configuration).
+- To setup X (Twitter) Login follow the [X (Twitter) Configuration for Embedded Wallet](../../../../solutions/builder/embedded-wallet/x-configuration).
+- To setup Gues Mode follow the [Guest Mode Configuration for Embedded Wallet](../../../../solutions/builder/embedded-wallet/guest-wallet-configuration).
 
 ```typescript [config.ts]
 import { createConfig } from "@0xsequence/connect";
 
-export const config: any = createConfig({
+// Waas config
+export const waasConfig: any = createConfig('waas', {
   projectAccessKey: "<your-project-access-key>",
+  defaultTheme: 'dark',
   signIn: {
     projectName: 'Sequence Web SDK Demo',
   },
-  walletUrl: 'https://v3.sequence.app',
-  dappOrigin: window.location.origin,
   appName: 'Sequence Web SDK Demo',
   chainIds: [1],
   defaultChainId: 1,
-  google: true,
-  apple: true,
+  waasConfigKey: 'waas-config-key',
+  guest: true,
   email: true,
+  google: {
+    clientId 'your-google-client-id'
+  },
+  apple: {
+    clientId: 'your-apple-client-id',
+    redirectURI: window.location.origin + window.location.pathname
+  },
+  X: {
+    clientId: 'MVZ6aHMyNmMtSF9mNHVldFR6TV86MTpjaQ',
+    redirectURI: window.location.origin + '/auth-callback-X'
+  },
   walletConnect: {
     projectId: walletConnectProjectId
   },
-  permissions: ...
 });
+
+// Universal config
+export const universalConfig: any = createConfig('universal', {
+  projectAccessKey: "<your-project-access-key>",
+  defaultTheme: 'dark',
+  signIn: {
+    projectName: 'Sequence Web SDK Demo',
+  },
+  appName: 'Sequence Web SDK Demo',
+  chainIds: [1],
+  defaultChainId: 1,
+  walletConnect: {
+    projectId: walletConnectProjectId
+  }
+})
 ```
 
 In order to customize further, [you can view additional configuration parameters.](/sdk/web/wallet-sdk/embedded/custom-configuration)
