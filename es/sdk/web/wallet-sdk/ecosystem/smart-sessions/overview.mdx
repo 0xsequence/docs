@@ -1,0 +1,40 @@
+---
+sidebarTitle: Descripción general
+---
+
+## ¿Qué son las Smart Sessions?
+Las Smart Sessions son la clave para ofrecer una experiencia de usuario fluida, similar a la de Web2, en su dApp. En lugar de pedir a los usuarios que aprueben cada transacción, una Smart Session permite que el usuario otorgue a su dApp un conjunto temporal, seguro y estrictamente limitado de permisos.
+
+Piénselo menos como entregar una llave maestra, y más como darle a su aplicación una tarjeta de acceso especial con reglas claras y una fecha de vencimiento.
+
+Esto es sumamente útil para habilitar funciones avanzadas como:
+- **Experiencia fluida:** Elimine las ventanas emergentes del wallet para acciones comunes como hacer staking, intercambiar o listar ítems.
+- **Automatización:** Ejecute transacciones en nombre del usuario, incluso cuando esté desconectado, para funciones como estrategias automáticas o servicios por suscripción.
+- **Seguridad granular:** Defina exactamente qué puede y qué no puede hacer su dApp, minimizando riesgos y generando confianza en el usuario.
+
+---
+
+## Cómo funciona: conceptos clave
+Al configurar una Smart Session, hay algunos conceptos importantes que el SDK gestiona para simplificar la experiencia del desarrollador.
+
+### Pago de gas con tokens nativos (ETH, MATIC, etc.)
+Para permitir que su dApp pague las comisiones de transacción usando los tokens nativos del usuario, debe establecer un presupuesto.
+
+Este presupuesto se define en la propiedad `nativeTokenSpending.valueLimit` de la configuración de la sesión. Para hacerlo posible, el SDK **agrega automáticamente un permiso** para el contrato `Sequence Trusted Forwarder` (`0xABAAd93EeE2a569cF0632f39B10A9f5D734777ca`). Este contrato especial gestiona de forma segura el pago de gas en nombre del usuario, y su gasto está estrictamente limitado por el `valueLimit` que usted defina.
+
+### Pago de gas con tokens ERC-20 (USDC, etc.)
+Nuestro SDK facilita enormemente el pago de gas con tokens ERC-20. No necesita configurar permisos especiales para esto.
+
+Cuando una transacción requiere una comisión y el usuario selecciona la opción de pago, el SDK gestiona automáticamente el pago usando ese token.
+
+### Mejor práctica de seguridad: Principio de mínimo privilegio
+
+<Info>
+  Le **recomendamos enfáticamente** agregar reglas específicas (`rules`) a cada permiso de función que defina.
+</Info>
+
+Esto aplica el **principio de mínimo privilegio**: otorgar a la sesión solo los permisos _exactos_ que necesita para cumplir su función, y nada más.
+
+Aunque _puede_ otorgar acceso sin restricciones a un contrato proporcionando un array vacío en `functions`, esto debe hacerse con precaución ya que da a la sesión una autoridad amplia. Siempre es más seguro ser explícito.
+
+Por ejemplo, limitar una función `approve` a una dirección `spender` específica es siempre más seguro que dejarla abierta a cualquier dirección. Al definir reglas claras, crea Smart Sessions más seguras y brinda mayor tranquilidad a sus usuarios.

@@ -1,0 +1,85 @@
+---
+title: useTheme
+description: テーマやモーダルの位置設定にアクセス・変更するためのフック
+sidebarTitle: useTheme
+---
+
+## インポート
+
+```tsx
+import { useTheme } from '@0xsequence/connect'
+```
+
+## 使い方
+
+```tsx
+import { useTheme } from '@0xsequence/connect'
+
+function App() {
+  const { theme, setTheme, position, setPosition } = useTheme()
+  
+  return (
+    <div>
+      <div>
+        <h3>Theme Settings</h3>
+        <button onClick={() => setTheme('light')}>Light Mode</button>
+        <button onClick={() => setTheme('dark')}>Dark Mode</button>
+      </div>
+      
+      <div>
+        <h3>Modal Position</h3>
+        <select 
+          value={position} 
+          onChange={(e) => setPosition(e.target.value)}
+        >
+          <option value="center">Center</option>
+          <option value="top-right">Top Right</option>
+          <option value="top-left">Top Left</option>
+          <option value="bottom-right">Bottom Right</option>
+          <option value="bottom-left">Bottom Left</option>
+        </select>
+      </div>
+    </div>
+  )
+}
+```
+
+## 返り値の型
+
+```tsx
+interface ThemeHookReturn {
+  theme: 'light' | 'dark'
+  setTheme: (theme: 'light' | 'dark') => void
+  position: ModalPosition
+  setPosition: (position: ModalPosition) => void
+}
+
+type ModalPosition = 
+  | 'center'
+  | 'top-right'
+  | 'top-left'
+  | 'bottom-right'
+  | 'bottom-left'
+```
+
+### プロパティ
+
+#### theme
+`'light' | 'dark'`
+
+現在のテーマ設定です。
+
+#### setTheme
+`(theme: 'light' | 'dark') => void`
+
+テーマ設定を更新する関数です。
+
+#### position
+`ModalPosition`
+
+現在のモーダル位置設定です。
+
+#### setPosition
+`(position: ModalPosition) => void`
+
+モーダル位置設定を更新する関数です。
