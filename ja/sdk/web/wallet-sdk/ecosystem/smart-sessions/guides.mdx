@@ -1,0 +1,187 @@
+---
+sidebarTitle: ガイド
+---
+
+## Aave
+
+### Aave V3へUSDCを供給
+このセッションでは、dAppがユーザーウォレットの代理でArbitrum上のAave V3プールに最大100 USDCを24時間供給できます。
+供給はユーザーウォレットの代理のみ可能です。
+
+```typescript
+import { createExplicitSession } from "@0xsequence/connect";
+
+export const USDC_ADDRESS_ARBITRUM = '0xaf88d065e77c8cC2239327C5EDb3A432268e5831'
+export const AAVE_V3_POOL_ADDRESS_ARBITRUM = '0x794a61358D6845594F94dc1DB02A252b5b4814aD'
+
+const aaveSupplySession = createExplicitSession({
+    chainId: 42161,
+    nativeTokenSpending: {
+        valueLimit: 0n,
+    },
+    expiresIn: {
+        hours: 24,
+    },
+    permissions: [
+        createContractPermission({
+            address: AAVE_V3_POOL_ADDRESS_ARBITRUM,
+            functionSignature: 'function supply(address asset, uint256 amount, address onBehalfOf, uint16 referralCode)',
+            rules: [
+                {
+                    param: 'asset',
+                    type: 'address',
+                    condition: 'EQUAL',
+                    value: USDC_ADDRESS_ARBITRUM,
+                },
+                {
+                    param: 'onBehalfOf',
+                    type: 'address',
+                    condition: 'EQUAL',
+                    value: {userWalletAddress},
+                },
+                {
+                    param: 'amount',
+                    type: 'uint256',
+                    condition: 'LESS_THAN_OR_EQUAL',
+                    value: parseUnits('100', 6),
+                },
+            ],
+        }),
+    ],
+});
+```
+
+### AaveプールからUSDCを引き出す
+このセッションでは、dAppがユーザーウォレットの代理でArbitrum上のAave V3プールから最大100 USDCを24時間引き出せます。
+引き出し先はユーザーのウォレットアドレスのみです。
+
+```typescript
+import { createExplicitSession } from "@0xsequence/connect";
+
+export const USDC_ADDRESS_ARBITRUM = '0xaf88d065e77c8cC2239327C5EDb3A432268e5831'
+export const AAVE_V3_POOL_ADDRESS_ARBITRUM = '0x794a61358D6845594F94dc1DB02A252b5b4814aD'
+
+const aaveWithdrawSession = createExplicitSession({
+    chainId: 42161,
+    nativeTokenSpending: {
+        valueLimit: 0n,
+    },
+    expiresIn: {
+        hours: 24,
+    },
+    permissions: [
+        createContractPermission({
+            address: '0x...',
+            functionSignature: 'function withdraw(address asset, uint256 amount, address to)',
+            rules: [
+                {
+                    param: 'asset',
+                    type: 'address',
+                    condition: 'EQUAL',
+                    value: USDC_ADDRESS_ARBITRUM,
+                },
+                {
+                    param: 'amount',
+                    type: 'uint256',
+                    condition: 'LESS_THAN_OR_EQUAL',
+                    value: parseUnits('100', 6),
+                },
+                {
+                    param: 'to',
+                    type: 'address',
+                    condition: 'EQUAL',
+                    value: {userWalletAddress},
+                },
+            ],
+        }),
+    ],
+});
+```
+
+### AaveへETHを供給
+このセッションでは、dAppがユーザーウォレットの代理でArbitrum上のAave V3プールに最大0.1 ETHを24時間供給できます。
+供給はユーザーウォレットの代理のみで、dApp自身のポジションを増やすことはできません。
+
+```typescript
+import { createExplicitSession } from "@0xsequence/connect";
+
+export const AAVE_V3_WRAPPED_TOKEN_GATEWAY_ADDRESS_ARBITRUM = '0x794a61358D6845594F94dc1DB02A252b5b4814aD'
+export const AAVE_V3_POOL_ADDRESS_ARBITRUM = '0x794a61358D6845594F94dc1DB02A252b5b4814aD'
+
+const aaveSupplyETHSession = createExplicitSession({
+    chainId: 42161,
+    nativeTokenSpending: {
+        valueLimit: parseEther('0.1'),
+    },
+    expiresIn: {
+        hours: 24,
+    },
+    permissions: [
+        createContractPermission({
+            address: AAVE_V3_WRAPPED_TOKEN_GATEWAY_ADDRESS_ARBITRUM,
+            functionSignature: 'function depositETH(address pool, address onBehalfOf, uint16 referralCode)',
+            rules: [
+                {
+                    param: 'pool',
+                    type: 'address',
+                    condition: 'EQUAL',
+                    value: AAVE_V3_POOL_ADDRESS_ARBITRUM
+                },
+                {
+                    param: 'onBehalfOf',
+                    type: 'address',
+                    condition: 'EQUAL',
+                    value: {userWalletAddress},
+                }
+            ]
+        }),
+    ],
+});
+```
+
+### AaveからUSDCを借りる
+このセッションでは、dAppがユーザーウォレットの代理でArbitrum上のAave V3プールから最大100 USDCを24時間借りることができます。
+借り入れはユーザーウォレットの代理のみ可能です。
+
+```typescript
+import { createExplicitSession } from "@0xsequence/connect";
+
+export const USDC_ADDRESS_ARBITRUM = '0xaf88d065e77c8cC2239327C5EDb3A432268e5831'
+export const AAVE_V3_POOL_ADDRESS_ARBITRUM = '0x794a61358D6845594F94dc1DB02A252b5b4814aD'
+
+const aaveBorrowSession = createExplicitSession({
+    chainId: 42161,
+    nativeTokenSpending: {
+        valueLimit: 0n,
+    },
+    expiresIn: {
+        hours: 24,
+    },
+    permissions: [
+        createContractPermission({
+            address: AAVE_V3_POOL_ADDRESS_ARBITRUM,
+            functionSignature: 'function borrow(address asset, uint256 amount, uint256 interestRateMode, uint16 referralCode, address onBehalfOf)',
+            rules: [
+                {
+                    param: 'asset',
+                    type: 'address',
+                    condition: 'EQUAL',
+                    value: USDC_ADDRESS_ARBITRUM,
+                },
+                {
+                    param: 'amount',
+                    type: 'uint256',
+                    condition: 'LESS_THAN_OR_EQUAL',
+                    value: parseUnits('100', 6), // 100 USDC
+                },
+                {
+                    param: 'onBehalfOf',
+                    type: 'address',
+                    condition: 'EQUAL',
+                    value: {userWalletAddress},
+                }
+            ],
+        }),
+    ],
+});
+```

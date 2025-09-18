@@ -1,0 +1,186 @@
+---
+title: useWalletNavigation
+description: ウォレットウィジェット内のナビゲーション状態と履歴を管理するためのフック
+sidebarTitle: useWalletNavigation
+---
+
+## インポート
+
+```tsx
+import { useWalletNavigation } from '@0xsequence/wallet-widget' 
+```
+
+## 使い方
+
+```tsx
+import { useWalletNavigation } from '@0xsequence/wallet-widget'
+
+function SendView() {
+  const { setNavigation, goBack } = useWalletNavigation() 
+
+  const handleSend = () => {
+    // Navigate to confirmation view
+    setNavigation({
+      location: 'send-confirmation',
+      params: { amount, recipient }
+    })
+  }
+
+  const handleCancel = () => {
+    // Go back to previous view
+    goBack()
+  }
+
+  return (
+    <div>
+      <button onClick={handleSend}>Send</button>
+      <button onClick={handleCancel}>Cancel</button>
+    </div>
+  )
+}
+```
+
+## 返り値の型：`useWalletNavigation`
+このフックはナビゲーション操作や状態を持つオブジェクトを返します：
+
+```tsx
+interface useWalletNavigation {
+  setNavigation: (navigation: Navigation) => void
+  setHistory?: (history: History) => void
+  history: History
+  goBack: () => void
+}
+
+interface Navigation {
+  location: string
+  params?: Record<string, any>
+}
+
+type History = Navigation[]
+```
+
+### プロパティ
+
+#### setNavigation
+`(navigation: Navigation) => void`
+
+新しいビューへ遷移する関数。履歴も自動管理されます：
+- 'home'に遷移する場合は履歴をクリア
+- それ以外は新しいロケーションを履歴スタックに追加
+- ビューの最上部へ自動スクロール
+
+#### history
+`History`
+
+訪問したビューの順序を保持する現在のナビゲーション履歴スタック。
+
+#### setHistory
+`(history: History) => void`
+
+履歴を直接操作する関数。可能な限り`setNavigation`の利用を推奨します。`setNavigation`は：
+- ビューの最上部へ自動スクロール
+- 'home'への遷移時など特別なケースを処理
+- 一貫した履歴スタック管理を保証
+- より保守性が高く予測可能なナビゲーションフローを提供
+
+#### goBack
+`() => void`
+
+履歴内で前のビューに戻るための関数。
+
+## ナビゲーションオブジェクト
+`setNavigation`を使う際は、`Navigation`オブジェクトを以下のように指定します：
+
+| プロパティ      | 型                     | 説明                |
+| ---------- | --------------------- | ----------------- |
+| `location` | `string`              | 遷移先のビュー／ルート       |
+| `params`   | `Record<string, any>` | ビューに渡すオプションのパラメータ |
+
+## 特徴
+
+- **自動履歴管理**：訪問したビューのスタックを維持
+- **ホームナビゲーション**：'home'に遷移時は履歴をクリア
+- **自動スクロール**：ナビゲーション時にビューの最上部へスクロール
+- **戻る操作**：前のビューへ戻ることが可能
+- **パラメータ対応**：ナビゲーションパラメータでビュー間のデータ受け渡しが可能
+
+## 使用例
+
+### 基本的なナビゲーション
+
+```tsx
+function HomeView() {
+  const { setNavigation } = useWalletNavigation()
+
+  return (
+    <button onClick={() => setNavigation({ 
+      location: 'settings' 
+    })}>
+      Go to Settings
+    </button>
+  )
+}
+```
+
+### パラメータ付きナビゲーション
+
+```tsx
+function TokenList() {
+  const { setNavigation } = useWalletNavigation()
+
+  const viewToken = (tokenId: string) => {
+    setNavigation({
+      location: 'token-details',
+      params: { tokenId }
+    })
+  }
+
+  return (
+    <div>
+      {tokens.map(token => (
+        <button 
+          key={token.id} 
+          onClick={() => viewToken(token.id)}
+        >
+          View {token.name}
+        </button>
+      ))}
+    </div>
+  )
+}
+```
+
+### 戻る操作の利用
+
+```tsx
+function SettingsView() {
+  const { goBack } = useWalletNavigation()
+
+  return (
+    <div>
+      <h1>Settings</h1>
+      <button onClick={goBack}>
+        Back to Previous View
+      </button>
+    </div>
+  )
+}
+```
+
+### 履歴へのアクセス
+
+```tsx
+function NavigationBreadcrumbs() {
+  const { history } = useWalletNavigation()
+
+  return (
+    <div>
+      {history.map((nav, index) => (
+        <span key={index}>
+          {nav.location} {index < history.length - 1 ? '>' : ''}
+        </span>
+      ))}
+    </div>
+  )
+}
+```

@@ -1,0 +1,109 @@
+---
+title: React クイックスタート
+description: Sequence対応のスマートウォレットをReactアプリに追加するのは簡単です。このガイドでは、新規プロジェクトから完全統合ウォレットまでの3つの主要ステップを解説します。
+sidebarTitle: React クイックスタート
+---
+
+完全に統合されたデモを見るには、[Mining Quest](https://mining-quest-v3.pages.dev/) をご覧ください。また、その[ソースコードはこちら](https://github.com/0xsequence-demos/mining-quest/tree/v3)で確認できます。
+
+## 🔑 ステップ1：プロジェクトアクセスキーを取得
+まず、アプリをSequenceインフラに接続するためのキーが必要です。このキーはプロジェクトを識別し、各種サービスの利用を可能にします。
+
+[sequence.build](https://sequence.build)にアクセスし、サインアップまたはログインして新しいプロジェクトを作成します。[Builder Getting Started](/solutions/builder/getting-started)ガイドで手順を確認できます。
+
+ここで、あなた専用の `projectAccessKey` を取得できます。
+
+## 📦 ステップ2：コアSDKパッケージ`@0xsequence/connect`をインストール
+次に、Sequence Web SDKの主要パッケージをプロジェクトの依存関係に追加します。このパッケージには必要なフックやコンポーネント、ウォレットモーダルがすべて含まれています。
+
+プロジェクトのターミナルで、以下のインストールコマンドを実行してください。
+
+```bash
+pnpm install @0xsequence/connect
+```
+
+これでSequence SDKがプロジェクトの依存関係として追加され、すぐに利用可能です。
+
+## 🔗 ステップ3：Reactアプリに統合
+最後に、アプリケーション全体をウォレットプロバイダーでラップします。これにより、dApp内のどのコンポーネントからも接続機能が利用できるようになります。
+
+また、ユーザーに代わって最大100トークンまで使用できる権限をリクエストするセッションも作成しています。これにより自動化やUXの向上が可能になります。
+
+```tsx
+import { SequenceConnect, createConfig, createContractPermission, createExplicitSession, useOpenConnectModal, type SequenceConnectConfig } from "@0xsequence/connect";
+import { parseUnits } from "viem";
+import { useAccount, useDisconnect } from "wagmi";
+
+const config: SequenceConnectConfig = createConfig({
+  projectAccessKey: "<your-project-access-key>",
+  signIn: {
+    projectName: 'Sequence Web SDK Demo',
+  },
+  walletUrl: 'https://v3.sequence.app',
+  dappOrigin: window.location.origin,
+  appName: 'Sequence Web SDK Demo',
+  chainIds: [42161],
+  defaultChainId: 42161,
+  explicitSession: createExplicitSession({
+    chainId: 42161,
+    nativeTokenSpending: {
+      valueLimit: 0n
+    },
+    expiresIn: {
+      hours: 24, // Session lasts for 24 hours
+    },
+    permissions: [
+      // Request a permission to spend up to 100 tokens on behalf of the user
+      createContractPermission({
+        address: '0x...',
+        functionSignature: 'function transfer(address to, uint256 amount)',
+        rules: [
+          {
+            param: 'to',
+            type: 'address',
+            condition: 'EQUAL',
+            value: '0x...' // The address where dApp can spend the tokens
+                },
+          {
+            param: 'amount',
+            type: 'uint256',
+            condition: 'LESS_THAN_OR_EQUAL',
+            value: parseUnits('100', 6), // Max cumulative amount of 100 tokens
+            cumulative: true
+          }
+        ]
+      })
+    ]
+  })
+});
+
+export const App = () => {
+  return (
+    <SequenceConnect config={config}>
+      <Homepage />
+    </SequenceConnect>
+  );
+};
+
+const Homepage = () => {
+
+  const { address } = useAccount()
+  const { disconnect } = useDisconnect()
+  const { setOpenConnectModal } = useOpenConnectModal()
+  
+  return (
+    <div>
+      {address ? (
+        <button onClick={() => disconnect()}>Disconnect</button>
+      ) : (
+        <>
+          Connected address: {address}
+          <button onClick={() => setOpenConnectModal(true)}>Connect</button>
+        </>
+      )}
+    </div>
+  );
+};
+```
+
+Sequenceウォレットがアプリで利用可能になりました。`useConnect()`などのwagmiフックを使って、ユーザーがSNSやメールでサインインし、ブロックチェーンとやり取りできるようになります。

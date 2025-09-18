@@ -1,0 +1,124 @@
+---
+title: useWalletSettings
+description: ウォレットの設定情報へアクセス・変更するためのフック
+sidebarTitle: useWalletSettings
+---
+
+## インポート
+
+```tsx
+import { useWalletSettings } from '@0xsequence/connect'
+```
+
+## 使い方
+
+```tsx
+import { useWalletSettings } from '@0xsequence/connect'
+
+function WalletConfigPanel() {
+  const { displayedAssets, readOnlyNetworks, setDisplayedAssets } = useWalletSettings()
+  
+  // Example function to add a new asset
+  const addNewAsset = (contractAddress: string, chainId: number) => {
+    setDisplayedAssets([
+      ...displayedAssets,
+      { contractAddress, chainId }
+    ])
+  }
+  
+  // Example function to check if network is read-only
+  const isNetworkReadOnly = (chainId: number) => {
+    return readOnlyNetworks?.includes(chainId)
+  }
+  
+  return (
+    <div>
+      <h2>Wallet Settings</h2>
+      
+      <div>
+        <h3>Displayed Assets</h3>
+        <ul>
+          {displayedAssets.map(asset => (
+            <li key={`${asset.chainId}-${asset.contractAddress}`}>
+              Chain ID: {asset.chainId}, Contract: {asset.contractAddress}
+            </li>
+          ))}
+        </ul>
+        
+        <button
+          onClick={() => addNewAsset('0x1234...', 1)}
+          disabled={isNetworkReadOnly(1)}
+        >
+          Add ETH Mainnet Asset
+        </button>
+      </div>
+      
+      <div>
+        <h3>Network Status</h3>
+        <ul>
+          {[1, 137, 10].map(chainId => (
+            <li key={chainId}>
+              Chain {chainId}: {isNetworkReadOnly(chainId) ? 'Read-only' : 'Active'}
+            </li>
+          ))}
+        </ul>
+      </div>
+    </div>
+  )
+}
+```
+
+## 返り値の型
+
+```tsx
+interface WalletSettingsReturn {
+  displayedAssets: Array<{
+    contractAddress: string
+    chainId: number
+  }>
+  readOnlyNetworks: number[] | undefined
+  setDisplayedAssets: (assets: Array<{
+    contractAddress: string
+    chainId: number
+  }>) => void
+}
+```
+
+### プロパティ
+
+#### displayedAssets
+`Array<{ contractAddress: string, chainId: number }>`
+
+ウォレット画面に表示するアセットの配列。各アセットは以下で定義されます：
+- `contractAddress`: トークンコントラクトのアドレス
+- `chainId`：トークンが存在するネットワークID
+
+#### readOnlyNetworks
+`number[] | undefined`
+
+トランザクションが無効化されているネットワークIDの配列。これらのネットワークでは残高や取引履歴の閲覧は可能ですが、新規トランザクションの実行はできません。
+
+#### setDisplayedAssets
+`(assets: Array<{ contractAddress: string, chainId: number }>) => void`
+
+表示する資産リストを更新する関数です。コントラクトアドレスとチェーンIDを含む資産オブジェクトの配列を受け取ります。
+
+## 補足
+このフックはウォレットの表示設定やネットワークのステータス情報にアクセスできます。
+
+主な特徴：
+- 資産表示リストの管理
+- 読み取り専用ネットワークステータス情報
+- 型安全な設定更新
+
+主な利用ケース：
+- 表示するトークンリストの管理
+- ネットワークが読み取り専用かどうかの確認
+- 設定インターフェースの構築
+
+ベストプラクティス：
+- 表示資産に追加する前にコントラクトアドレスを検証しましょう
+- トランザクションを実行する前にネットワークが読み取り専用か確認しましょう
+- 表示資産リストを常に最新に保ちましょう
+
+このフックは、ウォレット設定画面で表示する資産の管理やネットワークステータスの確認によく使われます。

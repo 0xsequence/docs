@@ -1,0 +1,45 @@
+---
+sidebarTitle: Overview
+---
+
+## What Are Smart Sessions?
+
+Smart Sessions are the key to unlocking a seamless, Web2-like user experience in your dApp. Instead of asking users to approve every single transaction, a Smart Session allows a user to grant your dApp a temporary, secure, and strictly limited set of permissions.
+
+Think of it less like handing over a master key, and more like giving your application a special-purpose keycard with clear rules and an expiration date.
+
+This is extremely useful for enabling powerful features like:
+
+-   **Seamless UX:** Eliminate repetitive wallet pop-ups for common actions like staking, swapping, or listing items.
+-   **Automation:** Execute transactions on a user's behalf, even when they are offline, for features like automated strategies or subscription services.
+-   **Granular Security:** Define exactly what your dApp can and cannot do, minimizing risk and building user trust.
+
+---
+
+## How It Works: Key Concepts
+
+When you configure a Smart Session, there are a few important concepts that the SDK handles to make the developer experience as simple as possible.
+
+### Paying for Gas with Native Tokens (ETH, MATIC, etc.)
+
+To enable your dApp to pay for transaction fees using the user's native tokens, a budget must be set.
+
+You define this budget in the `nativeTokenSpending.valueLimit` property of your session configuration. To make this possible, the SDK **automatically adds a permission** for the `Sequence Trusted Forwarder` contract (`0xABAAd93EeE2a569cF0632f39B10A9f5D734777ca`). This special contract securely handles the gas payment on the user's behalf, and its spending is strictly limited by the `valueLimit` you set.
+
+### Paying for Gas with ERC-20 Tokens (USDC, etc.)
+
+Our SDK simplifies paying for gas with ERC-20 tokens immensely. You do not need to configure any special permissions for this.
+
+When a transaction requires a fee and the user selects the fee option, the SDK automatically handles the payment using that token.
+
+### Security Best Practice: The Principle of Least Privilege
+
+<Info>
+We **strongly recommend** adding specific `rules` to every function permission you define.
+</Info>
+
+This enforces the **principle of least privilege**: granting a session only the *exact* permissions it needs to perform its job, and nothing more.
+
+While you *can* grant unrestricted access to a contract by providing an empty `functions` array, this should be done with caution as it gives the session broad authority. It is always more secure to be explicit.
+
+For example, locking an `approve` function to a specific `spender` address is always safer than leaving it open for any address. By defining clear rules, you build more secure Smart Sessions and provide greater peace of mind for your users.

@@ -1,0 +1,192 @@
+---
+title: "useWalletNavigation"
+description: Hook for managing navigation state and history within the wallet widget
+sidebarTitle: useWalletNavigation
+---
+
+## Import
+
+```tsx
+import { useWalletNavigation } from '@0xsequence/wallet-widget' 
+```
+
+## Usage
+
+```tsx
+import { useWalletNavigation } from '@0xsequence/wallet-widget'
+
+function SendView() {
+  const { setNavigation, goBack } = useWalletNavigation() 
+
+  const handleSend = () => {
+    // Navigate to confirmation view
+    setNavigation({
+      location: 'send-confirmation',
+      params: { amount, recipient }
+    })
+  }
+
+  const handleCancel = () => {
+    // Go back to previous view
+    goBack()
+  }
+
+  return (
+    <div>
+      <button onClick={handleSend}>Send</button>
+      <button onClick={handleCancel}>Cancel</button>
+    </div>
+  )
+}
+```
+
+## Return Type: `useWalletNavigation`
+
+The hook returns an object with navigation controls and state:
+
+```tsx
+interface useWalletNavigation {
+  setNavigation: (navigation: Navigation) => void
+  setHistory?: (history: History) => void
+  history: History
+  goBack: () => void
+}
+
+interface Navigation {
+  location: string
+  params?: Record<string, any>
+}
+
+type History = Navigation[]
+```
+
+### Properties
+
+#### setNavigation
+
+`(navigation: Navigation) => void`
+
+Function to navigate to a new view. Automatically manages history:
+- If navigating to 'home', clears history
+- Otherwise, adds new location to history stack
+- Automatically scrolls to the top of the view
+
+#### history
+
+`History`
+
+Current navigation history stack containing the sequence of visited views.
+
+#### setHistory
+
+`(history: History) => void`
+
+Direct history manipulation function. It's recommended to use `setNavigation` instead when possible because `setNavigation`:
+- Automatically scrolls to the top of the view
+- Handles special cases like clearing history when navigating to 'home'
+- Ensures consistent history stack management
+- Provides a more maintainable and predictable navigation flow
+
+#### goBack
+
+`() => void`
+
+Function to navigate back to the previous view in history.
+
+## Navigation Object
+
+When using `setNavigation`, you provide a `Navigation` object with:
+
+| Property | Type | Description |
+| -------- | ---- | ----------- |
+| `location` | `string` | The view/route to navigate to |
+| `params` | `Record<string, any>` | Optional parameters to pass to the view |
+
+## Features
+
+- **Automatic History Management**: Maintains a stack of visited views
+- **Home Navigation**: Clears history when navigating to 'home'
+- **Automatic Scrolling**: Scrolls to top of view on navigation
+- **Back Navigation**: Supports going back to previous views
+- **Parameter Support**: Pass data between views via navigation params
+
+## Examples
+
+### Basic Navigation
+
+```tsx
+function HomeView() {
+  const { setNavigation } = useWalletNavigation()
+
+  return (
+    <button onClick={() => setNavigation({ 
+      location: 'settings' 
+    })}>
+      Go to Settings
+    </button>
+  )
+}
+```
+
+### Navigation with Parameters
+
+```tsx
+function TokenList() {
+  const { setNavigation } = useWalletNavigation()
+
+  const viewToken = (tokenId: string) => {
+    setNavigation({
+      location: 'token-details',
+      params: { tokenId }
+    })
+  }
+
+  return (
+    <div>
+      {tokens.map(token => (
+        <button 
+          key={token.id} 
+          onClick={() => viewToken(token.id)}
+        >
+          View {token.name}
+        </button>
+      ))}
+    </div>
+  )
+}
+```
+
+### Using Back Navigation
+
+```tsx
+function SettingsView() {
+  const { goBack } = useWalletNavigation()
+
+  return (
+    <div>
+      <h1>Settings</h1>
+      <button onClick={goBack}>
+        Back to Previous View
+      </button>
+    </div>
+  )
+}
+```
+
+### Accessing History
+
+```tsx
+function NavigationBreadcrumbs() {
+  const { history } = useWalletNavigation()
+
+  return (
+    <div>
+      {history.map((nav, index) => (
+        <span key={index}>
+          {nav.location} {index < history.length - 1 ? '>' : ''}
+        </span>
+      ))}
+    </div>
+  )
+}
+```

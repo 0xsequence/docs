@@ -1,0 +1,140 @@
+---
+title: useChain
+description: チェーンの設定情報を取得するためのフック
+sidebarTitle: useChain
+---
+
+## インポート
+
+```tsx
+import { useChain } from '@0xsequence/connect'
+```
+
+## 使い方
+
+```tsx
+import { useChain } from '@0xsequence/connect'
+
+function App() {
+  // Get current chain configuration
+  const currentChain = useChain()
+  
+  // Get configuration for a specific chain (e.g., Ethereum Mainnet)
+  const ethereumChain = useChain(1)
+  
+  return (
+    <div>
+      <h2>Current Chain</h2>
+      {currentChain && (
+        <div>
+          <p>Name: {currentChain.name}</p>
+          <p>Chain ID: {currentChain.id}</p>
+          <p>Network: {currentChain.network}</p>
+          <p>Native Currency: {currentChain.nativeCurrency.symbol}</p>
+        </div>
+      )}
+      
+      <h2>Ethereum Mainnet</h2>
+      {ethereumChain && (
+        <div>
+          <p>Name: {ethereumChain.name}</p>
+          <p>Chain ID: {ethereumChain.id}</p>
+          <p>Network: {ethereumChain.network}</p>
+          <p>Native Currency: {ethereumChain.nativeCurrency.symbol}</p>
+        </div>
+      )}
+    </div>
+  )
+}
+```
+
+## パラメータ
+
+| パラメータ     | 型        | 説明          |                                                          |
+| --------- | -------- | ----------- | -------------------------------------------------------- |
+| `chainId` | \`number | undefined\` | 特定のチェーンの設定を取得するためのオプションのチェーンID。指定しない場合は、現在のチェーンの設定を返します。 |
+
+## 返り値の型: `Chain | undefined`
+このフックは、wagmiのチェーン設定から`Chain`オブジェクトを返します。チェーンが見つからない場合は`undefined`となります。
+
+```tsx
+interface Chain {
+  id: number
+  name: string
+  network: string
+  nativeCurrency: {
+    name: string
+    symbol: string
+    decimals: number
+  }
+  rpcUrls: {
+    default: {
+      http: string[]
+      webSocket?: string[]
+    }
+    public: {
+      http: string[]
+      webSocket?: string[]
+    }
+  }
+  blockExplorers?: {
+    default: {
+      name: string
+      url: string
+    }
+  }
+  // ... other chain-specific properties
+}
+```
+
+### プロパティ
+
+#### id
+`number`
+
+ブロックチェーンネットワークの一意な識別子です。
+
+#### name
+`string`
+
+ブロックチェーンネットワークの人間が読める名称です。
+
+#### network
+`string`
+
+ネットワーク識別子の文字列です。
+
+#### nativeCurrency
+`object`
+
+チェーンのネイティブ通貨に関する情報です。
+
+```tsx
+{
+  name: string      // Full name of the currency
+  symbol: string    // Currency symbol
+  decimals: number  // Number of decimal places
+}
+```
+
+#### rpcUrls
+`object`
+
+ネットワークのRPCエンドポイントに接続するためのURLです。
+
+#### blockExplorers
+`object | undefined`
+
+チェーンのブロックエクスプローラーに関する情報です。
+
+## 補足
+このフックは、wagmiのチェーン設定からチェーン情報へ簡単にアクセスできます。特に以下のような場合に便利です:
+- 現在接続しているチェーンの詳細を取得したいとき
+- IDで特定のチェーンの設定を取得したいとき
+- チェーン固有の情報を取得したい場合（例:）
+  - ネットワークの詳細
+  - ネイティブ通貨の情報
+  - RPCエンドポイント
+  - ブロックエクスプローラーのURL
+
+このフックは、トランザクションやインデクサークライアント、ネットワーク固有の機能を扱う際に、他のSequenceフックと組み合わせてよく利用されます。

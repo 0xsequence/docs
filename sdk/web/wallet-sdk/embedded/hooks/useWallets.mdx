@@ -1,0 +1,154 @@
+---
+title: "useWallets"
+description: Hook for managing connected wallets
+sidebarTitle: useWallets
+---
+
+## Features
+
+This hook provides a unified interface for managing connected wallets, both embedded (WaaS) and external wallets. The user is prompted to sign a transaction with their active wallet in order to link wallets enabling read-only functionality.
+
+Key features:
+- Get information about all connected wallets
+- Set a specific wallet as active
+- Disconnect wallets
+- View linked wallets for embedded wallets
+- Refresh the list of linked wallets
+
+For embedded wallets (Wallet-as-a-Service), the hook automatically fetches linked wallets if available. Linked wallets are additional wallets that have been connected to the primary embedded wallet.
+
+## Import
+
+```tsx
+import { useWallets } from '@0xsequence/connect'
+```
+
+## Usage
+
+```tsx
+import { useWallets } from '@0xsequence/connect'
+
+function App() {
+  const { 
+    wallets, 
+    linkedWallets, 
+    setActiveWallet, 
+    disconnectWallet,
+    refetchLinkedWallets
+  } = useWallets()
+  
+  return (
+    <div>
+      <h2>Connected Wallets</h2>
+      <div>
+        {wallets.map(wallet => (
+          <div key={wallet.address}>
+            <span>
+              {wallet.name}: {wallet.address.slice(0, 6)}...{wallet.address.slice(-4)}
+            </span>
+            {wallet.isActive ? ' (Active)' : ''}
+            {wallet.isEmbedded ? ' (Embedded)' : ''}
+            <button onClick={() => setActiveWallet(wallet.address)}>
+              Set Active
+            </button>
+            <button onClick={() => disconnectWallet(wallet.address)}>
+              Disconnect
+            </button>
+          </div>
+        ))}
+      </div>
+      
+      {linkedWallets && linkedWallets.length > 0 && (
+        <>
+          <h2>Linked Wallets</h2>
+          <button onClick={refetchLinkedWallets}>Refresh</button>
+          <div>
+            {linkedWallets.map(linkedWallet => (
+              <div key={linkedWallet.walletAddress}>
+                {linkedWallet.walletAddress.slice(0, 6)}...{linkedWallet.walletAddress.slice(-4)}
+              </div>
+            ))}
+          </div>
+        </>
+      )}
+    </div>
+  )
+}
+```
+
+## Return Type: `UseWalletsReturnType`
+
+The hook returns an object with the following properties:
+
+```tsx
+interface UseWalletsReturnType {
+  wallets: ConnectedWallet[]
+  linkedWallets: LinkedWallet[] | undefined
+  setActiveWallet: (address: string) => Promise<void>
+  disconnectWallet: (address: string) => Promise<void>
+  refetchLinkedWallets: () => Promise<void>
+}
+```
+
+### Properties
+
+#### wallets
+
+`ConnectedWallet[]`
+
+Array of all connected wallets.
+
+```tsx
+interface ConnectedWallet {
+  id: string       // Unique identifier for the wallet (connector id)
+  name: string     // Display name of the wallet
+  address: string  // The wallet's Ethereum address
+  isActive: boolean // Whether this wallet is currently active
+  isEmbedded: boolean // Whether this is an embedded wallet (WaaS)
+}
+```
+
+#### linkedWallets
+
+`LinkedWallet[] | undefined`
+
+Array of linked wallets for the active embedded wallet (if any). Only available when using a WaaS wallet.
+
+```tsx
+interface LinkedWallet {
+  id: number;
+  walletType?: string;
+  walletAddress: string;
+  linkedWalletAddress: string;
+  createdAt?: string;
+}
+```
+
+#### setActiveWallet
+
+`(address: string) => Promise<void>`
+
+Function to set a wallet as active by its address.
+
+| Parameter | Type | Description |
+| --------- | ---- | ----------- |
+| `address` | `string` | The Ethereum address of the wallet to set as active |
+
+#### disconnectWallet
+
+`(address: string) => Promise<void>`
+
+Function to disconnect a wallet by its address.
+
+| Parameter | Type | Description |
+| --------- | ---- | ----------- |
+| `address` | `string` | The Ethereum address of the wallet to disconnect |
+
+#### refetchLinkedWallets
+
+`() => Promise<void>`
+
+Function to refresh the list of linked wallets. Useful after linking a new wallet.
+
+
+
