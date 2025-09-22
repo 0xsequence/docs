@@ -14,11 +14,11 @@ sidebarTitle: はじめに
     <Steps>
       <Step title="必要なライブラリをインストールします">
         ```bash
-        npm install @0xsequence/connect wagmi viem 
+        npm install @0xsequence/connect@v6-beta wagmi viem 
         # or
-        pnpm install @0xsequence/connect wagmi viem 
+        pnpm install @0xsequence/connect@v6-beta wagmi viem 
         # or
-        yarn add @0xsequence/connect wagmi viem 
+        yarn add @0xsequence/connect@v6-beta wagmi viem 
         ```
       </Step>
 
@@ -41,7 +41,7 @@ sidebarTitle: はじめに
           google: true,
           apple: true,
           email: true,
-          explicitSession: {...}
+          explicitSessionParams: {...}
         });
         ```
 
@@ -49,50 +49,17 @@ sidebarTitle: はじめに
 
         `dappOrigin`はdappのオリジンで、ユーザーのアクセス元を確認するために使われます。
 
-        `explicitSession`オブジェクトを使うことで、dAppが接続時にユーザーから特定の権限をリクエストできます。
-        これらの権限により、ユーザーに取引確認を求めずに一定期間dAppが特定の操作を代行でき、よりシームレスな体験や自動化が可能になります。
+        `explicitSessionParams` オブジェクトを使うことで、dapp は接続時にユーザーから特定の権限をリクエストできます。
+        これらの権限により、dapp は一定期間ユーザーに代わって特定の操作を実行できるようになり、トランザクションの確認画面なしで自動処理やシームレスな体験を実現します。
 
         例として、「次の24時間、ユーザーの代理でArbitrum上のAAVE V3プールに100 USDCを入金する」ための明示的セッションを作成してみましょう。
 
-        ```typescript [config.ts] focus={7-38, 53}
-        import { createConfig, createExplicitSession, createContractPermission } from "@0xsequence/connect";
+        ```typescript [config.ts]
+        import { createConfig, createContractPermission } from "@0xsequence/connect";
         import { parseEther, parseUnits } from "viem";
 
         export const USDC_ADDRESS_ARBITRUM = '0xaf88d065e77c8cC2239327C5EDb3A432268e5831'
         export const AAVE_V3_POOL_ADDRESS_ARBITRUM = '0x794a61358D6845594F94dc1DB02A252b5b4814aD'
-
-        // Define the session configuration using the helper functions
-        const aaveSupplySession = createExplicitSession({
-            chainId: 42161,
-            nativeTokenSpending: {
-                valueLimit: parseEther('0.01'), // Allow spending up to 0.01 ETH for gas fees
-            },
-            expiresIn: {
-                hours: 24, // Session lasts for 24 hours
-            },
-            permissions: [
-                // Create a specific permission for the AAVE supply function
-                createContractPermission({
-                    address: AAVE_V3_POOL_ADDRESS_ARBITRUM,
-                    functionSignature: 'function supply(address asset, uint256 amount, address onBehalfOf, uint16 referralCode)',
-                    rules: [
-                        {
-                            param: 'asset',
-                            type: 'address',
-                            condition: 'EQUAL',
-                            value: USDC_ADDRESS_ARBITRUM
-                        },
-                        {
-                            param: 'amount',
-                            type: 'uint256',
-                            condition: 'LESS_THAN_OR_EQUAL',
-                            value: parseUnits('100', 6), // Max cumulative amount of 100 USDC
-                            cumulative: true
-                        }
-                    ]
-                })
-            ]
-        })
 
         export const config: any = createConfig({
           projectAccessKey: "<your-project-access-key>",
@@ -107,7 +74,36 @@ sidebarTitle: はじめに
           google: true,
           apple: true,
           email: true,
-          explicitSession: aaveSupplySession
+          explicitSessionParams: {
+            chainId: 42161,
+            nativeTokenSpending: {
+              valueLimit: parseEther('0.01'), // Allow spending up to 0.01 ETH for gas fees
+            },
+            expiresIn: {
+              hours: 24, // Session lasts for 24 hours
+            },
+            permissions: [
+              createContractPermission({
+                address: AAVE_V3_POOL_ADDRESS_ARBITRUM,
+                functionSignature: 'function supply(address asset, uint256 amount, address onBehalfOf, uint16 referralCode)',
+                rules: [
+                  {
+                    param: 'asset',
+                    type: 'address',
+                    condition: 'EQUAL',
+                    value: USDC_ADDRESS_ARBITRUM
+                  },
+                  {
+                    param: 'amount',
+                    type: 'uint256',
+                    condition: 'LESS_THAN_OR_EQUAL',
+                    value: parseUnits('100', 6), // Max cumulative amount of 100 USDC
+                    cumulative: true
+                  }
+                ]
+              })
+            ]
+          }
         });
         ```
 
@@ -173,11 +169,11 @@ sidebarTitle: はじめに
     <Steps>
       <Step title="Web SDKの依存パッケージをインストール">
         ```bash
-        npm install @0xsequence/connect wagmi viem 
+        npm install @0xsequence/connect@v6-beta wagmi viem 
         # or
-        pnpm install @0xsequence/connect wagmi viem 
+        pnpm install @0xsequence/connect@v6-beta wagmi viem 
         # or
-        yarn add @0xsequence/connect wagmi viem 
+        yarn add @0xsequence/connect@v6-beta wagmi viem 
         ```
       </Step>
 
@@ -200,7 +196,7 @@ sidebarTitle: はじめに
           google: true,
           apple: true,
           email: true,
-          explicitSession: { ... }
+          explicitSessionParams: { ... }
         });
         ```
 
@@ -208,50 +204,17 @@ sidebarTitle: はじめに
 
         `dappOrigin`はdappのオリジンで、ユーザーのアクセス元を確認するために使われます。
 
-        `explicitSession`オブジェクトを使うと、接続時にユーザーから特定の権限をリクエストできます。
-        これにより、一定期間ユーザーの代理で特定の操作を実行でき、取引プロンプトなしでシームレスな体験を提供します。
+        `explicitSessionParams` オブジェクトを使うことで、dapp は接続時にユーザーから特定の権限をリクエストできます。
+        これらの権限により、dapp は一定期間ユーザーに代わって特定の操作を実行できるようになり、トランザクションの確認画面なしでよりスムーズなユーザー体験を提供できます。
 
         例として、「次の24時間、ユーザーの代理でArbitrum上のAAVE V3プールに100 USDCを入金する」ための明示的セッションを作成してみましょう。
 
-        ```typescript [config.ts] focus={7-38, 53}
-        import { createConfig, createExplicitSession, createContractPermission } from "@0xsequence/connect";
+        ```typescript [config.ts]
+        import { createConfig, createContractPermission } from "@0xsequence/connect";
         import { parseEther, parseUnits } from "viem";
 
         export const USDC_ADDRESS_ARBITRUM = '0xaf88d065e77c8cC2239327C5EDb3A432268e5831'
         export const AAVE_V3_POOL_ADDRESS_ARBITRUM = '0x794a61358D6845594F94dc1DB02A252b5b4814aD'
-
-        // Define the session configuration using the helper functions
-        const aaveSupplySession = createExplicitSession({
-            chainId: 42161,
-            nativeTokenSpending: {
-                valueLimit: parseEther('0.01'), // Allow spending up to 0.01 ETH for gas fees
-            },
-            expiresIn: {
-                hours: 24, // Session lasts for 24 hours
-            },
-            permissions: [
-                // Create a specific permission for the AAVE supply function
-                createContractPermission({
-                    address: AAVE_V3_POOL_ADDRESS_ARBITRUM,
-                    functionSignature: 'function supply(address asset, uint256 amount, address onBehalfOf, uint16 referralCode)',
-                    rules: [
-                        {
-                            param: 'asset',
-                            type: 'address',
-                            condition: 'EQUAL',
-                            value: USDC_ADDRESS_ARBITRUM
-                        },
-                        {
-                            param: 'amount',
-                            type: 'uint256',
-                            condition: 'LESS_THAN_OR_EQUAL',
-                            value: parseUnits('100', 6), // Max cumulative amount of 100 USDC
-                            cumulative: true
-                        }
-                    ]
-                })
-            ]
-        })
 
         export const config: any = createConfig({
           projectAccessKey: "<your-project-access-key>",
@@ -266,7 +229,36 @@ sidebarTitle: はじめに
           google: true,
           apple: true,
           email: true,
-          explicitSession: aaveSupplySession
+          explicitSessionParams: {
+            chainId: 42161,
+            nativeTokenSpending: {
+              valueLimit: parseEther('0.01'), // Allow spending up to 0.01 ETH for gas fees
+            },
+            expiresIn: {
+              hours: 24, // Session lasts for 24 hours
+            },
+            permissions: [
+              createContractPermission({
+                address: AAVE_V3_POOL_ADDRESS_ARBITRUM,
+                functionSignature: 'function supply(address asset, uint256 amount, address onBehalfOf, uint16 referralCode)',
+                rules: [
+                  {
+                    param: 'asset',
+                    type: 'address',
+                    condition: 'EQUAL',
+                    value: USDC_ADDRESS_ARBITRUM
+                  },
+                  {
+                    param: 'amount',
+                    type: 'uint256',
+                    condition: 'LESS_THAN_OR_EQUAL',
+                    value: parseUnits('100', 6), // Max cumulative amount of 100 USDC
+                    cumulative: true
+                  }
+                ]
+              })
+            ]
+          }
         });
         ```
 
