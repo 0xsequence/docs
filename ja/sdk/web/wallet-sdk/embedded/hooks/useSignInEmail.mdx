@@ -1,0 +1,61 @@
+---
+title: useSignInEmail
+description: 接続中のウォレットに紐づくメールアドレスを取得するフック
+sidebarTitle: useSignInEmail
+---
+
+## インポート
+
+```tsx
+import { useSignInEmail } from '@0xsequence/connect'
+```
+
+## 使い方
+
+```tsx
+import { useSignInEmail } from '@0xsequence/connect'
+
+function App() {
+  const email = useSignInEmail()
+  
+  return (
+    <div>
+      <h2>User Information</h2>
+      {email ? (
+        <div>
+          <p>Connected with email: {email}</p>
+        </div>
+      ) : (
+        <p>No email associated with connected wallet</p>
+      )}
+    </div>
+  )
+}
+```
+
+## 返り値の型
+
+```tsx
+string | null
+```
+
+このフックは以下を返します：
+- ウォレットが接続され、メールアドレスが紐づいている場合は、そのメールアドレスの`string`
+- 以下の場合は`null`
+  - ウォレットが接続されていない場合
+  - 接続中のウォレットにメールアドレスが紐づいていない場合
+  - ウォレットが切断された場合
+
+## 状態管理
+このフックはメールアドレスの状態を以下のように管理します：
+1. ウォレット接続状況を監視
+2. ウォレット接続時に保存済みメールアドレスを取得
+3. ウォレット切断時にメールアドレスをクリア
+4. `WaasSignInEmail`キーを使ってローカルストレージにメールアドレスを保持
+
+## 補足
+このフックは、以下の両方で利用できるよう設計されています：
+- Sequence WaaS（Wallet-as-a-Service）ウォレット
+- ユニバーサルウォレットタイプ
+
+このフックはSequenceのストレージシステムと連携し、ウォレットの切断時に適切なクリーンアップを行いながら、セッションをまたいでメールアドレスの永続性を維持します。

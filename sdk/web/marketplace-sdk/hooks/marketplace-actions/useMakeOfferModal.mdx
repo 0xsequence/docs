@@ -1,0 +1,164 @@
+---
+title: "useMakeOfferModal"
+description: "Hook for managing the make offer modal interface for creating offers on collectibles"
+sidebarTitle: "useMakeOfferModal"
+---
+
+## Import
+
+```typescript
+import { useMakeOfferModal } from "@0xsequence/marketplace-sdk/react";
+```
+
+## Usage
+
+<Note>
+  Make sure you have followed the [Getting
+  Started](https://docs.sequence.xyz/sdk/web/marketplace-sdk/getting-started) guide
+  to get the collection address and chainId.
+</Note>
+
+### Example
+
+Example of implementing the make offer functionality using the `useMakeOfferModal` hook:
+
+```typescript
+export default function MakeOfferExample() {
+  const { data: marketplaceConfig, isLoading: isMarketplaceConfigLoading } =
+    useMarketplaceConfig();
+
+  const collection = marketplaceConfig?.market.collections[0];
+  const chainId = collection?.chainId as number;
+  const collectionAddress = collection?.itemsAddress as Address;
+  const collectibleId = '0';
+  const orderbookKind = collection?.destinationMarketplace;
+
+  const { show: showMakeOfferModal } = useMakeOfferModal({
+    onSuccess: ({ hash }) => {
+      console.log('Offer created successfully', { hash });
+    },
+    onError: (error) => {
+      console.error('Failed to create offer:', error.message);
+    },
+  });
+
+  const handleMakeOffer = () => {
+    showMakeOfferModal({
+      chainId,
+      collectionAddress,
+      collectibleId,
+      orderbookKind, // Optional - defaults to sequence_marketplace_v2
+    });
+  };
+
+  return (
+    <div style={{ padding: '20px' }}>
+      <h3>Make Offer</h3>
+
+      <button
+        type="button"
+        onClick={handleMakeOffer}
+        disabled={isMarketplaceConfigLoading}
+      >
+        Make Offer
+      </button>
+    </div>
+  );
+}
+```
+
+## Parameters
+
+The hook accepts an optional `callbacks` object with the following properties:
+
+```typescript
+interface ModalCallbacks {
+  onSuccess?: ({ hash, orderId }: { hash?: Hash; orderId?: string }) => void;
+  onError?: (error: Error) => void;
+  successActionButtons?: Array<{ label: string; action: () => void }>;
+}
+```
+
+| Parameter                        | Type                                                             | Description                                                                |
+| -------------------------------- | ---------------------------------------------------------------- | -------------------------------------------------------------------------- |
+| `callbacks.onSuccess`            | `({ hash, orderId }: { hash?: Hash; orderId?: string }) => void` | Optional callback function called when the offer is created successfully   |
+| `callbacks.onError`              | `(error: Error) => void`                                         | Optional callback function called when an error occurs during offer creation |
+| `callbacks.successActionButtons` | `Array<{ label: string; action: () => void }>`                   | Optional array of action buttons to show on success                        |
+
+## Return Type
+
+The hook returns an object with the following methods:
+
+```typescript
+{
+  show: (args: ShowMakeOfferModalArgs) => void
+  close: () => void
+}
+```
+
+### Methods
+
+#### show
+
+`(args: ShowMakeOfferModalArgs) => void`
+
+Opens the make offer modal with the specified parameters.
+
+```typescript
+interface ShowMakeOfferModalArgs {
+  collectionAddress: Address;
+  chainId: number;
+  collectibleId: string;
+  orderbookKind?: OrderbookKind;
+}
+```
+
+| Parameter           | Type            | Description                                                                                        |
+| ------------------- | --------------- | -------------------------------------------------------------------------------------------------- |
+| `collectionAddress` | `Address`       | The contract address of the NFT collection                                                        |
+| `chainId`           | `number`        | The blockchain network chain ID where the collection exists                                       |
+| `collectibleId`     | `string`        | The token ID of the specific collectible to make an offer on                                      |
+| `orderbookKind`     | `OrderbookKind` | Optional. The marketplace orderbook to use (defaults to `sequence_marketplace_v2`)               |
+
+#### OrderbookKind Values
+
+You can import the `OrderbookKind` type from the marketplace SDK:
+
+```typescript
+import { OrderbookKind } from "@0xsequence/marketplace-sdk";
+```
+
+```typescript
+enum OrderbookKind {
+  unknown = "unknown",
+  sequence_marketplace_v1 = "sequence_marketplace_v1",
+  sequence_marketplace_v2 = "sequence_marketplace_v2",
+  blur = "blur",
+  opensea = "opensea",
+  looks_rare = "looks_rare",
+}
+```
+
+#### close
+
+`() => void`
+
+Closes the make offer modal.
+
+## Notes
+
+The `useMakeOfferModal` hook provides a convenient way to manage the make offer modal interface for creating offers on collectibles. It handles:
+
+- Opening and closing the modal
+- Managing the offer creation flow state
+- Token approval for the offer currency (if required)
+- Error handling and success callbacks
+- Support for different marketplace orderbooks
+- Offer expiration date management (defaults to 7 days)
+- Currency selection and price input validation
+
+The modal allows users to:
+- Select the offer price and currency
+- Set the offer quantity (for ERC-1155 tokens)
+- Choose an expiration date for the offer
+- Complete the necessary blockchain transactions (approval + offer creation)
