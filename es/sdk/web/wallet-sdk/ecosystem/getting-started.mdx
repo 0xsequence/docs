@@ -15,11 +15,11 @@ Primero, asegúrese de haber creado una cuenta de Sequence Project. Si aún no t
     <Steps>
       <Step title="Instale las librerías requeridas">
         ```bash
-        npm install @0xsequence/connect wagmi viem 
+        npm install @0xsequence/connect@v6-beta wagmi viem 
         # or
-        pnpm install @0xsequence/connect wagmi viem 
+        pnpm install @0xsequence/connect@v6-beta wagmi viem 
         # or
-        yarn add @0xsequence/connect wagmi viem 
+        yarn add @0xsequence/connect@v6-beta wagmi viem 
         ```
       </Step>
 
@@ -42,7 +42,7 @@ Primero, asegúrese de haber creado una cuenta de Sequence Project. Si aún no t
           google: true,
           apple: true,
           email: true,
-          explicitSession: {...}
+          explicitSessionParams: {...}
         });
         ```
 
@@ -50,50 +50,17 @@ Primero, asegúrese de haber creado una cuenta de Sequence Project. Si aún no t
 
         El `dappOrigin` es el origen de su dapp, usado para verificar de dónde proviene el usuario.
 
-        El objeto `explicitSession` permite que su dapp solicite permisos específicos al usuario al conectarse.
-        Estos permisos pueden autorizar a su dapp a realizar ciertas acciones en nombre del usuario durante un período definido, creando una experiencia más fluida sin avisos de transacción o permitiendo automatizaciones.
+        El objeto `explicitSessionParams` permite que su dapp solicite permisos específicos al usuario al conectarse.
+        Estos permisos pueden autorizar a su dapp a realizar ciertas acciones en nombre del usuario durante un período definido, creando una experiencia más fluida sin solicitudes de transacción o permitiendo automatizaciones.
 
         Por ejemplo, creemos una sesión explícita que permita a su dapp `depositar 100 USDC en el pool de AAVE V3 en Arbitrum, en nombre del usuario durante las próximas 24 horas`
 
-        ```typescript [config.ts] focus={7-38, 53}
-        import { createConfig, createExplicitSession, createContractPermission } from "@0xsequence/connect";
+        ```typescript [config.ts]
+        import { createConfig, createContractPermission } from "@0xsequence/connect";
         import { parseEther, parseUnits } from "viem";
 
         export const USDC_ADDRESS_ARBITRUM = '0xaf88d065e77c8cC2239327C5EDb3A432268e5831'
         export const AAVE_V3_POOL_ADDRESS_ARBITRUM = '0x794a61358D6845594F94dc1DB02A252b5b4814aD'
-
-        // Define the session configuration using the helper functions
-        const aaveSupplySession = createExplicitSession({
-            chainId: 42161,
-            nativeTokenSpending: {
-                valueLimit: parseEther('0.01'), // Allow spending up to 0.01 ETH for gas fees
-            },
-            expiresIn: {
-                hours: 24, // Session lasts for 24 hours
-            },
-            permissions: [
-                // Create a specific permission for the AAVE supply function
-                createContractPermission({
-                    address: AAVE_V3_POOL_ADDRESS_ARBITRUM,
-                    functionSignature: 'function supply(address asset, uint256 amount, address onBehalfOf, uint16 referralCode)',
-                    rules: [
-                        {
-                            param: 'asset',
-                            type: 'address',
-                            condition: 'EQUAL',
-                            value: USDC_ADDRESS_ARBITRUM
-                        },
-                        {
-                            param: 'amount',
-                            type: 'uint256',
-                            condition: 'LESS_THAN_OR_EQUAL',
-                            value: parseUnits('100', 6), // Max cumulative amount of 100 USDC
-                            cumulative: true
-                        }
-                    ]
-                })
-            ]
-        })
 
         export const config: any = createConfig({
           projectAccessKey: "<your-project-access-key>",
@@ -108,7 +75,36 @@ Primero, asegúrese de haber creado una cuenta de Sequence Project. Si aún no t
           google: true,
           apple: true,
           email: true,
-          explicitSession: aaveSupplySession
+          explicitSessionParams: {
+            chainId: 42161,
+            nativeTokenSpending: {
+              valueLimit: parseEther('0.01'), // Allow spending up to 0.01 ETH for gas fees
+            },
+            expiresIn: {
+              hours: 24, // Session lasts for 24 hours
+            },
+            permissions: [
+              createContractPermission({
+                address: AAVE_V3_POOL_ADDRESS_ARBITRUM,
+                functionSignature: 'function supply(address asset, uint256 amount, address onBehalfOf, uint16 referralCode)',
+                rules: [
+                  {
+                    param: 'asset',
+                    type: 'address',
+                    condition: 'EQUAL',
+                    value: USDC_ADDRESS_ARBITRUM
+                  },
+                  {
+                    param: 'amount',
+                    type: 'uint256',
+                    condition: 'LESS_THAN_OR_EQUAL',
+                    value: parseUnits('100', 6), // Max cumulative amount of 100 USDC
+                    cumulative: true
+                  }
+                ]
+              })
+            ]
+          }
         });
         ```
 
@@ -175,11 +171,11 @@ Primero, asegúrese de haber creado una cuenta de Sequence Project. Si aún no t
     <Steps>
       <Step title="Instale las dependencias de Web SDK">
         ```bash
-        npm install @0xsequence/connect wagmi viem 
+        npm install @0xsequence/connect@v6-beta wagmi viem 
         # or
-        pnpm install @0xsequence/connect wagmi viem 
+        pnpm install @0xsequence/connect@v6-beta wagmi viem 
         # or
-        yarn add @0xsequence/connect wagmi viem 
+        yarn add @0xsequence/connect@v6-beta wagmi viem 
         ```
       </Step>
 
@@ -202,7 +198,7 @@ Primero, asegúrese de haber creado una cuenta de Sequence Project. Si aún no t
           google: true,
           apple: true,
           email: true,
-          explicitSession: { ... }
+          explicitSessionParams: { ... }
         });
         ```
 
@@ -210,50 +206,17 @@ Primero, asegúrese de haber creado una cuenta de Sequence Project. Si aún no t
 
         El `dappOrigin` es el origen de su dapp, usado para verificar de dónde proviene el usuario.
 
-        El objeto `explicitSession` permite que su dapp solicite permisos específicos al usuario al conectarse.
-        Estos permisos pueden autorizar a su dapp a realizar ciertas acciones en nombre del usuario por un periodo definido, creando una experiencia más fluida sin ventanas emergentes de transacción.
+        El objeto `explicitSessionParams` permite que su dapp solicite permisos específicos al usuario al conectarse.
+        Estos permisos pueden autorizar a su dapp a realizar ciertas acciones en nombre del usuario durante un período definido, creando una experiencia más fluida sin solicitudes de transacción.
 
         Por ejemplo, creemos una sesión explícita que permita a su dapp `depositar 100 USDC en el pool de AAVE V3 en Arbitrum, en nombre del usuario durante las próximas 24 horas`
 
-        ```typescript [config.ts] focus={7-38, 53}
-        import { createConfig, createExplicitSession, createContractPermission } from "@0xsequence/connect";
+        ```typescript [config.ts]
+        import { createConfig, createContractPermission } from "@0xsequence/connect";
         import { parseEther, parseUnits } from "viem";
 
         export const USDC_ADDRESS_ARBITRUM = '0xaf88d065e77c8cC2239327C5EDb3A432268e5831'
         export const AAVE_V3_POOL_ADDRESS_ARBITRUM = '0x794a61358D6845594F94dc1DB02A252b5b4814aD'
-
-        // Define the session configuration using the helper functions
-        const aaveSupplySession = createExplicitSession({
-            chainId: 42161,
-            nativeTokenSpending: {
-                valueLimit: parseEther('0.01'), // Allow spending up to 0.01 ETH for gas fees
-            },
-            expiresIn: {
-                hours: 24, // Session lasts for 24 hours
-            },
-            permissions: [
-                // Create a specific permission for the AAVE supply function
-                createContractPermission({
-                    address: AAVE_V3_POOL_ADDRESS_ARBITRUM,
-                    functionSignature: 'function supply(address asset, uint256 amount, address onBehalfOf, uint16 referralCode)',
-                    rules: [
-                        {
-                            param: 'asset',
-                            type: 'address',
-                            condition: 'EQUAL',
-                            value: USDC_ADDRESS_ARBITRUM
-                        },
-                        {
-                            param: 'amount',
-                            type: 'uint256',
-                            condition: 'LESS_THAN_OR_EQUAL',
-                            value: parseUnits('100', 6), // Max cumulative amount of 100 USDC
-                            cumulative: true
-                        }
-                    ]
-                })
-            ]
-        })
 
         export const config: any = createConfig({
           projectAccessKey: "<your-project-access-key>",
@@ -268,7 +231,36 @@ Primero, asegúrese de haber creado una cuenta de Sequence Project. Si aún no t
           google: true,
           apple: true,
           email: true,
-          explicitSession: aaveSupplySession
+          explicitSessionParams: {
+            chainId: 42161,
+            nativeTokenSpending: {
+              valueLimit: parseEther('0.01'), // Allow spending up to 0.01 ETH for gas fees
+            },
+            expiresIn: {
+              hours: 24, // Session lasts for 24 hours
+            },
+            permissions: [
+              createContractPermission({
+                address: AAVE_V3_POOL_ADDRESS_ARBITRUM,
+                functionSignature: 'function supply(address asset, uint256 amount, address onBehalfOf, uint16 referralCode)',
+                rules: [
+                  {
+                    param: 'asset',
+                    type: 'address',
+                    condition: 'EQUAL',
+                    value: USDC_ADDRESS_ARBITRUM
+                  },
+                  {
+                    param: 'amount',
+                    type: 'uint256',
+                    condition: 'LESS_THAN_OR_EQUAL',
+                    value: parseUnits('100', 6), // Max cumulative amount of 100 USDC
+                    cumulative: true
+                  }
+                ]
+              })
+            ]
+          }
         });
         ```
 
