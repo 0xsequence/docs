@@ -1,0 +1,53 @@
+---
+description: Aprenda cómo comenzar a usar Wallet Widget SDK
+sidebarTitle: Primeros pasos
+---
+
+<Steps>
+  <Step title="Instale las librerías requeridas">
+    ```bash
+        npm install @0xsequence/wallet-widget @0xsequence/connect @0xsequence/checkout @0xsequence/hooks
+        # or
+        pnpm install @0xsequence/wallet-widget @0xsequence/connect @0xsequence/checkout @0xsequence/hooks
+        # or
+        yarn add @0xsequence/wallet-widget @0xsequence/connect @0xsequence/checkout @0xsequence/hooks
+    ```
+  </Step>
+
+  <Step title="Envuelva su aplicación con los Providers">
+    <Note>
+      Asegúrese de haber configurado su aplicación con Connect [v5](/sdk/web/wallet-sdk/embedded/getting-started) o [v6](/sdk/web/wallet-sdk/ecosystem/getting-started) antes de continuar.
+    </Note>
+
+    ```typescript [main.tsx]
+        import React from "react";
+        import ReactDOM from "react-dom/client";
+        import "./index.css";
+        import { config } from "./config";
+
+        import App from "./App";
+        import { SequenceWalletProvider } from "@0xsequence/wallet-widget";
+        import { SequenceConnect } from "@0xsequence/connect";
+
+        function Dapp() {
+            return (
+                <SequenceConnect config={config}>
+                    <SequenceWalletProvider>
+                        <App />
+                    </SequenceWalletProvider>
+                </SequenceConnect>
+            );
+        }
+
+        ReactDOM.createRoot(document.getElementById("root")!).render(
+        <React.StrictMode>
+            <Dapp />
+        </React.StrictMode>
+        );
+    ```
+  </Step>
+
+  <Step title="Comience a usarlo">
+    Ahora puede abrir el Wallet Widget usando el hook [useOpenWalletModal](/sdk/web/wallet-widget-sdk/hooks/useOpenWalletModal).
+  </Step>
+</Steps>

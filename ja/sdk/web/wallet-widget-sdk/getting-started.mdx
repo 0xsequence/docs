@@ -1,0 +1,53 @@
+---
+description: Wallet Widget SDKの始め方を学ぶ
+sidebarTitle: はじめに
+---
+
+<Steps>
+  <Step title="必要なライブラリをインストールします">
+    ```bash
+        npm install @0xsequence/wallet-widget @0xsequence/connect @0xsequence/checkout @0xsequence/hooks
+        # or
+        pnpm install @0xsequence/wallet-widget @0xsequence/connect @0xsequence/checkout @0xsequence/hooks
+        # or
+        yarn add @0xsequence/wallet-widget @0xsequence/connect @0xsequence/checkout @0xsequence/hooks
+    ```
+  </Step>
+
+  <Step title="アプリをProvidersでラップする">
+    <Note>
+      続行する前に、アプリがConnectの[v5](/sdk/web/wallet-sdk/embedded/getting-started)または[v6](/sdk/web/wallet-sdk/ecosystem/getting-started)で設定されていることを確認してください。
+    </Note>
+
+    ```typescript [main.tsx]
+        import React from "react";
+        import ReactDOM from "react-dom/client";
+        import "./index.css";
+        import { config } from "./config";
+
+        import App from "./App";
+        import { SequenceWalletProvider } from "@0xsequence/wallet-widget";
+        import { SequenceConnect } from "@0xsequence/connect";
+
+        function Dapp() {
+            return (
+                <SequenceConnect config={config}>
+                    <SequenceWalletProvider>
+                        <App />
+                    </SequenceWalletProvider>
+                </SequenceConnect>
+            );
+        }
+
+        ReactDOM.createRoot(document.getElementById("root")!).render(
+        <React.StrictMode>
+            <Dapp />
+        </React.StrictMode>
+        );
+    ```
+  </Step>
+
+  <Step title="使い始める">
+    [useOpenWalletModal](/sdk/web/wallet-widget-sdk/hooks/useOpenWalletModal) フックを使って、ウォレットウィジェットを開くことができます。
+  </Step>
+</Steps>

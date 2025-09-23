@@ -1,0 +1,53 @@
+---
+description: Checkout SDKの始め方を学ぶ
+sidebarTitle: はじめに
+---
+
+<Steps>
+  <Step title="必要なライブラリをインストールします">
+    ```bash
+        npm install @0xsequence/connect @0xsequence/checkout 
+        # or
+        pnpm install @0xsequence/connect @0xsequence/checkout 
+        # or
+        yarn add @0xsequence/connect @0xsequence/checkout 
+    ```
+  </Step>
+
+  <Step title="アプリをProvidersでラップする">
+    <Note>
+      続行する前に、アプリがConnectの[v5](/sdk/web/wallet-sdk/embedded/getting-started)または[v6](/sdk/web/wallet-sdk/ecosystem/getting-started)で設定されていることを確認してください。
+    </Note>
+
+    ```typescript [main.tsx]
+        import React from "react";
+        import ReactDOM from "react-dom/client";
+        import "./index.css";
+
+        import App from "./App";
+        import { config } from "./config";
+        import { SequenceConnect } from "@0xsequence/connect";
+        import { SequenceCheckoutProvider } from "@0xsequence/checkout";
+
+        function Dapp() {
+        return (
+            <SequenceConnect config={config}>
+                <SequenceCheckoutProvider>
+                    <App />
+                </SequenceCheckoutProvider>
+            </SequenceConnect>
+        );
+        }
+
+        ReactDOM.createRoot(document.getElementById("root")!).render(
+        <React.StrictMode>
+            <Dapp />
+        </React.StrictMode>
+        );
+    ```
+  </Step>
+
+  <Step title="使い始める">
+    これで、[useCheckoutModal](/sdk/web/checkout-sdk/hooks/useCheckoutModal)などのフックが使えるようになります。
+  </Step>
+</Steps>
