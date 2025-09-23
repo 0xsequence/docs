@@ -23,7 +23,24 @@ Sequenceは、用途に応じて2種類のSmart Sessionsを提供しています
 ## 1. Implicit Sessions：「アプリ内利便パス」
 Implicit Sessionは、最もシンプルで一般的なSmart Sessionです。主な目的は、単一のdApp内での体験をできる限りスムーズにすることです。
 
-![Implicit Session](/images/implicit-diagram.png)
+```mermaid
+flowchart TD
+    U[👤 User] --> C["Clicks 'Connect Wallet'<br/>on App"]
+    C --> S["✔️ Session Created"]
+    S --> F["🛡️ Digital Fence is Established<br/>(Scoped to the App Domain)"]
+
+    F --> SW["✔️ Swap App's Token<br/>(Instant & Pop-up Free)"]
+    F --> ST["✔️ Stake in App's Pool<br/>(Instant & Pop-up Free)"]
+    F -.-> EC["⚠️ Attempt to directly call an external contract<br/>(e.g., main USDC contract)"]
+    EC --> B["⛔ BLOCKED ON-CHAIN<br/>The session is not valid outside the fence"]
+
+    style F fill:#d9edf7,stroke:#2a6496,stroke-width:1px,color:#000
+    style S fill:#d9edf7,stroke:#2a6496,stroke-width:1px,color:#000
+    style SW fill:#fff,stroke:#666,color:#000
+    style ST fill:#fff,stroke:#666,color:#000
+    style EC fill:#fff,stroke:#666,stroke-dasharray: 3 3,color:#000
+    style B fill:#f2dede,stroke:#a94442,stroke-width:1px,color:#000
+```
 
 ### 🎯 基本コンセプト
 信頼できるdAppに接続すると、そのdAppのウェブサイトドメインを中心に「信頼の境界」が作られます。Implicit Sessionは、そのdApp内だけで自由に操作できるパスを発行します。
