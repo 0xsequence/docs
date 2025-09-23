@@ -1,0 +1,49 @@
+---
+description: Hooks SDKの始め方を学ぶ
+sidebarTitle: はじめに
+---
+
+<Steps>
+  <Step title="必要なライブラリをインストールします">
+    ```bash
+        npm install @0xsequence/hooks
+        # or
+        pnpm install @0xsequence/hooks
+        # or
+        yarn add @0xsequence/hooks
+    ```
+  </Step>
+
+  <Step title="プロジェクトのアクセスキーを取得する">
+    [Sequence Builder](https://sequence.build)からプロジェクトのアクセスキーを取得してください。
+  </Step>
+
+  <Step title="アプリをSequenceHooksProviderでラップする">
+    ```typescript [main.tsx]
+        import React from "react";
+        import ReactDOM from "react-dom/client";
+        import "./index.css";
+
+        import App from "./App";
+        import { SequenceHooksProvider } from "@0xsequence/hooks";
+
+        function Dapp() {
+            return (
+                <SequenceHooksProvider config={{ projectAccessKey: "AQAAAAAAAABtDHG1It7lxRF_9bbxw4diip8" }}>
+                    <App />
+                </SequenceHooksProvider>
+            );
+        }
+
+        ReactDOM.createRoot(document.getElementById("root")!).render(
+        <React.StrictMode>
+            <Dapp />
+        </React.StrictMode>
+        );
+    ```
+  </Step>
+
+  <Step title="使い始める">
+    これで、[useGetCoinPrices](/sdk/web/hooks-sdk/hooks/useGetCoinPrices)などのフックが使えるようになります。
+  </Step>
+</Steps>
