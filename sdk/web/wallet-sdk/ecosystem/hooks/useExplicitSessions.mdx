@@ -41,6 +41,17 @@ function App() {
     loadSessions()
   }, [getExplicitSessions])
 
+  // Function to handle modifying an existing explicit session
+  const handleModifySession = () => {
+    const newPermission = createContractPermission({
+      address: '0x...',
+      functionSignature: 'function testContract() public'
+    })
+    const currentSession = sessions[0];
+    const modifiedSession = { ...currentSession, permissions: [...currentSession.permissions!, newPermission] }
+    modifyExplicitSession(modifiedSession)
+  }
+
   // Handle creating a new explicit session
   const handleCreateSession = async () => {
     try {
@@ -94,6 +105,10 @@ function App() {
         Create New Session
       </button>
 
+      <button onClick={handleModifySession}>
+        Modify Session
+      </button>
+
       <div>
         <h3>Existing Sessions ({sessions.length})</h3>
         {sessions.map((session, index) => (
@@ -141,11 +156,50 @@ An error object if the last operation failed, otherwise `null`.
 
 `(chainId: ChainId, explicitSession: ExplicitSession) => Promise<void>`
 
+```typescript
+type ExplicitSession = {
+  sessionAddress: Address.Address
+  valueLimit: bigint
+  deadline: bigint
+  permissions: Permission.Permission[]
+  chainId: number
+  type: 'explicit'
+}
+```
+
 Function to create a new explicit session.
+
+#### modifyExplicitSession
+
+`(explicitSession: ExplicitSession) => Promise<void>`
+
+```typescript
+type ExplicitSession = {
+  sessionAddress: Address.Address
+  valueLimit: bigint
+  deadline: bigint
+  permissions: Permission.Permission[]
+  chainId: number
+  type: 'explicit'
+}
+```
+
+Function to modify an existing explicit session.
 
 #### getExplicitSessions
 
 `() => Promise<Session[]>`
+
+```typescript
+type Session = {
+  type: 'explicit' | 'implicit'
+  sessionAddress: Address.Address
+  valueLimit?: bigint
+  deadline?: bigint
+  permissions?: Permission.Permission[]
+  chainId?: number
+}
+```
 
 Function to get all sessions for the connected wallet.
 
@@ -156,6 +210,7 @@ This hook provides functionality for managing explicit sessions in Sequence V3 w
 Key features:
 - Create new explicit sessions with custom permissions and spending limits
 - Retrieve all existing explicit sessions for the connected wallet
+- Modify existing explicit sessions
 - Built-in error handling for common connection issues
 - Loading states for better user experience
 - Automatic session filtering to only show explicit sessions
