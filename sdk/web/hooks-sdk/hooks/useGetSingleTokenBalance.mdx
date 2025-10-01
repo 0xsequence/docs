@@ -1,0 +1,110 @@
+---
+title: "useGetSingleTokenBalance"
+description: Hook to fetch the balance of a specific token (native or ERC20) for an account on a specific chain
+sidebarTitle: useGetSingleTokenBalance
+---
+
+## Import
+
+```tsx
+import { useGetSingleTokenBalance } from '@0xsequence/hooks'
+```
+
+## Usage
+
+```tsx
+import { useGetSingleTokenBalance } from '@0xsequence/hooks'
+
+function TokenBalance() {
+  // Fetch native ETH balance
+  const { data: ethBalance, isLoading, error } = useGetSingleTokenBalance({
+    chainId: 1,
+    accountAddress: '0x...',
+    contractAddress: 0x0000000000000000000000000000000000000000
+  })
+  
+  // Fetch USDC balance
+  const { data: usdcBalance } = useGetSingleTokenBalance({
+    chainId: 1,
+    accountAddress: '0x...',
+    contractAddress: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48' // USDC
+  })
+  
+  if (isLoading) return <div>Loading balances...</div>
+  if (error) return <div>Error: {error.message}</div>
+  
+  return (
+    <div>
+      <p>ETH Balance: {ethBalance?.balance}</p>
+      <p>USDC Balance: {usdcBalance?.balance}</p>
+    </div>
+  )
+}
+```
+
+## Parameters
+
+### GetSingleTokenBalanceArgs
+
+| Parameter | Type | Description |
+| --------- | ---- | ----------- |
+| `chainId` | `number` | The chain ID to fetch the balance from |
+| `accountAddress` | `string` | The address to fetch the balance for |
+| `contractAddress` | `string` | The token contract address (use `ZERO_ADDRESS` for native tokens) |
+| `tokenId` | `string` | Optional. The token ID for ERC721/ERC1155 tokens |
+| `hideUnlistedTokens` | `boolean` | Optional. If true, filters out unverified tokens |
+
+### HooksOptions
+
+| Parameter | Type | Description |
+| --------- | ---- | ----------- |
+| `retry` | `boolean` | Whether to retry failed requests (default: `false`) |
+| `disabled` | `boolean` | Whether to disable the query |
+| `hideCollectibles` | `boolean` | If true, filters out ERC721 and ERC1155 tokens |
+
+## Return Type
+
+The hook returns a React Query result object with the following properties:
+
+```tsx
+{
+  data: TokenBalance | undefined
+  isLoading: boolean
+  error: Error | null
+  // ... other React Query properties
+}
+```
+
+### TokenBalance
+
+The returned data contains token balance information:
+
+```tsx
+interface TokenBalance {
+    contractType: ContractType;
+    contractAddress: string;
+    accountAddress: string;
+    tokenID?: string;
+    balance: string;
+    blockHash: string;
+    blockNumber: number;
+    chainId: number;
+    uniqueCollectibles: string;
+    isSummary: boolean;
+    contractInfo?: ContractInfo;
+    tokenMetadata?: TokenMetadata;
+}
+```
+
+## Notes
+
+This hook provides a convenient way to fetch token balances for specific accounts and contracts. Key features:
+
+- **Native Token Support**: Use `ZERO_ADDRESS` for native tokens (ETH, MATIC, etc.)
+- **ERC20 Support**: Works with any ERC20 token contract
+- **NFT Support**: Supports ERC721 and ERC1155 tokens with optional `tokenId`
+- **Caching**: Uses React Query for efficient caching and background updates
+- **Error Handling**: Provides error states for failed requests
+- **Loading States**: Includes loading indicators for better UX
+
+The hook automatically handles different token types and provides a unified interface for accessing token balance information.

@@ -1,0 +1,85 @@
+---
+title: "useSocialLink"
+description: Hook to manage social link modal state and configuration
+sidebarTitle: useSocialLink
+---
+
+## Import
+
+```tsx
+import { useSocialLink } from '@0xsequence/connect'
+```
+
+## Usage
+
+```tsx
+import { useSocialLink } from '@0xsequence/connect'
+
+function App() {
+  const { isSocialLinkOpen, waasConfigKey, setIsSocialLinkOpen } = useSocialLink()
+  
+  const handleOpenSocialLink = () => {
+    setIsSocialLinkOpen(true)
+  }
+  
+  const handleCloseSocialLink = () => {
+    setIsSocialLinkOpen(false)
+  }
+  
+  return (
+    <div>
+      <button onClick={handleOpenSocialLink}>
+        Open Social Link
+      </button>
+      
+      {isSocialLinkOpen && (
+        <div>
+          <p>Social Link modal is open</p>
+          <p>WaaS Config Key: {waasConfigKey || 'Not available'}</p>
+          <button onClick={handleCloseSocialLink}>
+            Close Modal
+          </button>
+        </div>
+      )}
+    </div>
+  )
+}
+```
+
+## Return Type: `UseSocialLinkReturnType`
+
+The hook returns an object with the following properties:
+
+```tsx
+type UseSocialLinkReturnType = {
+  isSocialLinkOpen: boolean
+  waasConfigKey: string | null
+  setIsSocialLinkOpen: (isOpen: boolean) => void
+}
+```
+
+### Properties
+
+#### isSocialLinkOpen
+
+`boolean`
+
+Indicates whether the social link modal is currently open (`true`) or closed (`false`).
+
+#### waasConfigKey
+
+`string | null`
+
+The WaaS configuration key associated with the social link functionality, or `null` if not available.
+
+#### setIsSocialLinkOpen
+
+`(isOpen: boolean) => void`
+
+Function to open or close the social link modal.
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --------- | ---- | ----------- |
+| `isOpen` | `boolean` | Whether the modal should be open (`true`) or closed (`false`) |

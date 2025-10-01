@@ -3,14 +3,17 @@ description: Learn how to get started with Hooks SDK
 sidebarTitle: Getting Started
 ---
 
+<Tabs>
+<Tab title="Independent Usage">
+If you want to use this package without [@0xsequence/connect](/sdk/web/wallet-sdk/ecosystem/getting-started), you can do so by following the steps below.
 <Steps>
 <Step title="Install the required libraries">
 ```bash
-    npm install @0xsequence/hooks
+    npm install @0xsequence/hooks@v6-beta @tanstack/react-query wagmi
     # or
-    pnpm install @0xsequence/hooks
+    pnpm install @0xsequence/hooks@v6-beta @tanstack/react-query wagmi
     # or
-    yarn add @0xsequence/hooks
+    yarn add @0xsequence/hooks@v6-beta @tanstack/react-query wagmi
 ```
 </Step>
 
@@ -18,29 +21,57 @@ sidebarTitle: Getting Started
 Get your project access key from the [Sequence Builder](https://sequence.build).
 </Step>
 
-<Step title="Wrap your App with the SequenceHooksProvider">
+<Step title="Wrap your App with the required providers">
+
+```typescript [config.ts]
+import { mainnet, polygon } from "wagmi/chains"
+import { createConfig, http } from "wagmi"
+import { QueryClient } from "@tanstack/react-query"
+
+const wagmiConfig = createConfig({
+  chains: [mainnet, polygon],
+  transports: {
+    [mainnet.id]: http('https://mainnet.example.com'),
+    [polygon.id]: http('https://polygon.example.com'),
+  },
+})
+
+const queryClient = new QueryClient()
+
+export { wagmiConfig, queryClient }
+```
 
 ```typescript [main.tsx]
-    import React from "react";
-    import ReactDOM from "react-dom/client";
-    import "./index.css";
+import React from "react";
+import ReactDOM from "react-dom/client";
+import "./index.css";
 
-    import App from "./App";
-    import { SequenceHooksProvider } from "@0xsequence/hooks";
+import App from "./App";
+import { SequenceHooksProvider } from "@0xsequence/hooks";
+import { WagmiProvider } from "wagmi";
+import { queryClient, wagmiConfig } from "./config";
+import { QueryClientProvider } from "@tanstack/react-query";
 
-    function Dapp() {
-        return (
-            <SequenceHooksProvider config={{ projectAccessKey: "AQAAAAAAAABtDHG1It7lxRF_9bbxw4diip8" }}>
-                <App />
-            </SequenceHooksProvider>
-        );
-    }
+function Dapp() {
+  return (
+    <WagmiProvider config={wagmiConfig}>
+      <QueryClientProvider client={queryClient}>
+        <SequenceHooksProvider config={{ projectAccessKey: "AQAAAAAAAJbd_5JOcE50AqglZCtvu51YlGI" }}>
+          <App />
+        </SequenceHooksProvider>
+      </QueryClientProvider>
+    </WagmiProvider>
+   
+  );
+}
 
-    ReactDOM.createRoot(document.getElementById("root")!).render(
-    <React.StrictMode>
-        <Dapp />
-    </React.StrictMode>
-    );
+ReactDOM.createRoot(document.getElementById("root")!).render(
+  <React.StrictMode>
+    <Dapp />
+  </React.StrictMode>
+);
+
+export default Dapp;
 ```
 </Step>
 
@@ -49,3 +80,61 @@ Get your project access key from the [Sequence Builder](https://sequence.build).
 </Step>
 
 </Steps>
+</Tab>
+
+<Tab title="With Connect SDK">
+If you want to use this pacakge with [@0xsequence/connect](/sdk/web/wallet-sdk/ecosystem/getting-started), you can do so by following the steps below.
+<Steps>
+    <Step title="Install and setup Connect SDK">
+        Follow the steps [here](/sdk/web/wallet-sdk/ecosystem/getting-started).
+    </Step>
+
+    <Step title="Install Hooks SDK">
+    ```bash
+        npm install @0xsequence/hooks@v6-beta
+        # or
+        pnpm install @0xsequence/hooks@v6-beta
+        # or
+        yarn add @0xsequence/hooks@v6-beta  
+    ```
+    </Step>
+
+    <Step title="Wrap your App with the SequenceHooksProvider">
+        ```typescript [main.tsx]
+            import React from "react";
+            import ReactDOM from "react-dom/client";
+            import "./index.css";
+
+            import App from "./App";
+            import { config } from "./config";
+            import { SequenceConnect } from "@0xsequence/connect";
+            import { SequenceHooksProvider } from "@0xsequence/hooks";
+
+            function Dapp() {
+                return (
+                    <SequenceConnect config={config}>
+                        <SequenceHooksProvider config={config.connectConfig}>
+                            <App />
+                        </SequenceHooksProvider>
+                    </SequenceConnect>
+                );
+            }
+
+            ReactDOM.createRoot(document.getElementById("root")!).render(
+                <React.StrictMode>
+                    <Dapp />
+                </React.StrictMode>
+            );
+
+            export default Dapp;
+        ```
+    </Step>
+
+    <Step title="Start using it">
+        Now you can start using hooks like [useGetCoinPrices](/sdk/web/hooks-sdk/hooks/useGetCoinPrices).
+    </Step>
+</Steps>
+</Tab>
+</Tabs>
+
+
