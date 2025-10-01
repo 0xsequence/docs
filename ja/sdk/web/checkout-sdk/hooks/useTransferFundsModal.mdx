@@ -1,0 +1,83 @@
+---
+title: useTransferFundsModal
+description: 送金モーダルの状態と設定を管理するためのフックです
+sidebarTitle: useTransferFundsModal
+---
+
+## インポート
+
+```tsx
+import { useTransferFundsModal } from '@0xsequence/checkout'
+```
+
+## 使い方
+
+```tsx
+import { useTransferFundsModal } from '@0xsequence/checkout'
+import { useAccount } from 'wagmi'
+
+function App() {
+  const { openTransferFundsModal } = useTransferFundsModal()
+  const { address } = useAccount()
+  
+  const handleOpenTransfer = () => {
+    openTransferFundsModal({ walletAddress: address || '' })
+  }
+  
+  return (
+    <div>
+      <button onClick={handleOpenTransfer}>
+        Receive Funds
+      </button>
+    </div>
+  )
+}
+```
+
+## 戻り値の型：`UseTransferFundsModalReturnType`
+このフックは以下のプロパティを持つオブジェクトを返します。
+
+```tsx
+type UseTransferFundsModalReturnType = {
+  openTransferFundsModal: (settings: TransferFundsSettings) => void
+  closeTransferFundsModal: () => void
+  transferFundsSettings: TransferFundsSettings | null
+}
+```
+
+### プロパティ
+
+#### openTransferFundsModal
+`(settings: TransferFundsSettings) => void`
+
+```tsx
+interface TransferFundsSettings {
+  walletAddress: string | Hex
+  onClose?: () => void
+}
+```
+
+指定した設定で送金モーダルを開く関数です。
+
+**パラメータ：**
+
+| パラメータ      | 型                       | 説明              |
+| ---------- | ----------------------- | --------------- |
+| `settings` | `TransferFundsSettings` | 送金モーダルの設定オブジェクト |
+
+#### closeTransferFundsModal
+`() => void`
+
+送金モーダルを閉じる関数です。
+
+#### transferFundsSettings
+`TransferFundsSettings | null`
+
+```tsx
+    interface TransferFundsSettings {
+        walletAddress: string | Hex
+        onClose?: () => void
+    }
+```
+
+送金モーダルの現在の設定。モーダルが閉じている場合は`null`になります。

@@ -3,47 +3,136 @@ description: Hooks SDKの始め方を学ぶ
 sidebarTitle: はじめに
 ---
 
-<Steps>
-  <Step title="必要なライブラリをインストールします">
-    ```bash
-        npm install @0xsequence/hooks
-        # or
-        pnpm install @0xsequence/hooks
-        # or
-        yarn add @0xsequence/hooks
-    ```
-  </Step>
+<Tabs>
+  <Tab title="単独での利用">
+    このパッケージを[@0xsequence/connect](/sdk/web/wallet-sdk/ecosystem/getting-started)なしで使いたい場合は、以下の手順でご利用いただけます。
 
-  <Step title="プロジェクトのアクセスキーを取得する">
-    [Sequence Builder](https://sequence.build)からプロジェクトのアクセスキーを取得してください。
-  </Step>
+    <Steps>
+      <Step title="必要なライブラリをインストールします">
+        ```bash
+            npm install @0xsequence/hooks@v6-beta @tanstack/react-query wagmi
+            # or
+            pnpm install @0xsequence/hooks@v6-beta @tanstack/react-query wagmi
+            # or
+            yarn add @0xsequence/hooks@v6-beta @tanstack/react-query wagmi
+        ```
+      </Step>
 
-  <Step title="アプリをSequenceHooksProviderでラップする">
-    ```typescript [main.tsx]
+      <Step title="プロジェクトのアクセスキーを取得する">
+        [Sequence Builder](https://sequence.build)からプロジェクトのアクセスキーを取得してください。
+      </Step>
+
+      <Step title="アプリを必要なプロバイダーでラップしてください">
+        ```typescript [config.ts]
+        import { mainnet, polygon } from "wagmi/chains"
+        import { createConfig, http } from "wagmi"
+        import { QueryClient } from "@tanstack/react-query"
+
+        const wagmiConfig = createConfig({
+          chains: [mainnet, polygon],
+          transports: {
+            [mainnet.id]: http('https://mainnet.example.com'),
+            [polygon.id]: http('https://polygon.example.com'),
+          },
+        })
+
+        const queryClient = new QueryClient()
+
+        export { wagmiConfig, queryClient }
+        ```
+
+        ```typescript [main.tsx]
         import React from "react";
         import ReactDOM from "react-dom/client";
         import "./index.css";
 
         import App from "./App";
         import { SequenceHooksProvider } from "@0xsequence/hooks";
+        import { WagmiProvider } from "wagmi";
+        import { queryClient, wagmiConfig } from "./config";
+        import { QueryClientProvider } from "@tanstack/react-query";
 
         function Dapp() {
-            return (
-                <SequenceHooksProvider config={{ projectAccessKey: "AQAAAAAAAABtDHG1It7lxRF_9bbxw4diip8" }}>
-                    <App />
+          return (
+            <WagmiProvider config={wagmiConfig}>
+              <QueryClientProvider client={queryClient}>
+                <SequenceHooksProvider config={{ projectAccessKey: "AQAAAAAAAJbd_5JOcE50AqglZCtvu51YlGI" }}>
+                  <App />
                 </SequenceHooksProvider>
-            );
+              </QueryClientProvider>
+            </WagmiProvider>
+           
+          );
         }
 
         ReactDOM.createRoot(document.getElementById("root")!).render(
-        <React.StrictMode>
+          <React.StrictMode>
             <Dapp />
-        </React.StrictMode>
+          </React.StrictMode>
         );
-    ```
-  </Step>
 
-  <Step title="使い始める">
-    これで、[useGetCoinPrices](/sdk/web/hooks-sdk/hooks/useGetCoinPrices)などのフックが使えるようになります。
-  </Step>
-</Steps>
+        export default Dapp;
+        ```
+      </Step>
+
+      <Step title="使い始める">
+        これで、[useGetCoinPrices](/sdk/web/hooks-sdk/hooks/useGetCoinPrices)などのフックが使えるようになります。
+      </Step>
+    </Steps>
+  </Tab>
+
+  <Tab title="Connect SDKを利用する場合">
+    このパッケージを[@0xsequence/connect](/sdk/web/wallet-sdk/ecosystem/getting-started)と一緒に使いたい場合は、以下の手順に従ってください。
+
+    <Steps>
+      <Step title="Connect SDKのインストールとセットアップ">
+        手順は[こちら](/sdk/web/wallet-sdk/ecosystem/getting-started)をご覧ください。
+      </Step>
+
+      <Step title="Hooks SDKのインストール">
+        ```bash
+            npm install @0xsequence/hooks@v6-beta
+            # or
+            pnpm install @0xsequence/hooks@v6-beta
+            # or
+            yarn add @0xsequence/hooks@v6-beta  
+        ```
+      </Step>
+
+      <Step title="アプリをSequenceHooksProviderでラップする">
+        ```typescript [main.tsx]
+            import React from "react";
+            import ReactDOM from "react-dom/client";
+            import "./index.css";
+
+            import App from "./App";
+            import { config } from "./config";
+            import { SequenceConnect } from "@0xsequence/connect";
+            import { SequenceHooksProvider } from "@0xsequence/hooks";
+
+            function Dapp() {
+                return (
+                    <SequenceConnect config={config}>
+                        <SequenceHooksProvider config={config.connectConfig}>
+                            <App />
+                        </SequenceHooksProvider>
+                    </SequenceConnect>
+                );
+            }
+
+            ReactDOM.createRoot(document.getElementById("root")!).render(
+                <React.StrictMode>
+                    <Dapp />
+                </React.StrictMode>
+            );
+
+            export default Dapp;
+        ```
+      </Step>
+
+      <Step title="使い始める">
+        これで、[useGetCoinPrices](/sdk/web/hooks-sdk/hooks/useGetCoinPrices)などのフックが使えるようになります。
+      </Step>
+    </Steps>
+  </Tab>
+</Tabs>
