@@ -9,12 +9,12 @@ sidebarTitle: 使用例
 供給はユーザーウォレットの代理のみ可能です。
 
 ```typescript
-import { createExplicitSession } from "@0xsequence/connect";
+import { type ExplicitSessionParams } from "@0xsequence/connect";
 
 export const USDC_ADDRESS_ARBITRUM = '0xaf88d065e77c8cC2239327C5EDb3A432268e5831'
 export const AAVE_V3_POOL_ADDRESS_ARBITRUM = '0x794a61358D6845594F94dc1DB02A252b5b4814aD'
 
-const aaveSupplySession = createExplicitSession({
+const aaveSupplySession: ExplicitSessionParams = {
     chainId: 42161,
     nativeTokenSpending: {
         valueLimit: 0n,
@@ -48,7 +48,7 @@ const aaveSupplySession = createExplicitSession({
             ],
         }),
     ],
-});
+};
 ```
 
 ### AaveプールからUSDCを引き出す
@@ -56,12 +56,12 @@ const aaveSupplySession = createExplicitSession({
 引き出し先はユーザーのウォレットアドレスのみです。
 
 ```typescript
-import { createExplicitSession } from "@0xsequence/connect";
+import { type ExplicitSessionParams } from "@0xsequence/connect";
 
 export const USDC_ADDRESS_ARBITRUM = '0xaf88d065e77c8cC2239327C5EDb3A432268e5831'
 export const AAVE_V3_POOL_ADDRESS_ARBITRUM = '0x794a61358D6845594F94dc1DB02A252b5b4814aD'
 
-const aaveWithdrawSession = createExplicitSession({
+const aaveWithdrawSession: ExplicitSessionParams = {
     chainId: 42161,
     nativeTokenSpending: {
         valueLimit: 0n,
@@ -95,7 +95,7 @@ const aaveWithdrawSession = createExplicitSession({
             ],
         }),
     ],
-});
+};
 ```
 
 ### AaveへETHを供給
@@ -103,12 +103,12 @@ const aaveWithdrawSession = createExplicitSession({
 供給はユーザーウォレットの代理のみで、dApp自身のポジションを増やすことはできません。
 
 ```typescript
-import { createExplicitSession } from "@0xsequence/connect";
+import { type ExplicitSessionParams } from "@0xsequence/connect";
 
 export const AAVE_V3_WRAPPED_TOKEN_GATEWAY_ADDRESS_ARBITRUM = '0x794a61358D6845594F94dc1DB02A252b5b4814aD'
 export const AAVE_V3_POOL_ADDRESS_ARBITRUM = '0x794a61358D6845594F94dc1DB02A252b5b4814aD'
 
-const aaveSupplyETHSession = createExplicitSession({
+const aaveSupplyETHSession: ExplicitSessionParams = {
     chainId: 42161,
     nativeTokenSpending: {
         valueLimit: parseEther('0.1'),
@@ -136,7 +136,7 @@ const aaveSupplyETHSession = createExplicitSession({
             ]
         }),
     ],
-});
+};
 ```
 
 ### AaveからUSDCを借りる
@@ -144,12 +144,12 @@ const aaveSupplyETHSession = createExplicitSession({
 借り入れはユーザーウォレットの代理のみ可能です。
 
 ```typescript
-import { createExplicitSession } from "@0xsequence/connect";
+import { type ExplicitSessionParams } from "@0xsequence/connect";
 
 export const USDC_ADDRESS_ARBITRUM = '0xaf88d065e77c8cC2239327C5EDb3A432268e5831'
 export const AAVE_V3_POOL_ADDRESS_ARBITRUM = '0x794a61358D6845594F94dc1DB02A252b5b4814aD'
 
-const aaveBorrowSession = createExplicitSession({
+const aaveBorrowSession: ExplicitSessionParams = {
     chainId: 42161,
     nativeTokenSpending: {
         valueLimit: 0n,
@@ -183,5 +183,5 @@ const aaveBorrowSession = createExplicitSession({
             ],
         }),
     ],
-});
+};
 ```
