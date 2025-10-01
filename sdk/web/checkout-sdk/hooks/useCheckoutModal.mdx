@@ -15,18 +15,18 @@ import { useCheckoutModal } from '@0xsequence/checkout'
 
 ```tsx
 import { useCheckoutModal } from '@0xsequence/checkout'
-import { ChainId } from '@0xsequence/network'
+import { polygon } from 'viem/chains'
+import { useAccount } from 'wagmi'
 
-function App() {
+function Home() {
   const { address } = useAccount()
-  const { triggerCheckout } = useCheckoutModal()
-  
+  const { triggerCheckout, closeCheckout, settings } = useCheckoutModal()
+
   const handleCheckout = () => {
     // NFT purchase settings
-    const chainId = ChainId.POLYGON
+    const chainId = polygon.id
     const orderbookAddress = '0xfdb42A198a932C8D3B506Ffa5e855bC4b348a712'
     const nftQuantity = '1'
-    const orderId = 'your-order-id'
     const tokenContractAddress = '0xabcdef...' // NFT contract address
     const tokenId = '123' // NFT token ID
 
@@ -48,32 +48,23 @@ function App() {
       },
       orderSummaryItems: [
         {
-          title: 'NFT #' + tokenId,
-          subtitle: 'Your Collection',
-          imageUrl: 'https://example.com/nft.png'
+          chainId: chainId,
+          contractAddress: orderbookAddress,
+          quantityRaw: nftQuantity,
+          tokenId: tokenId,
         }
       ]
     })
   }
-  
+
   return (
     <button onClick={handleCheckout}>
       Checkout
     </button>
   )
 }
-```
 
-## Return Type: `UseCheckoutModalReturnType`
-
-The hook returns an object with the following properties:
-
-```tsx
-type UseCheckoutModalReturnType = {
-  triggerCheckout: (settings: CheckoutSettings) => void
-  closeCheckout: () => void
-  settings: CheckoutSettings | undefined
-}
+export default Home
 ```
 
 ### Properties

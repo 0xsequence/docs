@@ -14,52 +14,50 @@ import { useGetCoinPrices } from '@0xsequence/hooks'
 
 ```tsx
 import { useGetCoinPrices } from '@0xsequence/hooks'
-import { ZERO_ADDRESS } from '@0xsequence/hooks'
 
 function TokenPriceDisplay() {
-  const tokens = [
-    {
-      chainId: 1,
-      contractAddress: ZERO_ADDRESS // ETH
-    },
-    {
-      chainId: 137,
-      contractAddress: '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174' // USDC on Polygon
+    const tokens = [
+        {
+            chainId: 1,
+            contractAddress: '0x0000000000000000000000000000000000000000' // ETH
+        },
+        {
+            chainId: 137,
+            contractAddress: '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174' // USDC on Polygon
+        }
+    ]
+
+    const {
+        data: prices,
+        isLoading,
+        error,
+        isError,
+        isSuccess
+    } = useGetCoinPrices(tokens)
+
+    if (isLoading) {
+        return <div>Loading prices...</div>
     }
-  ]
-  
-  const { 
-    data: prices, 
-    isLoading, 
-    error,
-    isError,
-    isSuccess 
-  } = useGetCoinPrices(tokens)
-  
-  if (isLoading) {
-    return <div>Loading prices...</div>
-  }
-  
-  if (isError) {
-    return <div>Error: {error.message}</div>
-  }
-  
-  return (
-    <div>
-      <h2>Token Prices</h2>
-      {isSuccess && prices && (
-        <ul>
-          {prices.map((price, index) => (
-            <li key={`${tokens[index].chainId}-${tokens[index].contractAddress}`}>
-              Chain {tokens[index].chainId}:{' '}
-              {price.price.value} {price.price.currency}
-            </li>
-          ))}
-        </ul>
-      )}
-    </div>
-  )
+
+    if (isError) {
+        return <div>Error: {error.message}</div>
+    }
+
+    return (
+        <div>
+            <h2>Token Prices</h2>
+            {isSuccess && prices && (
+                prices.map((price) => (
+                    <div key={price.token.contractAddress}>
+                        {price?.price?.value} {price?.price?.currency}
+                    </div>
+                ))
+            )}
+        </div>
+    )
 }
+
+export default TokenPriceDisplay;
 ```
 
 ## Parameters

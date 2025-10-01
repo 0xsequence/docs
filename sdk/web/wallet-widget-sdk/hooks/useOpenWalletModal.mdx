@@ -13,26 +13,45 @@ import { useOpenWalletModal } from '@0xsequence/wallet-widget'
 ## Usage
 
 ```tsx
+import './App.css'
 import { useOpenWalletModal } from '@0xsequence/wallet-widget'
 
 function App() {
+
   // Get the function to open/close the wallet modal
   const { setOpenWalletModal } = useOpenWalletModal()
-  
-  // Function to handle opening the wallet inventory
-  const handleViewInventory = () => {
+
+  // Function to handle opening the wallet inventory home page
+  const openWalletWidget = () => {
     setOpenWalletModal(true) // Open the wallet modal to view tokens
   }
-  
+
+  // Function to handle opening the wallet inventory swap page
+  const openWalletWidgetSwapPage = () => {
+    setOpenWalletModal(true, { defaultNavigation: { location: 'swap' } }) // Open the wallet modal to view tokens
+  }
+
   return (
-    <button 
-      onClick={handleViewInventory}
-      title="Inventory"
-    >
-      View all tokens in your wallet
-    </button>
+    <div>
+      <button
+        onClick={openWalletWidget}
+        title="Wallet Widget"
+      >
+        Open Wallet Widget Home Page
+      </button>
+
+      <button
+        onClick={openWalletWidgetSwapPage}
+        title="Wallet Widget"
+      >
+        Open Wallet Widget Swap Page
+      </button>
+    </div>
+   
   )
 }
+
+export default App
 ```
 
 ## Return Type: `UseOpenWalletModalReturnType`
@@ -41,7 +60,7 @@ The hook returns an object with the following properties:
 
 ```tsx
 type UseOpenWalletModalReturnType = {
-  setOpenWalletModal: (isOpen: boolean) => void
+  setOpenWalletModal: (isOpen: boolean, options?: WalletOptions) => void
   openWalletModalState: boolean
 }
 ```
@@ -50,7 +69,7 @@ type UseOpenWalletModalReturnType = {
 
 #### setOpenWalletModal
 
-`(isOpen: boolean) => void`
+`(isOpen: boolean, options?: WalletOptions) => void`
 
 Function to open or close the Wallet modal.
 
@@ -59,6 +78,24 @@ Function to open or close the Wallet modal.
 | Parameter | Type | Description |
 | --------- | ---- | ----------- |
 | `isOpen` | `boolean` | Whether the modal should be open (`true`) or closed (`false`) |
+| `options` | `WalletOptions` | Optional settings for the Wallet modal |
+
+```tsx
+interface WalletOptions {
+  defaultNavigation?: Navigation
+}
+
+type Navigation =
+  | BasicNavigation
+  | CoinDetailsNavigation
+  | CollectibleDetailsNavigation
+  | CollectionDetailsNavigation
+  | TransactionDetailsNavigation
+  | SendCoinNavigation
+  | SendCollectibleNavigation
+  | SwapCoinNavigation
+  | SwapCoinListNavigation
+```
 
 #### openWalletModalState
 

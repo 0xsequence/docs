@@ -1,0 +1,89 @@
+---
+title: "useTransferFundsModal"
+description: Hook to manage the transfer funds modal state and configuration
+sidebarTitle: useTransferFundsModal
+---
+
+## Import
+
+```tsx
+import { useTransferFundsModal } from '@0xsequence/checkout'
+```
+
+## Usage
+
+```tsx
+import { useTransferFundsModal } from '@0xsequence/checkout'
+import { useAccount } from 'wagmi'
+
+function App() {
+  const { openTransferFundsModal } = useTransferFundsModal()
+  const { address } = useAccount()
+  
+  const handleOpenTransfer = () => {
+    openTransferFundsModal({ walletAddress: address || '' })
+  }
+  
+  return (
+    <div>
+      <button onClick={handleOpenTransfer}>
+        Receive Funds
+      </button>
+    </div>
+  )
+}
+```
+
+## Return Type: `UseTransferFundsModalReturnType`
+
+The hook returns an object with the following properties:
+
+```tsx
+type UseTransferFundsModalReturnType = {
+  openTransferFundsModal: (settings: TransferFundsSettings) => void
+  closeTransferFundsModal: () => void
+  transferFundsSettings: TransferFundsSettings | null
+}
+```
+
+### Properties
+
+#### openTransferFundsModal
+
+`(settings: TransferFundsSettings) => void`
+
+```tsx
+interface TransferFundsSettings {
+  walletAddress: string | Hex
+  onClose?: () => void
+}
+```
+
+Function to open the transfer funds modal with the specified configuration.
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --------- | ---- | ----------- |
+| `settings` | `TransferFundsSettings` | Configuration object for the transfer funds modal |
+
+#### closeTransferFundsModal
+
+`() => void`
+
+Function to close the transfer funds modal.
+
+#### transferFundsSettings
+
+`TransferFundsSettings | null`
+
+```tsx
+    interface TransferFundsSettings {
+        walletAddress: string | Hex
+        onClose?: () => void
+    }
+```
+
+The current settings configuration for the transfer funds modal, or `null` if the modal is closed.
+
+

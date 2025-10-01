@@ -1,0 +1,71 @@
+---
+title: "useProjectAccessKey"
+description: Hook to access the project access key from the Sequence Connect configuration
+sidebarTitle: useProjectAccessKey
+---
+
+## Import
+
+```tsx
+import { useProjectAccessKey } from '@0xsequence/connect'
+```
+
+## Usage
+
+```tsx
+import { useProjectAccessKey } from '@0xsequence/connect'
+
+function App() {
+  const projectAccessKey = useProjectAccessKey()
+  
+  return (
+    <div>
+      {projectAccessKey && (
+        <p>Project access key is configured</p>
+      )}
+    </div>
+  )
+}
+```
+
+## Return Type
+
+The hook returns a string value:
+
+```tsx
+string
+```
+
+### Return Value
+
+#### projectAccessKey
+
+`string`
+
+The project access key configured for the application. This key is used to authenticate and identify your application with Sequence services.
+
+**Description:**
+
+The project access key is a required configuration parameter that:
+
+- Authenticates your application with Sequence services
+- Identifies your specific project/application
+- Enables access to various SDK features including marketplace integration and wallet connections
+- Must be provided during the initial configuration of the Sequence Connect context
+
+**Example Usage:**
+
+```tsx
+// Using with marketplace integration
+const projectAccessKey = useProjectAccessKey()
+const marketplaceClient = new MarketplaceIndexer(apiUrl, projectAccessKey)
+```
+
+## Notes
+
+This hook provides access to the project access key that was configured when setting up the Sequence Connect context. The project access key is essential for:
+
+- **Authentication**: Verifying your application's identity with Sequence services
+- **Authorization**: Determining what features and resources your application can access
+- **Billing**: Associating usage with your specific project for billing purposes
+- **Rate Limiting**: Managing API rate limits per project

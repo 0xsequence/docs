@@ -1,0 +1,70 @@
+---
+title: "useSequenceWaaS"
+description: Hook to create and access a Sequence WaaS instance
+sidebarTitle: useSequenceWaaS
+---
+
+## Import
+
+```tsx
+import { useSequenceWaaS } from '@0xsequence/connect'
+```
+
+## Usage
+
+```tsx
+import { useSequenceWaaS } from '@0xsequence/connect'
+
+function App() {
+  const sequenceWaaS = useSequenceWaaS()
+  
+  const handleWaaSOperation = async () => {
+    try {
+      // Use the WaaS instance to get connected accounts      
+      const response = await sequenceWaaS.listAccounts()
+      console.log('Accounts:', response.accounts)
+    } catch (error) {
+      console.error('WaaS operation failed:', error)
+    }
+  }
+  
+  return (
+    <div>
+      <button onClick={handleWaaSOperation}>
+        Perform WaaS Operation
+      </button>
+    </div>
+  )
+}
+```
+
+## Return Type
+
+The hook returns a `SequenceWaaS` instance:
+
+```tsx
+SequenceWaaS
+```
+
+### Return Value
+
+#### sequenceWaaS
+
+`SequenceWaaS`
+
+A configured Sequence WaaS (Wallet as a Service) instance that provides access to various wallet and blockchain operations.
+
+**Description:**
+
+The returned WaaS instance is automatically configured with:
+
+- **Project Access Key**: Retrieved from the Connect configuration context
+- **WaaS Config Key**: Retrieved from the social link configuration
+
+This instance can be used to perform various wallet operations, manage accounts, and interact with blockchain services.
+
+## Notes
+
+This hook provides a pre-configured Sequence WaaS instance that is ready to use for various wallet operations. The WaaS instance is automatically configured with the necessary credentials from your Connect setup.
+
+
