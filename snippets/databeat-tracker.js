@@ -7,7 +7,7 @@
   
   // Load Databeat script from local file instead of CDN
   const s = document.createElement('script');
-  s.src = '/snippets/dist/databeat-tracker.umd.js';
+  s.src = 'https://pub-f048362b915448c9b012a2e03c189024.r2.dev/databeat-tracker.umd.js';
   s.async = true;
   s.onload = function() {
     console.log('Databeat: Script loaded successfully');
