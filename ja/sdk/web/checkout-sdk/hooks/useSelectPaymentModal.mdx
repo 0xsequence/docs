@@ -1,17 +1,16 @@
 ---
-
-title: "useSelectPaymentModal"
-description: Hook for opening the payment selection modal
+title: useSelectPaymentModal
+description: 支払い選択モーダルを開くためのフック
 sidebarTitle: useSelectPaymentModal
 ---
 
-## Import
+## インポート
 
 ```tsx
 import { useSelectPaymentModal } from '@0xsequence/checkout'
 ```
 
-## Usage
+## 使い方
 
 ```typescript [abis/mintFunctionAbi.ts]
 const mintFunctionAbi = {
@@ -139,11 +138,10 @@ function BuyNFT() {
 export default BuyNFT
 ```
 
-<img src="/images/sdk/Checkout_SelectPaymentModal.png" alt="Payment Selection Modal" height="200" className="rounded-lg" />
+<img src="/images/sdk/Checkout_SelectPaymentModal.png" alt="支払い方法選択モーダル" height="200" className="rounded-lg" />
 
-## Return Type: `UseSelectPaymentModalReturnType`
-
-The hook returns an object with the following properties:
+## 返却型：`UseSelectPaymentModalReturnType`
+このフックは以下のプロパティを持つオブジェクトを返します。
 
 ```tsx
 type UseSelectPaymentModalReturnType = {
@@ -153,53 +151,47 @@ type UseSelectPaymentModalReturnType = {
 }
 ```
 
-### Properties
+### プロパティ
 
 #### openSelectPaymentModal
-
 `(settings: SelectPaymentSettings) => void`
 
-Function to open the Payment Selection modal with the specified settings.
+指定した設定で支払い選択モーダルを開く関数です。
 
-**Parameters:**
+**パラメータ：**
 
-The `settings` object can include the following properties:
+`settings`オブジェクトには以下のプロパティを含めることができます:
 
-| Parameter | Type | Description |
-| --------- | ---- | ----------- |
-| `collectibles` | `Array<{tokenId: string, quantity: string}>` | Array of collectibles to purchase |
-| `chain` | `number` | Blockchain network ID |
-| `price` | `string` | Price in smallest unit of the currency |
-| `targetContractAddress` | `string` | Address of the contract to interact with |
-| `recipientAddress` | `string` | Address to receive the purchased items |
-| `currencyAddress` | `string` | Address of the currency token contract |
-| `collectionAddress` | `string` | Address of the NFT collection contract |
-| `creditCardProviders` | `string[]` | List of supported credit card providers (e.g., 'sardine', 'transak') |
-| `transakConfig` | `object` | Configuration for Transak integration |
-| `copyrightText` | `string` | Copyright text to display in the modal |
-| `onSuccess` | `(txnHash: string) => void` | Callback when transaction succeeds |
-| `onError` | `(error: Error) => void` | Callback when an error occurs |
-| `onClose` | `() => void` | Callback when the modal is closed |
-| `txData` | `string` | Encoded transaction data for the purchase |
+| パラメータ                   | 型                                            | 説明                                             |
+| ----------------------- | -------------------------------------------- | ---------------------------------------------- |
+| `collectibles`          | `Array<{tokenId: string, quantity: string}>` | 購入対象のコレクティブルの配列                                |
+| `chain`                 | `number`                                     | ブロックチェーンネットワークID                               |
+| `price`                 | `string`                                     | 通貨の最小単位での価格                                    |
+| `targetContractAddress` | `string`                                     | 操作対象となるコントラクトのアドレス                             |
+| `recipientAddress`      | `string`                                     | 購入したアイテムの受取先アドレス                               |
+| `currencyAddress`       | `string`                                     | 通貨トークンコントラクトのアドレス                              |
+| `collectionAddress`     | `string`                                     | NFTコレクションコントラクトのアドレス                           |
+| `creditCardProviders`   | `string[]`                                   | 対応するクレジットカードプロバイダーのリスト（例：'sardine', 'transak'） |
+| `transakConfig`         | `object`                                     | Transak連携用の設定                                  |
+| `copyrightText`         | `string`                                     | モーダル内に表示する著作権テキスト                              |
+| `onSuccess`             | `(txnHash: string) => void`                  | トランザクションが成功した際のコールバック                          |
+| `onError`               | `(error: Error) => void`                     | エラー発生時のコールバック                                  |
+| `onClose`               | `() => void`                                 | モーダルが閉じられたときのコールバック                            |
+| `txData`                | `string`                                     | 購入用のエンコード済みトランザクションデータ                         |
 
 #### closeSelectPaymentModal
-
 `() => void`
 
-Function to close the Payment Selection modal.
+支払い選択モーダルを閉じる関数です。
 
 #### selectPaymentSettings
-
 `SelectPaymentSettings | undefined`
 
-The current settings configuration for the Payment Selection modal.
+支払い選択モーダルの現在の設定内容
 
-## Notes
-
-This hook provides methods to control the Payment Selection modal that allows users to purchase digital assets with multiple payment options. The modal offers various payment methods including:
-- Pay with cryptocurrency from the user's wallet
-- Swap tokens to pay with a different cryptocurrency
-- Pay with credit/debit card
-- Receive funds from another wallet
-
-
+## 補足
+このフックは、ユーザーが複数の支払い方法でデジタル資産を購入できる支払い選択モーダルの制御メソッドを提供します。モーダルでは以下の支払い方法が利用可能です：
+- ユーザーのウォレットから暗号資産で支払う
+- 異なる暗号資産にスワップして支払う
+- クレジット／デビットカードで支払う
+- 他のウォレットから資金を受け取る

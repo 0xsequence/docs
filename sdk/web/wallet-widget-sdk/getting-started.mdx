@@ -3,22 +3,27 @@ description: Learn how to get started with Wallet Widget SDK
 sidebarTitle: Getting Started
 ---
 
+<Info>
+    This package is dependent on [Connect SDK](/sdk/web/wallet-sdk/ecosystem/getting-started).
+</Info>
+
 <Steps>
-<Step title="Install the required libraries">
+
+<Step title="Install and setup Connect SDK">
+    Follow the steps [here](/sdk/web/wallet-sdk/ecosystem/getting-started).
+</Step>
+
+<Step title="Install Wallet Widget SDK">
 ```bash 
-    npm install @0xsequence/wallet-widget @0xsequence/connect @0xsequence/checkout @0xsequence/hooks
+    npm install @0xsequence/wallet-widget@v6-beta
     # or
-    pnpm install @0xsequence/wallet-widget @0xsequence/connect @0xsequence/checkout @0xsequence/hooks
+    pnpm install @0xsequence/wallet-widget@v6-beta
     # or
-    yarn add @0xsequence/wallet-widget @0xsequence/connect @0xsequence/checkout @0xsequence/hooks
+    yarn add @0xsequence/wallet-widget@v6-beta
 ```
 </Step>
 
-<Step title="Wrap your App with the Providers">
-
-<Note>
-    Make sure you have configured your App with Connect [v5](/sdk/web/wallet-sdk/embedded/getting-started) or [v6](/sdk/web/wallet-sdk/ecosystem/getting-started) before continuing.
-</Note>
+<Step title="Wrap your App with the SequenceWalletProvider">
 
 ```typescript [main.tsx]
     import React from "react";
@@ -49,7 +54,30 @@ sidebarTitle: Getting Started
 </Step>
 
 <Step title="Start using it">
+
     Now you can open the Wallet Widget using the [useOpenWalletModal](/sdk/web/wallet-widget-sdk/hooks/useOpenWalletModal) hook.
+
+    ```typescript [App.tsx]
+        import { injected, useAccount, useConnect } from 'wagmi'
+        import './App.css'
+        import { useOpenWalletModal } from '@0xsequence/wallet-widget'
+
+        function App() {
+            const { isConnected } = useAccount()
+            const { connect } = useConnect()
+            const { setOpenWalletModal } = useOpenWalletModal()
+
+            return (
+                <>
+                    {isConnected ? <button onClick={() => setOpenWalletModal(true)}>Open Wallet Modal</button> : <button onClick={() => connect({ connector: injected() })}>Connect</button>}
+                </>
+            )
+        }
+
+        export default App
+    ```
+
+    <img src="/images/sdk/WalletWidget.png" alt="Wallet Widget" height="200" className="rounded-lg" />
 </Step>
 
 </Steps>

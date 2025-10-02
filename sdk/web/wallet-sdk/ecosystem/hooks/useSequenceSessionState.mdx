@@ -1,0 +1,125 @@
+---
+title: "useSequenceSessionState"
+description: Hook to access Sequence session state and wallet information
+sidebarTitle: useSequenceSessionState
+---
+
+## Import
+
+```tsx
+import { useSequenceSessionState } from '@0xsequence/connect'
+```
+
+## Usage
+
+```tsx
+import { useSequenceSessionState } from '@0xsequence/connect'
+
+function App() {
+  const sessionState = useSequenceSessionState()
+  
+  // Check if sessions are initialized
+  if (!sessionState.isInitialized) {
+    return <div>Session state is not initialized</div>
+  }
+  
+  return (
+    <div>
+      <p>Wallet: {sessionState.walletAddress}</p>
+      <p>Login Method: {sessionState.loginMethod}</p>
+      <p>User Email: {sessionState.userEmail}</p>
+      <p>Number of active explicit sessions: {sessionState.sessions.filter(s => s.type === 'explicit').length}</p>
+    </div>
+  )
+}
+```
+
+## Return Type: `SessionState`
+
+The hook returns an object with the following properties:
+
+```tsx
+interface SessionState {
+  isInitialized: boolean
+  walletAddress: `0x${string}` | null
+  sessions: Session[]
+  loginMethod: string | null
+  userEmail: string | null
+}
+```
+
+### Properties
+
+#### isInitialized
+
+`boolean`
+
+Indicates whether the Sequence session has been initialized. This is useful for determining when the session data is ready to be used.
+
+#### walletAddress
+
+`\`0x${string}\` | null`
+
+The current wallet address if connected, or `null` if no wallet is connected.
+
+#### sessions
+
+`Session[]`
+
+Array of all active sessions. Each session contains information about the connection type and permissions.
+
+#### loginMethod
+
+`string | null`
+
+The method used to log in (e.g., 'email', 'social', etc.) or `null` if not logged in.
+
+#### userEmail
+
+`string | null`
+
+The email address associated with the current session, or `null` if not available.
+
+## Example: Checking Session Initialization
+
+```tsx
+import { useSequenceSessionState } from '@0xsequence/connect'
+
+function SessionStatus() {
+  const sessionState = useSequenceSessionState()
+  
+  // Wait for initialization before using session data
+  if (!sessionState.isInitialized) {
+    return <div>Loading session...</div>
+  }
+  
+  // Check if user has any sessions
+  const hasSessions = sessionState.sessions.length > 0
+  const hasImplicitSession = sessionState.sessions.some(s => s.type === 'implicit')
+  const hasExplicitSession = sessionState.sessions.some(s => s.type === 'explicit')
+  
+  return (
+    <div>
+      <h3>Session Status</h3>
+      <p>Initialized: {sessionState.isInitialized ? 'Yes' : 'No'}</p>
+      <p>Wallet: {sessionState.walletAddress || 'Not connected'}</p>
+      <p>Has Sessions: {hasSessions ? 'Yes' : 'No'}</p>
+      <p>Has Implicit Session: {hasImplicitSession ? 'Yes' : 'No'}</p>
+      <p>Has Explicit Session: {hasExplicitSession ? 'Yes' : 'No'}</p>
+      <p>Login Method: {sessionState.loginMethod || 'Unknown'}</p>
+      <p>User Email: {sessionState.userEmail || 'Not available'}</p>
+    </div>
+  )
+}
+```
+
+## Notes
+
+This hook provides real-time access to Sequence session state and automatically updates when session information changes. It's particularly useful for:
+
+- Checking if the session is ready before performing operations
+- Accessing wallet connection status
+- Monitoring active sessions and their types
+- Getting user authentication information
+
+The hook automatically subscribes to session updates and will re-render your component when the session state changes.
