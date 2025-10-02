@@ -41,6 +41,17 @@ function App() {
     loadSessions()
   }, [getExplicitSessions])
 
+  // Function to handle modifying an existing explicit session
+  const handleModifySession = () => {
+    const newPermission = createContractPermission({
+      address: '0x...',
+      functionSignature: 'function testContract() public'
+    })
+    const currentSession = sessions[0];
+    const modifiedSession = { ...currentSession, permissions: [...currentSession.permissions!, newPermission] }
+    modifyExplicitSession(modifiedSession)
+  }
+
   // Handle creating a new explicit session
   const handleCreateSession = async () => {
     try {
@@ -94,6 +105,10 @@ function App() {
         Create New Session
       </button>
 
+      <button onClick={handleModifySession}>
+        Modify Session
+      </button>
+
       <div>
         <h3>Existing Sessions ({sessions.length})</h3>
         {sessions.map((session, index) => (
@@ -137,10 +152,48 @@ Un objeto de error si la última operación falló, de lo contrario `null`.
 #### addExplicitSession
 `(chainId: ChainId, explicitSession: ExplicitSession) => Promise<void>`
 
+```typescript
+type ExplicitSession = {
+  sessionAddress: Address.Address
+  valueLimit: bigint
+  deadline: bigint
+  permissions: Permission.Permission[]
+  chainId: number
+  type: 'explicit'
+}
+```
+
 Función para crear una nueva sesión explícita.
+
+#### modificarExplicitSession
+`(explicitSession: ExplicitSession) => Promise<void>`
+
+```typescript
+type ExplicitSession = {
+  sessionAddress: Address.Address
+  valueLimit: bigint
+  deadline: bigint
+  permissions: Permission.Permission[]
+  chainId: number
+  type: 'explicit'
+}
+```
+
+Función para modificar una sesión explícita existente.
 
 #### getExplicitSessions
 `() => Promise<Session[]>`
+
+```typescript
+type Session = {
+  type: 'explicit' | 'implicit'
+  sessionAddress: Address.Address
+  valueLimit?: bigint
+  deadline?: bigint
+  permissions?: Permission.Permission[]
+  chainId?: number
+}
+```
 
 Función para obtener todas las sesiones de la wallet conectada.
 
@@ -150,6 +203,7 @@ Este hook proporciona funcionalidad para gestionar sesiones explícitas en conex
 Características principales:
 - Cree nuevas sesiones explícitas con permisos y límites de gasto personalizados
 - Obtenga todas las sesiones explícitas existentes para la wallet conectada
+- Modificar sesiones explícitas existentes
 - Manejo de errores integrado para problemas comunes de conexión
 - Estados de carga para una mejor experiencia de usuario
 - Filtrado automático de sesiones para mostrar solo sesiones explícitas

@@ -41,6 +41,17 @@ function App() {
     loadSessions()
   }, [getExplicitSessions])
 
+  // Function to handle modifying an existing explicit session
+  const handleModifySession = () => {
+    const newPermission = createContractPermission({
+      address: '0x...',
+      functionSignature: 'function testContract() public'
+    })
+    const currentSession = sessions[0];
+    const modifiedSession = { ...currentSession, permissions: [...currentSession.permissions!, newPermission] }
+    modifyExplicitSession(modifiedSession)
+  }
+
   // Handle creating a new explicit session
   const handleCreateSession = async () => {
     try {
@@ -94,6 +105,10 @@ function App() {
         Create New Session
       </button>
 
+      <button onClick={handleModifySession}>
+        Modify Session
+      </button>
+
       <div>
         <h3>Existing Sessions ({sessions.length})</h3>
         {sessions.map((session, index) => (
@@ -137,10 +152,48 @@ type UseExplicitSessionsReturnType = {
 #### addExplicitSession
 `(chainId: ChainId, explicitSession: ExplicitSession) => Promise<void>`
 
+```typescript
+type ExplicitSession = {
+  sessionAddress: Address.Address
+  valueLimit: bigint
+  deadline: bigint
+  permissions: Permission.Permission[]
+  chainId: number
+  type: 'explicit'
+}
+```
+
 新しい明示的セッションを作成する関数です。
+
+#### modifyExplicitSession
+`(explicitSession: ExplicitSession) => Promise<void>`
+
+```typescript
+type ExplicitSession = {
+  sessionAddress: Address.Address
+  valueLimit: bigint
+  deadline: bigint
+  permissions: Permission.Permission[]
+  chainId: number
+  type: 'explicit'
+}
+```
+
+既存の明示的セッションを変更するための関数です。
 
 #### getExplicitSessions
 `() => Promise<Session[]>`
+
+```typescript
+type Session = {
+  type: 'explicit' | 'implicit'
+  sessionAddress: Address.Address
+  valueLimit?: bigint
+  deadline?: bigint
+  permissions?: Permission.Permission[]
+  chainId?: number
+}
+```
 
 接続中のウォレットの全セッションを取得する関数です。
 
@@ -150,6 +203,7 @@ type UseExplicitSessionsReturnType = {
 主な特徴：
 - カスタム権限や利用上限を設定した新規明示的セッションを作成できます
 - 接続中ウォレットの既存の明示的セッションをすべて取得できます
+- 既存の明示的セッションを変更する
 - 一般的な接続エラーに対する組み込みエラーハンドリング
 - ユーザー体験向上のためのローディング状態管理
 - 明示的セッションのみを表示する自動セッションフィルタリング

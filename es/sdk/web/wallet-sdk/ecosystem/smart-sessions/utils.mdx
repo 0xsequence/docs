@@ -4,134 +4,6 @@ sidebarTitle: Utilidades
 
 Para facilitar la creación de smart sessions, ofrecemos un conjunto de funciones auxiliares.
 
-## `createExplicitSession`
-Esta es la función principal que usará para construir su smart session. Recibe un único objeto de opciones y agrupa todo en el formato final requerido por la wallet.
-
-### Ejemplo
-
-```typescript
-import { createExplicitSession } from "@0xsequence/connect";
-import { parseEther } from "viem";
-
-const mySession = createExplicitSession({
-    chainId: 42161,
-    nativeTokenSpending: {
-        valueLimit: parseEther('0.01')
-    },
-    expiresIn: {
-        hours: 3,
-        minutes: 30
-    }
-    permissions: [ ... ]
-});
-```
-
-### Parámetros
-
-```typescript
-/**
- * The configuration object for the {@link createExplicitSession} helper function.
- */
-export type CreateExplicitSessionOptions = {
-  /** The chain ID for which the session will be valid. */
-  chainId: number
-
-  /**
-   * An object ({@link NativeTokenSpending}) that defines the maximum amount of native currency that can be spent during the session and allowed recipients for the native currency.
-   */
-  nativeTokenSpending: NativeTokenSpending
-
-  /**
-   * The desired duration of the session. {@link SessionDuration}
-   */
-  expiresIn: SessionDuration
-
-  /**
-   * An array of fully-built permission objects. {@link Permission}
-   */
-  permissions: Permission[]
-}
-```
-
-#### `chainId`
-El chain ID de una cadena compatible con Sequence donde los permisos de la sesión serán válidos.
-
-Consulte [Cadenas compatibles](https://status.sequence.info/).
-
-#### `nativeTokenSpending`
-Este objeto controla el acceso de la sesión a la moneda nativa del usuario.
-- `valueLimit`: El monto máximo acumulado de la moneda nativa (en wei) que se puede gastar en todas las llamadas a contratos y comisiones durante la sesión.
-- `allowedRecipients`: Permite transferencias directas de tokens nativos a estas direcciones.
-
-```typescript
-type NativeTokenSpending = {
-  valueLimit: bigint
-  allowedRecipients?: Address[]
-}
-```
-
-#### `expiresIn`
-Un objeto para definir la expiración de la sesión.
-- `days`: Número de días que la sesión será válida.
-- `hours`: Número de horas que la sesión será válida.
-- `minutes`: Número de minutos que la sesión será válida.
-
-```typescript
-type SessionDuration = {
-  days?: number
-  hours?: number
-  minutes?: number
-}
-```
-
-#### `permissions`
-Un array de objetos de permisos.
-- `target`: La dirección del contrato con el que se interactuará.
-- `rules`: Un array de reglas para la dirección `target`.
-
-```typescript
-type Permission = {
-  target: Address.Address
-  rules: ParameterRule[]
-}
-```
-
-Cada contrato inteligente `target` puede tener un conjunto de reglas.
-- `cumulative`: Indica si la regla es acumulativa.
-- `operation`: La operación a realizar sobre el `value`.
-- `value`: El valor esperado (almacenado como bytes32) usado para la comparación.
-- `offset`: El desplazamiento de bytes en los datos de la llamada desde donde se extrae el parámetro de 32 bytes.
-- `mask`: Una máscara de bits aplicada a los datos extraídos. Esto aísla los bits relevantes, permitiendo la validación incluso cuando el campo está dentro de una estructura de datos más grande.
-
-```typescript
-type ParameterRule = {
-  cumulative: boolean
-  operation: ParameterOperation
-  value: Bytes.Bytes
-  offset: bigint
-  mask: Bytes.Bytes
-}
-
-enum ParameterOperation {
-  EQUAL = 0,
-  NOT_EQUAL = 1,
-  GREATER_THAN_OR_EQUAL = 2,
-  LESS_THAN_OR_EQUAL = 3,
-}
-```
-
-### Tipo de retorno
-Devuelve un objeto `ExplicitParams`.
-
-```typescript
-type ExplicitSession = {
-    chainId: number;
-    valueLimit: bigint;
-    deadline: bigint;
-    permissions: [Permission.Permission, ...Permission.Permission[]];
-}
-```
-
 ## `createContractPermission`
 Esta función auxiliar se utiliza para crear un permiso para una función de contrato inteligente.
 
@@ -269,7 +141,6 @@ const permissions = createContractPermissions({
 ```
 
 ### Parámetros
-Muy similar a [CreateContractPermission](#createcontractpermission), pero utiliza un array de `functions`.
 
 ```typescript
 /**
@@ -281,6 +152,31 @@ export type CreateContractPermissionsOptions = {
 
   /** An array of permissions for one or more functions on this contract. */
   functions?: FunctionPermission[] | undefined | null
+}
+```
+
+#### `address`
+La dirección del contrato objetivo.
+
+#### `functions`
+Un arreglo de `FunctionPermission`
+
+```typescript
+type FunctionPermission = {
+  /**
+   * The human-readable function signature.
+   * Example: 'function transfer(address to, uint256 amount)'
+   */
+  functionSignature: string
+
+  /** An array of rules to apply to the function's arguments. */
+  rules?: Rule[]
+
+  /**
+   * If true, this function can only be successfully called once during the session.
+   * @default false
+   */
+  onlyOnce?: boolean
 }
 ```
 
