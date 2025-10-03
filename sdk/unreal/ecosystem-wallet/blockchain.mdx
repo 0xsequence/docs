@@ -1,0 +1,53 @@
+---
+title: "Blockchain Interactions"
+description: Ecosystem Wallet Documentation for Sequence's Unreal SDK.
+---
+
+## Sign messages
+
+Sign messages on an external browser.
+
+<Tabs>
+    <Tab title="Blueprint">
+        <Frame>
+            <img src="/images/unreal/ecosystem/sign_message.png" />
+        </Frame>
+    </Tab>
+    <Tab title="C++">
+        ```cpp
+        const TSuccessCallback<bool> SuccessCallback = [OnSuccess](const bool& Result) { };
+        const FFailureCallback FailureCallback = [OnFailure](const FSequenceError& Error) { };
+
+        USequenceWallet* Wallet = NewObject<USequenceWallet>();
+        Wallet->SignMessage(TEXT("some text"), SuccessCallback, FailureCallback);
+        ```
+    </Tab>
+</Tabs>
+
+## Send transactions without Permissions
+
+Send transactions without paying for gas fees on any testnet or when using Gas Sponsorship.
+
+<Tabs>
+    <Tab title="Blueprint">
+        <Frame>
+            <img src="/images/unreal/ecosystem/transaction_without_permissions.png" />
+        </Frame>
+    </Tab>
+    <Tab title="C++">
+        ```cpp
+        const FString To = TEXT("");
+        const FString FunctionSignature = TEXT("explicitEmit()");
+        const int64 Value = 0;
+        const TArray<FString> Values = { };
+
+        UContractTransaction* Transaction = UContractTransaction::CreateContractTransaction(To, Value, FunctionSignature, Values);
+
+        const TSuccessCallback<FString> SuccessCallback = [OnSuccess](const FString& Result) { };
+        const FFailureCallback FailureCallback = [OnFailure](const FSequenceError& Error) { };
+
+        USequenceWallet* Wallet = NewObject<USequenceWallet>();
+        Wallet->SendTransactionWithoutPermissions(Transaction, SuccessCallback, FailureCallback);
+        ```
+    </Tab>
+</Tabs>
