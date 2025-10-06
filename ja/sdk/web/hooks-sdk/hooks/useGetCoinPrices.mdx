@@ -63,18 +63,27 @@ export default TokenPriceDisplay;
 ## パラメータ
 
 ### tokens
-`Token[]`
-
-価格を取得するトークンの配列です。各トークンには以下が必要です。
+`Token[]`：価格を取得したいトークンを表す、`chainId` と `contractAddress` を持つオブジェクトの配列です。
 
 ```tsx
 interface Token {
-  chainId: number        // The chain ID where the token exists
-  contractAddress: string // The token's contract address
+  chainId: number // EVM chain ID (e.g., 1 = Ethereum, 137 = Polygon)
+  contractAddress: string // Token contract address on that chain
 }
 ```
 
-ネイティブトークン（例: EthereumのETH、PolygonのMATIC）には`ZERO_ADDRESS`を使用してください。
+- ネイティブトークン（例：Ethereum の ETH、Polygon の MATIC）の場合、`contractAddress` を **`ZERO_ADDRESS`** に設定してください。
+- ERC-20 トークンの場合は、指定した `chainId` 上のトークンの実際のコントラクトアドレスを入力してください。
+
+**例**
+
+```tsx
+const tokens: Token[] = [
+  { chainId: 1,   contractAddress: ZERO_ADDRESS },                 // ETH (native)
+  { chainId: 137, contractAddress: ZERO_ADDRESS },                 // MATIC (native)
+  { chainId: 1,   contractAddress: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48" }, // USDC on Ethereum
+];
+```
 
 ### options
 `HooksOptions`（オプション）
