@@ -64,18 +64,28 @@ export default TokenPriceDisplay;
 
 ### tokens
 
-`Token[]`
+`Token[]`: Array of objects with `chainId` and `contractAddress` representing the tokens you'd like prices for.
 
-Array of tokens to get prices for. Each token must include:
 
 ```tsx
 interface Token {
-  chainId: number        // The chain ID where the token exists
-  contractAddress: string // The token's contract address
+  chainId: number // EVM chain ID (e.g., 1 = Ethereum, 137 = Polygon)
+  contractAddress: string // Token contract address on that chain
 }
 ```
 
-Use `ZERO_ADDRESS` for native tokens (e.g., ETH on Ethereum, MATIC on Polygon).
+* For native tokens (e.g., ETH on Ethereum, MATIC on Polygon), set `contractAddress` to **`ZERO_ADDRESS`**.
+* For ERC-20 tokens, provide the token’s actual contract address on the specified `chainId`.
+
+**Examples**
+
+```tsx
+const tokens: Token[] = [
+  { chainId: 1,   contractAddress: ZERO_ADDRESS },                 // ETH (native)
+  { chainId: 137, contractAddress: ZERO_ADDRESS },                 // MATIC (native)
+  { chainId: 1,   contractAddress: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48" }, // USDC on Ethereum
+];
+```
 
 ### options
 

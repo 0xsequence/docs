@@ -23,23 +23,23 @@ function NFTPriceDisplay() {
       tokenId: '123'
     }
   ]
-  
-  const { 
-    data: prices, 
-    isLoading, 
+
+  const {
+    data: prices,
+    isLoading,
     error,
     isError,
-    isSuccess 
+    isSuccess
   } = useGetCollectiblePrices(tokens)
-  
+
   if (isLoading) {
     return <div>Loading prices...</div>
   }
-  
+
   if (isError) {
     return <div>Error: {error.message}</div>
   }
-  
+
   return (
     <div>
       <h2>NFT Prices</h2>
@@ -61,21 +61,19 @@ function NFTPriceDisplay() {
 }
 ```
 
-## Parameters
-
 ### tokens
 
-`Token[]`
+`Token[]`: Array of objects with `chainId` and `contractAddress` representing the tokens you'd like prices for.
 
-Array of tokens to get prices for. Each token must include:
 
 ```tsx
 interface Token {
-  chainId: number        // The chain ID where the NFT exists
-  contractAddress: string // The NFT collection's contract address
+  chainId: number // EVM chain ID (e.g., 1 = Ethereum, 137 = Polygon)
+  contractAddress: string // Token contract address on that chain
   tokenId: string        // The specific token ID within the collection
 }
 ```
+
 
 ### options
 
