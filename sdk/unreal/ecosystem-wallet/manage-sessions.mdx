@@ -1,0 +1,80 @@
+---
+title: "Manage Sessions"
+description: Ecosystem Wallet Documentation for Sequence's Unreal SDK.
+---
+
+### Add Session
+
+Add additional sessions to your existing login method. Every session shares the same wallet address with the possibility
+of assigning different permissions for each session. You must provide a `IPermissions` object whenever you call `AddSession`.
+
+<Tabs>
+    <Tab title="Blueprint">
+        <Frame>
+            <img src="/images/unreal/ecosystem/add_session.png" />
+        </Frame>
+    </Tab>
+    <Tab title="C++">
+        ```cpp
+        const TSuccessCallback<bool> SuccessCallback = [OnSuccess](const bool& Result) { };
+        const FFailureCallback FailureCallback = [OnFailure](const FSequenceError& Error) { };
+
+        USequenceWallet* Wallet = NewObject<USequenceWallet>();
+        Wallet->AddSession(Permissions, SuccessCallback, FailureCallback);
+        ```
+    </Tab>
+</Tabs>
+
+### Check if Wallet Exists
+
+Check if the user is already signed in with a wallet. If this returns false, you want the user to sign in.
+
+<Tabs>
+    <Tab title="Blueprint">
+        <Frame>
+            <img src="/images/unreal/ecosystem/check_signedin.png" />
+        </Frame>
+    </Tab>
+    <Tab title="C++">
+        ```cpp
+        USequenceWallet* Wallet = NewObject<USequenceWallet>();
+        bool Exists = Wallet->CheckIfWalletExists();
+        ```
+    </Tab>
+</Tabs>
+
+### Clear Sessions
+
+Clear all sessions from storage. Use this for any 'Sign Out' functionality.
+
+<Tabs>
+    <Tab title="Blueprint">
+        <Frame>
+            <img src="/images/unreal/ecosystem/clear_sessions.png" />
+        </Frame>
+    </Tab>
+    <Tab title="C++">
+        ```cpp
+        USequenceWallet* Wallet = NewObject<USequenceWallet>();
+        Wallet->ClearSessions();
+        ```
+    </Tab>
+</Tabs>
+
+### Get Wallet Info
+
+Get relevant information from the current wallet.
+
+<Tabs>
+    <Tab title="Blueprint">
+        <Frame>
+            <img src="/images/unreal/ecosystem/wallet_info.png" />
+        </Frame>
+    </Tab>
+    <Tab title="C++">
+        ```cpp
+        USequenceWallet* Wallet = NewObject<USequenceWallet>();
+        FWalletInfo WalletIno = Wallet->GetWalletInfo();
+        ```
+    </Tab>
+</Tabs>
