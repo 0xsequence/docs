@@ -1,0 +1,64 @@
+---
+title: useSequenceWaaS
+description: Sequence WaaSインスタンスの生成・取得用フック
+sidebarTitle: useSequenceWaaS
+---
+
+## インポート
+
+```tsx
+import { useSequenceWaaS } from '@0xsequence/connect'
+```
+
+## 使い方
+
+```tsx
+import { useSequenceWaaS } from '@0xsequence/connect'
+
+function App() {
+  const sequenceWaaS = useSequenceWaaS()
+  
+  const handleWaaSOperation = async () => {
+    try {
+      // Use the WaaS instance to get connected accounts      
+      const response = await sequenceWaaS.listAccounts()
+      console.log('Accounts:', response.accounts)
+    } catch (error) {
+      console.error('WaaS operation failed:', error)
+    }
+  }
+  
+  return (
+    <div>
+      <button onClick={handleWaaSOperation}>
+        Perform WaaS Operation
+      </button>
+    </div>
+  )
+}
+```
+
+## 返り値の型
+このフックは`SequenceWaaS`インスタンスを返します：
+
+```tsx
+SequenceWaaS
+```
+
+### 戻り値
+
+#### sequenceWaaS
+`SequenceWaaS`
+
+各種ウォレットやブロックチェーン操作に対応した、設定済みのSequence WaaS（Wallet as a Service）インスタンスです。
+
+**説明：**
+
+返却されるWaaSインスタンスには以下が自動設定されています：
+- **プロジェクトアクセスキー**：Connect設定コンテキストから取得
+- **WaaS設定キー**：ソーシャルリンク設定から取得
+
+このインスタンスを使って、各種ウォレット操作やアカウント管理、ブロックチェーンサービスとの連携が可能です。
+
+## 補足
+このフックは、Connectセットアップで必要な認証情報が自動設定された、すぐに使えるSequence WaaSインスタンスを提供します。

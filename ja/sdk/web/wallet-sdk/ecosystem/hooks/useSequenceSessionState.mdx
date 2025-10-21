@@ -1,0 +1,117 @@
+---
+title: useSequenceSessionState
+description: Sequenceのセッション状態やウォレット情報にアクセスするためのフックです
+sidebarTitle: useSequenceSessionState
+---
+
+## インポート
+
+```tsx
+import { useSequenceSessionState } from '@0xsequence/connect'
+```
+
+## 使い方
+
+```tsx
+import { useSequenceSessionState } from '@0xsequence/connect'
+
+function App() {
+  const sessionState = useSequenceSessionState()
+  
+  // Check if sessions are initialized
+  if (!sessionState.isInitialized) {
+    return <div>Session state is not initialized</div>
+  }
+  
+  return (
+    <div>
+      <p>Wallet: {sessionState.walletAddress}</p>
+      <p>Login Method: {sessionState.loginMethod}</p>
+      <p>User Email: {sessionState.userEmail}</p>
+      <p>Number of active explicit sessions: {sessionState.sessions.filter(s => s.type === 'explicit').length}</p>
+    </div>
+  )
+}
+```
+
+## 戻り値の型：`SessionState`
+このフックは以下のプロパティを持つオブジェクトを返します。
+
+```tsx
+interface SessionState {
+  isInitialized: boolean
+  walletAddress: `0x${string}` | null
+  sessions: Session[]
+  loginMethod: string | null
+  userEmail: string | null
+}
+```
+
+### プロパティ
+
+#### isInitialized
+`boolean`
+
+Sequenceセッションが初期化済みかどうかを示します。セッションデータの利用準備ができているか判断する際に便利です。
+
+#### walletAddress
+`\`0x${string}` | null`
+
+接続中のウォレットアドレス。接続されていない場合は`null`です。
+
+#### sessions
+`Session[]`
+
+すべてのアクティブなセッションの配列。各セッションには接続タイプや権限情報が含まれます。
+
+#### loginMethod
+`string | null`
+
+ログインに使用された方法（例：'email'、'social'など）。未ログインの場合は`null`です。
+
+#### userEmail
+`string | null`
+
+現在のセッションに紐づくメールアドレス。利用できない場合は`null`です。
+
+## 例：セッション初期化の確認
+
+```tsx
+import { useSequenceSessionState } from '@0xsequence/connect'
+
+function SessionStatus() {
+  const sessionState = useSequenceSessionState()
+  
+  // Wait for initialization before using session data
+  if (!sessionState.isInitialized) {
+    return <div>Loading session...</div>
+  }
+  
+  // Check if user has any sessions
+  const hasSessions = sessionState.sessions.length > 0
+  const hasImplicitSession = sessionState.sessions.some(s => s.type === 'implicit')
+  const hasExplicitSession = sessionState.sessions.some(s => s.type === 'explicit')
+  
+  return (
+    <div>
+      <h3>Session Status</h3>
+      <p>Initialized: {sessionState.isInitialized ? 'Yes' : 'No'}</p>
+      <p>Wallet: {sessionState.walletAddress || 'Not connected'}</p>
+      <p>Has Sessions: {hasSessions ? 'Yes' : 'No'}</p>
+      <p>Has Implicit Session: {hasImplicitSession ? 'Yes' : 'No'}</p>
+      <p>Has Explicit Session: {hasExplicitSession ? 'Yes' : 'No'}</p>
+      <p>Login Method: {sessionState.loginMethod || 'Unknown'}</p>
+      <p>User Email: {sessionState.userEmail || 'Not available'}</p>
+    </div>
+  )
+}
+```
+
+## 補足
+このフックはSequenceセッション状態へリアルタイムでアクセスでき、セッション情報が変化すると自動で更新されます。特に以下の用途で便利です：
+- 操作前にセッション準備ができているか確認
+- ウォレット接続状況の取得
+- アクティブなセッションやその種類の監視
+- ユーザー認証情報の取得
+
+このフックはセッションの更新を自動で購読し、セッション状態が変化するとコンポーネントを再レンダリングします。

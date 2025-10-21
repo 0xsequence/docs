@@ -1,0 +1,193 @@
+---
+sidebarTitle: Utilidades
+---
+
+Para facilitar la creación de smart sessions, ofrecemos un conjunto de funciones auxiliares.
+
+## `createContractPermission`
+Esta función auxiliar se utiliza para crear un permiso para una función de contrato inteligente.
+
+### Ejemplo
+
+```typescript
+import { createContractPermission } from "@0xsequence/connect";
+
+const AAVE_V3_POOL_ADDRESS_ARBITRUM = '0x794a61358D6845594F94dc1DB02A252b5b4814aD'
+
+const permission = createContractPermission({
+    address: AAVE_V3_POOL_ADDRESS_ARBITRUM,
+    functionSignature: 'function supply(address asset, uint256 amount, address onBehalfOf, uint16 referralCode)',
+    rules: [
+        {
+            param: 'asset',
+            type: 'address',
+            condition: 'EQUAL',
+            value: USDC_ADDRESS_ARBITRUM
+        },
+        {
+            param: 'amount',
+            type: 'uint256',
+            condition: 'LESS_THAN_OR_EQUAL',
+            value: parseUnits('1', 6),
+            cumulative: true
+        }
+    ]
+});
+```
+
+### Parámetros
+
+```typescript
+type CreateContractPermissionOptions = {
+  /** The address of the target contract. */
+  address: Address
+
+  /**
+   * The human-readable function signature.
+   * Example: 'function transfer(address to, uint256 amount)'
+   */
+  functionSignature?: string
+
+  /** An array of rules to apply to the function's arguments. */
+  rules?: Rule[]
+
+  /**
+   * If true, this function can only be successfully called once during the session.
+   * @default false
+   */
+  onlyOnce?: boolean
+}
+```
+
+#### `address`
+La dirección del contrato objetivo.
+
+#### `functionSignature`
+La firma legible de la función.
+
+#### `rules`
+Un array de reglas a aplicar a los argumentos de la función.
+
+```typescript
+type Rule = {
+  /** The name of the parameter from the function signature (e.g., 'to', 'amount'). */
+  param: string
+
+  /** The type of the parameter (address, uint256, etc.). */
+  type: ParamType
+
+  /** The comparison to perform on the parameter (EQUAL, NOT_EQUAL, GREATER_THAN_OR_EQUAL, LESS_THAN_OR_EQUAL). */
+  condition: RuleCondition
+
+  /** The value to compare against. Must match the `type`. */
+  value: string | number | bigint | boolean
+
+  /**
+   * Determines if the rule's value is a cumulative total across all calls to this function.
+   * @example
+   * For a `transfer` function on an ERC20 token, if we set a rule for the `amount` parameter to be 10 and we set `cumulative`
+   * to `true` then the dApp can make as many transfer calls as it wants but in total it cannot transfer more than 10 tokens.
+   * If `cumulative` is `false` then the dApp can transfer 10 tokens as many times as it wants if other conditions are met.
+   * This makes sense only for number values like amount of transfers, etc.
+   * @default true 
+   */
+  cumulative?: boolean
+}
+```
+
+#### `onlyOnce`
+Si es verdadero, esta función solo podrá llamarse exitosamente una vez durante la sesión.
+
+### Tipo de retorno
+Devuelve un Permission.
+
+```typescript
+type Permission = {
+  target: Address.Address
+  rules: ParameterRule[]
+}
+```
+
+## `createContractPermissions`
+Igual que [`createContractPermission`](#createcontractpermission), pero crea múltiples permisos para el mismo contrato.
+
+### Ejemplo
+
+```typescript
+import { createContractPermissions } from "@0xsequence/connect";
+
+const permissions = createContractPermissions({
+    address: AAVE_V3_POOL_ADDRESS_ARBITRUM,
+    functionSignatures: [
+        'function supply(address asset, uint256 amount, address onBehalfOf, uint16 referralCode)',
+        'function withdraw(address asset, uint256 amount, address to)',
+    ],
+    rules: [
+        {
+            param: 'asset',
+            type: 'address',
+            condition: 'EQUAL',
+            value: USDC_ADDRESS_ARBITRUM
+        }
+        {
+            param: 'amount',
+            type: 'uint256',
+            condition: 'LESS_THAN_OR_EQUAL',
+            value: parseUnits('1', 6),
+            cumulative: true
+        }
+    ]
+});
+```
+
+### Parámetros
+
+```typescript
+/**
+ * The options object for creating permissions.
+ */
+export type CreateContractPermissionsOptions = {
+  /** The address of the target contract. */
+  address: Address
+
+  /** An array of permissions for one or more functions on this contract. */
+  functions?: FunctionPermission[] | undefined | null
+}
+```
+
+#### `address`
+La dirección del contrato objetivo.
+
+#### `functions`
+Un arreglo de `FunctionPermission`
+
+```typescript
+type FunctionPermission = {
+  /**
+   * The human-readable function signature.
+   * Example: 'function transfer(address to, uint256 amount)'
+   */
+  functionSignature: string
+
+  /** An array of rules to apply to the function's arguments. */
+  rules?: Rule[]
+
+  /**
+   * If true, this function can only be successfully called once during the session.
+   * @default false
+   */
+  onlyOnce?: boolean
+}
+```
+
+### Tipo de retorno
+Devuelve un `Permission[]`.
+
+```typescript
+type Permission = {
+  target: Address.Address
+  rules: ParameterRule[]
+}
+```
+
+Vea estas utilidades en acción [aquí](/sdk/web/wallet-sdk/ecosystem/smart-sessions/examples#supply-usdc-to-aave-v3).

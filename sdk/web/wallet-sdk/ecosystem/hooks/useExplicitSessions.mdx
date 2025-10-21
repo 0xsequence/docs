@@ -1,0 +1,216 @@
+---
+title: "useExplicitSessions"
+description: Hook for managing explicit sessions for Sequence V3 wallet connections
+sidebarTitle: useExplicitSessions
+---
+
+## Import
+
+```tsx
+import { useExplicitSessions } from '@0xsequence/connect'
+```
+
+## Usage
+
+```tsx
+import { createContractPermission, createExplicitSession, useExplicitSessions, type Permission, type Session } from '@0xsequence/connect'
+import { useEffect, useState } from 'react'
+import { parseUnits } from 'viem'
+
+function App() {
+  const {
+    isLoading,
+    error,
+    addExplicitSession,
+    getExplicitSessions
+  } = useExplicitSessions()
+
+  const [sessions, setSessions] = useState<Session[]>([])
+
+  // Load existing sessions
+  useEffect(() => {
+    const loadSessions = async () => {
+      try {
+        const existingSessions = await getExplicitSessions()
+        setSessions(existingSessions)
+      } catch (err) {
+        console.error('Failed to load sessions:', err)
+      }
+    }
+
+    loadSessions()
+  }, [getExplicitSessions])
+
+  // Function to handle modifying an existing explicit session
+  const handleModifySession = () => {
+    const newPermission = createContractPermission({
+      address: '0x...',
+      functionSignature: 'function testContract() public'
+    })
+    const currentSession = sessions[0];
+    const modifiedSession = { ...currentSession, permissions: [...currentSession.permissions!, newPermission] }
+    modifyExplicitSession(modifiedSession)
+  }
+
+  // Handle creating a new explicit session
+  const handleCreateSession = async () => {
+    try {
+      const tokenSpendingSession = createExplicitSession({
+        chainId: 42161,
+        nativeTokenSpending: {
+          valueLimit: 0n,
+        },
+        expiresIn: {
+          days: 3
+        },
+        permissions: [
+          createContractPermission({
+            address: '0x...',
+            functionSignature: 'function transfer(address to, uint256 amount)',
+              rules: [
+                {
+                  param: 'amount',
+                  type: 'uint256',
+                  condition: 'LESS_THAN_OR_EQUAL',
+                  value: parseUnits('100', 6), // Max cumulative amount of 100 USDC
+                  cumulative: true
+                }
+              ]
+          })
+        ]
+      })
+
+      await addExplicitSession(42161, tokenSpendingSession)
+
+      // Refresh sessions after creating a new one
+      const updatedSessions = await getExplicitSessions()
+      setSessions(updatedSessions)
+    } catch (err) {
+      console.error('Failed to create session:', err)
+    }
+  }
+
+  if (isLoading) {
+    return <div>Creating session...</div>
+  }
+
+  if (error) {
+    return <div>Error: {error.message}</div>
+  }
+
+  return (
+    <div>
+      <h2>Explicit Sessions</h2>
+      <button onClick={handleCreateSession}>
+        Create New Session
+      </button>
+
+      <button onClick={handleModifySession}>
+        Modify Session
+      </button>
+
+      <div>
+        <h3>Existing Sessions ({sessions.length})</h3>
+        {sessions.map((session, index) => (
+          <div key={index}>
+            <p>Session Address: {session.address}</p>
+            <p>Chain ID: {session.chainId}</p>
+            <p>Is Implicit: {session.isImplicit ? 'Yes' : 'No'}</p>
+            <p>Permissions: {session.permissions?.permissions?.map((permission: Permission) => permission.target).join(', ')}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+```
+
+## Return Type
+
+The hook returns an object with the following properties:
+
+```tsx
+type UseExplicitSessionsReturnType = {
+  isLoading: boolean
+  error: Error | null
+  addExplicitSession: (chainId: ChainId, explicitSession: ExplicitSession) => Promise<void>
+  getExplicitSessions: () => Promise<Session[]>
+}
+```
+
+### Properties
+
+#### isLoading
+
+`boolean`
+
+A boolean indicating if the session request operation is in progress.
+
+#### error
+
+`Error | null`
+
+An error object if the last operation failed, otherwise `null`.
+
+#### addExplicitSession
+
+`(chainId: ChainId, explicitSession: ExplicitSession) => Promise<void>`
+
+```typescript
+type ExplicitSession = {
+  sessionAddress: Address.Address
+  valueLimit: bigint
+  deadline: bigint
+  permissions: Permission.Permission[]
+  chainId: number
+  type: 'explicit'
+}
+```
+
+Function to create a new explicit session.
+
+#### modifyExplicitSession
+
+`(explicitSession: ExplicitSession) => Promise<void>`
+
+```typescript
+type ExplicitSession = {
+  sessionAddress: Address.Address
+  valueLimit: bigint
+  deadline: bigint
+  permissions: Permission.Permission[]
+  chainId: number
+  type: 'explicit'
+}
+```
+
+Function to modify an existing explicit session.
+
+#### getExplicitSessions
+
+`() => Promise<Session[]>`
+
+```typescript
+type Session = {
+  type: 'explicit' | 'implicit'
+  sessionAddress: Address.Address
+  valueLimit?: bigint
+  deadline?: bigint
+  permissions?: Permission.Permission[]
+  chainId?: number
+}
+```
+
+Function to get all sessions for the connected wallet.
+
+## Notes
+
+This hook provides functionality for managing explicit sessions in Sequence V3 wallet connections.
+
+Key features:
+- Create new explicit sessions with custom permissions and spending limits
+- Retrieve all existing explicit sessions for the connected wallet
+- Modify existing explicit sessions
+- Built-in error handling for common connection issues
+- Loading states for better user experience
+- Automatic session filtering to only show explicit sessions

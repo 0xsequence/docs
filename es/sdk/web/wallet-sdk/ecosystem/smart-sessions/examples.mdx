@@ -1,0 +1,187 @@
+---
+sidebarTitle: Examples
+---
+
+## Aave
+
+### Suministrar USDC a Aave V3
+Con esta sesión, la dApp puede suministrar hasta 100 USDC al pool de Aave V3 en Arbitrum durante 24 horas.
+Solo puede suministrar en nombre de la wallet del usuario.
+
+```typescript
+import { type ExplicitSessionParams } from "@0xsequence/connect";
+
+export const USDC_ADDRESS_ARBITRUM = '0xaf88d065e77c8cC2239327C5EDb3A432268e5831'
+export const AAVE_V3_POOL_ADDRESS_ARBITRUM = '0x794a61358D6845594F94dc1DB02A252b5b4814aD'
+
+const aaveSupplySession: ExplicitSessionParams = {
+    chainId: 42161,
+    nativeTokenSpending: {
+        valueLimit: 0n,
+    },
+    expiresIn: {
+        hours: 24,
+    },
+    permissions: [
+        createContractPermission({
+            address: AAVE_V3_POOL_ADDRESS_ARBITRUM,
+            functionSignature: 'function supply(address asset, uint256 amount, address onBehalfOf, uint16 referralCode)',
+            rules: [
+                {
+                    param: 'asset',
+                    type: 'address',
+                    condition: 'EQUAL',
+                    value: USDC_ADDRESS_ARBITRUM,
+                },
+                {
+                    param: 'onBehalfOf',
+                    type: 'address',
+                    condition: 'EQUAL',
+                    value: {userWalletAddress},
+                },
+                {
+                    param: 'amount',
+                    type: 'uint256',
+                    condition: 'LESS_THAN_OR_EQUAL',
+                    value: parseUnits('100', 6),
+                },
+            ],
+        }),
+    ],
+};
+```
+
+### Retirar USDC del pool de Aave
+Con esta sesión, la dApp puede retirar hasta 100 USDC del pool de Aave V3 en Arbitrum durante 24 horas.
+Solo puede retirar a la dirección de la wallet del usuario.
+
+```typescript
+import { type ExplicitSessionParams } from "@0xsequence/connect";
+
+export const USDC_ADDRESS_ARBITRUM = '0xaf88d065e77c8cC2239327C5EDb3A432268e5831'
+export const AAVE_V3_POOL_ADDRESS_ARBITRUM = '0x794a61358D6845594F94dc1DB02A252b5b4814aD'
+
+const aaveWithdrawSession: ExplicitSessionParams = {
+    chainId: 42161,
+    nativeTokenSpending: {
+        valueLimit: 0n,
+    },
+    expiresIn: {
+        hours: 24,
+    },
+    permissions: [
+        createContractPermission({
+            address: '0x...',
+            functionSignature: 'function withdraw(address asset, uint256 amount, address to)',
+            rules: [
+                {
+                    param: 'asset',
+                    type: 'address',
+                    condition: 'EQUAL',
+                    value: USDC_ADDRESS_ARBITRUM,
+                },
+                {
+                    param: 'amount',
+                    type: 'uint256',
+                    condition: 'LESS_THAN_OR_EQUAL',
+                    value: parseUnits('100', 6),
+                },
+                {
+                    param: 'to',
+                    type: 'address',
+                    condition: 'EQUAL',
+                    value: {userWalletAddress},
+                },
+            ],
+        }),
+    ],
+};
+```
+
+### Suministrar ETH a Aave
+Con esta sesión, la dApp puede suministrar hasta 0.1 ETH al pool de Aave V3 en Arbitrum durante 24 horas.
+Solo puede suministrar en nombre de la wallet del usuario, por lo que la dApp no puede aumentar su propia posición.
+
+```typescript
+import { type ExplicitSessionParams } from "@0xsequence/connect";
+
+export const AAVE_V3_WRAPPED_TOKEN_GATEWAY_ADDRESS_ARBITRUM = '0x794a61358D6845594F94dc1DB02A252b5b4814aD'
+export const AAVE_V3_POOL_ADDRESS_ARBITRUM = '0x794a61358D6845594F94dc1DB02A252b5b4814aD'
+
+const aaveSupplyETHSession: ExplicitSessionParams = {
+    chainId: 42161,
+    nativeTokenSpending: {
+        valueLimit: parseEther('0.1'),
+    },
+    expiresIn: {
+        hours: 24,
+    },
+    permissions: [
+        createContractPermission({
+            address: AAVE_V3_WRAPPED_TOKEN_GATEWAY_ADDRESS_ARBITRUM,
+            functionSignature: 'function depositETH(address pool, address onBehalfOf, uint16 referralCode)',
+            rules: [
+                {
+                    param: 'pool',
+                    type: 'address',
+                    condition: 'EQUAL',
+                    value: AAVE_V3_POOL_ADDRESS_ARBITRUM
+                },
+                {
+                    param: 'onBehalfOf',
+                    type: 'address',
+                    condition: 'EQUAL',
+                    value: {userWalletAddress},
+                }
+            ]
+        }),
+    ],
+};
+```
+
+### Pedir prestado USDC de Aave
+Con esta sesión, la dApp puede pedir prestado hasta 100 USDC del pool de Aave V3 en Arbitrum por 24 horas.
+Solo puede pedir prestado en nombre del wallet del usuario.
+
+```typescript
+import { type ExplicitSessionParams } from "@0xsequence/connect";
+
+export const USDC_ADDRESS_ARBITRUM = '0xaf88d065e77c8cC2239327C5EDb3A432268e5831'
+export const AAVE_V3_POOL_ADDRESS_ARBITRUM = '0x794a61358D6845594F94dc1DB02A252b5b4814aD'
+
+const aaveBorrowSession: ExplicitSessionParams = {
+    chainId: 42161,
+    nativeTokenSpending: {
+        valueLimit: 0n,
+    },
+    expiresIn: {
+        hours: 24,
+    },
+    permissions: [
+        createContractPermission({
+            address: AAVE_V3_POOL_ADDRESS_ARBITRUM,
+            functionSignature: 'function borrow(address asset, uint256 amount, uint256 interestRateMode, uint16 referralCode, address onBehalfOf)',
+            rules: [
+                {
+                    param: 'asset',
+                    type: 'address',
+                    condition: 'EQUAL',
+                    value: USDC_ADDRESS_ARBITRUM,
+                },
+                {
+                    param: 'amount',
+                    type: 'uint256',
+                    condition: 'LESS_THAN_OR_EQUAL',
+                    value: parseUnits('100', 6), // 100 USDC
+                },
+                {
+                    param: 'onBehalfOf',
+                    type: 'address',
+                    condition: 'EQUAL',
+                    value: {userWalletAddress},
+                }
+            ],
+        }),
+    ],
+};
+```

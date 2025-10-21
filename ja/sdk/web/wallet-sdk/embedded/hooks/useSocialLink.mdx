@@ -1,0 +1,81 @@
+---
+title: useSocialLink
+description: ソーシャルリンクモーダルの状態や設定を管理するためのフックです
+sidebarTitle: useSocialLink
+---
+
+## インポート
+
+```tsx
+import { useSocialLink } from '@0xsequence/connect'
+```
+
+## 使い方
+
+```tsx
+import { useSocialLink } from '@0xsequence/connect'
+
+function App() {
+  const { isSocialLinkOpen, waasConfigKey, setIsSocialLinkOpen } = useSocialLink()
+  
+  const handleOpenSocialLink = () => {
+    setIsSocialLinkOpen(true)
+  }
+  
+  const handleCloseSocialLink = () => {
+    setIsSocialLinkOpen(false)
+  }
+  
+  return (
+    <div>
+      <button onClick={handleOpenSocialLink}>
+        Open Social Link
+      </button>
+      
+      {isSocialLinkOpen && (
+        <div>
+          <p>Social Link modal is open</p>
+          <p>WaaS Config Key: {waasConfigKey || 'Not available'}</p>
+          <button onClick={handleCloseSocialLink}>
+            Close Modal
+          </button>
+        </div>
+      )}
+    </div>
+  )
+}
+```
+
+## 戻り値の型：`UseSocialLinkReturnType`
+このフックは以下のプロパティを持つオブジェクトを返します。
+
+```tsx
+type UseSocialLinkReturnType = {
+  isSocialLinkOpen: boolean
+  waasConfigKey: string | null
+  setIsSocialLinkOpen: (isOpen: boolean) => void
+}
+```
+
+### プロパティ
+
+#### isSocialLinkOpen
+`boolean`
+
+ソーシャルリンクモーダルが現在開いているか（`true`）閉じているか（`false`）を示します。
+
+#### waasConfigKey
+`string | null`
+
+ソーシャルリンク機能に紐づくWaaS設定キー。利用できない場合は`null`です。
+
+#### setIsSocialLinkOpen
+`(isOpen: boolean) => void`
+
+ソーシャルリンクモーダルを開閉する関数です。
+
+**パラメータ：**
+
+| パラメータ    | 型         | 説明                                  |
+| -------- | --------- | ----------------------------------- |
+| `isOpen` | `boolean` | モーダルが開いているか（`true`）、閉じているか（`false`） |

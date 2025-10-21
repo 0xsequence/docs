@@ -1,0 +1,191 @@
+---
+sidebarTitle: Examples
+---
+
+## Aave 
+
+### Supply USDC to Aave V3
+
+With this session, dApp is able to supply up to 100 USDC into the Aave V3 pool on Arbitrum for 24 hours. 
+It can only supply on behalf of the user wallet.
+
+```typescript
+import { type ExplicitSessionParams } from "@0xsequence/connect";
+
+export const USDC_ADDRESS_ARBITRUM = '0xaf88d065e77c8cC2239327C5EDb3A432268e5831'
+export const AAVE_V3_POOL_ADDRESS_ARBITRUM = '0x794a61358D6845594F94dc1DB02A252b5b4814aD'
+
+const aaveSupplySession: ExplicitSessionParams = {
+    chainId: 42161,
+    nativeTokenSpending: {
+        valueLimit: 0n,
+    },
+    expiresIn: {
+        hours: 24,
+    },
+    permissions: [
+        createContractPermission({
+            address: AAVE_V3_POOL_ADDRESS_ARBITRUM,
+            functionSignature: 'function supply(address asset, uint256 amount, address onBehalfOf, uint16 referralCode)',
+            rules: [
+                {
+                    param: 'asset',
+                    type: 'address',
+                    condition: 'EQUAL',
+                    value: USDC_ADDRESS_ARBITRUM,
+                },
+                {
+                    param: 'onBehalfOf',
+                    type: 'address',
+                    condition: 'EQUAL',
+                    value: {userWalletAddress},
+                },
+                {
+                    param: 'amount',
+                    type: 'uint256',
+                    condition: 'LESS_THAN_OR_EQUAL',
+                    value: parseUnits('100', 6),
+                },
+            ],
+        }),
+    ],
+};
+```
+
+### Withdraw USDC from Aave Pool
+
+With this session, dApp is able to withdraw up to 100 USDC from the Aave V3 pool on Arbitrum for 24 hours. 
+It can only withdraw to the user's wallet address.
+
+```typescript
+import { type ExplicitSessionParams } from "@0xsequence/connect";
+
+export const USDC_ADDRESS_ARBITRUM = '0xaf88d065e77c8cC2239327C5EDb3A432268e5831'
+export const AAVE_V3_POOL_ADDRESS_ARBITRUM = '0x794a61358D6845594F94dc1DB02A252b5b4814aD'
+
+const aaveWithdrawSession: ExplicitSessionParams = {
+    chainId: 42161,
+    nativeTokenSpending: {
+        valueLimit: 0n,
+    },
+    expiresIn: {
+        hours: 24,
+    },
+    permissions: [
+        createContractPermission({
+            address: '0x...',
+            functionSignature: 'function withdraw(address asset, uint256 amount, address to)',
+            rules: [
+                {
+                    param: 'asset',
+                    type: 'address',
+                    condition: 'EQUAL',
+                    value: USDC_ADDRESS_ARBITRUM,
+                },
+                {
+                    param: 'amount',
+                    type: 'uint256',
+                    condition: 'LESS_THAN_OR_EQUAL',
+                    value: parseUnits('100', 6),
+                },
+                {
+                    param: 'to',
+                    type: 'address',
+                    condition: 'EQUAL',
+                    value: {userWalletAddress},
+                },
+            ],
+        }),
+    ],
+};
+```
+
+### Supply ETH to Aave
+
+With this session, dApp is able to supply up to 0.1 ETH to the Aave V3 pool on Arbitrum for 24 hours. 
+It can only supply on behalf of the user wallet, so dApp cannot increase its own position.
+
+```typescript
+import { type ExplicitSessionParams } from "@0xsequence/connect";
+
+export const AAVE_V3_WRAPPED_TOKEN_GATEWAY_ADDRESS_ARBITRUM = '0x794a61358D6845594F94dc1DB02A252b5b4814aD'
+export const AAVE_V3_POOL_ADDRESS_ARBITRUM = '0x794a61358D6845594F94dc1DB02A252b5b4814aD'
+
+const aaveSupplyETHSession: ExplicitSessionParams = {
+    chainId: 42161,
+    nativeTokenSpending: {
+        valueLimit: parseEther('0.1'),
+    },
+    expiresIn: {
+        hours: 24,
+    },
+    permissions: [
+        createContractPermission({
+            address: AAVE_V3_WRAPPED_TOKEN_GATEWAY_ADDRESS_ARBITRUM,
+            functionSignature: 'function depositETH(address pool, address onBehalfOf, uint16 referralCode)',
+            rules: [
+                {
+                    param: 'pool',
+                    type: 'address',
+                    condition: 'EQUAL',
+                    value: AAVE_V3_POOL_ADDRESS_ARBITRUM
+                },
+                {
+                    param: 'onBehalfOf',
+                    type: 'address',
+                    condition: 'EQUAL',
+                    value: {userWalletAddress},
+                }
+            ]
+        }),
+    ],
+};
+```
+
+### Borrow USDC from Aave
+
+With this session, dApp is able to borrow up to 100 USDC from the Aave V3 pool on Arbitrum for 24 hours. 
+It can only borrow on behalf of the user wallet.
+
+```typescript
+import { type ExplicitSessionParams } from "@0xsequence/connect";
+
+export const USDC_ADDRESS_ARBITRUM = '0xaf88d065e77c8cC2239327C5EDb3A432268e5831'
+export const AAVE_V3_POOL_ADDRESS_ARBITRUM = '0x794a61358D6845594F94dc1DB02A252b5b4814aD'
+
+const aaveBorrowSession: ExplicitSessionParams = {
+    chainId: 42161,
+    nativeTokenSpending: {
+        valueLimit: 0n,
+    },
+    expiresIn: {
+        hours: 24,
+    },
+    permissions: [
+        createContractPermission({
+            address: AAVE_V3_POOL_ADDRESS_ARBITRUM,
+            functionSignature: 'function borrow(address asset, uint256 amount, uint256 interestRateMode, uint16 referralCode, address onBehalfOf)',
+            rules: [
+                {
+                    param: 'asset',
+                    type: 'address',
+                    condition: 'EQUAL',
+                    value: USDC_ADDRESS_ARBITRUM,
+                },
+                {
+                    param: 'amount',
+                    type: 'uint256',
+                    condition: 'LESS_THAN_OR_EQUAL',
+                    value: parseUnits('100', 6), // 100 USDC
+                },
+                {
+                    param: 'onBehalfOf',
+                    type: 'address',
+                    condition: 'EQUAL',
+                    value: {userWalletAddress},
+                }
+            ],
+        }),
+    ],
+};
+```

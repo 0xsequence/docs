@@ -1,0 +1,83 @@
+---
+title: useTransferFundsModal
+description: Hook para gestionar el estado y la configuración del modal de transferencia de fondos
+sidebarTitle: useTransferFundsModal
+---
+
+## Importar
+
+```tsx
+import { useTransferFundsModal } from '@0xsequence/checkout'
+```
+
+## Uso
+
+```tsx
+import { useTransferFundsModal } from '@0xsequence/checkout'
+import { useAccount } from 'wagmi'
+
+function App() {
+  const { openTransferFundsModal } = useTransferFundsModal()
+  const { address } = useAccount()
+  
+  const handleOpenTransfer = () => {
+    openTransferFundsModal({ walletAddress: address || '' })
+  }
+  
+  return (
+    <div>
+      <button onClick={handleOpenTransfer}>
+        Receive Funds
+      </button>
+    </div>
+  )
+}
+```
+
+## Tipo de Retorno: `UseTransferFundsModalReturnType`
+El hook retorna un objeto con las siguientes propiedades:
+
+```tsx
+type UseTransferFundsModalReturnType = {
+  openTransferFundsModal: (settings: TransferFundsSettings) => void
+  closeTransferFundsModal: () => void
+  transferFundsSettings: TransferFundsSettings | null
+}
+```
+
+### Propiedades
+
+#### openTransferFundsModal
+`(settings: TransferFundsSettings) => void`
+
+```tsx
+interface TransferFundsSettings {
+  walletAddress: string | Hex
+  onClose?: () => void
+}
+```
+
+Función para abrir el modal de transferencia de fondos con la configuración especificada.
+
+**Parámetros:**
+
+| Parámetro  | Type                    | Description                                                      |
+| ---------- | ----------------------- | ---------------------------------------------------------------- |
+| `settings` | `TransferFundsSettings` | Objeto de configuración para el modal de transferencia de fondos |
+
+#### closeTransferFundsModal
+`() => void`
+
+Función para cerrar el modal de transferencia de fondos.
+
+#### transferFundsSettings
+`TransferFundsSettings | null`
+
+```tsx
+    interface TransferFundsSettings {
+        walletAddress: string | Hex
+        onClose?: () => void
+    }
+```
+
+La configuración actual del modal de transferencia de fondos, o `null` si el modal está cerrado.
