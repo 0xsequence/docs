@@ -24,8 +24,64 @@ Firmar mensajes en un navegador externo.
   </Tab>
 </Tabs>
 
+## Obtener opciones de comisión
+
+<Tabs>
+  <Tab title="Blueprint">
+    <Frame>
+      <img src="/images/unreal/ecosystem/get_fee_options.png" />
+    </Frame>
+  </Tab>
+
+  <Tab title="C++">
+    ```cpp
+    const FString To = TEXT("0x33985d320809E26274a72E03268c8a29927Bc6dA");
+    const FString FunctionSignature = TEXT("explicitEmit()");
+    const int64 Value = 0;
+    const TArray<FString> Values = { };
+
+    UContractTransaction* Transaction = UContractTransaction::CreateContractTransaction(To, Value, FunctionSignature, Values);
+
+    const TSuccessCallback<FFeeOptionsResponse> SuccessCallback = [OnSuccess](const FFeeOptionsResponse& Response) { };
+    const FFailureCallback FailureCallback = [OnFailure](const FSequenceError& Error) { };
+
+    USequenceWallet* Wallet = NewObject<USequenceWallet>();
+    Wallet->GetFeeOptions(Transaction, SuccessCallback, FailureCallback);
+    ```
+  </Tab>
+</Tabs>
+
+## Enviar transacciones
+
+<Tabs>
+  <Tab title="Blueprint">
+    <Frame>
+      <img src="/images/unreal/ecosystem/send_transaction.png" />
+    </Frame>
+  </Tab>
+
+  <Tab title="C++">
+    ```cpp
+    const FString To = TEXT("0x33985d320809E26274a72E03268c8a29927Bc6dA");
+    const FString FunctionSignature = TEXT("explicitEmit()");
+    const int64 Value = 0;
+    const TArray<FString> Values = { };
+
+    UContractTransaction* Transaction = UContractTransaction::CreateContractTransaction(To, Value, FunctionSignature, Values);
+
+    FFeeOption EmptyFee;
+
+    const TSuccessCallback<FString> SuccessCallback = [OnSuccess](const FString& Result) { };
+    const FFailureCallback FailureCallback = [OnFailure](const FSequenceError& Error) { };
+
+    USequenceWallet* Wallet = NewObject<USequenceWallet>();
+    Wallet->SendTransaction(Transaction, EmptyFee, SuccessCallback, FailureCallback);
+    ```
+  </Tab>
+</Tabs>
+
 ## Enviar transacciones sin permisos
-Enviar transacciones sin pagar comisiones de gas en cualquier testnet o cuando use Gas Sponsorship.
+Envíe transacciones en un navegador externo.
 
 <Tabs>
   <Tab title="Blueprint">
@@ -36,7 +92,7 @@ Enviar transacciones sin pagar comisiones de gas en cualquier testnet o cuando u
 
   <Tab title="C++">
     ```cpp
-    const FString To = TEXT("");
+    const FString To = TEXT("0x33985d320809E26274a72E03268c8a29927Bc6dA");
     const FString FunctionSignature = TEXT("explicitEmit()");
     const int64 Value = 0;
     const TArray<FString> Values = { };
