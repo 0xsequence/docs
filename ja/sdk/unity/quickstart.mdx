@@ -51,4 +51,26 @@ description: Sequence Unity SDK のクイックスタートドキュメントで
       <img src="/images/unity/unity_boilerplate_profile.png" />
     </Frame>
   </Step>
+
+  <Step title="自分で統合する">
+    `EmbeddedWalletAdapter` を使えば、数行のコードで素早く統合を始めることができ、すぐに利用を開始できます。
+    さらにカスタマイズしたい場合は、[ユーザー認証について](/sdk/unity/onboard/authentication/intro) や [トランザクション送信方法](/sdk/unity/power/write-to-blockchain) など、他のドキュメントもご覧ください。
+
+    ```csharp
+    EmbeddedWalletAdapter adapter = EmbeddedWalletAdapter.GetInstance();
+
+    // Recover your wallet from storage
+    bool recovered = await adapter.TryRecoverWalletFromStorage();
+
+    // Otherwise, create a new session via Google Sign-In
+    bool successful = await adapter.GoogleLogin();
+
+    // Next, let's send a transaction
+    string recipientAddress = "0xabc123..";
+    string currencyAddress = "0xabc123..";
+    BigInteger amount = 1000;
+
+    await adapter.SendToken(recipientAddress, amount, currencyAddress);
+    ```
+  </Step>
 </Steps>
