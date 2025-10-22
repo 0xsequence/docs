@@ -24,7 +24,7 @@ To send a transaction to a specific contract, you must first create a session wi
 <Tabs>
     <Tab title="Blueprint">
         <Frame>
-            <img src="/images/unreal/ecosystem/login_demo.png" />
+            <img src="/images/unreal/ecosystem/contract_permissions.png" />
         </Frame>
     </Tab>
     <Tab title="C++">
@@ -35,7 +35,21 @@ To send a transaction to a specific contract, you must first create a session wi
         const int64 ValueLimit = 0;
 
         UContractPermissions* Permissions = UContractPermissions::CreateContractPermissions(ChainId, Target, Deadline, ValueLimit);
+        ```
+    </Tab>
+</Tabs>
 
+Next, let's use the permissions object and call one of the authentication functions, such as `Sign In with Google`.
+Alternatively, you can leave the permissions empty to create an implicit session.
+
+<Tabs>
+    <Tab title="Blueprint">
+        <Frame>
+            <img src="/images/unreal/ecosystem/sign_in_google.png" />
+        </Frame>
+    </Tab>
+    <Tab title="C++">
+        ```cpp
         const TSuccessCallback<bool> SuccessCallback = [this, OnSuccess](bool Result) { };
         const FFailureCallback FailureCallback = [OnFailure](const FSequenceError& Error) { };
 
@@ -52,7 +66,7 @@ Finally, let’s use our wallet session to send a transaction to the contract ad
 <Tabs>
     <Tab title="Blueprint">
         <Frame>
-            <img src="/images/unreal/ecosystem/send_transaction.png" />
+            <img src="/images/unreal/ecosystem/contract_transaction.png" />
         </Frame>
     </Tab>
     <Tab title="C++">
@@ -63,7 +77,21 @@ Finally, let’s use our wallet session to send a transaction to the contract ad
         const TArray<FString> Values = { };
 
         UContractTransaction* Transaction = UContractTransaction::CreateContractTransaction(To, Value, FunctionSignature, Values);
+        ```
+    </Tab>
+</Tabs>
 
+Let's use the transaction object and pass it to the `SendTransaction` function. Optionally, you can [get fee options](/sdk/unreal/ecosystem-wallet/blockchain#get-fee-options) first if you interact
+on a mainnet and you don't use gas sponsorship.
+
+<Tabs>
+    <Tab title="Blueprint">
+        <Frame>
+            <img src="/images/unreal/ecosystem/send_transaction.png" />
+        </Frame>
+    </Tab>
+    <Tab title="C++">
+        ```cpp
         const TSuccessCallback<FString> SuccessCallback = [OnSuccess](const FString& Result) { };
         const FFailureCallback FailureCallback = [OnFailure](const FSequenceError& Error) { };
 
