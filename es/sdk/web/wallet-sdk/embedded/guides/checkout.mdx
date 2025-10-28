@@ -1,30 +1,30 @@
 ---
-title: チェックアウトモーダル
-description: チェックアウトモーダルは、暗号資産決済を簡単に実装できる開発者向けの機能です。
-sidebarTitle: チェックアウトモーダル
+title: Modal de Checkout
+description: El Modal de Checkout ofrece a los desarrolladores una forma sencilla de implementar pagos con criptomonedas.
+sidebarTitle: Modal de Checkout
 ---
 
-Sequence Checkoutを使うと、ユーザーはマーケットプレイスなどの一次・二次販売コントラクトで、ERC721またはERC1155トークンを以下の方法で簡単に購入できます：
-- ウォレット内の任意の暗号資産で購入
-- 他のウォレットからSequenceウォレットに資金を受け取り、そのまま購入
-- クレジットカードやデビットカードで支払い（地域・チェーン・通貨ごとに最適なプロバイダーを自動判別）
-- ウォレット内の他の暗号資産を自動スワップして購入
+Sequence Checkout permite a los usuarios comprar fácilmente un token ERC721 o ERC1155 con un contrato de venta primaria o secundaria, como un marketplace, con las siguientes opciones de pago:
+- Comprar con cualquier criptomoneda en el wallet.
+- Recibir fondos desde otro wallet a un wallet de Sequence y comprar.
+- Pagar usando una tarjeta de crédito o débito, que detectará automáticamente el proveedor correcto según la región, la red y la moneda.
+- Pagar con otra criptomoneda en un wallet realizando un swap automático y la compra.
 
-専用ライブラリ`@0xsequence/checkout`をインストールし、`@0xsequence/connect`と組み合わせて使うことで、統合されたチェックアウトフローを利用できます。
+Contamos con un flujo de checkout integrado que puede aprovechar instalando la librería dedicada `@0xsequence/checkout` y usándola junto con `@0xsequence/connect`.
 
 <Frame>
   ![](/images/kit/checkout-modal.png)
 </Frame>
 
 <Note>
-  チェックアウトでクレジットカード決済を有効にするには、Sequenceチームまでご連絡ください。コントラクトアドレスの許可リスト登録と、組織のKYB手続きが必要です。クレジットカード決済は一部ネットワークのメインネットのみ対応しています。
+  Para habilitar pagos con tarjeta de crédito en el checkout, por favor, contacte al equipo de Sequence ya que la dirección de su contrato deberá estar permitida (allowlisted) y su organización deberá pasar por un proceso KYB (Know Your Business). Los pagos con tarjeta de crédito solo funcionan en las mainnets de varias redes.
 </Note>
 
-# インストールとセットアップ
-チェックアウト機能を統合するには、以下の手順に従ってください：
+# Instalación y configuración
+Para integrar la función de checkout, siga estos pasos:
 
 <Steps>
-  <Step title="`@0xsequence/checkout`ライブラリをインストールします：">
+  <Step title="Instale la librería `@0xsequence/checkout`:">
     ```bash
     npm install @0xsequence/checkout
     # or
@@ -34,7 +34,7 @@ Sequence Checkoutを使うと、ユーザーはマーケットプレイスなど
     ```
   </Step>
 
-  <Step title="アプリ内でSequenceConnect Providerの下に`SequenceCheckoutProvider`を配置します：">
+  <Step title="Coloque el `SequenceCheckoutProvider` debajo del SequenceConnect Provider en su App:">
     ```jsx
     import { SequenceCheckoutProvider } from '@0xsequence/checkout'
     import { SequenceConnect } from '@0xsequence/connect'
@@ -53,12 +53,12 @@ Sequence Checkoutを使うと、ユーザーはマーケットプレイスなど
   </Step>
 </Steps>
 
-セットアップが完了したら、さまざまなユースケースでチェックアウトモーダルを使う方法を見てみましょう。
+Ahora que hemos realizado la configuración, veamos cómo usar el modal de checkout para diferentes casos de uso.
 
-## ERC1155トークンでのチェックアウト
-ERC1155トークン用の便利なユーティリティ関数があり、チェックアウトモーダルの設定が簡単にできます。
+## Checkout con un token ERC1155
+Disponemos de funciones utilitarias para tokens ERC1155 que hacen más sencilla la configuración del modal de checkout.
 
-以下はサンプル変数を使った設定例です：
+Aquí hay una configuración con variables de ejemplo:
 
 ```jsx
   import { useERC1155SaleContractCheckout } from "@0xsequence/checkout";
@@ -97,8 +97,8 @@ ERC1155トークン用の便利なユーティリティ関数があり、チェ�
   };
 ```
 
-## カスタムコントラクト
-`useSelectPaymentModal`フックを使ってチェックアウトモーダルを開き、設定オブジェクトを渡します。カスタムコントラクトの場合は、コントラクトABIやコールデータのエンコードも指定できます（この例では`ethers`や`viem`の`encodeFunctionData`ユーティリティを使用）。
+## Contrato personalizado
+Instanciamos el hook `useSelectPaymentModal` para abrir el modal de checkout y pasar un objeto de configuración. Además, para contratos personalizados, puede especificar un ABI de contrato junto con la codificación de los datos de la llamada; en este caso estamos usando la utilidad `encodeFunctionData` de `ethers` y `viem`.
 
 ```tsx
 import { useAccount } from 'wagmi'
@@ -192,4 +192,4 @@ const MyComponent = () => {
 }
 ```
 
-おめでとうございます！これでWeb SDKでチェックアウトモーダルを使う方法が習得できました。
+¡Felicidades! Ahora sabe cómo usar el Modal de Checkout con Web SDK.
