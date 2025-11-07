@@ -2,48 +2,60 @@
 title: "LLM Integrations"
 description: There are several ways to integrate Sequence with LLMs to get intelligent assistance with Sequence-related development tasks, from querying blockchain data to interacting with smart contracts.
 sidebarTitle: LLM Integrations
+icon: 'robot'
 ---
 
 ## MCP Server
 
-The Sequence MCP Server allows you to leverage powerful AI agents like Claude directly in your preferred IDE. This integration enables you to get intelligent assistance with Sequence-related development tasks, from querying blockchain data to interacting with smart contracts.
+The Sequence MCP Server allows you to leverage AI agents like Claude or Cursor seamlessly with Sequence.
 
-### Prerequisites
+The server is available at:
 
-Before you begin, ensure you have:
-- Node.js installed on your system
-- A supported IDE (Cursor or Claude Desktop)
-- npm or yarn package manager
+`https://docs.sequence.xyz/mcp`
 
-### Installation Steps
+### Connect in Cursor
 
-1. Open your terminal and run the following command:
-   ```bash
-   npx @mintlify/mcp@latest add sequence-0fb8d9e6
-   ```
+1. Use <kbd>Command</kbd> + <kbd>Shift</kbd> + <kbd>P</kbd> (<kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>P</kbd> on Windows) to open the command palette.
+2. Search for "Open MCP settings".
+3. Select **Add custom MCP** to open the `mcp.json` file.
+4. In `mcp.json`, add the Sequence server:
 
-2. When prompted, select your preferred MCP Client:
-   - Cursor
-   - Claude Desktop
+```json
+{
+  "mcpServers": {
+    "Sequence": {
+      "url": "https://docs.sequence.xyz/mcp"
+    }
+  }
+}
+```
 
-3. The installation process will automatically configure the Sequence MCP Server for your selected application.
+5. In Cursor chat, ask "What tools do you have available?" to confirm the Sequence MCP server is listed.
 
-### Using the MCP Server
+See the [Cursor documentation](https://docs.cursor.com/en/context/mcp#installing-mcp-servers) for more details.
 
-Once installed, you can start using the AI assistance in your IDE. Here's how:
+### Connect in Claude
 
-1. Open your IDE (Cursor or Claude Desktop)
-2. Start typing your query related to Sequence development
-3. The AI agent will process your request and provide relevant assistance
+1. Navigate to the [Developers] page in Claude Desktop.
+2. Select **Edit config** if you have an existing MCP configuration or add a new one.
+3. Open your config file and add the Sequence MCP server:
+   - Name: `Sequence`
+   - URL: `https://docs.sequence.xyz/mcp`
+4. Save the configuration
+5. In a Claude chat, select the `Search and tools` and make sure your configuration file with Sequence is enabled.
+6. Ask a question about Sequence!
+
+See the [Model Context Protocol docs](https://modelcontextprotocol.io/docs/tutorials/use-remote-mcp-server#connecting-to-a-remote-mcp-server) for more details.
 
 ### Example Queries
 
 You can ask questions like:
-- "Create a script to query token balances and metadata for address 0x8e3E38fe7367dd3b52D1e281E4e8400447C8d8B9"
 - "How do I integrate Sequence embedded wallets?"
-- "Show me how to fetch transaction history for a wallet"
+- "How do I use Sequence to query token balances?"
+- "What chains does Sequence support?"
 
 When your query is being processed, you'll see an indication like:
 ```
-> Calling MCP tool
+> Called SearchSequenceDocs
+
 ```
