@@ -52,4 +52,26 @@ description: Documentación de inicio rápido para el SDK de Unity de Sequence.
       <img src="/images/unity/unity_boilerplate_profile.png" />
     </Frame>
   </Step>
+
+  <Step title="Intégrelo por su cuenta">
+    Comience con `EmbeddedWalletAdapter` para iniciar su integración rápidamente con solo unas pocas líneas de código y estará listo para empezar.
+    Cuando desee personalizar su integración, consulte nuestra otra documentación como [autenticando usuarios](/sdk/unity/onboard/authentication/intro) o [cómo enviar transacciones](/sdk/unity/power/write-to-blockchain).
+
+    ```csharp
+    EmbeddedWalletAdapter adapter = EmbeddedWalletAdapter.GetInstance();
+
+    // Recover your wallet from storage
+    bool recovered = await adapter.TryRecoverWalletFromStorage();
+
+    // Otherwise, create a new session via Google Sign-In
+    bool successful = await adapter.GoogleLogin();
+
+    // Next, let's send a transaction
+    string recipientAddress = "0xabc123..";
+    string currencyAddress = "0xabc123..";
+    BigInteger amount = 1000;
+
+    await adapter.SendToken(recipientAddress, amount, currencyAddress);
+    ```
+  </Step>
 </Steps>

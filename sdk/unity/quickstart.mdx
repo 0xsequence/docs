@@ -50,4 +50,25 @@ Checkout [how to integrate a Player Profile.](/sdk/unity/bootstrap_game#player-p
     </Frame>
 
   </Step>
+    <Step title="Integrate it on your own">
+        Start with the `EmbeddedWalletAdapter` to quickstart your integration with a few one-liners and you are ready to go.
+        When you want to customize your integration, checkout our other docs such as [authenticating users](/sdk/unity/onboard/authentication/intro) or [how to send transactions.](/sdk/unity/power/write-to-blockchain)
+
+        ```csharp
+        EmbeddedWalletAdapter adapter = EmbeddedWalletAdapter.GetInstance();
+
+        // Recover your wallet from storage
+        bool recovered = await adapter.TryRecoverWalletFromStorage();
+
+        // Otherwise, create a new session via Google Sign-In
+        bool successful = await adapter.GoogleLogin();
+
+        // Next, let's send a transaction
+        string recipientAddress = "0xabc123..";
+        string currencyAddress = "0xabc123..";
+        BigInteger amount = 1000;
+
+        await adapter.SendToken(recipientAddress, amount, currencyAddress);
+        ```
+    </Step>
 </Steps>
