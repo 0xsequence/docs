@@ -1,0 +1,62 @@
+---
+title: useFilters
+description: Hook to fetch metadata filters for a collection Retrieves property filters for a collection from the metadata service, with support for marketplace-specific filter configuration including exclusion rules and custom ordering
+sidebarTitle: useFilters
+---
+
+## Parameters
+
+| Name                           | Type                        | Description                                                                                  |
+|--------------------------------|-----------------------------|----------------------------------------------------------------------------------------------|
+| `params.config`                | `SdkConfig`                 | Configuration parameters                                                                     |
+| `params.chainId`               | `number`                    | The chain ID (must be a number, e.g., 1 for Ethereum, 137 for Polygon)                       |
+| `params.collectionAddress`     | `string`                    | The collection contract address to fetch filters for                                         |
+| `params.showAllFilters`        | `boolean`                   | Whether to show all filters or apply marketplace filtering                                   |
+| `params.excludePropertyValues` | `boolean`                   | Whether to exclude property values from the response                                         |
+| `params.query`                 | `StandardQueryOptions`      | Optional React Query configuration (from TanStack Query)                                     |
+
+## Returns
+
+Query result containing property filters for the collection
+
+## Example
+
+Basic usage:
+```typescript
+const { data: filters, isLoading } = useFilters({
+  chainId: 137,
+  collectionAddress: '0x1234...'
+});
+
+if (filters) {
+  console.log(`Found ${filters.length} filters`);
+  filters.forEach(filter => {
+    console.log(`${filter.name}: ${filter.values?.join(', ')}`);
+  });
+}
+```
+
+With marketplace filtering disabled:
+```typescript
+const { data: allFilters } = useFilters({
+  chainId: 1,
+  collectionAddress: '0x5678...',
+  showAllFilters: true, // Bypass marketplace filter rules
+  query: {
+    enabled: Boolean(selectedCollection),
+    staleTime: 300000 // Cache for 5 minutes
+  }
+});
+```
+
+Exclude property values for faster loading:
+```typescript
+const { data: filterNames } = useFilters({
+chainId: 137,
+collectionAddress: collectionAddress,
+excludePropertyValues: true, // Only get filter names, not values
+query: {
+enabled: Boolean(collectionAddress)
+}
+})
+```
