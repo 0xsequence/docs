@@ -1,0 +1,44 @@
+---
+title: useCountOffersForCollectible
+description: Hook to get the count of offers for a specific collectible Counts the number of active offers for a given collectible in the marketplace. Useful for displaying offer counts in UI components
+sidebarTitle: useCountOffersForCollectible
+---
+
+## Parameters
+| Name                       | Type                        | Description                                                                                  |
+|----------------------------|-----------------------------|----------------------------------------------------------------------------------------------|
+| `params.config`            | `SdkConfig`                 | Configuration parameters                                                                     |
+| `params.chainId`           | `number`                    | The chain ID (must be a number, e.g., 1 for Ethereum, 137 for Polygon)                      |
+| `params.collectionAddress` | `string`                    | The collection contract address                                                              |
+| `params.collectibleId`     | `string`                    | The specific collectible/token ID                                                           |
+| `params.filter`            | `OrdersFilter`              | Optional filter criteria for offers                                                          |
+| `params.query`             | `StandardQueryOptions`      | Optional React Query configuration (from TanStack Query)                                     |
+
+## Returns
+
+Query result containing the count of offers
+
+## Example
+
+Basic usage:
+
+```typescript
+const { data: offerCount, isLoading } = useCountOffersForCollectible({
+  chainId: 137,
+  collectionAddress: '0x...',
+  collectibleId: '123'
+});
+```
+
+With filter:
+
+```typescript
+const { data: filteredCount } = useCountOffersForCollectible({
+  chainId: 137,
+  collectionAddress: '0x...',
+  collectibleId: '123',
+  filter: { 
+    priceRange: { min: '1000000000000000000' } 
+  }
+});
+```
