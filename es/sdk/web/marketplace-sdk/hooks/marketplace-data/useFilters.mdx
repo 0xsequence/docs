@@ -1,0 +1,63 @@
+---
+title: useFilters
+description: Hook para obtener filtros de metadatos de una colección. Recupera filtros de propiedades para una colección desde el servicio de metadatos, con soporte para configuración de filtros específica del marketplace, incluyendo reglas de exclusión y orden personalizado.
+sidebarTitle: useFilters
+---
+
+## Parámetros
+
+| Nombre                         | Tipo                   | Descripción                                                                             |
+| ------------------------------ | ---------------------- | --------------------------------------------------------------------------------------- |
+| `params.config`                | `SdkConfig`            | Parámetros de configuración                                                             |
+| `params.chainId`               | `number`               | El ID de la cadena (debe ser un número, por ejemplo, 1 para Ethereum, 137 para Polygon) |
+| `params.collectionAddress`     | `string`               | La dirección del contrato de la colección para obtener los filtros                      |
+| `params.showAllFilters`        | `boolean`              | Indica si se deben mostrar todos los filtros o aplicar el filtrado del marketplace      |
+| `params.excludePropertyValues` | `boolean`              | Indica si se deben excluir los valores de propiedad de la respuesta                     |
+| `params.query`                 | `StandardQueryOptions` | Configuración opcional de React Query (de TanStack Query)                               |
+
+## Devuelve
+Resultado de la consulta que contiene los filtros de propiedades para la colección
+
+## Ejemplo
+Uso básico:
+
+```typescript
+const { data: filters, isLoading } = useFilters({
+  chainId: 137,
+  collectionAddress: '0x1234...'
+});
+
+if (filters) {
+  console.log(`Found ${filters.length} filters`);
+  filters.forEach(filter => {
+    console.log(`${filter.name}: ${filter.values?.join(', ')}`);
+  });
+}
+```
+
+Con el filtrado del marketplace desactivado:
+
+```typescript
+const { data: allFilters } = useFilters({
+  chainId: 1,
+  collectionAddress: '0x5678...',
+  showAllFilters: true, // Bypass marketplace filter rules
+  query: {
+    enabled: Boolean(selectedCollection),
+    staleTime: 300000 // Cache for 5 minutes
+  }
+});
+```
+
+Excluir valores de propiedad para una carga más rápida:
+
+```typescript
+const { data: filterNames } = useFilters({
+chainId: 137,
+collectionAddress: collectionAddress,
+excludePropertyValues: true, // Only get filter names, not values
+query: {
+enabled: Boolean(collectionAddress)
+}
+})
+```

@@ -1,0 +1,40 @@
+---
+title: useGetCountOfFilteredOrders
+description: El hook useGetCountOfFilteredOrders retorna la cantidad de órdenes filtradas en una colección
+sidebarTitle: useGetCountOfFilteredOrders
+---
+
+## Parámetros
+
+| Nombre                     | Tipo                   | Descripción                                                         |
+| -------------------------- | ---------------------- | ------------------------------------------------------------------- |
+| `params.chainId`           | `number`               | El ID de la cadena (por ejemplo, 1 para Ethereum, 137 para Polygon) |
+| `params.collectionAddress` | `string`               | La dirección del contrato de la colección                           |
+| `params.config`            | `SdkConfig`            | Parámetros opcionales de configuración del SDK                      |
+| `params.side`              | `OrderSide`            | El lado de la orden a contar (listing u oferta)                     |
+| `params.filter`            | `OrdersFilter`         | Filtro opcional para las órdenes                                    |
+| `params.query`             | `StandardQueryOptions` | Configuración opcional de React Query (de TanStack Query)           |
+
+## Devuelve
+Resultado de la consulta que contiene la cantidad de órdenes filtradas en una colección
+
+## Importar
+
+```typescript
+import { useGetCountOfFilteredOrders } from "@0xsequence/marketplace-sdk/react";
+```
+
+## Ejemplo
+Uso básico:
+
+```typescript
+const { data: countOfOrders } = useGetCountOfFilteredOrders({
+	chainId,
+	collectionAddress,
+	side: OrderSide.listing,
+	filter: {
+		searchText,
+		properties: filterOptions,
+	}
+});
+```

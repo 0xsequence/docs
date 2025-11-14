@@ -1,0 +1,45 @@
+---
+title: useHighestOffer
+description: コレクティブルの最高オファーを取得するフックです。指定したコレクション内の特定トークンに対して現在利用可能な最高額のオファーをマーケットプレイスから取得します。
+sidebarTitle: useHighestOffer
+---
+
+## パラメータ
+
+| 名前                         | 型                      | 説明                                     |
+| -------------------------- | ---------------------- | -------------------------------------- |
+| `params.chainId`           | `number`               | チェーンID（数値で指定、例：Ethereumは1、Polygonは137） |
+| `params.collectionAddress` | `string`               | コレクションコントラクトのアドレス                      |
+| `params.tokenId`           | `string`               | コレクション内のトークンID                         |
+| `params.filter`            | `OrderFilter`          | 注文のためのオプションのフィルター                      |
+| `params.query`             | `StandardQueryOptions` | オプションのReact Query設定（TanStack Query由来）  |
+
+## 戻り値
+最高オファーデータ、またはオファーが存在しない場合はnullを含むクエリ結果
+
+## 例
+基本的な使い方：
+
+```typescript
+const { data, isLoading } = useHighestOffer({
+  chainId: 137,
+  collectionAddress: '0x...',
+  tokenId: '1'
+});
+```
+
+カスタムクエリオプションを使う場合：
+
+```typescript
+const hasTokenId = true;
+
+const { data, isLoading } = useHighestOffer({
+  chainId: 1,
+  collectionAddress: '0x...',
+  tokenId: '42',
+  query: {
+    refetchInterval: 15000,
+    enabled: hasTokenId
+  }
+});
+```
