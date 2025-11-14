@@ -1,0 +1,39 @@
+---
+title: useCurrency
+description: マーケットプレイスから通貨情報を取得するフックです。指定したコントラクトアドレスの通貨について詳細情報を取得します。通貨データは可能な限り過去の通貨リスト呼び出しからキャッシュされます。
+sidebarTitle: useCurrency
+---
+
+## パラメータ
+
+| 名前                       | 型                      | 説明                                     |
+| ------------------------ | ---------------------- | -------------------------------------- |
+| `params.config`          | `SdkConfig`            | 設定パラメータ                                |
+| `params.chainId`         | `number`               | チェーンID（数値で指定、例：Ethereumは1、Polygonは137） |
+| `params.currencyAddress` | `string`               | 通貨コントラクトアドレス                           |
+| `params.query`           | `StandardQueryOptions` | オプションのReact Query設定（TanStack Query由来）  |
+
+## 戻り値
+通貨の詳細情報を含むクエリ結果
+
+## 例
+基本的な使い方：
+
+```typescript
+const { data, isLoading } = useCurrency({
+  chainId: 137,
+  currencyAddress: '0x...'
+});
+```
+
+カスタムクエリオプションを使う場合：
+
+```typescript
+const { data, isLoading } = useCurrency({
+  chainId: 1,
+  currencyAddress: '0x...',
+  query: {
+    enabled: true
+  }
+});
+```

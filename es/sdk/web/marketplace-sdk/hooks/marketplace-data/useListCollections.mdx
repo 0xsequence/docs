@@ -1,0 +1,50 @@
+---
+title: useListCollections
+description: Hook para obtener colecciones desde la configuración del marketplace. Recupera todas las colecciones configuradas en el marketplace, con filtrado opcional por tipo de marketplace. Combina metadatos de la API de metadatos con la configuración del marketplace para proporcionar información completa de las colecciones.
+sidebarTitle: useListCollections
+---
+
+## Parámetros
+
+| Nombre                     | Tipo                | Descripción                                            |
+| -------------------------- | ------------------- | ------------------------------------------------------ |
+| `params.config`            | `SdkConfig`         | Parámetros de configuración opcionales                 |
+| `params.marketplaceConfig` | `MarketplaceConfig` | Parámetros opcionales de configuración del Marketplace |
+| `params.cardType`          | `CardType`          | Filtro opcional por tipo de marketplace                |
+| `params.query`             | `any`               | Configuración opcional de React Query                  |
+
+## Devuelve
+Resultado de la consulta que contiene un arreglo de colecciones con metadatos configurados en Sequence Builder
+
+## Importar
+
+```typescript
+import { useCollection } from "@0xsequence/marketplace-sdk/react";
+```
+
+## Ejemplo
+Uso básico:
+
+```typescript
+const { data: collections, isLoading } = useListCollections();
+
+if (isLoading) return <div>Loading collections...</div>;
+
+return (
+  <div>
+    {collections?.map(collection => (
+      <div key={collection.itemsAddress}>
+        {collection.name}
+      </div>
+    ))}
+  </div>
+);
+```
+
+Filtrado por tipo de marketplace:
+
+```typescript
+const { data: marketCollections } = useListCollections({
+	cardType: 'market'
+});
+```

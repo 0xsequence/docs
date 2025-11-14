@@ -1,0 +1,29 @@
+---
+title: useConfig
+description: Obtiene la configuración del SDK del marketplace desde el contexto del proveedor. Este hook proporciona acceso a la configuración principal del SDK que se pasó al MarketplaceSdkProvider. Incluye endpoints de API, configuraciones de cadenas y otros ajustes generales del SDK necesarios para los componentes e hooks hijos.
+sidebarTitle: useConfig
+---
+
+## Devuelve
+El objeto completo de configuración del SDK desde el contexto del proveedor
+
+## Ejemplo
+Uso básico:
+
+```typescript
+const config = useConfig();
+console.log(config.marketplaceApiUrl);
+console.log(config.projectId);
+```
+
+Uso de la configuración para llamadas a la API:
+
+```typescript
+const config = useConfig();
+
+const response = await fetch(`${config.marketplaceApiUrl}/collections`, {
+  headers: {
+    'X-Project-ID': config.projectId
+  }
+});
+```

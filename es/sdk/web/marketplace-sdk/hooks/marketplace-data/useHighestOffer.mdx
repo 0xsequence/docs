@@ -1,0 +1,45 @@
+---
+title: useHighestOffer
+description: Hook para obtener la oferta más alta de un coleccionable. Recupera la oferta más alta disponible actualmente para un token específico en una colección desde el marketplace.
+sidebarTitle: useHighestOffer
+---
+
+## Parámetros
+
+| Nombre                     | Tipo                   | Descripción                                                                             |
+| -------------------------- | ---------------------- | --------------------------------------------------------------------------------------- |
+| `params.chainId`           | `number`               | El ID de la cadena (debe ser un número, por ejemplo, 1 para Ethereum, 137 para Polygon) |
+| `params.collectionAddress` | `string`               | La dirección del contrato de la colección                                               |
+| `params.tokenId`           | `string`               | El ID del token dentro de la colección                                                  |
+| `params.filter`            | `OrderFilter`          | Filtro opcional para las órdenes                                                        |
+| `params.query`             | `StandardQueryOptions` | Configuración opcional de React Query (de TanStack Query)                               |
+
+## Devuelve
+Resultado de la consulta que contiene los datos de la oferta más alta o null si no existen ofertas
+
+## Ejemplo
+Uso básico:
+
+```typescript
+const { data, isLoading } = useHighestOffer({
+  chainId: 137,
+  collectionAddress: '0x...',
+  tokenId: '1'
+});
+```
+
+Con opciones personalizadas de consulta:
+
+```typescript
+const hasTokenId = true;
+
+const { data, isLoading } = useHighestOffer({
+  chainId: 1,
+  collectionAddress: '0x...',
+  tokenId: '42',
+  query: {
+    refetchInterval: 15000,
+    enabled: hasTokenId
+  }
+});
+```
