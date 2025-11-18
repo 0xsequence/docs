@@ -12,9 +12,78 @@ Ensure that your codebase has access to the `Sequence.Boilerplates.asmdef` assem
 
 Checkout the `BoilerplateController.cs` for more integration examples.
 
-## Embedded Wallet Login
+## Ecosystem Wallet
 
-Create the `SequenceLoginWindow` prefab to authenticate users as a Guest, with Email OTP, Google- or Apple Sign In.
+### Login Window
+
+Create the `EcosystemWalletLoginWindow` prefab to authenticate users as a Guest, with Email OTP, Google- or Apple Sign In.
+
+[Checkout the Ecosystem Wallet Setup section](/sdk/unity/wallets/ecosystem-wallet/setup) for more details on how to configure
+your project to connect to an Ecosytem of your choice.
+
+<Frame>
+    <img src="/images/unity/ecosystem_wallet_login.png"/>
+</Frame>
+
+```csharp
+BoilerplateFactory.OpenEcosystemWalletLoginWindow(parent);
+```
+
+<Accordion title="Parameters">
+    **parent (Transform)**
+
+    Transform inside of a Canvas object.
+</Accordion>
+
+### Profile
+
+Create the `EcosystemWalletProfile` prefab to sign messages, add more sessions and view wallet details.
+
+<Frame>
+    <img src="/images/unity/ecosystem_wallet_profile.png"/>
+</Frame>
+
+```csharp
+BoilerplateFactory.OpenEcosystemWalletProfile(parent, wallet);
+```
+
+<Accordion title="Parameters">
+    **parent (Transform)**
+
+    Transform inside of a Canvas object.
+
+    **wallet (EcosystemWallet.IWallet)**
+
+    The Ecosystem Wallet instance.
+</Accordion>
+
+### Transactions
+
+Create the `EcosystemWalletTransactions` prefab to test sending transactions with pre-configured permissions.
+
+<Frame>
+    <img src="/images/unity/ecosystem_wallet_transactions.png"/>
+</Frame>
+
+```csharp
+BoilerplateFactory.OpenEcosystemWalletTransactions(parent, wallet);
+```
+
+<Accordion title="Parameters">
+    **parent (Transform)**
+
+    Transform inside of a Canvas object.
+
+    **wallet (EcosystemWallet.IWallet)**
+
+    The Ecosystem Wallet instance.
+</Accordion>
+
+## Embedded Wallet
+
+### Login Window
+
+Create the `EmbeddedWalletLoginWindow` prefab to authenticate users as a Guest, with Email OTP, Google- or Apple Sign In.
 
 [Checkout the Authentication section](/sdk/unity/onboard/authentication/intro) for more details on how to configure
 your project for each login option.
@@ -24,7 +93,7 @@ your project for each login option.
 </Frame>
 
 ```csharp
-BoilerplateFactory.OpenSequenceLoginWindow(parent);
+BoilerplateFactory.OpenEmbeddedWalletLoginWindow(parent);
 ```
 
 <Accordion title="Parameters">
@@ -33,7 +102,7 @@ BoilerplateFactory.OpenSequenceLoginWindow(parent);
     Transform inside of a Canvas object.
 </Accordion>
 
-## In-Game Shop
+### In-Game Shop
 
 Accelerate your game growth by selling items directly to your players. Create the `SequencePlayerProfile` prefab to
 show an In-Game Shop that utilizes game items from a ERC1155 contract, which users purchase using any custom or
@@ -79,7 +148,7 @@ BoilerplateFactory.OpenSequenceLoginWindow(parent, wallet, chain, collectionAddr
     Optional. Callback when the user closes this window.
 </Accordion>
 
-## Daily Rewards
+### Daily Rewards
 
 Reward users with NFTs or Collectibles for playing your game for consecutive days. Deploy our server boilerplate
 which performs the mint transaction whenever they claim their reward.
@@ -116,7 +185,7 @@ BoilerplateFactory.OpenSequenceDailyRewards(parent, wallet, chain, apiUrl, onClo
     Optional. Callback when the user closes this window.
 </Accordion>
 
-## Player Profile
+### Player Profile
 
 Create the `SequencePlayerProfile` prefab to manage your current profile. This includes functionalities such as Sign Out,
 linking external wallets, sending native tokens, and QR code to receive funds.
@@ -147,7 +216,9 @@ BoilerplateFactory.OpenSequencePlayerProfile(parent, wallet, chain, onClose);
     Optional. Callback when the user closes this window.
 </Accordion>
 
-## Inventory
+## Universal
+
+### Inventory
 
 Create the `SequenceInventory` prefab to show all items owned by a user from any ERC1155 or ERC721 contract.
 
@@ -181,7 +252,7 @@ BoilerplateFactory.OpenSequenceInventory(parent, wallet, chain, collections, onC
     Optional. Callback when the user closes this window.
 </Accordion>
 
-## Sign Messages
+### Sign Messages
 
 Create the `SequenceSignMessage` prefab to show a modal that lets you sign a specified text.
 
