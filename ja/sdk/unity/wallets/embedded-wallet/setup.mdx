@@ -1,0 +1,38 @@
+---
+title: Embedded Wallet向け Unity SDK セットアップ
+description: Sequence インフラストラクチャスタックを利用した web3 ゲーム向け Unity SDK セットアップのドキュメントです。
+sidebarTitle: セットアップ
+---
+
+<Steps>
+  <Step title="Builder プロジェクトの設定">
+    Sequence Builder で [Embedded Wallet の設定](/sdk/headless-wallet/quickstart) を行ってください。
+  </Step>
+
+  <Step title="Unity SDK のインストール">
+    [OpenUPM](/sdk/unity/installation#openupm) から Sequence の Unity SDK の最新版をインストールするか、[Unity の Package Manager UI](/sdk/unity/installation#or-using-package-manager-ui) を利用して、以下の Git URL を使用してください: `https://github.com/0xsequence/sequence-unity.git?path=/Packages/Sequence-Unity`
+  </Step>
+
+  <Step title="SDK の設定">
+    [Sequence Builder](https://sequence.build) にサインインし、プロジェクトを作成します。
+
+    下記の手順で Builder から設定ファイルをダウンロードしてください。
+
+    <Frame>
+      <img src="/images/unity/builder_config_file.png" />
+    </Frame>
+
+    このファイルを `Resources` フォルダのルートに配置します。
+  </Step>
+</Steps>
+
+## 設定パラメータ
+`Url Scheme` - これは必ずアプリケーション固有の文字列に置き換えてください。非常に重要です。これを怠ると、ソーシャルサインイン時に予期しない動作が発生し、正常に動作しません。
+
+`StoreSessionPrivateKeyInSecureStorage` - 一部のプラットフォームで利用可能です。プラットフォームのネイティブなセキュアストレージシステムと連携しています。有効にすると、セッションウォレット情報（プライベートキーを含む）をセキュアストレージに保存し、アプリを閉じた後も自動的にセッションを復元しようとします（再度ログインする必要がありません）。無効（デフォルト）または非対応プラットフォームの場合、セッションウォレットのプライベートキーはアプリケーションの実行メモリから外部に出ることはありませんが、アプリを閉じるたびにユーザーは再度サインインする必要があります。デフォルトの`SequenceLoginWindow`ボイラープレート（[ゲームのブートストラップ](/sdk/unity/bootstraps)を参照）は、この挙動を自動的に処理し、適切なページへ遷移します。
+
+`EnableMultipleAccountsPerEmail` - デフォルトでは、SDKは1つのメールアドレスにつき1つのアカウントのみ作成できます。アカウントは最初に使用したログイン方法（メール＋OTP、PlayFab、Googleなど）に紐づけられますが、ユーザーは追加のログイン方法も自分のアカウントに関連付けることができます（詳細は[認証セクション](/sdk/unity/wallets/embedded-wallet/onboard/authentication/federated-accounts)をご覧ください）。`EnableMultipleAccountsPerEmail` を有効にすると、ユーザーは1つのメールアドレスで複数のアカウント（異なるログイン方法ごとに）を作成できるようになります。この機能は有効化可能ですが、一般的にエンドユーザーにとって混乱を招く可能性があるため、インテグレーターの方にはデフォルトの無効設定のままご利用いただくことを推奨します。
+
+<Warning>続行する前に、BuilderでEmbedded Walletが正しく設定されていることを必ずご確認ください。詳しくは[こちらのガイド](/solutions/builder/embedded-wallet/configuration)をご覧ください。</Warning>
+
+<Warning>Builderから設定キーを正しくコピー＆ペーストしたか、必ず再確認してください！これはSDK統合時によくある問題です。"invalid tenant" というエラーが出た場合、設定に誤りがあります！詳しくは[こちらのガイド](/solutions/builder/embedded-wallet/configuration)をご覧ください。</Warning>
