@@ -1,0 +1,48 @@
+# Authentication - Introduction
+
+As an Embedded Wallet SDK, authentication is extremely important. Authentication works by establishing a session signing wallet through association with user credentials. For more on how our Embedded Wallet works, please [see Embedded Wallet docs](/solutions/wallets/developers/embedded-wallet/overview).
+
+To implement authentication, we recommend using our [SequenceLoginWindow](/sdk/unity/bootstrap_game#login) boilerplate.
+We recommend having the `Canvas Scaler` component attached to your `Canvas` use the "Scale with Screen Size" UI Scale Mode. This will make it so that the login window (and any other UI elements under this Canvas) are scaled automatically when switching between build targets.
+
+This will provide you easy access to two authentication methods:
+
+1. [Email + OTP Sign In](/sdk/unity/wallets/embedded-wallet/onboard/authentication/email)
+
+2. [OIDC-based Social Sign In](/sdk/unity/wallets/embedded-wallet/onboard/authentication/oidc)
+
+The SDK also provides support for:
+
+3. [PlayFab Sign In](/sdk/unity/wallets/embedded-wallet/onboard/authentication/playfab)
+
+4. [Guest Sign In](/sdk/unity/wallets/embedded-wallet/onboard/authentication/guest)
+
+## Retrieving the `SequenceWallet`
+
+Once you've obtained credentials from one of the supported authentication methods (please see their respective documentation), you'll want to catch a reference to your newly created `SequenceWallet`.
+
+Please subscribe to the `SequenceWallet.OnWalletCreated` event. This can be done with the following code snippet:
+
+```csharp
+SequenceWallet.OnWalletCreated += OnWalletCreatedHandler;
+
+public void OnWalletCreatedHandler(SequenceWallet wallet) {
+  // Do something
+}
+```
+
+where `OnWalletCreatedHandler` is a function accepting a `SequenceWallet` as it's only parameter. If you're unfamiliar with working with events in Unity, check out this great [Reddit post](https://www.reddit.com/r/gamedev/comments/u3hz2v/how_to_use_events_a_supersimple_unity_example/)!
+
+## Error Handling
+
+In order to catch errors during the login process, please make sure to subscribe to the `OnLoginFailed` event.
+
+```csharp
+SequenceLogin login = SequenceLogin.GetInstance();
+login.OnLoginFailed += OnLoginFailedHandler;
+
+public void OnLoginFailedHandler(string message, LoginMethod method, string email, List<LoginMethod> loginMethods = default)
+{
+  Debug.LogError($"Error logging in: {message} with login method {method} and email {email}");
+}
+```
