@@ -1,41 +1,40 @@
 ---
-title: "Cómo configurar un contrato ERC1155Pack en Sequence Builder"
-description: Aprenda cómo funciona ERC1155Pack en Builder, incluido el esquema commit-reveal, la carga de CSV y la publicación de contenidos.
-sidebarTitle: Usar un contrato ERC1155Pack
+title: Cómo configurar un contrato ERC1155Pack en Sequence Builder
+description: Aprenda cómo funciona ERC1155Pack en Builder, incluyendo la mecánica de commit-reveal y la publicación del contenido de los packs.
+sidebarTitle: Uso de un contrato ERC1155Pack
 ---
 
-Use esta guía para configurar paquetes en su contrato ERC1155Pack en Sequence Builder. El contrato `ERC1155Pack` amplía ERC1155Items para añadir una apertura de paquetes con commit-reveal, de modo que los resultados puedan verificarse y solo se revelen una vez.
+Utilice esta guía para configurar packs en su contrato ERC1155Pack dentro de Sequence Builder. El contrato `ERC1155Pack` amplía ERC1155Items para agregar un flujo de apertura de packs basado en un esquema de commit-reveal.
 
 <Warning>
-Prerequisito: Desplegar contratos y objetos
+  Requisito previo: desplegar contratos y colecciones
 
-Asegúrese de haber [creado un proyecto](/solutions/builder/getting-started), desplegado su contrato ERC1155Pack y desplegado las colecciones ERC1155 o ERC721 cujos ítems quiere incluir en cada paquete.
+  Asegúrese de haber [creado un proyecto](/solutions/builder/getting-started), desplegado su contrato ERC1155Pack y también los contratos/colecciones ERC1155 o ERC721 cuyos ítems desea incluir en cada pack.
 </Warning>
 
 ## Paso 1: Abra su contrato ERC1155Pack
+Desde el panel de su proyecto, seleccione el contrato PACK que desea configurar y luego abra la pestaña `Pack` para gestionar su contenido. Confirme que está en la red y colección correctas antes de editar.
 
-Desde el panel del proyecto, seleccione el contrato PACK que quiere configurar y abra la pestaña `Pack` para gestionar su contenido. Confirme que está en la red correcta y que la colección vinculada es la adecuada antes de editar.
 <Frame>
-![Resumen del contrato Pack](/images/builder/builder-packs-1.png)
+  ![Resumen del contrato Pack](/images/builder/builder-packs-1.png)
 </Frame>
 
 ## Paso 2: Elija o agregue un pack para editar
+Use el selector de packs para elegir el pack que desea actualizar, o haga clic en `Add new pack` para crear una nueva entrada. La tabla muestra la dirección del token, tipo, IDs y cantidades que se incluirán al abrir un pack.
 
-Use el selector de packs para elegir el que quiere actualizar o haga clic en `Add new pack` para crear otro. La tabla muestra la dirección, tipo, IDs y cantidades de tokens que se incluirán cuando se abra un pack.
 <Frame>
-![Seleccionar pack y revisar contenidos](/images/builder/builder-packs-2.png)
+  ![Seleccione el pack y revise el contenido](/images/builder/builder-packs-2.png)
 </Frame>
 
-## Paso 3: Cargue el contenido del pack vía CSV
-
-Haga clic en `Add New Pack` o `Update Pack Contents` para abrir el cargador CSV. Ingrese el `Pack ID` que va a modificar, defina el `Supply` (cuántos packs pueden abrirse) y cargue un CSV con una fila por contenido del pack.
+## Paso 3: Suba el contenido del pack mediante CSV
+Haga clic en `Add New Pack` o `Update Pack Contents` para abrir el cargador de CSV. Ingrese el `Pack ID` que desea modificar, defina el `Supply` para indicar cuántos packs pueden abrirse y suba un archivo CSV con una fila por cada contenido del pack.
 
 Cada fila debe incluir:
-
 - `Pack Content ID`
 - Para cada ítem: `Token Address`, `Token Type` (1155/721), `Token IDs` y `Amounts`
 
-Ejemplo:
+p. ej.
+
 ```
 Pack Content ID, Item 1 Token Addr, Item 1 Token Type, Item 1 Token IDs, Item 1 Amounts, Item 2 Token Addr, Item 2 Token Type, Item 2 Token IDs, Item 2 Amounts
 1,0x3a6a8f4091b705fe1241c47e2532d45a6dff5a85,721,"1200","1",0xa558419686308ce836c36a5c44eeeb4b0916ca7b,1155,"5,6","7,3"
@@ -43,51 +42,47 @@ Pack Content ID, Item 1 Token Addr, Item 1 Token Type, Item 1 Token IDs, Item 1 
 3,0x3a6a8f4091b705fe1241c47e2532d45a6dff5a85,721,"1202","1",0xa558419686308ce836c36a5c44eeeb4b0916ca7b,1155,"7,8","4,8"
 4,0x3a6a8f4091b705fe1241c47e2532d45a6dff5a85,721,"1203","1",0xa558419686308ce836c36a5c44eeeb4b0916ca7b,1155,"9","7"
 5,0x3a6a8f4091b705fe1241c47e2532d45a6dff5a85,721,"1204","1",0xa558419686308ce836c36a5c44eeeb4b0916ca7b,1155,"9,10","5,4"
+
 ```
 
 <Frame>
-![Cargar CSV para el contenido del pack](/images/builder/builder-packs-3.png)
+  ![Suba el CSV con el contenido del pack](/images/builder/builder-packs-3.png)
 </Frame>
 
 <Warning>
-El CSV reemplaza todo el contenido existente para el Pack ID seleccionado y reinicia el seguimiento de distribución.
+  El CSV reemplaza todo el contenido existente para el Pack ID seleccionado y reinicia el seguimiento de distribución de packs.
 
-Si ya distribuyó packs para un ID concreto, recomendamos no cambiar el CSV, ya que restablece qué packs han sido abiertos.
+  Si ya ha distribuido packs para un ID específico, le recomendamos no cambiar el CSV, ya que esto reinicia el registro de packs abiertos.
 
-Si un ítem 721 ya se distribuyó en un pack previo y aparece en un nuevo CSV, fallará al acuñar cuando un usuario abra ese pack.
+  Si un ítem 721 ya fue distribuido en un pack anterior y aparece en un nuevo CSV de pack, fallará al mintear cuando un usuario abra ese pack.
 </Warning>
 
-## Paso 4: Dé al contrato de packs el rol de Minter en su colección de ítems
-
-Para que el pack pueda mintear los ítems al abrirse, otorgue al contrato ERC1155Pack el rol `Minter` en la colección ERC1155 que usa para el contenido. Abra `Settings > Permissions` en ese contrato de ítems, agregue la dirección del contrato de packs y asigne `Minter`, luego firme la transacción.
+## Paso 4: Asigne el rol de Minter al contrato de pack en su colección de ítems
+Para que los packs puedan mintear ítems al abrirse, otorgue al contrato ERC1155Pack la función de `Minter` en la colección ERC1155 que utiliza para el contenido del pack. Abra la sección `Settings > Permissions` de ese contrato, agregue la dirección del contrato de pack y asigne `Minter`, luego firme la transacción.
 
 ## Paso 5: Revise y publique
+Después de procesar el CSV, verá una vista previa de las filas de contenido del pack analizadas. Verifique las direcciones de los tokens, IDs, cantidades y totales, luego haga clic en `Create Pack Contents` para guardar. Su pack ya está listo para que los jugadores lo abran.
 
-Cuando se procese el CSV verá una vista previa de las filas de contenido. Verifique direcciones, IDs, cantidades y totales, y luego haga clic en `Create Pack Contents` para guardar. Su pack estará listo para que los jugadores lo abran.
 <Frame>
-![Vista previa del contenido procesado y publicación](/images/builder/builder-packs-4.png)
+  ![Vista previa del contenido procesado y publicación](/images/builder/builder-packs-4.png)
 </Frame>
 
-¿Quiere un frontend para abrir packs? Revise el ejemplo open source en https://github.com/0xsequence-demos/pack-opening-boilerplate/.
-
+¿Busca un frontend para abrir packs? Vea nuestro boilerplate en React en [https://github.com/0xsequence-demos/pack-opening-boilerplate/](https://github.com/0xsequence-demos/pack-opening-boilerplate/).
 
 ## Cómo funciona ERC1155Pack
+El contenido de los packs es gestionado por direcciones con `PACK_ADMIN_ROLE` usando `setPacksContent(bytes32 _merkleRoot, uint256 _supply, uint256 packId)`. El merkle root codifica todas las posibles combinaciones de contenido y `supply` define cuántos packs pueden abrirse para ese ID. Builder se encarga de crear el root a partir de su CSV para que usted solo se enfoque en el contenido.
 
-Las cuentas con `PACK_ADMIN_ROLE` gestionan el contenido con `setPacksContent(bytes32 _merkleRoot, uint256 _supply, uint256 packId)`. La raíz de Merkle codifica todo el contenido posible y `supply` define cuántos packs pueden abrirse para ese ID. Builder genera la raíz desde su CSV para que se concentre en el contenido.
+Flujo (on-chain):
+- El usuario llama a `commit(packId)` para quemar su pack y crear un compromiso.
+- Después de al menos un bloque, cualquier persona puede llamar a `reveal(user, packContent, proof, packId)` con una prueba de merkle para el contenido seleccionado; el contrato verifica y mintea los ítems. La API de Sequence lo hará automáticamente.
+- Si no se llama a reveal antes de que expire el hash del bloque de compromiso (30 minutos), `refundPack(user, packId)` devuelve el pack.
 
-Flujo on-chain:
-
-- El usuario llama `commit(packId)` para quemar su pack y crear el compromiso.
-- Tras al menos un bloque, cualquiera puede llamar `reveal(user, packContent, proof, packId)` con la prueba Merkle del contenido seleccionado; el contrato verifica y mintea los ítems. La API de Sequence puede hacerlo automáticamente.
-- Si no se revela antes de que expire el hash del bloque de compromiso (30 minutos), `refundPack(user, packId)` devuelve el pack.
-
-Aleatoriedad:
-
+Aleatorización:
 - El compromiso registra `block.number + 1` para la aleatoriedad.
-- La revelación deriva `randomSeed = keccak256(abi.encode(blockHash, user))`.
-- El contrato elige `randomSeed % remainingSupply[packId]` usando un mapa `_availableIndices` estilo Fisher–Yates, garantizando que cada contenido solo se revele una vez y con distribución uniforme.
-- La hoja de Merkle es `keccak256(abi.encode(revealIdx, packContent))`, que debe coincidir con la prueba suministrada.
+- Reveal deriva `randomSeed = keccak256(abi.encode(blockHash, user))`.
+- El contrato elige `randomSeed % remainingSupply[packId]`, usando un mapa `_availableIndices` al estilo Fisher–Yates para que cada contenido solo pueda revelarse una vez y se mantenga la aleatoriedad.
+- La hoja de merkle es `keccak256(abi.encode(revealIdx, packContent))`, que se valida con la prueba proporcionada.
 
 <Warning>
-Si validadores o mineros controlan bloques secuenciales pueden sesgar los hashes y la aleatoriedad. Permitir que cualquiera llame `reveal` ayuda a asegurar que los packs comprometidos se revelen antes de que el hash del bloque caduque.
+  Los validadores o mineros que controlan bloques secuenciales podrían sesgar los hashes de bloque. Permitir que cualquiera llame a `reveal` ayuda a asegurar que los packs comprometidos se revelen antes de que expiren los hashes de bloque.
 </Warning>
