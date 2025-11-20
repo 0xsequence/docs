@@ -32,9 +32,9 @@ sidebarTitle: Unityでトランザクションが多いゲームを構築する
 最後に、ゲーム内でどのくらいの頻度で取引を発生させるべきかも考慮しましょう。ゲームによっては、短時間に多くのアクションがゲーム状態に影響を与えることがあります。例えば、マリオがコインを取るたびにブロックチェーンへ取引を送信していたら…コストがすぐに高額になってしまいます。低額取引はまとめて処理しましょう！
 
 ## Unityでこれを実装するには？
-まず、ユーザーがオンチェーンで保有しているものをローカルでキャッシュする仕組みを作ります。これは簡単で、[ブロックチェーンからデータを読み取り](/sdk/unity/power/read-from-blockchain)、ユーザーのトークン残高を都合の良い形式でローカル保存するだけです。既存のゲームやプロトタイプでPlayerPrefsなどのローカルストレージや、[RDBMS](https://en.wikipedia.org/wiki/List_of_relational_database_management_systems)のようなリモートストレージを使っている場合は、すでにローカルキャッシュの仕組みがあるはずなので、アダプターを作成するだけで十分です。
+まず、ユーザーがオンチェーン上で保有しているもののローカルキャッシュを構築しましょう。これは簡単で、[ブロックチェーンから読み取り](/sdk/unity/indexer/read-from-blockchain)を行い、ユーザーのトークン残高を都合の良い形式でローカルに保存するだけです。既存のゲームやプロトタイプでローカルストレージシステム（PlayerPrefsなど）やリモートストレージシステム（[RDBMS](https://en.wikipedia.org/wiki/List_of_relational_database_management_systems)など）を使っている場合は、すでにローカルキャッシュが実装されていることが多く、アダプターを作成するだけで対応できるでしょう。
 
-次に、Unity SDKが提供する`TransactionQueuer`およびその継承クラスを活用するのがおすすめです。`TransactionQueuer`は高い柔軟性があり、プレイヤーが頻繁に状態を変更するゲームの開発をサポートするために設計されています。例えば、ゲーム内でコインなどの低額取引を大量に集める場合、`PermissionedMinterTransactionQueuer`（`mint`関数に権限が必要な場合、デフォルトでサーバーからミントする場合）や、`SequenceWalletTransactionQueuer`（誰でもミントできる場合）を利用できます。これらを使えば、複数の取引をキューに追加するだけで、可能であれば自動的にまとめてくれます（例：'mint(amount: 5, tokenId: 11)'と'mint(amount: 3, tokenId: 11)'が'mint(amount: 8, tokenId: 11)'にまとめられる）。取引はx秒ごと、または関数呼び出し時に送信できます。また、最短でもy秒ごと（高額取引の場合は上書き可能）といった設定も可能です。`TransactionQueuer`の詳細は[こちらのドキュメント](/sdk/unity/power/write-to-blockchain#transaction-queuers)をご覧ください。
+次に、Unity SDKが提供する`TransactionQueuer`およびその継承クラスを活用することをおすすめします。`TransactionQueuer`は高い柔軟性があり、プレイヤーが多くの状態変更アクションを行うゲーム開発をサポートするために設計されています。例えば、ゲーム内でコインなどの低価値トランザクションを大量に集める場合、`PermissionedMinterTransactionQueuer`（`mint`関数に権限があり、サーバーからミントする場合のデフォルト）や`SequenceWalletTransactionQueuer`（誰でもミント可能な場合）を利用できます。これらを使うことで、複数のトランザクションを簡単にキューに追加でき、可能であれば自動的にまとめられます（例：'mint(amount: 5, tokenId: 11)'と'mint(amount: 3, tokenId: 11)'が'mint(amount: 8, tokenId: 11)'に統合されます）。また、トランザクションはx秒ごとや、関数呼び出し時など、任意のタイミングで送信できます（高価値トランザクションの場合は上書き可能）。`TransactionQueuer`の詳細については[こちらのドキュメント](/sdk/unity/wallets/embedded-wallet/blockchain-interactions#transaction-queuers)をご覧ください。
 
 最後に、取引の失敗を検知し、適切にエラー処理を行う必要があります。
 
