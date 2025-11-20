@@ -25,7 +25,9 @@ Sign messages on an external browser.
     </Tab>
 </Tabs>
 
-## Get fee options
+## Transactions
+
+### Get fee options
 
 <Tabs>
     <Tab title="Blueprint">
@@ -36,8 +38,8 @@ Sign messages on an external browser.
     <Tab title="C++">
         ```cpp
         const FString To = TEXT("0x33985d320809E26274a72E03268c8a29927Bc6dA");
+        const FString Value = TEXT("0");
         const FString FunctionSignature = TEXT("explicitEmit()");
-        const int64 Value = 0;
         const TArray<FString> Values = { };
 
         UContractTransaction* Transaction = UContractTransaction::CreateContractTransaction(To, Value, FunctionSignature, Values);
@@ -51,7 +53,7 @@ Sign messages on an external browser.
     </Tab>
 </Tabs>
 
-## Send transactions
+### Send transactions
 
 <Tabs>
     <Tab title="Blueprint">
@@ -62,8 +64,8 @@ Sign messages on an external browser.
     <Tab title="C++">
         ```cpp
         const FString To = TEXT("0x33985d320809E26274a72E03268c8a29927Bc6dA");
+        const FString Value = TEXT("0");
         const FString FunctionSignature = TEXT("explicitEmit()");
-        const int64 Value = 0;
         const TArray<FString> Values = { };
 
         UContractTransaction* Transaction = UContractTransaction::CreateContractTransaction(To, Value, FunctionSignature, Values);
@@ -79,7 +81,7 @@ Sign messages on an external browser.
     </Tab>
 </Tabs>
 
-## Send transactions without Permissions
+### Send transactions without Permissions
 
 Send transactions on an external browser.
 
@@ -92,8 +94,8 @@ Send transactions on an external browser.
     <Tab title="C++">
         ```cpp
         const FString To = TEXT("0x33985d320809E26274a72E03268c8a29927Bc6dA");
+        const FString Value = TEXT("0");
         const FString FunctionSignature = TEXT("explicitEmit()");
-        const int64 Value = 0;
         const TArray<FString> Values = { };
 
         UContractTransaction* Transaction = UContractTransaction::CreateContractTransaction(To, Value, FunctionSignature, Values);
@@ -103,6 +105,65 @@ Send transactions on an external browser.
 
         USequenceWallet* Wallet = NewObject<USequenceWallet>();
         Wallet->SendTransactionWithoutPermissions(Transaction, SuccessCallback, FailureCallback);
+        ```
+    </Tab>
+</Tabs>
+
+## Transaction Factory
+
+### Create Contract Transaction
+
+<Tabs>
+    <Tab title="Blueprint">
+        <Frame>
+            <img src="/images/unreal/ecosystem/create_contract_transaction.png" />
+        </Frame>
+    </Tab>
+    <Tab title="C++">
+        ```cpp
+        const FString To = TEXT("0x33985d320809E26274a72E03268c8a29927Bc6dA");
+        const FString Value = TEXT("0");
+        const FString FunctionSignature = TEXT("explicitEmit()");
+        const TArray<FString> Values = { };
+
+        UContractTransaction* Transaction = UContractTransaction::CreateContractTransaction(To, Value, FunctionSignature, Values);
+        ```
+    </Tab>
+</Tabs>
+
+### Create Call Data Transaction
+
+<Tabs>
+    <Tab title="Blueprint">
+        <Frame>
+            <img src="/images/unreal/ecosystem/create_call_data_transaction.png" />
+        </Frame>
+    </Tab>
+    <Tab title="C++">
+        ```cpp
+        const FString To = TEXT("0x33985d320809E26274a72E03268c8a29927Bc6dA");
+        const FString Value = TEXT("0");
+        const FString Data = TEXT("0x00...");
+
+        UCallDataTransaction* Transaction = UCallDataTransaction::CreateCallDataTransaction(To, Value, Data);
+        ```
+    </Tab>
+</Tabs>
+
+### Create Transaction Batch
+
+<Tabs>
+    <Tab title="Blueprint">
+        <Frame>
+            <img src="/images/unreal/ecosystem/create_transaction_batch.png" />
+        </Frame>
+    </Tab>
+    <Tab title="C++">
+        ```cpp
+        TArray<TScriptInterface<ISeqTransactionBase>> Transactions;
+        Transactions.Add(UCallDataTransaction::CreateCallDataTransaction("0x123...", "0", "0x00.."));
+
+        UTransactionBatch* Transaction = UTransactionBatch::CreateTransactionBatch(To, Value, Data);
         ```
     </Tab>
 </Tabs>
