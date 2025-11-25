@@ -1,0 +1,108 @@
+---
+title: "useOpenWalletModal"
+description: Hook for opening the wallet inventory modal
+sidebarTitle: useOpenWalletModal
+---
+
+## Import
+
+```tsx
+import { useOpenWalletModal } from '@0xsequence/wallet-widget'
+```
+
+## Usage
+
+```tsx
+import './App.css'
+import { useOpenWalletModal } from '@0xsequence/wallet-widget'
+
+function App() {
+
+  // Get the function to open/close the wallet modal
+  const { setOpenWalletModal } = useOpenWalletModal()
+
+  // Function to handle opening the wallet inventory home page
+  const openWalletWidget = () => {
+    setOpenWalletModal(true) // Open the wallet modal to view tokens
+  }
+
+  // Function to handle opening the wallet inventory swap page
+  const openWalletWidgetSwapPage = () => {
+    setOpenWalletModal(true, { defaultNavigation: { location: 'swap' } }) // Open the wallet modal to view tokens
+  }
+
+  return (
+    <div>
+      <button
+        onClick={openWalletWidget}
+        title="Wallet Widget"
+      >
+        Open Wallet Widget Home Page
+      </button>
+
+      <button
+        onClick={openWalletWidgetSwapPage}
+        title="Wallet Widget"
+      >
+        Open Wallet Widget Swap Page
+      </button>
+    </div>
+   
+  )
+}
+
+export default App
+```
+
+## Return Type: `UseOpenWalletModalReturnType`
+
+The hook returns an object with the following properties:
+
+```tsx
+type UseOpenWalletModalReturnType = {
+  setOpenWalletModal: (isOpen: boolean, options?: WalletOptions) => void
+  openWalletModalState: boolean
+}
+```
+
+### Properties
+
+#### setOpenWalletModal
+
+`(isOpen: boolean, options?: WalletOptions) => void`
+
+Function to open or close the Wallet modal.
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --------- | ---- | ----------- |
+| `isOpen` | `boolean` | Whether the modal should be open (`true`) or closed (`false`) |
+| `options` | `WalletOptions` | Optional settings for the Wallet modal |
+
+```tsx
+interface WalletOptions {
+  defaultNavigation?: Navigation
+}
+
+type Navigation =
+  | BasicNavigation
+  | CoinDetailsNavigation
+  | CollectibleDetailsNavigation
+  | CollectionDetailsNavigation
+  | TransactionDetailsNavigation
+  | SendCoinNavigation
+  | SendCollectibleNavigation
+  | SwapCoinNavigation
+  | SwapCoinListNavigation
+```
+
+#### openWalletModalState
+
+`boolean`
+
+The current open state of the Wallet modal (`true` if open, `false` if closed).
+
+## Notes
+
+This hook provides methods to control the Wallet Inventory modal that allows users to view their tokens and NFTs. The Wallet modal displays all tokens, NFTs and collectibles present in the connected wallet.

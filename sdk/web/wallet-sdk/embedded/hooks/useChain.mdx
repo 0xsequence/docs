@@ -1,0 +1,149 @@
+---
+title: "useChain"
+description: Hook for retrieving chain configuration information
+sidebarTitle: useChain
+---
+
+## Import
+
+```tsx
+import { useChain } from '@0xsequence/connect'
+```
+
+## Usage
+
+```tsx
+import { useChain } from '@0xsequence/connect'
+
+function App() {
+  // Get current chain configuration
+  const currentChain = useChain()
+  
+  // Get configuration for a specific chain (e.g., Ethereum Mainnet)
+  const ethereumChain = useChain(1)
+  
+  return (
+    <div>
+      <h2>Current Chain</h2>
+      {currentChain && (
+        <div>
+          <p>Name: {currentChain.name}</p>
+          <p>Chain ID: {currentChain.id}</p>
+          <p>Network: {currentChain.network}</p>
+          <p>Native Currency: {currentChain.nativeCurrency.symbol}</p>
+        </div>
+      )}
+      
+      <h2>Ethereum Mainnet</h2>
+      {ethereumChain && (
+        <div>
+          <p>Name: {ethereumChain.name}</p>
+          <p>Chain ID: {ethereumChain.id}</p>
+          <p>Network: {ethereumChain.network}</p>
+          <p>Native Currency: {ethereumChain.nativeCurrency.symbol}</p>
+        </div>
+      )}
+    </div>
+  )
+}
+```
+
+## Parameters
+
+| Parameter | Type | Description |
+| --------- | ---- | ----------- |
+| `chainId` | `number \| undefined` | Optional chain ID to get configuration for a specific chain. If not provided, returns the current chain's configuration. |
+
+## Return Type: `Chain | undefined`
+
+The hook returns a `Chain` object from wagmi's chain configurations or `undefined` if the chain is not found.
+
+```tsx
+interface Chain {
+  id: number
+  name: string
+  network: string
+  nativeCurrency: {
+    name: string
+    symbol: string
+    decimals: number
+  }
+  rpcUrls: {
+    default: {
+      http: string[]
+      webSocket?: string[]
+    }
+    public: {
+      http: string[]
+      webSocket?: string[]
+    }
+  }
+  blockExplorers?: {
+    default: {
+      name: string
+      url: string
+    }
+  }
+  // ... other chain-specific properties
+}
+```
+
+### Properties
+
+#### id
+
+`number`
+
+The unique identifier of the blockchain network.
+
+#### name
+
+`string`
+
+The human-readable name of the blockchain network.
+
+#### network
+
+`string`
+
+The network identifier string.
+
+#### nativeCurrency
+
+`object`
+
+Information about the chain's native currency.
+
+```tsx
+{
+  name: string      // Full name of the currency
+  symbol: string    // Currency symbol
+  decimals: number  // Number of decimal places
+}
+```
+
+#### rpcUrls
+
+`object`
+
+URLs for connecting to the network's RPC endpoints.
+
+#### blockExplorers
+
+`object | undefined`
+
+Information about block explorers for the chain.
+
+## Notes
+
+This hook provides easy access to chain configuration information from wagmi's chain configurations. It's particularly useful when you need to:
+
+- Access details about the currently connected chain
+- Get configuration for a specific chain by ID
+- Retrieve chain-specific information like:
+  - Network details
+  - Native currency information
+  - RPC endpoints
+  - Block explorer URLs
+
+The hook is commonly used in conjunction with other Sequence hooks when working with transactions, indexer clients, or network-specific features.

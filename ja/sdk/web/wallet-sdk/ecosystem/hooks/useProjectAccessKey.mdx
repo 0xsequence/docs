@@ -1,0 +1,66 @@
+---
+title: useProjectAccessKey
+description: Sequence Connectの設定からプロジェクトアクセスキーを取得するためのフックです
+sidebarTitle: useProjectAccessKey
+---
+
+## インポート
+
+```tsx
+import { useProjectAccessKey } from '@0xsequence/connect'
+```
+
+## 使い方
+
+```tsx
+import { useProjectAccessKey } from '@0xsequence/connect'
+
+function App() {
+  const projectAccessKey = useProjectAccessKey()
+  
+  return (
+    <div>
+      {projectAccessKey && (
+        <p>Project access key is configured</p>
+      )}
+    </div>
+  )
+}
+```
+
+## 返り値の型
+このフックは文字列の値を返します：
+
+```tsx
+string
+```
+
+### 戻り値
+
+#### projectAccessKey
+`string`
+
+アプリケーションに設定されたプロジェクトアクセスキー。このキーはSequenceサービスとの認証・識別に使用されます。
+
+**説明：**
+
+プロジェクトアクセスキーは、以下のために必要な設定パラメータです：
+- アプリケーションをSequenceサービスと認証する
+- 特定のプロジェクト／アプリケーションを識別する
+- マーケットプレイス連携やウォレット接続など、各種SDK機能へのアクセスを有効化する
+- Sequence Connectコンテキストの初期設定時に必ず指定してください
+
+**使用例：**
+
+```tsx
+// Using with marketplace integration
+const projectAccessKey = useProjectAccessKey()
+const marketplaceClient = new MarketplaceIndexer(apiUrl, projectAccessKey)
+```
+
+## 補足
+このフックは、Sequence Connectコンテキスト設定時に指定したプロジェクトアクセスキーへアクセスできます。プロジェクトアクセスキーは以下の用途で重要です：
+- **認証**：アプリケーションの身元をSequenceサービスで確認
+- **認可**：アプリケーションが利用できる機能やリソースの決定
+- **課金**：利用状況を特定プロジェクトに紐付けて課金管理
+- **レート制限**：プロジェクトごとのAPIレート制限管理

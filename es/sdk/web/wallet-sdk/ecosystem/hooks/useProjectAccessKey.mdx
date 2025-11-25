@@ -1,0 +1,66 @@
+---
+title: useProjectAccessKey
+description: Hook para acceder a la clave de acceso del proyecto desde la configuración de Sequence Connect
+sidebarTitle: useProjectAccessKey
+---
+
+## Importar
+
+```tsx
+import { useProjectAccessKey } from '@0xsequence/connect'
+```
+
+## Uso
+
+```tsx
+import { useProjectAccessKey } from '@0xsequence/connect'
+
+function App() {
+  const projectAccessKey = useProjectAccessKey()
+  
+  return (
+    <div>
+      {projectAccessKey && (
+        <p>Project access key is configured</p>
+      )}
+    </div>
+  )
+}
+```
+
+## Tipo de retorno
+El hook retorna un valor de tipo string:
+
+```tsx
+string
+```
+
+### Valor de Retorno
+
+#### projectAccessKey
+`string`
+
+La clave de acceso del proyecto configurada para la aplicación. Esta clave se utiliza para autenticar e identificar su aplicación con los servicios de Sequence.
+
+**Descripción:**
+
+La clave de acceso del proyecto es un parámetro de configuración requerido que:
+- Autentica su aplicación con los servicios de Sequence
+- Identifica su proyecto/aplicación específica
+- Permite el acceso a varias funciones del SDK, incluyendo integración de marketplace y conexiones de wallet
+- Debe proporcionarse durante la configuración inicial del contexto de Sequence Connect
+
+**Ejemplo de Uso:**
+
+```tsx
+// Using with marketplace integration
+const projectAccessKey = useProjectAccessKey()
+const marketplaceClient = new MarketplaceIndexer(apiUrl, projectAccessKey)
+```
+
+## Notas
+Este hook permite acceder a la clave de acceso del proyecto que se configuró al establecer el contexto de Sequence Connect. La clave de acceso del proyecto es esencial para:
+- **Autenticación**: Verificar la identidad de su aplicación con los servicios de Sequence
+- **Autorización**: Determinar a qué funciones y recursos puede acceder su aplicación
+- **Facturación**: Asociar el uso con su proyecto específico para fines de facturación
+- **Límites de tasa**: Gestionar los límites de solicitudes API por proyecto

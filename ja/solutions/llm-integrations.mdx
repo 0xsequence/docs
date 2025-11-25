@@ -1,0 +1,60 @@
+---
+title: LLM連携
+description: SequenceをLLMと連携させることで、ブロックチェーンデータのクエリやスマートコントラクトとのやり取りなど、Sequenceに関する開発作業をAIがサポートできるようになります。いくつかの方法があります。
+sidebarTitle: LLM連携
+icon: robot
+---
+
+## MCPサーバー
+Sequence MCPサーバーを利用すると、ClaudeやCursorなどのAIエージェントをSequenceとシームレスに連携できます。
+
+サーバーは以下で利用できます：
+
+`https://docs.sequence.xyz/mcp`
+
+### Cursorで接続する
+
+1. <kbd>Command</kbd> + <kbd>Shift</kbd> + <kbd>P</kbd>（Windowsの場合は<kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>P</kbd>）でコマンドパレットを開きます。
+2. 「Open MCP settings」と検索します。
+3. **Add custom MCP**を選択して、`mcp.json`ファイルを開きます。
+4. `mcp.json`にSequenceサーバーを追加します：
+
+```json
+{
+  "mcpServers": {
+    "Sequence": {
+      "url": "https://docs.sequence.xyz/mcp"
+    }
+  }
+}
+```
+
+5. Cursorチャットで「What tools do you have available?」と入力し、Sequence MCPサーバーがリストに表示されているか確認してください。
+
+詳細は[Cursorのドキュメント](https://docs.cursor.com/en/context/mcp#installing-mcp-servers)をご覧ください。
+
+### Claudeで接続する
+
+1. Claude Desktopの\[Developers]ページに移動します。
+2. 既存のMCP設定がある場合は**Edit config**を選択、または新規で追加します。
+3. 設定ファイルを開き、Sequence MCPサーバーを追加します：
+   - Name: `Sequence`
+   - URL: `https://docs.sequence.xyz/mcp`
+4. 設定を保存します
+5. Claudeチャットで`Search and tools`を選択し、Sequenceを含む設定ファイルが有効になっていることを確認してください。
+6. Sequenceについて質問してみましょう！
+
+詳細は[Model Context Protocolのドキュメント](https://modelcontextprotocol.io/docs/tutorials/use-remote-mcp-server#connecting-to-a-remote-mcp-server)をご覧ください。
+
+### クエリ例
+次のような質問ができます：
+- 「Sequenceの埋め込みウォレットを統合するにはどうすればよいですか？」
+- 「Sequenceでトークン残高をクエリするにはどうすればいいですか？」
+- 「Sequenceはどのチェーンをサポートしていますか？」
+
+クエリが処理中の場合、次のような表示がされます：
+
+```
+> Called SearchSequenceDocs
+
+```

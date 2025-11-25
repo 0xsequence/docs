@@ -1,0 +1,81 @@
+---
+title: useSocialLink
+description: Hook para gestionar el estado y la configuración del modal de inicio de sesión con redes sociales
+sidebarTitle: useSocialLink
+---
+
+## Importar
+
+```tsx
+import { useSocialLink } from '@0xsequence/connect'
+```
+
+## Uso
+
+```tsx
+import { useSocialLink } from '@0xsequence/connect'
+
+function App() {
+  const { isSocialLinkOpen, waasConfigKey, setIsSocialLinkOpen } = useSocialLink()
+  
+  const handleOpenSocialLink = () => {
+    setIsSocialLinkOpen(true)
+  }
+  
+  const handleCloseSocialLink = () => {
+    setIsSocialLinkOpen(false)
+  }
+  
+  return (
+    <div>
+      <button onClick={handleOpenSocialLink}>
+        Open Social Link
+      </button>
+      
+      {isSocialLinkOpen && (
+        <div>
+          <p>Social Link modal is open</p>
+          <p>WaaS Config Key: {waasConfigKey || 'Not available'}</p>
+          <button onClick={handleCloseSocialLink}>
+            Close Modal
+          </button>
+        </div>
+      )}
+    </div>
+  )
+}
+```
+
+## Tipo de Retorno: `UseSocialLinkReturnType`
+El hook retorna un objeto con las siguientes propiedades:
+
+```tsx
+type UseSocialLinkReturnType = {
+  isSocialLinkOpen: boolean
+  waasConfigKey: string | null
+  setIsSocialLinkOpen: (isOpen: boolean) => void
+}
+```
+
+### Propiedades
+
+#### isSocialLinkOpen
+`boolean`
+
+Indica si el modal de inicio de sesión con redes sociales está abierto (`true`) o cerrado (`false`).
+
+#### waasConfigKey
+`string | null`
+
+La clave de configuración WaaS asociada a la funcionalidad de inicio de sesión con redes sociales, o `null` si no está disponible.
+
+#### setIsSocialLinkOpen
+`(isOpen: boolean) => void`
+
+Función para abrir o cerrar el modal de inicio de sesión con redes sociales.
+
+**Parámetros:**
+
+| Parámetro | Type      | Description                                                        |
+| --------- | --------- | ------------------------------------------------------------------ |
+| `isOpen`  | `boolean` | Indica si el modal debe estar abierto (`true`) o cerrado (`false`) |

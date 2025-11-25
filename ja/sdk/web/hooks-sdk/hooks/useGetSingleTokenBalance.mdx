@@ -1,0 +1,106 @@
+---
+title: useGetSingleTokenBalance
+description: 特定のチェーン上のアカウントにおける、特定トークン（ネイティブまたはERC20）の残高を取得するフックです
+sidebarTitle: useGetSingleTokenBalance
+---
+
+## インポート
+
+```tsx
+import { useGetSingleTokenBalance } from '@0xsequence/hooks'
+```
+
+## 使い方
+
+```tsx
+import { useGetSingleTokenBalance } from '@0xsequence/hooks'
+
+function TokenBalance() {
+  // Fetch native ETH balance
+  const { data: ethBalance, isLoading, error } = useGetSingleTokenBalance({
+    chainId: 1,
+    accountAddress: '0x...',
+    contractAddress: 0x0000000000000000000000000000000000000000
+  })
+  
+  // Fetch USDC balance
+  const { data: usdcBalance } = useGetSingleTokenBalance({
+    chainId: 1,
+    accountAddress: '0x...',
+    contractAddress: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48' // USDC
+  })
+  
+  if (isLoading) return <div>Loading balances...</div>
+  if (error) return <div>Error: {error.message}</div>
+  
+  return (
+    <div>
+      <p>ETH Balance: {ethBalance?.balance}</p>
+      <p>USDC Balance: {usdcBalance?.balance}</p>
+    </div>
+  )
+}
+```
+
+## パラメータ
+
+### GetSingleTokenBalanceArgs
+
+| パラメータ                | 型         | 説明                                             |
+| -------------------- | --------- | ---------------------------------------------- |
+| `chainId`            | `number`  | 残高を取得するチェーンID                                  |
+| `accountAddress`     | `string`  | 残高を取得するアドレス                                    |
+| `contractAddress`    | `string`  | トークンコントラクトアドレス（ネイティブトークンの場合は`ZERO_ADDRESS`を使用） |
+| `tokenId`            | `string`  | オプション。ERC721/ERC1155トークン用のトークンID               |
+| `hideUnlistedTokens` | `boolean` | オプション。trueの場合、未認証トークンを除外します                    |
+
+### HooksOptions
+
+| パラメータ              | 型         | 説明                                 |
+| ------------------ | --------- | ---------------------------------- |
+| `retry`            | `boolean` | リクエスト失敗時に再試行するかどうか（デフォルト：`false`）  |
+| `disabled`         | `boolean` | クエリを無効化するかどうか                      |
+| `hideCollectibles` | `boolean` | trueの場合、ERC721およびERC1155トークンを除外します |
+
+## 返り値の型
+このフックは、以下のプロパティを持つReact Queryの結果オブジェクトを返します：
+
+```tsx
+{
+  data: TokenBalance | undefined
+  isLoading: boolean
+  error: Error | null
+  // ... other React Query properties
+}
+```
+
+### TokenBalance
+返却されるデータにはトークン残高情報が含まれます：
+
+```tsx
+interface TokenBalance {
+    contractType: ContractType;
+    contractAddress: string;
+    accountAddress: string;
+    tokenID?: string;
+    balance: string;
+    blockHash: string;
+    blockNumber: number;
+    chainId: number;
+    uniqueCollectibles: string;
+    isSummary: boolean;
+    contractInfo?: ContractInfo;
+    tokenMetadata?: TokenMetadata;
+}
+```
+
+## 補足
+このフックは、特定アカウントやコントラクトのトークン残高を簡単に取得できます。主な特徴：
+- **ネイティブトークン対応**：ネイティブトークン（ETH、MATICなど）は`ZERO_ADDRESS`を使用
+- **ERC20対応**：あらゆるERC20トークンコントラクトに対応
+- **NFT対応**：オプションの`tokenId`でERC721およびERC1155トークンにも対応
+- **キャッシュ機能**：React Queryによる効率的なキャッシュとバックグラウンド更新
+- **エラー処理**：リクエスト失敗時のエラー状態を提供
+- **ローディング状態**：UX向上のためのローディングインジケーターを含む
+
+このフックは自動的に異なるトークンタイプを処理し、統一されたインターフェースで残高情報を取得できます。

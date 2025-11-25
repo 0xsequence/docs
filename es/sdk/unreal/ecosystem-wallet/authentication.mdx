@@ -1,0 +1,128 @@
+---
+title: Autenticación
+description: Documentación de Ecosystem Wallet para el SDK de Unreal de Sequence.
+---
+
+Comience con una sesión implícita, la cual está restringida a contratos creados por Sequence.
+Como alternativa, puede agregar un objeto `IPermissions` en cada llamada de inicio de sesión si desea conectarse directamente a una sesión explícita.
+
+### Permisos de construcción
+
+<Tabs>
+  <Tab title="Blueprint">
+    <Frame>
+      <img src="/images/unreal/ecosystem/contract_permissions.png" />
+    </Frame>
+  </Tab>
+
+  <Tab title="C++">
+    ```cpp
+    const FString Target = TEXT("0x33985d320809E26274a72E03268c8a29927Bc6dA");
+    const int64 ChainId = 421614;
+    const int64 Deadline = 1856724472000;
+    const int64 ValueLimit = 0;
+
+    UContractPermissions* Permissions = UContractPermissions::CreateContractPermissions(ChainId, Target, Deadline, ValueLimit);
+    ```
+  </Tab>
+</Tabs>
+
+### Iniciar sesión con correo electrónico
+
+<Tabs>
+  <Tab title="Blueprint">
+    <Frame>
+      <img src="/images/unreal/ecosystem/sign_in_email.png" />
+    </Frame>
+  </Tab>
+
+  <Tab title="C++">
+    ```cpp
+    const TSuccessCallback<bool> SuccessCallback = [this, OnSuccess](bool Result) { };
+    const FFailureCallback FailureCallback = [OnFailure](const FSequenceError& Error) { };
+
+    USequenceConnect* Connect = NewObject<USequenceConnect>();
+    Connect->SignInWithEmail(Email, Permissions, SuccessCallback, FailureCallback);
+    ```
+  </Tab>
+</Tabs>
+
+### Iniciar sesión con Google
+
+<Tabs>
+  <Tab title="Blueprint">
+    <Frame>
+      <img src="/images/unreal/ecosystem/sign_in_google.png" />
+    </Frame>
+  </Tab>
+
+  <Tab title="C++">
+    ```cpp
+    const TSuccessCallback<bool> SuccessCallback = [this, OnSuccess](bool Result) { };
+    const FFailureCallback FailureCallback = [OnFailure](const FSequenceError& Error) { };
+
+    USequenceConnect* Connect = NewObject<USequenceConnect>();
+    Connect->SignInWithGoogle(Permissions, SuccessCallback, FailureCallback);
+    ```
+  </Tab>
+</Tabs>
+
+### Iniciar sesión con Apple
+
+<Tabs>
+  <Tab title="Blueprint">
+    <Frame>
+      <img src="/images/unreal/ecosystem/sign_in_apple.png" />
+    </Frame>
+  </Tab>
+
+  <Tab title="C++">
+    ```cpp
+    const TSuccessCallback<bool> SuccessCallback = [this, OnSuccess](bool Result) { };
+    const FFailureCallback FailureCallback = [OnFailure](const FSequenceError& Error) { };
+
+    USequenceConnect* Connect = NewObject<USequenceConnect>();
+    Connect->SignInWithApple(Permissions, SuccessCallback, FailureCallback);
+    ```
+  </Tab>
+</Tabs>
+
+### Iniciar sesión con Passkey
+
+<Tabs>
+  <Tab title="Blueprint">
+    <Frame>
+      <img src="/images/unreal/ecosystem/sign_in_passkey.png" />
+    </Frame>
+  </Tab>
+
+  <Tab title="C++">
+    ```cpp
+    const TSuccessCallback<bool> SuccessCallback = [this, OnSuccess](bool Result) { };
+    const FFailureCallback FailureCallback = [OnFailure](const FSequenceError& Error) { };
+
+    USequenceConnect* Connect = NewObject<USequenceConnect>();
+    Connect->SignInWithPasskey(Permissions, SuccessCallback, FailureCallback);
+    ```
+  </Tab>
+</Tabs>
+
+### Iniciar sesión con frase mnemotécnica
+
+<Tabs>
+  <Tab title="Blueprint">
+    <Frame>
+      <img src="/images/unreal/ecosystem/sign_in_mnemonic.png" />
+    </Frame>
+  </Tab>
+
+  <Tab title="C++">
+    ```cpp
+    const TSuccessCallback<bool> SuccessCallback = [this, OnSuccess](bool Result) { };
+    const FFailureCallback FailureCallback = [OnFailure](const FSequenceError& Error) { };
+
+    USequenceConnect* Connect = NewObject<USequenceConnect>();
+    Connect->SignInWithMnemonic(Permissions, SuccessCallback, FailureCallback);
+    ```
+  </Tab>
+</Tabs>

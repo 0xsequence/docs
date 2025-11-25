@@ -1,0 +1,72 @@
+---
+title: Guía rápida del Unreal SDK
+description: Agregue una smart wallet impulsada por Sequence a su juego en Unreal.
+sidebarTitle: Guía rápida de Unreal
+---
+
+## 🛠️ Paso 1: Instale el Unreal SDK de Sequence
+Descargue la [versión v3 desde los lanzamientos de GitHub del SDK](https://github.com/0xsequence/sequence-unreal/releases/tag/v3.0.0-beta)
+para acceder a los Ecosystem Wallets. Puede descargar uno de los archivos `.zip`, según la versión de Unreal Engine que esté utilizando.
+
+Para ver los Ecosystem Wallets en funcionamiento, [pruebe nuestra demo integrada.](/sdk/unreal/ecosystem-wallet/setup#try-our-built-in-demo)
+
+## 🔑 Paso 2: Configure su proyecto de Unreal
+Vaya a [sequence.build](https://sequence.build), regístrese o inicie sesión y cree un nuevo proyecto. Puede seguir la guía [Builder Getting Started](/solutions/builder/getting-started) para ver el flujo paso a paso.
+
+Siga nuestra [Guía de configuración de Unreal](/sdk/unreal/ecosystem-wallet/setup) para configurar el Unreal SDK.
+
+## 💼 Paso 3: Cree una sesión con permisos
+Para enviar una transacción a un contrato específico, primero debe crear una sesión con los permisos requeridos.
+
+<Tabs>
+  <Tab title="Blueprint">
+    <Frame>
+      <img src="/images/unreal/ecosystem/sign_in_google.png" />
+    </Frame>
+  </Tab>
+
+  <Tab title="C++">
+    ```cpp
+    const FString Target = TEXT("0x33985d320809E26274a72E03268c8a29927Bc6dA");
+    const int64 ChainId = 421614;
+    const int64 Deadline = 1856724472000;
+    const int64 ValueLimit = 0;
+
+    UContractPermissions* Permissions = UContractPermissions::CreateContractPermissions(ChainId, Target, Deadline, ValueLimit);
+
+    const TSuccessCallback<bool> SuccessCallback = [this, OnSuccess](bool Result) { };
+    const FFailureCallback FailureCallback = [OnFailure](const FSequenceError& Error) { };
+
+    USequenceConnect* Connect = NewObject<USequenceConnect>();
+    Connect->SignInWithGoogle(Permissions, SuccessCallback, FailureCallback);
+    ```
+  </Tab>
+</Tabs>
+
+## 📨 Paso 4: Envíe transacciones
+Por último, usemos nuestra sesión de wallet para enviar una transacción a la dirección del contrato especificada en nuestros permisos.
+
+<Tabs>
+  <Tab title="Blueprint">
+    <Frame>
+      <img src="/images/unreal/ecosystem/send_transaction.png" />
+    </Frame>
+  </Tab>
+
+  <Tab title="C++">
+    ```cpp
+    const FString To = TEXT("0x33985d320809E26274a72E03268c8a29927Bc6dA");
+    const FString FunctionSignature = TEXT("explicitEmit()");
+    const int64 Value = 0;
+    const TArray<FString> Values = { };
+
+    UContractTransaction* Transaction = UContractTransaction::CreateContractTransaction(To, Value, FunctionSignature, Values);
+
+    const TSuccessCallback<FString> SuccessCallback = [OnSuccess](const FString& Result) { };
+    const FFailureCallback FailureCallback = [OnFailure](const FSequenceError& Error) { };
+
+    USequenceWallet* Wallet = NewObject<USequenceWallet>();
+    Wallet->SendTransaction(Transaction, SuccessCallback, FailureCallback);
+    ```
+  </Tab>
+</Tabs>

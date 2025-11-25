@@ -1,0 +1,60 @@
+---
+title: Integraciones con LLM
+description: Existen varias formas de integrar Sequence con LLMs para obtener asistencia inteligente en tareas de desarrollo relacionadas con Sequence, desde consultar datos en blockchain hasta interactuar con smart contracts.
+sidebarTitle: Integraciones con LLM
+icon: robot
+---
+
+## MCP Server
+El Sequence MCP Server permite aprovechar agentes de IA como Claude o Cursor de manera fluida con Sequence.
+
+El servidor está disponible en:
+
+`https://docs.sequence.xyz/mcp`
+
+### Conectar en Cursor
+
+1. Use <kbd>Command</kbd> + <kbd>Shift</kbd> + <kbd>P</kbd> (<kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>P</kbd> en Windows) para abrir la paleta de comandos.
+2. Busque "Open MCP settings".
+3. Seleccione **Add custom MCP** para abrir el archivo `mcp.json`.
+4. En `mcp.json`, agregue el servidor de Sequence:
+
+```json
+{
+  "mcpServers": {
+    "Sequence": {
+      "url": "https://docs.sequence.xyz/mcp"
+    }
+  }
+}
+```
+
+5. En el chat de Cursor, pregunte "What tools do you have available?" para confirmar que el servidor MCP de Sequence aparece en la lista.
+
+Consulte la [documentación de Cursor](https://docs.cursor.com/en/context/mcp#installing-mcp-servers) para más detalles.
+
+### Conectar en Claude
+
+1. Vaya a la página de \[Developers] en Claude Desktop.
+2. Seleccione **Edit config** si ya tiene una configuración MCP existente o agregue una nueva.
+3. Abra su archivo de configuración y agregue el servidor MCP de Sequence:
+   - Nombre: `Sequence`
+   - URL: `https://docs.sequence.xyz/mcp`
+4. Guarde la configuración
+5. En un chat de Claude, seleccione `Search and tools` y asegúrese de que su archivo de configuración con Sequence esté habilitado.
+6. ¡Haga una pregunta sobre Sequence!
+
+Consulte la [documentación de Model Context Protocol](https://modelcontextprotocol.io/docs/tutorials/use-remote-mcp-server#connecting-to-a-remote-mcp-server) para más detalles.
+
+### Ejemplos de consultas
+Puede hacer preguntas como:
+- "¿Cómo integro wallets integrados de Sequence?"
+- "¿Cómo uso Sequence para consultar balances de tokens?"
+- "¿Qué blockchains son compatibles con Sequence?"
+
+Cuando su consulta esté siendo procesada, verá una indicación como esta:
+
+```
+> Called SearchSequenceDocs
+
+```

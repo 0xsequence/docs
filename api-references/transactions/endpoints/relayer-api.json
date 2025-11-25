@@ -1507,6 +1507,60 @@
             "type": "string"
           }
         }
+      },
+      "Relayer_ListGasSponsors_Request": {
+        "type": "object",
+        "properties": {
+          "projectId": {
+            "type": "number"
+          },
+          "page": {
+            "$ref": "#/components/schemas/Page"
+          }
+        }
+      },
+      "Relayer_ListGasSponsors_Response": {
+        "type": "object",
+        "properties": {
+          "page": {
+            "$ref": "#/components/schemas/Page"
+          },
+          "gasSponsors": {
+            "type": "array",
+            "description": "[]GasSponsor",
+            "items": {
+              "$ref": "#/components/schemas/GasSponsor"
+            }
+          }
+        }
+      },
+      "Relayer_AddGasSponsor_Request": {
+        "type": "object",
+        "properties": {
+          "projectId": {
+            "type": "number"
+          },
+          "address": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "active": {
+            "type": "boolean"
+          }
+        }
+      },
+      "Relayer_AddGasSponsor_Response": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "boolean"
+          },
+          "gasSponsor": {
+            "$ref": "#/components/schemas/GasSponsor"
+          }
+        }
       }
     },
     "securitySchemes": {
@@ -1883,6 +1937,150 @@
           }
         ]
       }
+    },
+    "/rpc/Relayer/ListGasSponsors": {
+      "post": {
+        "summary": "Gas Sponsorship",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Relayer_ListGasSponsors_Request"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Relayer_ListGasSponsors_Response"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "Client error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    { "$ref": "#/components/schemas/ErrorWebrpcEndpoint" },
+                    { "$ref": "#/components/schemas/ErrorWebrpcRequestFailed" },
+                    { "$ref": "#/components/schemas/ErrorWebrpcBadRoute" },
+                    { "$ref": "#/components/schemas/ErrorWebrpcBadMethod" },
+                    { "$ref": "#/components/schemas/ErrorWebrpcBadRequest" },
+                    { "$ref": "#/components/schemas/ErrorWebrpcClientDisconnected" },
+                    { "$ref": "#/components/schemas/ErrorWebrpcStreamLost" },
+                    { "$ref": "#/components/schemas/ErrorUnauthorized" },
+                    { "$ref": "#/components/schemas/ErrorPermissionDenied" },
+                    { "$ref": "#/components/schemas/ErrorMethodNotFound" },
+                    { "$ref": "#/components/schemas/ErrorRequestConflict" },
+                    { "$ref": "#/components/schemas/ErrorAborted" },
+                    { "$ref": "#/components/schemas/ErrorGeoblocked" },
+                    { "$ref": "#/components/schemas/ErrorInvalidArgument" },
+                    { "$ref": "#/components/schemas/ErrorUnavailable" },
+                    { "$ref": "#/components/schemas/ErrorQueryFailed" },
+                    { "$ref": "#/components/schemas/ErrorNotFound" },
+                    { "$ref": "#/components/schemas/ErrorInsufficientFee" }
+                  ]
+                }
+              }
+            }
+          },
+          "5XX": {
+            "description": "Server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    { "$ref": "#/components/schemas/ErrorWebrpcBadResponse" },
+                    { "$ref": "#/components/schemas/ErrorWebrpcServerPanic" },
+                    { "$ref": "#/components/schemas/ErrorWebrpcInternalError" }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          { "ApiKeyAuth": [ "AQAAAAAAAEGvyZiWA9FMslYeG_yayXaHnSI" ] }
+        ]
+      }
+    },
+    "/rpc/Relayer/AddGasSponsor": {
+      "post": {
+        "summary": "",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Relayer_AddGasSponsor_Request"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Relayer_AddGasSponsor_Response"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "Client error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    { "$ref": "#/components/schemas/ErrorWebrpcEndpoint" },
+                    { "$ref": "#/components/schemas/ErrorWebrpcRequestFailed" },
+                    { "$ref": "#/components/schemas/ErrorWebrpcBadRoute" },
+                    { "$ref": "#/components/schemas/ErrorWebrpcBadMethod" },
+                    { "$ref": "#/components/schemas/ErrorWebrpcBadRequest" },
+                    { "$ref": "#/components/schemas/ErrorWebrpcClientDisconnected" },
+                    { "$ref": "#/components/schemas/ErrorWebrpcStreamLost" },
+                    { "$ref": "#/components/schemas/ErrorUnauthorized" },
+                    { "$ref": "#/components/schemas/ErrorPermissionDenied" },
+                    { "$ref": "#/components/schemas/ErrorMethodNotFound" },
+                    { "$ref": "#/components/schemas/ErrorRequestConflict" },
+                    { "$ref": "#/components/schemas/ErrorAborted" },
+                    { "$ref": "#/components/schemas/ErrorGeoblocked" },
+                    { "$ref": "#/components/schemas/ErrorInvalidArgument" },
+                    { "$ref": "#/components/schemas/ErrorUnavailable" },
+                    { "$ref": "#/components/schemas/ErrorQueryFailed" },
+                    { "$ref": "#/components/schemas/ErrorNotFound" },
+                    { "$ref": "#/components/schemas/ErrorInsufficientFee" }
+                  ]
+                }
+              }
+            }
+          },
+          "5XX": {
+            "description": "Server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    { "$ref": "#/components/schemas/ErrorWebrpcBadResponse" },
+                    { "$ref": "#/components/schemas/ErrorWebrpcServerPanic" },
+                    { "$ref": "#/components/schemas/ErrorWebrpcInternalError" }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          { "ApiKeyAuth": [ "AQAAAAAAAEGvyZiWA9FMslYeG_yayXaHnSI" ] }
+        ]
+      }
     }
   },
   "servers": [
@@ -2021,6 +2219,10 @@
     {
       "url": "https://soneium-minato-relayer.sequence.app",
       "description": "Soneium-Minato Relayer"
+    },
+    {
+      "url": "https://soneium-relayer.sequence.app",
+      "description": "Soneium Relayer"
     },
     {
       "url": "https://toy-testnet-relayer.sequence.app",

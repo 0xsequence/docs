@@ -1,0 +1,126 @@
+---
+title: "useGetCoinPrices"
+description: Hook to fetch current prices for a list of tokens
+sidebarTitle: useGetCoinPrices
+---
+
+## Import
+
+```tsx
+import { useGetCoinPrices } from '@0xsequence/hooks'
+```
+
+## Usage
+
+```tsx
+import { useGetCoinPrices } from '@0xsequence/hooks'
+
+function TokenPriceDisplay() {
+    const tokens = [
+        {
+            chainId: 1,
+            contractAddress: '0x0000000000000000000000000000000000000000' // ETH
+        },
+        {
+            chainId: 137,
+            contractAddress: '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174' // USDC on Polygon
+        }
+    ]
+
+    const {
+        data: prices,
+        isLoading,
+        error,
+        isError,
+        isSuccess
+    } = useGetCoinPrices(tokens)
+
+    if (isLoading) {
+        return <div>Loading prices...</div>
+    }
+
+    if (isError) {
+        return <div>Error: {error.message}</div>
+    }
+
+    return (
+        <div>
+            <h2>Token Prices</h2>
+            {isSuccess && prices && (
+                prices.map((price) => (
+                    <div key={price.token.contractAddress}>
+                        {price?.price?.value} {price?.price?.currency}
+                    </div>
+                ))
+            )}
+        </div>
+    )
+}
+
+export default TokenPriceDisplay;
+```
+
+## Parameters
+
+### tokens
+
+`Token[]`: Array of objects with `chainId` and `contractAddress` representing the tokens you'd like prices for.
+
+
+```tsx
+interface Token {
+  chainId: number // EVM chain ID (e.g., 1 = Ethereum, 137 = Polygon)
+  contractAddress: string // Token contract address on that chain
+}
+```
+
+* For native tokens (e.g., ETH on Ethereum, MATIC on Polygon), set `contractAddress` to **`ZERO_ADDRESS`**.
+* For ERC-20 tokens, provide the token’s actual contract address on the specified `chainId`.
+
+**Examples**
+
+```tsx
+const tokens: Token[] = [
+  { chainId: 1,   contractAddress: ZERO_ADDRESS },                 // ETH (native)
+  { chainId: 137, contractAddress: ZERO_ADDRESS },                 // MATIC (native)
+  { chainId: 1,   contractAddress: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48" }, // USDC on Ethereum
+];
+```
+
+### options
+
+`HooksOptions` (optional)
+
+```tsx
+interface HooksOptions {
+  retry?: boolean  // Whether to retry failed requests (defaults to true)
+  disabled?: boolean // Whether to disable the query
+}
+```
+
+## Return Type
+
+The hook returns a React Query result object:
+
+```tsx
+interface Price {
+  value: number
+  currency: string
+}
+
+{
+  data: {
+    token: Token,
+    price?: Price,
+    price24hChange?: Price,
+    floorPrice?: Price,
+    buyPrice?: Price,
+    sellPrice?: Price,
+    updatedAt: string
+  }[]
+  isLoading: boolean    // Whether the initial request is in progress
+  error: Error | null   // Any error that occurred
+  isError: boolean      // Whether an error occurred
+  isSuccess: boolean    // Whether the request was successful
+}
+```

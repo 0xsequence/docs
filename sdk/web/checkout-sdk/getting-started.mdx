@@ -1,0 +1,58 @@
+---
+description: Learn how to get started with Checkout SDK
+sidebarTitle: Getting Started
+---
+
+<Info>
+    This package is dependent on [Connect SDK](/sdk/web/wallet-sdk/ecosystem/getting-started).
+</Info>
+
+<Steps>
+    <Step title="Install and setup Connect SDK">
+        Follow the steps [here](/sdk/web/wallet-sdk/ecosystem/getting-started).
+    </Step>
+
+    
+    <Step title="Install Checkout SDK">
+    ```bash
+        npm install @0xsequence/checkout@v6-beta
+        # or
+        pnpm install @0xsequence/checkout@v6-beta
+        # or
+        yarn add @0xsequence/checkout@v6-beta
+    ```
+    </Step>
+
+    <Step title="Wrap your App with the SequenceCheckoutProvider">
+    ```typescript [main.tsx]
+        import React from "react";
+        import ReactDOM from "react-dom/client";
+        import "./index.css";
+
+        import App from "./App";
+        import { config } from "./config";
+        import { SequenceConnect } from "@0xsequence/connect";
+        import { SequenceCheckoutProvider } from "@0xsequence/checkout";
+
+        function Dapp() {
+        return (
+            <SequenceConnect config={config}>
+                <SequenceCheckoutProvider>
+                    <App />
+                </SequenceCheckoutProvider>
+            </SequenceConnect>
+        );
+        }
+
+        ReactDOM.createRoot(document.getElementById("root")!).render(
+        <React.StrictMode>
+            <Dapp />
+        </React.StrictMode>
+        );
+    ```
+    </Step>
+
+    <Step title="Start using it">
+        Now you can start using hooks like [useSelectPaymentModal](/sdk/web/checkout-sdk/hooks/useSelectPaymentModal).
+    </Step>
+</Steps>
