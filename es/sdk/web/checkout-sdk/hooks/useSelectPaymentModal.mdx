@@ -173,6 +173,57 @@ El objeto `settings` puede incluir las siguientes propiedades:
 | `onError`               | `(error: Error) => void`                     | Callback cuando ocurre un error                                                  |
 | `onClose`               | `() => void`                                 | Callback cuando se cierra el modal                                               |
 | `txData`                | `string`                                     | Datos de transacción codificados para la compra                                  |
+| `forteConfig`           | `object`                                     | Configuración de Forte                                                           |
+
+#### forteConfig
+Se debe proporcionar el objeto forteConfig para habilitar los pagos con Forte.
+
+El protocolo debe establecerse como `custom_evm_call` o `mint`, según si la transacción es un minteo o una transacción general.
+Además, se debe proporcionar una cadena `sellerAddress`, que indica la dirección del vendedor en el caso de una transacción o la dirección del contrato en el caso de un minteo.
+
+El calldata puede ser una cadena con el calldata (igual que el `txData` ya proporcionado) o un objeto calldata estructurado, que detalla el nombre de la función y los argumentos. Es fundamental que el calldata estructurado incluya una dirección de receptor, como se muestra en el siguiente ejemplo.
+
+```tsx
+const structuredCalldata = {
+    functionName: 'mint',
+    arguments: [
+    {
+        type: 'address',
+        value: '${receiver_address}' // The address of the receiver of the minted NFTs
+    },
+    {
+        type: 'uint256[]',
+        value: ['1']
+    },
+    {
+        type: 'uint256[]',
+        value: ['1']
+    },
+    {
+        type: 'bytes',
+        value: toHex(0)
+    },
+    {
+        type: 'address',
+        value: currencyAddress
+    },
+    {
+        type: 'uint256',
+        value: price
+    },
+    {
+        type: 'bytes32[]',
+        value: [toHex(0, { size: 32 })]
+    }
+    ]
+}
+
+forteConfig: {
+    protocol: 'custom_evm_call',
+    calldata: structuredCalldata,
+    sellerAddress: '0x184D4F89ad34bb0491563787ca28118273402986'
+}
+```
 
 #### closeSelectPaymentModal
 `() => void`

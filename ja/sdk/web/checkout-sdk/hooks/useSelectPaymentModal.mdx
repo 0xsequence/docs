@@ -173,6 +173,57 @@ type UseSelectPaymentModalReturnType = {
 | `onError`               | `(error: Error) => void`                     | エラー発生時のコールバック                       |
 | `onClose`               | `() => void`                                 | モーダルが閉じられたときのコールバック                 |
 | `txData`                | `string`                                     | 購入用のエンコード済みトランザクションデータ              |
+| `forteConfig`           | `object`                                     | Forteの設定                            |
+
+#### forteConfig
+Forte決済を有効にするには、forteConfigオブジェクトを指定する必要があります。
+
+プロトコルは、取引がミントか一般的な取引かに応じて、`custom_evm_call` または `mint` のいずれかに設定してください。
+また、取引の場合は販売者のアドレス、ミントの場合はコントラクトのアドレスを示す `sellerAddress` 文字列を必ず指定してください。
+
+calldataは、（すでに提供されている `txData` と同じ）calldataの文字列、または関数名と引数を詳細に記述した構造化calldataオブジェクトのいずれかを指定できます。特に、構造化calldataの場合は、下記の例のように受取人アドレスを指定する必要があります。
+
+```tsx
+const structuredCalldata = {
+    functionName: 'mint',
+    arguments: [
+    {
+        type: 'address',
+        value: '${receiver_address}' // The address of the receiver of the minted NFTs
+    },
+    {
+        type: 'uint256[]',
+        value: ['1']
+    },
+    {
+        type: 'uint256[]',
+        value: ['1']
+    },
+    {
+        type: 'bytes',
+        value: toHex(0)
+    },
+    {
+        type: 'address',
+        value: currencyAddress
+    },
+    {
+        type: 'uint256',
+        value: price
+    },
+    {
+        type: 'bytes32[]',
+        value: [toHex(0, { size: 32 })]
+    }
+    ]
+}
+
+forteConfig: {
+    protocol: 'custom_evm_call',
+    calldata: structuredCalldata,
+    sellerAddress: '0x184D4F89ad34bb0491563787ca28118273402986'
+}
+```
 
 #### closeSelectPaymentModal
 `() => void`
