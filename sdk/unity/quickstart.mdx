@@ -1,5 +1,5 @@
 ---
-title: "Unity Quickstart"
+title: "Quickstart"
 description: Quickstart Documentation for Sequence's Unity SDK.
 ---
 
@@ -21,7 +21,13 @@ and use the following Git URL `https://github.com/0xsequence/sequence-unity.git?
     Place this file in the root of a `Resources` folder.
   </Step>
   <Step title="Integrate your Login Process">
-    Start by establishing a wallet session using an email OTP. Import the `Setup` Sample from the Package Manager UI
+      Start by checking if a wallet session is available from storage:
+
+      ```csharp
+      bool recovered = await EmbeddedWalletAdapter.GetInstance().TryRecoverWalletFromStorage();
+      ```
+
+    If that returns `false` you should ask the user to sign. Import the `Setup` Sample from the Package Manager UI
       which will place a set of boilerplates into your project in a `Resources/` directory.
       Create the [Login Boilerplate](/sdk/unity/bootstrap_game#login) to send a one-time password to the specified email address.
 
@@ -37,9 +43,9 @@ and use the following Git URL `https://github.com/0xsequence/sequence-unity.git?
 
   </Step>
     <Step title="Test Sequence's Features">
-Sequence's Unity SDK includes a variety of [Boilerplates](/sdk/unity/bootstrap_game) to help you quickly start your game.
-Once everything is configured, you can create prefabs to display an Player Profile, Inventory, or In-Game Shop.
-Checkout [how to integrate a Player Profile.](/sdk/unity/bootstrap_game#player-profile)
+        Sequence's Unity SDK includes a variety of [Boilerplates](/sdk/unity/bootstrap_game) to help you quickly start your game.
+        Once everything is configured, you can create prefabs to display an Player Profile, Inventory, or In-Game Shop.
+        Checkout [how to integrate a Player Profile.](/sdk/unity/bootstrap_game#player-profile)
 
         ```csharp
         BoilerplateFactory.OpenSequencePlayerProfile(parent, wallet, chain);
