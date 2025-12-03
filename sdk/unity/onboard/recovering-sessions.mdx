@@ -13,23 +13,45 @@ If you enable `StoreSessionPrivateKeyInSecureStorage` in your `SequenceConfig` S
 
 See below the supported platforms and to learn about the platform's secure storage solution - it is important to understand the basics of how these systems work and think carefully about the security implications of storing private keys (or any secret for that matter) in persistent storage.
 
-## iOS 
+## Integration
+
+You have two options to recover a wallet from storage. First is to use the `EmbeddedWalletAdapter` class. If this call succeeds, the `EmbeddedWalletAdapter` contains the Wallet instance.
+
+```csharp
+bool recovered = await EmbeddedWalletAdapter.GetInstance().TryRecoverWalletFromStorage();
+```
+
+Otherwise, use the underlying `SequenceLogin` class.
+
+```csharp
+(bool storageEnabled, IWallet wallet) = await SequenceLogin.GetInstance().TryToRestoreSessionAsync();
+```
+
+In both cases, you can listen to the `SequenceWallet.OnWalletCreated` event whenever a wallet was recovered from storage or created during the sign-in process.
+
+## Platform Details
+
+### Editor
+
+In the editor, we use PlayerPrefs for private key storage. You will also need to enable `EditorStoreSessionPrivateKeyInSecureStorage` in SequenceConfig in order to use secure storage and recover sessions from within the editor. This separate flag makes it easier for you to test both flows without modifying the behaviour of your builds. Secure storage in the editor is for development purposes only and should not be considered secure for long-term storage.
+
+### iOS
 
 On iOS, we leverage the [iOS Keychain](https://developer.apple.com/documentation/security/keychain_services?language=objc).
 
-## MacOS 
+### MacOS
 
 On MacOS, we leverage the [MacOS Keychain](https://developer.apple.com/documentation/security/keychain_services?language=objc).
 
-## Windows
+### Windows
 
 On Windows PCs, we leverage the [Crypto: Next Generation - Data Protection API (CNG DPAPI)](https://learn.microsoft.com/en-us/windows/win32/seccng/cng-dpapi)
 
-## Web 
+### Web
 
 On Web builds, we leverage [IndexedDB](https://developer.mozilla.org/en-US/docs/Web/API/IndexedDB_API) via [PlayerPrefs](https://docs.unity3d.com/ScriptReference/PlayerPrefs.html).
 
-## Android 
+### Android
 
 On Android builds, we leverage the [Android Keystore](https://developer.android.com/privacy-and-security/keystore).
 
@@ -94,7 +116,7 @@ unityStreamingAssets=**STREAMING_ASSETS**
 android.enableR8=**MINIFY_WITH_R_EIGHT**
 ```
 
-### Troubleshooting
+## Troubleshooting
 
 If you run into issues with secure storage or Google Sign-In on Android, go through the following troubleshooting steps.
 
@@ -106,7 +128,3 @@ overwritten by any other plugin or the Android Plugin Resolver.
 and ensure this build runs fine on your device.
   - Compare your Unity project settings (AndroidManifest, gradle files, Android player settings) with our [sdk project.](https://github.com/0xsequence/sequence-unity)
 - **Additional Ideas:** Uninstall your app before installing a new build, change your url scheme or bundle id.
-
-## Editor
-
-In the editor, we use PlayerPrefs for private key storage. You will also need to enable 'EditorStoreSessionPrivateKeyInSecureStorage' in SequenceConfig in order to use secure storage and recover sessions from within the editor. This separate flag makes it easier for you to test both flows without modifying the behaviour of your builds. Secure storage in the editor is for development purposes only and should not be considered secure for long-term storage.
