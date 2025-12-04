@@ -1,0 +1,40 @@
+---
+title: Configuración del SDK de Unity para Embedded Wallets
+description: Documentación para la configuración del SDK de Unity para la infraestructura de Sequence orientada a juegos web3.
+sidebarTitle: Configuración
+---
+
+<Steps>
+  <Step title="Configure su proyecto en Builder">
+    [Configure su Embedded Wallet](/sdk/headless-wallet/quickstart) en el Sequence Builder
+  </Step>
+
+  <Step title="Instalar el SDK de Unity">
+    Instale la última versión del Unity SDK de Sequence desde [OpenUPM](/sdk/unity/installation#openupm),
+    o utilice [Unity's Package Manager UI](/sdk/unity/installation#or-using-package-manager-ui)
+    y use la siguiente URL de Git `https://github.com/0xsequence/sequence-unity.git?path=/Packages/Sequence-Unity`
+  </Step>
+
+  <Step title="Configure el SDK">
+    Inicie sesión y cree un proyecto en [Sequence Builder](https://sequence.build).
+
+    Descargue su archivo de configuración desde Builder como se muestra a continuación.
+
+    <Frame>
+      <img src="/images/unity/builder_config_file.png" />
+    </Frame>
+
+    Coloque este archivo en la raíz de una carpeta `Resources`.
+  </Step>
+</Steps>
+
+## Parámetros de configuración
+`Url Scheme` - Debe reemplazar esto por una cadena única para su aplicación. Esto es muy importante. Si no lo hace, se producirán comportamientos inesperados al iniciar sesión con inicio de sesión con redes sociales y no funcionará.
+
+`StoreSessionPrivateKeyInSecureStorage` - Disponible en algunas plataformas: hemos integrado el sistema de almacenamiento seguro nativo de la plataforma. Si está habilitado, almacenaremos la información de la wallet de la sesión (incluida la clave privada) en el almacenamiento seguro y trataremos de recuperar la sesión automáticamente para el usuario después de cerrar la app (así no tendrá que iniciar sesión de nuevo). Si está deshabilitado (por defecto) o en una plataforma no soportada, las claves privadas de la wallet de la sesión nunca salen de la memoria en tiempo de ejecución de la aplicación; sin embargo, el usuario tendrá que iniciar sesión nuevamente cada vez que cierre la app. El `SequenceLoginWindow` Boilerplate predeterminado (vea [Bootstrap your Game](/sdk/unity/bootstrap)) gestionará este comportamiento automáticamente, navegando a la página correspondiente.
+
+`EnableMultipleAccountsPerEmail` - Por defecto, el SDK solo permite a los usuarios crear una cuenta por correo electrónico. La cuenta se asocia inicialmente con el método de inicio de sesión utilizado (correo electrónico + OTP, PlayFab, Google, etc.); el usuario puede asociar métodos de inicio de sesión adicionales a su cuenta (más información en la [sección de Autenticación](/sdk/unity/wallets/embedded-wallet/onboard/authentication/federated-accounts)). Si se habilita `EnableMultipleAccountsPerEmail`, los usuarios tienen la opción de crear varias cuentas por dirección de correo electrónico (asociadas a diferentes métodos de inicio de sesión). Aunque hemos habilitado esta funcionalidad, en general consideramos que este comportamiento puede resultar confuso para los usuarios finales y recomendamos a los integradores mantener esta opción deshabilitada por defecto.
+
+<Warning>Antes de continuar, asegúrese de haber configurado correctamente la Embedded Wallet en el Builder. Consulte esta [guía](/solutions/builder/embedded-wallet/configuration).</Warning>
+
+<Warning>¡Por favor, verifique que haya copiado y pegado correctamente las claves de configuración desde el Builder! Este es el problema más común reportado al integrar nuestro SDK. Si recibe una respuesta de "invalid tenant", ¡hay un error en su configuración! Consulte esta [guía](/solutions/builder/embedded-wallet/configuration).</Warning>

@@ -7,12 +7,12 @@ sidebarTitle: Unreal クイックスタート
 ## 🛠️ ステップ1：SequenceのUnreal SDKをインストールする
 [SDKのGitHubリリースページ](https://github.com/0xsequence/sequence-unreal/releases/tag/v3.0.0-beta)からv3をダウンロードして、Ecosystem ウォレットを利用しましょう。ご利用のUnreal Engineバージョンに応じて、いずれかの`.zip`ファイルをダウンロードしてください。
 
-Ecosystem ウォレットの動作を確認したい場合は、[組み込みデモをお試しください。](/sdk/unreal/ecosystem-wallet/setup#try-our-built-in-demo)
+Ecosystemウォレットの動作を確認するには、[組み込みデモをお試しください。](/sdk/unreal/wallets/ecosystem-wallet/setup#try-our-built-in-demo)
 
 ## 🔑 ステップ2：Unrealプロジェクトを設定する
 [sequence.build](https://sequence.build)にアクセスし、サインアップまたはログインして新しいプロジェクトを作成します。[Builder Getting Started](/solutions/builder/getting-started)ガイドで手順を確認できます。
 
-[Unrealセットアップガイド](/sdk/unreal/ecosystem-wallet/setup)に従ってUnreal SDKを設定してください。
+[Unreal セットアップ](/sdk/unreal/wallets/ecosystem-wallet/setup)に従って、Unreal SDK の設定を行ってください。
 
 ## 💼 ステップ3：権限付きセッションの作成
 特定のコントラクトにトランザクションを送信するには、必要な権限を持つセッションを最初に作成する必要があります。
@@ -20,7 +20,7 @@ Ecosystem ウォレットの動作を確認したい場合は、[組み込みデ
 <Tabs>
   <Tab title="ブループリント">
     <Frame>
-      <img src="/images/unreal/ecosystem/sign_in_google.png" />
+      <img src="/images/unreal/ecosystem/contract_permissions.png" />
     </Frame>
   </Tab>
 
@@ -32,7 +32,22 @@ Ecosystem ウォレットの動作を確認したい場合は、[組み込みデ
     const int64 ValueLimit = 0;
 
     UContractPermissions* Permissions = UContractPermissions::CreateContractPermissions(ChainId, Target, Deadline, ValueLimit);
+    ```
+  </Tab>
+</Tabs>
 
+次に、`permissions` オブジェクトを使って認証関数を呼び出します（例：`Sign In with Google`）。
+必要に応じて、`permissions` を空のままにして暗黙的なセッションを作成することもできます。
+
+<Tabs>
+  <Tab title="ブループリント">
+    <Frame>
+      <img src="/images/unreal/ecosystem/sign_in_google.png" />
+    </Frame>
+  </Tab>
+
+  <Tab title="C++">
+    ```cpp
     const TSuccessCallback<bool> SuccessCallback = [this, OnSuccess](bool Result) { };
     const FFailureCallback FailureCallback = [OnFailure](const FSequenceError& Error) { };
 
@@ -48,7 +63,7 @@ Ecosystem ウォレットの動作を確認したい場合は、[組み込みデ
 <Tabs>
   <Tab title="ブループリント">
     <Frame>
-      <img src="/images/unreal/ecosystem/send_transaction.png" />
+      <img src="/images/unreal/ecosystem/contract_transaction.png" />
     </Frame>
   </Tab>
 
@@ -60,7 +75,22 @@ Ecosystem ウォレットの動作を確認したい場合は、[組み込みデ
     const TArray<FString> Values = { };
 
     UContractTransaction* Transaction = UContractTransaction::CreateContractTransaction(To, Value, FunctionSignature, Values);
+    ```
+  </Tab>
+</Tabs>
 
+次に、`transaction` オブジェクトを作成し、`SendTransaction` 関数に渡します。
+また、ガススポンサーシップのないメインネットで操作する場合は、事前に[手数料オプションを取得](/sdk/unreal/wallets/ecosystem-wallet/blockchain-interactions#get-fee-options)することも可能です。
+
+<Tabs>
+  <Tab title="ブループリント">
+    <Frame>
+      <img src="/images/unreal/ecosystem/send_transaction.png" />
+    </Frame>
+  </Tab>
+
+  <Tab title="C++">
+    ```cpp
     const TSuccessCallback<FString> SuccessCallback = [OnSuccess](const FString& Result) { };
     const FFailureCallback FailureCallback = [OnFailure](const FSequenceError& Error) { };
 
