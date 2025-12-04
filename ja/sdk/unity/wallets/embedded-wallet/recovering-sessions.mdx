@@ -1,0 +1,26 @@
+---
+title: 埋め込みウォレットセッションの復元
+sidebarTitle: セッションの復元
+---
+
+Sequence API でユーザー認証しセッションを確立した後は、セッション管理のためのさまざまなメソッドが利用できます。
+
+## セットアップ
+`SequenceConfig` ScriptableObject で `StoreSessionPrivateKeyInSecureStorage` を有効にすると、（対応プラットフォームでは）セッションウォレット情報が自動的に安全なストレージに保存され、`SequenceLogin` でセッションの復元を試みる機能が利用できるようになります。デフォルトの `SequenceLoginWindow` では、このUIフローも自動的に処理されます（詳しくは[認証](/sdk/unity/wallets/embedded-wallet/onboard/authentication/intro)をご覧ください）。プラットフォームが対応していない場合、このフラグは効果がありません。
+
+プレイヤー情報を安全に保存するために使用しているプラットフォームごとのツールについては、[セッションの復元](/sdk/unity/advanced/recovering-sessions)ページをご覧ください。
+
+## インテグレーション
+ウォレットをストレージから復元する方法は2つあります。1つ目は、`EmbeddedWalletAdapter` クラスを使用する方法です。この呼び出しが成功すると、`EmbeddedWalletAdapter` にウォレットインスタンスが格納されます。
+
+```csharp
+bool recovered = await EmbeddedWalletAdapter.GetInstance().TryRecoverWalletFromStorage();
+```
+
+それ以外の場合は、基盤となる `SequenceLogin` クラスを使用してください。
+
+```csharp
+(bool storageEnabled, IWallet wallet) = await SequenceLogin.GetInstance().TryToRestoreSessionAsync();
+```
+
+どちらの場合でも、ウォレットがストレージから復元されたり、サインイン時に作成された際には、`SequenceWallet.OnWalletCreated` イベントを監視できます。

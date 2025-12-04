@@ -1,0 +1,115 @@
+---
+title: "Manage Sessions"
+description: Documentation for Unreal SDK API to manage sessions for the Sequence infrastructure stack for web3 gaming.
+---
+
+<Warning>
+    The examples below apply to versions 2.x.x.
+    If you’re using version 3, use the SequenceEmbeddedWalletBP (Blueprints) and SequenceEmbeddedWallet (C++) classes instead.
+</Warning>
+
+## Get Id Token
+
+A common use case is to verify the user identity on your backend after the user has finished the login process in your app client.
+Get a Sequence Id Token from your users to send it to your backend for verification using any JWKS library.
+Read our [Backend Verification Guide](/sdk/headless-wallet/verification) for more information.
+
+<Tabs>
+    <Tab title="Blueprint">
+        <Frame>
+            <img src="/images/unreal/get_id_token.png" />
+        </Frame>
+    </Tab>
+
+    <Tab title="C++">
+        ```cpp
+        const TFunction<void (FSeqIdTokenResponse_Data)> OnApiSuccess = [OnSuccess](const FSeqIdTokenResponse_Data& Data) { };
+        const TFunction<void (FSequenceError)> OnApiFailure = [OnFailure](const FSequenceError& Err) { };
+
+        USequenceWallet* Wallet = NewObject<USequenceWallet>();
+        Wallet->GetIdToken(Nonce, OnApiSuccess, OnApiFailure);
+        ```
+    </Tab>
+</Tabs>
+
+## Check Existing Session
+
+Check if your client has an existing session stored.
+
+<Tabs>
+    <Tab title="Blueprint">
+        <Frame>
+            <img src="/images/unreal/check_existing_session.png" />
+        </Frame>
+    </Tab>
+
+    <Tab title="C++">
+        ```cpp
+        USequenceSessions* Sessions = NewObject<USequenceSessions>();
+        const bool Exists = Sessions->CheckExistingSession();
+        ```
+    </Tab>
+</Tabs>
+
+## Sign Out
+
+Clear the credentials cache and sign out the current user.
+
+<Tabs>
+    <Tab title="Blueprint">
+        <Frame>
+            <img src="/images/unreal/sign_out.png" />
+        </Frame>
+    </Tab>
+
+    <Tab title="C++">
+        ```cpp
+        USequenceWallet* Wallet = NewObject<USequenceWallet>();
+        Wallet->SignOut();
+        ```
+     </Tab>
+</Tabs>
+
+## List Sessions
+
+List the active sessions.
+
+<Tabs>
+    <Tab title="Blueprint">
+        <Frame>
+            <img src="/images/unreal/list_sessions.png" />
+        </Frame>
+    </Tab>
+
+    <Tab title="C++">
+        ```cpp
+        const TFunction<void (TArray<FSeqListSessions_Session>)> OnApiSuccess = [OnSuccess](const TArray<FSeqListSessions_Session>& Sessions) { };
+        const TFunction<void (FSequenceError)> OnApiFailure = [OnFailure](const FSequenceError& Err) { };
+
+        USequenceWallet* Wallet = NewObject<USequenceWallet>();
+        Wallet->GetIdToken(Nonce, OnApiSuccess, OnApiFailure);
+        ```
+  </Tab>
+</Tabs>
+
+## List Accounts
+
+List your accounts.
+
+<Tabs>
+    <Tab title="Blueprint">
+        <Frame>
+            <img src="/images/unreal/list_accounts.png" />
+        </Frame>
+    </Tab>
+
+    <Tab title="C++">
+        ```cpp
+        const TFunction<void (FSeqListAccountsResponse_Data)> OnApiSuccess = [OnSuccess](const FSeqListAccountsResponse_Data& Sessions) { };
+        const TFunction<void (FSequenceError)> OnApiFailure = [OnFailure](const FSequenceError& Err) { };
+
+        USequenceWallet* Wallet = NewObject<USequenceWallet>();
+        Wallet->GetIdToken(Nonce, OnApiSuccess, OnApiFailure);
+        ```
+    </Tab>
+</Tabs>

@@ -1,0 +1,48 @@
+---
+title: Creando juegos con muchas transacciones en Unity
+description: Algunos juegos guardan el estado del juego con frecuencia. Cuando se trabaja con blockchain, esto puede ser costoso y generar mucha latencia. Esta guía aborda cómo superar estas limitaciones sin afectar la experiencia del usuario final ni incrementar innecesariamente sus gastos operativos.
+sidebarTitle: Creando juegos con muchas transacciones en Unity
+---
+
+## Introducción
+A diferencia de otras bases de datos, cada escritura en una blockchain (transacción) tiene un costo en forma de [comisiones de gas](https://ethereum.org/en/developers/docs/gas/). Al crear juegos blockchain/web3, es importante considerar estas comisiones. Aunque [el patrocinio de gas de Sequence](/solutions/builder/gas-sponsorship) simplifica gran parte de la complejidad para sus usuarios finales, como desarrollador de juegos aún debe tener en cuenta algunos aspectos relacionados con las comisiones de gas.
+
+<Tip>
+  Al crear su juego, debe considerar la **_frecuencia_** con la que envía transacciones a la blockchain para mantener los costos de ejecución al mínimo.
+</Tip>
+
+Una complejidad adicional de trabajar con blockchain, que no existe en todos los sistemas de almacenamiento de datos, es que escribir en la base de datos blockchain (es decir, hacer una transacción) es una operación asíncrona y no instantánea que requiere conexión de red.
+
+<Warning>
+  Las transacciones pueden fallar por varias razones: sin internet, fondos insuficientes, etc.
+</Warning>
+
+Primero, debe considerar qué propiedades tokenizables (por ejemplo, objetos, potenciadores, desbloqueos, etc.) deberían tokenizarse en la blockchain.
+
+Luego, piense en los "tipos" de transacciones que su juego realizará. Probablemente pueda agrupar las transacciones en diferentes categorías. Por ejemplo, algunas de estas categorías pueden incluir: recogidas (como recolectar monedas), creación, intercambio, venta, compra, etc.
+
+Una vez que haya categorizado cada una de sus transacciones, considere las expectativas de sus usuarios finales sobre esas transacciones, así como sus propias expectativas como desarrollador. ¿Cuánta demora es aceptable desde la perspectiva del usuario para que una transacción se procese? ¿Puede asumir que una transacción tendrá éxito para dar retroalimentación instantánea al usuario y, si es así, puede recuperarse en caso de que una transacción falle sin afectar negativamente al jugador o a su negocio?
+
+El autor de esta guía suele clasificar las transacciones como de alto valor o bajo valor.
+
+**Las transacciones de alto valor** normalmente requieren confirmación antes de brindar retroalimentación al usuario final. Las transacciones pueden fallar por varias razones (sin internet, gas insuficiente, supuestos inválidos, etc.). Si asumimos que una transacción de alto valor será exitosa y damos retroalimentación inmediata al usuario, pero luego la transacción falla, no podremos recuperarnos sin afectar negativamente al usuario o a nuestro negocio. Considere, por ejemplo, una tienda dentro del juego. Si la transacción de "comprar espada" de un usuario falla, tendríamos que revocar la espada de su cuenta (afectando la experiencia del jugador) o perder el ingreso de la venta (afectando el resultado financiero). Por suerte, la mayoría de las transacciones de alto valor coinciden con actividades donde los usuarios ya están acostumbrados a esperar un poco en juegos tradicionales (no blockchain), como tiendas, creación de objetos, mejoras, etc.
+
+**Las transacciones de bajo valor** pueden, y a menudo deberían, brindar retroalimentación inmediata al usuario. No es necesario esperar la confirmación de la transacción antes de mostrar la retroalimentación en el juego. Si la transacción falla, normalmente podemos recuperarnos fácilmente sin afectar la experiencia del jugador ni el negocio. Los jugadores suelen estar acostumbrados a recibir retroalimentación instantánea para estas acciones en juegos tradicionales. Por ejemplo: cuando un usuario recoge una moneda en un juego de plataformas (o similar), espera ver reflejada la moneda recolectada en la interfaz de inmediato. Es poco probable que el jugador recuerde el total exacto de monedas en la siguiente sesión y/o es poco probable que esto afecte al desarrollador si almacena localmente las monedas recolectadas y reenvía la transacción cuando se resuelvan los problemas de red (o similar).
+
+Por último, debe considerar con qué frecuencia su juego realiza transacciones. En algunos juegos, el usuario realiza muchas acciones que afectan el estado del juego en poco tiempo. Imagine enviar una transacción a la blockchain cada vez que Mario recoge una moneda... Los costos se volverían rápidamente prohibitivos, ¡agrupa esas transacciones de bajo valor!
+
+## ¿Cómo implementar esto con Unity?
+Primero, querrá construir un caché local de lo que el usuario tiene en la blockchain. Esto es bastante sencillo: simplemente [lea desde la blockchain](/sdk/unity/indexer/read-from-blockchain) y almacene localmente los balances de tokens del usuario en el formato que le resulte más conveniente. Si está adaptando un juego o prototipo existente que usaba un sistema de almacenamiento local (como PlayerPrefs) o un sistema de almacenamiento remoto (como un [RDBMS](https://en.wikipedia.org/wiki/List_of_relational_database_management_systems)), probablemente ya tenga implementado un caché local y solo necesite crear un adaptador.
+
+Luego, probablemente querrá aprovechar el `TransactionQueuer` y sus herederos que ofrece el Unity SDK. Los `TransactionQueuer` son altamente configurables y están diseñados para facilitar el desarrollo de juegos donde los jugadores realizan muchas acciones que modifican el estado. Por ejemplo, si su juego implica recolectar muchas monedas (o similares) como transacciones de bajo valor, probablemente le convenga usar el `PermissionedMinterTransactionQueuer` (asumiendo que su función de `mint` tiene permisos, que es lo predeterminado, y está minteando desde un servidor) o el `SequenceWalletTransactionQueuer` (si cualquiera puede mintear). Con estos, puede simplemente poner en cola varias transacciones; estas transacciones se combinarán automáticamente si es posible (por ejemplo, en vez de tener 'mint(amount: 5, tokenId: 11)' y 'mint(amount: 3, tokenId: 11)', se combinarían en 'mint(amount: 8, tokenId: 11)'). Luego, puede hacer que sus transacciones se envíen cada x segundos o cuando se realice una llamada a función, pero no antes de cada y segundos (esto se puede modificar para transacciones de alto valor), etc. Para obtener más información sobre cómo trabajar con el `TransactionQueuer`, consulte [este documento](/sdk/unity/wallets/embedded-wallet/blockchain-interactions#transaction-queuers).
+
+Por último, debe verificar si sus transacciones fallan y manejar los errores de manera adecuada.
+
+```csharp
+if (transactionReturn is FailedTransactionReturn) {
+    // Handle the failed transaction
+}
+```
+
+## Ejemplo
+Para ver un ejemplo de estos conceptos en acción en nuestro Unity SDK, consulte nuestra [Guía de Jelly Forest](/guides/jelly-forest-unity-guide#5-mint-in-game-tokens-to-the-players-inventory) y [código de ejemplo](https://github.com/0xsequence/sequence-unity-demo/tree/master/Scripts).
