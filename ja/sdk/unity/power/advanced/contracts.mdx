@@ -112,6 +112,19 @@ var arg = new Tuple<Address, BigInteger, FixedByte>(wallet, amount, data);
 ### その他の型
 Solidityの`string`や`bool`などの基本的なデータ型は、C#でも同じデータ型を使用できます。
 
+### 返却型
+スマートコントラクトからデータを読み取り、`Contract.SendQuery<TType>()` 関数を使用する場合、`string`、`BigInteger`、`bool` などの単純な戻り値型には TType をそのまま使うことができます。構造体のような複雑な戻り値型の場合は、`object[]` を使用し、値を手動で C# の構造体にパースしてください。
+
+```csharp
+// Let's consider a struct with the following variables: SomeStruct { address value1; uint256 value2; }
+object[] structValues = Contract.SendQuery<object[]>("SomeFunction");
+
+SomeStruct newStruct = new SomeStruct() {
+    Value1 = new Address(structValues[0].ToString()),
+    Value2 = BigInteger.Parse(structValues[1].ToString())
+}
+```
+
 ## コントラクトのクエリ
 スマートコントラクトからデータを読み取る場合は、`SendQuery<T>`メソッドを使ってコントラクトにクエリを送り、結果を型Tで受け取ります。
 スマートコントラクトをクエリする例は以下の通りです。
