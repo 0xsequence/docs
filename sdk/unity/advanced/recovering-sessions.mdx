@@ -9,25 +9,7 @@ By default, the SDK will require users to sign in everytime the app is closed co
 
 However, on select platforms, we have integrated with the platform's native secure storage offering.
 
-If you enable `StoreSessionPrivateKeyInSecureStorage` in your `SequenceConfig` ScriptableObject, we will automatically store the session wallet information for you (on supported platforms) and expose the ability to attempt to recover the session in `SequenceLogin`. The default `SequenceLoginWindow` will automatically handle the UI flow for this as well (see [Authentication](/sdk/unity/wallets/embedded-wallet/onboard/authentication/intro)). If the platform is not supported, this flag will have no effect.
-
 See below the supported platforms and to learn about the platform's secure storage solution - it is important to understand the basics of how these systems work and think carefully about the security implications of storing private keys (or any secret for that matter) in persistent storage.
-
-## Integration
-
-You have two options to recover a wallet from storage. First is to use the `EmbeddedWalletAdapter` class. If this call succeeds, the `EmbeddedWalletAdapter` contains the Wallet instance.
-
-```csharp
-bool recovered = await EmbeddedWalletAdapter.GetInstance().TryRecoverWalletFromStorage();
-```
-
-Otherwise, use the underlying `SequenceLogin` class.
-
-```csharp
-(bool storageEnabled, IWallet wallet) = await SequenceLogin.GetInstance().TryToRestoreSessionAsync();
-```
-
-In both cases, you can listen to the `SequenceWallet.OnWalletCreated` event whenever a wallet was recovered from storage or created during the sign-in process.
 
 ## Platform Details
 
