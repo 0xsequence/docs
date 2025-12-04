@@ -55,48 +55,6 @@ Sequence Checkoutを使うと、ユーザーはマーケットプレイスなど
 
 セットアップが完了したら、さまざまなユースケースでチェックアウトモーダルを使う方法を見てみましょう。
 
-## ERC1155トークンでのチェックアウト
-ERC1155トークン用の便利なユーティリティ関数があり、チェックアウトモーダルの設定が簡単にできます。
-
-以下はサンプル変数を使った設定例です：
-
-```jsx
-  import { useERC1155SaleContractCheckout } from "@0xsequence/checkout";
-  import { useAccount } from "wagmi";
-
-  const MyComponent = () => {
-    const { address: userAddress } = useAccount();
-    const { openCheckoutModal } = useERC1155SaleContractCheckout({
-      chain: 80002, // chainId of the chain the collectible is on
-      contractAddress: "0x0327b2f274e04d292e74a06809bcd687c63a4ba4", // address of the contract handling the minting function
-      wallet: userAddress!, // address of the recipient
-      collectionAddress: "0x888a322db4b8033bac3ff84412738c096f87f9d0", // address of the collection contract
-      items: [
-        // array of collectibles to purchase
-        {
-          tokenId: "0",
-          quantity: "1",
-        },
-      ],
-      onSuccess: (txnHash: string) => {
-        console.log("success!", txnHash);
-      },
-      onError: (error: Error) => {
-        console.error(error);
-      },
-    });
-
-    const onClick = () => {
-      if (!userAddress) {
-        return;
-      }
-      openCheckoutModal();
-    };
-
-    return <button onClick={onClick}>Buy ERC-1155 collectible!</button>;
-  };
-```
-
 ## カスタムコントラクト
 `useSelectPaymentModal`フックを使ってチェックアウトモーダルを開き、設定オブジェクトを渡します。カスタムコントラクトの場合は、コントラクトABIやコールデータのエンコードも指定できます（この例では`ethers`や`viem`の`encodeFunctionData`ユーティリティを使用）。
 

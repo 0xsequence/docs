@@ -57,49 +57,6 @@ const App = () => {
 
 Now we have the setup done, let's see how to use the checkout modal for different use cases.
 
-## Checkout with an ERC1155 Token
-
-We have convenient utility functions for ERC1155 tokens that make it easy to configure the checkout modal.
-
-Here's a configuration with example variables:
-
-```jsx
-  import { useERC1155SaleContractCheckout } from "@0xsequence/checkout";
-  import { useAccount } from "wagmi";
-
-  const MyComponent = () => {
-    const { address: userAddress } = useAccount();
-    const { openCheckoutModal } = useERC1155SaleContractCheckout({
-      chain: 80002, // chainId of the chain the collectible is on
-      contractAddress: "0x0327b2f274e04d292e74a06809bcd687c63a4ba4", // address of the contract handling the minting function
-      wallet: userAddress!, // address of the recipient
-      collectionAddress: "0x888a322db4b8033bac3ff84412738c096f87f9d0", // address of the collection contract
-      items: [
-        // array of collectibles to purchase
-        {
-          tokenId: "0",
-          quantity: "1",
-        },
-      ],
-      onSuccess: (txnHash: string) => {
-        console.log("success!", txnHash);
-      },
-      onError: (error: Error) => {
-        console.error(error);
-      },
-    });
-
-    const onClick = () => {
-      if (!userAddress) {
-        return;
-      }
-      openCheckoutModal();
-    };
-
-    return <button onClick={onClick}>Buy ERC-1155 collectible!</button>;
-  };
-  ```
-
   ## Custom Contract
   We instantiate the `useSelectPaymentModal` hook to open the checkout modal and pass a settings object. In addition, for custom contracts, you can specify a contract ABI along with encoding the call data, in this case we are using `ethers` and `viem`'s `encodeFunctionData` utility.
 

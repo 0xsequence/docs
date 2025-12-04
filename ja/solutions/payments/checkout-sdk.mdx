@@ -1,7 +1,7 @@
 ---
-title: "Checkout SDK（NFT向けカード決済）"
-description: "@0xsequence/checkout を使って、パートナー（例：Transak、Forte）経由でNFT購入時にクレジット／デビットカード決済を追加できます。"
-sidebarTitle: "Checkout SDK"
+title: Checkout SDK（NFT向けカード決済）
+description: @0xsequence/checkout を使って、パートナー（例：Transak、Forte）経由でNFT購入時にクレジット／デビットカード決済を追加できます。
+sidebarTitle: Checkout SDK
 ---
 
 <Warning>
@@ -40,30 +40,6 @@ export default function App() {
       </SequenceCheckoutProvider>
     </SequenceConnect>
   )
-}
-```
-
-## 例：ERC-1155の一次販売
-
-```tsx
-import { useAccount } from 'wagmi'
-import { useERC1155SaleContractCheckout } from '@0xsequence/checkout'
-
-export function BuyButton() {
-  const { address } = useAccount()
-  const { openCheckoutModal } = useERC1155SaleContractCheckout({
-    chain: 137, // destination chainId
-    contractAddress: '0xSaleContract',  // primary sale contract
-    collectionAddress: '0xERC1155',     // collection
-    wallet: address!,                   // recipient
-    items: [{ tokenId: '1', quantity: '1' }],
-    // Optional: restrict card providers if your integration requires it
-    // creditCardProviders: ['transak', 'forte'],
-    onSuccess: (txHash) => console.log('success', txHash),
-    onError: (err) => console.error(err),
-  })
-
-  return <button onClick={() => address && openCheckoutModal()}>Buy</button>
 }
 ```
 
