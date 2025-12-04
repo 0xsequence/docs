@@ -1,0 +1,50 @@
+---
+title: useListCollections
+description: マーケットプレイス設定からコレクションを取得するフックです。マーケットプレイスタイプによるオプションのフィルタリングも可能です。メタデータAPIの情報とマーケットプレイス設定を組み合わせて、コレクションの完全な情報を提供します。
+sidebarTitle: useListCollections
+---
+
+## パラメータ
+
+| 名前                         | 型                   | 説明                         |
+| -------------------------- | ------------------- | -------------------------- |
+| `params.config`            | `SdkConfig`         | オプションの設定パラメータ              |
+| `params.marketplaceConfig` | `MarketplaceConfig` | オプションのマーケットプレイス設定パラメータ     |
+| `params.cardType`          | `CardType`          | マーケットプレイスタイプによるオプションのフィルター |
+| `params.query`             | `any`               | オプションのReact Query設定        |
+
+## 戻り値
+Sequence Builderで設定されたメタデータ付きコレクションの配列を含むクエリ結果
+
+## インポート
+
+```typescript
+import { useCollection } from "@0xsequence/marketplace-sdk/react";
+```
+
+## 例
+基本的な使い方：
+
+```typescript
+const { data: collections, isLoading } = useListCollections();
+
+if (isLoading) return <div>Loading collections...</div>;
+
+return (
+  <div>
+    {collections?.map(collection => (
+      <div key={collection.itemsAddress}>
+        {collection.name}
+      </div>
+    ))}
+  </div>
+);
+```
+
+マーケットプレイスタイプでフィルタリングする場合：
+
+```typescript
+const { data: marketCollections } = useListCollections({
+	cardType: 'market'
+});
+```

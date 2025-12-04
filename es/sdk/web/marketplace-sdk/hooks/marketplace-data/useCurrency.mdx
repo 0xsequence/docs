@@ -1,0 +1,39 @@
+---
+title: useCurrency
+description: Hook para obtener detalles de una moneda desde el marketplace. Recupera información detallada sobre una moneda específica por su dirección de contrato. Los datos de la moneda se almacenan en caché de llamadas previas a la lista de monedas cuando es posible.
+sidebarTitle: useCurrency
+---
+
+## Parámetros
+
+| Nombre                   | Tipo                   | Descripción                                                                             |
+| ------------------------ | ---------------------- | --------------------------------------------------------------------------------------- |
+| `params.config`          | `SdkConfig`            | Parámetros de configuración                                                             |
+| `params.chainId`         | `number`               | El ID de la cadena (debe ser un número, por ejemplo, 1 para Ethereum, 137 para Polygon) |
+| `params.currencyAddress` | `string`               | La dirección del contrato de la moneda                                                  |
+| `params.query`           | `StandardQueryOptions` | Configuración opcional de React Query (de TanStack Query)                               |
+
+## Devuelve
+Resultado de la consulta que contiene los detalles de la moneda
+
+## Ejemplo
+Uso básico:
+
+```typescript
+const { data, isLoading } = useCurrency({
+  chainId: 137,
+  currencyAddress: '0x...'
+});
+```
+
+Con opciones personalizadas de consulta:
+
+```typescript
+const { data, isLoading } = useCurrency({
+  chainId: 1,
+  currencyAddress: '0x...',
+  query: {
+    enabled: true
+  }
+});
+```

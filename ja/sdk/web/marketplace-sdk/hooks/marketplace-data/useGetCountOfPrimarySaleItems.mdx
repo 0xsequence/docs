@@ -1,0 +1,37 @@
+---
+title: useGetCountOfPrimarySaleItems
+description: useGetCountOfPrimarySaleItemsフックは、コレクション内のフィルター済み一次販売アイテム数を返します。
+sidebarTitle: useGetCountOfPrimarySaleItems
+---
+
+## パラメータ
+
+| 名前                         | 型                      | 説明                                      |
+| -------------------------- | ---------------------- | --------------------------------------- |
+| `params.chainId`           | `number`               | チェーンID（例：Ethereum は 1、Polygon は 137 など） |
+| `params.collectionAddress` | `string`               | コレクションコントラクトのアドレス                       |
+| `params.config`            | `SdkConfig`            | オプションのSDK設定パラメータ                        |
+| `params.side`              | `OrderSide`            | カウント対象の注文サイド（出品またはオファー）                 |
+| `params.filter`            | `OrdersFilter`         | 注文のためのオプションのフィルター                       |
+| `params.query`             | `StandardQueryOptions` | オプションのReact Query設定（TanStack Query由来）   |
+
+## 戻り値
+コレクション内のフィルター済み一次販売アイテム数を表す `count` プロパティを持つオブジェクトを含むクエリ結果。
+
+## インポート
+
+```typescript
+import { useGetCountOfPrimarySaleItems } from "@0xsequence/marketplace-sdk/react";
+```
+
+## 例
+基本的な使い方：
+
+```typescript
+const { data: countOfPrimarySalesItems } = useGetCountOfPrimarySaleItems({
+	chainId: 1,
+	primarySaleContractAddress: "0x00"
+});
+
+console.log(countOfPrimarySalesItems?.count);
+```
