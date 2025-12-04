@@ -1,0 +1,88 @@
+---
+title: Sequence BuilderでERC1155Packコントラクトを設定する方法
+description: BuilderでのERC1155Packの仕組みや、コミット・リビール方式、パック内容の公開方法について学びましょう。
+sidebarTitle: ERC1155Packコントラクトの利用方法
+---
+
+このガイドを参考に、Sequence BuilderでERC1155Packコントラクト内のパックを設定しましょう。`ERC1155Pack`コントラクトはERC1155Itemsを拡張し、コミット・リビール方式によるパック開封フローを追加します。
+
+<Warning>
+  前提条件：コントラクトとアイテムのデプロイ
+
+  [プロジェクトを作成](/solutions/builder/getting-started)し、ERC1155Packコントラクトをデプロイ済みであること、さらに各パックに入れたいERC1155またはERC721コントラクト／コレクションもデプロイ済みであることを確認してください。
+</Warning>
+
+## ステップ1：ERC1155Packコントラクトを開く
+プロジェクトのダッシュボードから設定したいPACKコントラクトを選択し、`Pack`タブを開いて内容を管理します。編集前に、正しいネットワークとコレクションが選択されているか確認してください。
+
+<Frame>
+  ![パックコントラクトの概要](/images/builder/builder-packs-1.png)
+</Frame>
+
+## ステップ2：編集するパックを選択または追加
+パックセレクターで更新したいパックを選ぶか、`Add new pack`をクリックして新しいパックを作成します。テーブルには各パックのトークンアドレス、タイプ、ID、開封時に含まれる数量が表示されます。
+
+<Frame>
+  ![パック選択と内容確認](/images/builder/builder-packs-2.png)
+</Frame>
+
+## ステップ3：CSVでパック内容をアップロード
+`Add New Pack`または`Update Pack Contents`をクリックしてCSVアップローダーを開きます。変更したい`Pack ID`を入力し、開封可能なパック数を`Supply`に設定し、各パック内容を1行ずつ記載したCSVをアップロードします。
+
+各行には以下を含めてください：
+- `Pack Content ID`
+- 各アイテムごとに：`Token Address`、`Token Type`（1155/721）、`Token IDs`、`Amounts`
+
+例：
+
+```
+Pack Content ID, Item 1 Token Addr, Item 1 Token Type, Item 1 Token IDs, Item 1 Amounts, Item 2 Token Addr, Item 2 Token Type, Item 2 Token IDs, Item 2 Amounts
+1,0x3a6a8f4091b705fe1241c47e2532d45a6dff5a85,721,"1200","1",0xa558419686308ce836c36a5c44eeeb4b0916ca7b,1155,"5,6","7,3"
+2,0x3a6a8f4091b705fe1241c47e2532d45a6dff5a85,721,"1201","1",0xa558419686308ce836c36a5c44eeeb4b0916ca7b,1155,"9,10","7,9"
+3,0x3a6a8f4091b705fe1241c47e2532d45a6dff5a85,721,"1202","1",0xa558419686308ce836c36a5c44eeeb4b0916ca7b,1155,"7,8","4,8"
+4,0x3a6a8f4091b705fe1241c47e2532d45a6dff5a85,721,"1203","1",0xa558419686308ce836c36a5c44eeeb4b0916ca7b,1155,"9","7"
+5,0x3a6a8f4091b705fe1241c47e2532d45a6dff5a85,721,"1204","1",0xa558419686308ce836c36a5c44eeeb4b0916ca7b,1155,"9,10","5,4"
+
+```
+
+<Frame>
+  ![パック内容用CSVのアップロード](/images/builder/builder-packs-3.png)
+</Frame>
+
+<Warning>
+  CSVをアップロードすると、選択したPack IDの既存内容がすべて置き換えられ、パック配布の追跡もリセットされます。
+
+  特定IDのパックをすでに配布している場合、CSVを変更すると開封済みパックの情報もリセットされるため、変更は推奨しません。
+
+  以前のパックで配布済みの721アイテムが新しいパックCSVにも含まれている場合、ユーザーがそのパックを開封してもミントに失敗します。
+</Warning>
+
+## ステップ4：パックコントラクトにアイテムコレクションのMinter権限を付与
+パック開封時にアイテムをミントできるよう、ERC1155Packコントラクトアドレスに、パック内容として使うERC1155コレクションの`Minter`権限を付与します。該当アイテムコントラクトの`Settings > Permissions`を開き、パックコントラクトアドレスを追加して`Minter`を割り当て、トランザクションに署名してください。
+
+## ステップ5：内容確認と公開
+CSVの処理が完了すると、解析されたPack Contentのプレビューが表示されます。トークンアドレス、ID、数量、合計を確認し、`Create Pack Contents`をクリックして保存します。これでパックはプレイヤーが開封できる状態になります。
+
+<Frame>
+  ![処理済みパック内容のプレビューと公開](/images/builder/builder-packs-4.png)
+</Frame>
+
+パック開封用のフロントエンドをお探しですか？[https://github.com/0xsequence-demos/pack-opening-boilerplate/](https://github.com/0xsequence-demos/pack-opening-boilerplate/) のReactボイラープレートもご覧ください。
+
+## ERC1155Packの仕組み
+パック内容は`PACK_ADMIN_ROLE`を持つアドレスが`setPacksContent(bytes32 _merkleRoot, uint256 _supply, uint256 packId)`で管理します。マークルルートにはすべてのパック内容がエンコードされ、`supply`でそのIDの開封可能数を定義します。BuilderがCSVからルートを自動生成するため、内容の準備に集中できます。
+
+フロー（オンチェーン）：
+- ユーザーが`commit(packId)`を呼び出してパックをバーンし、コミットメントを作成します。
+- 1ブロック以上経過後、誰でも`reveal(user, packContent, proof, packId)`を呼び出して、選択した内容のマークル証明を提出できます。コントラクトが検証し、アイテムをミントします。Sequence APIが自動でこれを実行します。
+- コミットメントのブロックハッシュが有効期限切れ（30分）になる前にリビールされなかった場合、`refundPack(user, packId)`でパックが返却されます。
+
+ランダム化について：
+- コミットメント時に`block.number + 1`を記録し、ランダム性を確保します。
+- リビール時に`randomSeed = keccak256(abi.encode(blockHash, user))`が生成されます。
+- コントラクトは`randomSeed % remainingSupply[packId]`を使い、Fisher–Yates方式の`_availableIndices`マップで各内容が一度だけリビールされ、均等なランダム性を保ちます。
+- マークルリーフは`keccak256(abi.encode(revealIdx, packContent))`で生成され、提出された証明と照合されます。
+
+<Warning>
+  バリデータやマイナーが連続したブロックを制御するとブロックハッシュを操作できる可能性があります。誰でも`reveal`を呼び出せることで、コミット済みパックがブロックハッシュ有効期限前にリビールされることを保証します。
+</Warning>

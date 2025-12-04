@@ -1,13 +1,11 @@
 ---
-title: Unity クイックスタート
+title: クイックスタート
 description: Sequence Unity SDK のクイックスタートドキュメントです。
 ---
 
 <Steps>
   <Step title="Unity SDK のインストール">
-    Sequence Unity SDK の最新版を [OpenUPM](/sdk/unity/installation#openupm) からインストールするか、
-    [Unity のパッケージマネージャー UI](/sdk/unity/installation#or-using-package-manager-ui) を利用し、
-    以下の Git URL を指定してください：`https://github.com/0xsequence/sequence-unity.git?path=/Packages/Sequence-Unity`
+    [OpenUPM](/sdk/unity/installation#openupm) から Sequence の Unity SDK の最新版をインストールするか、[Unity の Package Manager UI](/sdk/unity/installation#or-using-package-manager-ui) を利用して、以下の Git URL を使用してください: `https://github.com/0xsequence/sequence-unity.git?path=/Packages/Sequence-Unity`
   </Step>
 
   <Step title="SDK の設定">
@@ -23,11 +21,15 @@ description: Sequence Unity SDK のクイックスタートドキュメントで
   </Step>
 
   <Step title="ログイン処理の統合">
-    まず、メールのワンタイムパスワード（OTP）を使ってウォレットセッションを確立します。パッケージマネージャー UI から `Setup` サンプルをインポートすると、
-    プロジェクトの `Resources/` ディレクトリに一式のボイラープレートが配置されます。
-    [ログイン用ボイラープレート](/sdk/unity/bootstrap_game#login) を作成し、指定したメールアドレスにワンタイムパスワードを送信できるようにします。
+    まず、ストレージからウォレットセッションが利用可能かどうかを確認してください。
 
-    最初の機能が統合できたら、Google、Apple、PlayFab などの[追加ログインプロバイダー](/sdk/unity/onboard/authentication/intro)にも対応できます。
+    ```csharp
+    bool recovered = await EmbeddedWalletAdapter.GetInstance().TryRecoverWalletFromStorage();
+    ```
+
+    もし `false` が返ってきた場合は、ユーザーにサインインを促してください。Package Manager UI から `Setup` サンプルをインポートすると、プロジェクトの `Resources/` ディレクトリに一連のボイラープレートが配置されます。[ログイン用ボイラープレート](/sdk/unity/bootstrap_game#login) を作成し、指定したメールアドレスにワンタイムパスワードを送信できるようにしましょう。
+
+    最初の機能を統合できたら、[追加のログインプロバイダー](/sdk/unity/onboard/authentication/intro)（Google、Apple、PlayFabなど）も利用できます。
 
     ```csharp
     BoilerplateFactory.OpenSequenceLoginWindow(parent);
@@ -39,7 +41,7 @@ description: Sequence Unity SDK のクイックスタートドキュメントで
   </Step>
 
   <Step title="Sequence の機能をテストする">
-    Sequence Unity SDK には、ゲーム開発をすぐに始められるように様々な[ボイラープレート](/sdk/unity/bootstrap_game)が用意されています。
+    SequenceのUnity SDKには、ゲームを素早く始めるためのさまざまな[ボイラープレート](/sdk/unity/bootstrap_game)が用意されています。
     設定が完了したら、プレイヤープロフィールやインベントリ、ゲーム内ショップを表示するプレハブを作成できます。
     [プレイヤープロフィールの統合方法](/sdk/unity/bootstrap_game#player-profile)もご覧ください。
 
@@ -50,5 +52,27 @@ description: Sequence Unity SDK のクイックスタートドキュメントで
     <Frame>
       <img src="/images/unity/unity_boilerplate_profile.png" />
     </Frame>
+  </Step>
+
+  <Step title="自分で統合する">
+    `EmbeddedWalletAdapter`を使えば、数行のコードで素早く統合を始められます。
+    さらにカスタマイズしたい場合は、[ユーザー認証](/sdk/unity/onboard/authentication/intro)や[トランザクション送信方法](/sdk/unity/power/write-to-blockchain)など、他のドキュメントもご参照ください。
+
+    ```csharp
+    EmbeddedWalletAdapter adapter = EmbeddedWalletAdapter.GetInstance();
+
+    // Recover your wallet from storage
+    bool recovered = await adapter.TryRecoverWalletFromStorage();
+
+    // Otherwise, create a new session via Google Sign-In
+    bool successful = await adapter.GoogleLogin();
+
+    // Next, let's send a transaction
+    string recipientAddress = "0xabc123..";
+    string currencyAddress = "0xabc123..";
+    BigInteger amount = 1000;
+
+    await adapter.SendToken(recipientAddress, amount, currencyAddress);
+    ```
   </Step>
 </Steps>
