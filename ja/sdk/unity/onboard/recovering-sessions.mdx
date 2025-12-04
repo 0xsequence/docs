@@ -12,19 +12,39 @@ description: SDK では、一部のプラットフォームでネイティブの
 
 対応プラットフォームや各プラットフォームのセキュアストレージについては下記をご覧ください。これらのシステムの基本的な仕組みや、秘密鍵（またはその他の機密情報）を永続ストレージに保存する際のセキュリティリスクについて十分に理解しておくことが重要です。
 
-## iOS
+## インテグレーション
+ウォレットをストレージから復元する方法は2つあります。1つ目は、`EmbeddedWalletAdapter` クラスを使用する方法です。この呼び出しが成功すると、`EmbeddedWalletAdapter` にウォレットインスタンスが格納されます。
+
+```csharp
+bool recovered = await EmbeddedWalletAdapter.GetInstance().TryRecoverWalletFromStorage();
+```
+
+それ以外の場合は、基盤となる `SequenceLogin` クラスを使用してください。
+
+```csharp
+(bool storageEnabled, IWallet wallet) = await SequenceLogin.GetInstance().TryToRestoreSessionAsync();
+```
+
+どちらの場合でも、ウォレットがストレージから復元されたり、サインイン時に作成された際には、`SequenceWallet.OnWalletCreated` イベントを監視できます。
+
+## プラットフォームの詳細
+
+### エディター
+エディターでは、秘密鍵の保存に PlayerPrefs を使用しています。また、セキュアストレージを利用してセッションを復元するには、SequenceConfig で `EditorStoreSessionPrivateKeyInSecureStorage` を有効にする必要があります。このフラグを個別に設定することで、ビルドの挙動を変更せずに両方のフローをテストしやすくなります。エディターでのセキュアストレージは開発用途のみを想定しており、長期的な保存には適していません。
+
+### iOS
 iOS では、[iOS Keychain](https://developer.apple.com/documentation/security/keychain_services?language=objc) を利用しています。
 
-## MacOS
+### MacOS
 MacOS では、[MacOS Keychain](https://developer.apple.com/documentation/security/keychain_services?language=objc) を利用しています。
 
-## Windows
+### Windows
 Windows PC では、[Crypto: Next Generation - Data Protection API (CNG DPAPI)](https://learn.microsoft.com/en-us/windows/win32/seccng/cng-dpapi) を利用しています。
 
-## Web
+### Web
 Web ビルドでは、[PlayerPrefs](https://docs.unity3d.com/ScriptReference/PlayerPrefs.html) を通じて [IndexedDB](https://developer.mozilla.org/en-US/docs/Web/API/IndexedDB_API) を利用しています。
 
-## Android
+### Android
 Android ビルドでは、[Android Keystore](https://developer.android.com/privacy-and-security/keystore) を利用しています。
 
 まず最初に、`AndroidKeyBridge.java` プラグインを Assets フォルダにインポートします。これはパッケージマネージャーのサンプルから行うのが最も簡単です。`Android Secure Storage` というサンプルをインポートしてください。
@@ -88,13 +108,10 @@ unityStreamingAssets=**STREAMING_ASSETS**
 android.enableR8=**MINIFY_WITH_R_EIGHT**
 ```
 
-### Troubleshooting
+## トラブルシューティング
 Android でセキュアストレージや Google サインインに問題が発生した場合は、以下のトラブルシューティング手順をお試しください。
 - **Google サインイン:** `AndroidManifest.xml` ファイル内の `data android:scheme` の値が、`SequenceConfig.asset` ファイルの `Url Scheme` と一致しているか確認してください。すべて小文字で記載されていることもご確認ください。
 - **セキュアストレージ:** `mainTemplate.gradle` で `androidx.security:security-crypto` プラグインが正しく定義されており、他のプラグインや Android Plugin Resolver によって上書きされていないことを確認してください。
 - **デモをお試しください:** [デモビルドをインストール](https://drive.google.com/file/d/1rAvnPu56Hj3yDRL32_lr887xt-xMQoYK/view?usp=sharing) し、お使いのデバイスで正常に動作するかご確認ください。
   - Unity プロジェクトの設定（AndroidManifest、gradle ファイル、Android プレイヤー設定）を、弊社の [SDK プロジェクト](https://github.com/0xsequence/sequence-unity) と比較してください。
 - **追加のアイデア:** 新しいビルドをインストールする前にアプリをアンインストールする、URL スキームやバンドル ID を変更する、などもお試しください。
-
-## エディター
-エディター上では、秘密鍵の保存に PlayerPrefs を使用しています。エディター内でセキュアストレージを利用しセッションを復元するには、SequenceConfig で 'EditorStoreSessionPrivateKeyInSecureStorage' を有効にしてください。このフラグを分けていることで、ビルドの挙動を変更せずに両方のフローをテストできます。エディターでのセキュアストレージは開発用途のみであり、長期保存には適していません。
