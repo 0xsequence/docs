@@ -116,6 +116,21 @@ var arg = new Tuple<Address, BigInteger, FixedByte>(wallet, amount, data);
 
 For traditional data types in Solidity like `string` or `bool`, you can use the same data types in C#.
 
+### Return Types
+
+When you read data from a smart contract and use the `Contract.SendQuery<TType>()` function, you can use the TType for
+simple return types such as `string` `BigInteger` or `bool`. For complex return types like structs, use an `object[]` and manually parse the values into your C# Struct.
+
+```csharp
+// Let's consider a struct with the following variables: SomeStruct { address value1; uint256 value2; }
+object[] structValues = Contract.SendQuery<object[]>("SomeFunction");
+
+SomeStruct newStruct = new SomeStruct() {
+    Value1 = new Address(structValues[0].ToString()),
+    Value2 = BigInteger.Parse(structValues[1].ToString())
+}
+```
+
 ## Querying Contracts
 
 To query a smart contract (read data from it), you'll use the `SendQuery<T>` method to query the contract and return the result as type T (if possible).
