@@ -1,0 +1,71 @@
+---
+title: "Migrate from a previous Major Version"
+sidebarTitle: Version Migration
+---
+
+## From v2 to v3
+
+### Unreal Engine Version
+
+Starting with v3, we are not supporting Unreal Engine 5.2 and 5.3 any longer. Please update to Unreal Engine 5.4 or later.
+
+### SequenceWallet class
+
+When you used the `SequenceWallet` (C++) or `SequenceWalletBP` (Blueprint) classes in 2.x.x, those referred to our Embedded Wallet Architecture.
+If you’re using version 3, use the `SequenceEmbeddedWallet` (C++) and `SequenceEmbeddedWalletBP` (Blueprints) classes instead.
+`SequenceWallet` classes now refer to our Ecosystem Wallet architecture.
+
+### Large Numbers (BigInteger)
+
+When defining values such as tokenId, amount, or chainId, they were previously referenced as `uint64`.
+This imposed a limitation, because uint64 cannot represent the full range of `uint256` values used in blockchain interactions.
+
+We have now replaced all BigInteger references with string types. Please update your code and Blueprints to reflect this change.
+
+If you need to perform mathematical operations on BigIntegers, use our `FBigInt.h` class in C++.
+
+## From v1 to v2
+
+Sequence Unreal SDK v2 adds a lot structural improvements. Here is everything you need to know on how to migrate
+from a previous 1.x.x version. If you have any questions or concerns, please reach out to us.
+
+### Config file
+
+- Add a `DefaultChain` variable to your `SequenceConfig.ini` file.
+- Remove the `RedirectUrl` value. If you have specified a custom value, call `SequenceSdk::SetRedirectUrl` to change it.
+Alternatively, call the same function in the `SequenceSdkBP` subsystem for your Blueprint integration.
+
+### Sign-In UI
+
+We have removed support for the old Sign In Widget and its Pawn dependency.
+If you have previously used the `BP_CustomSpectatorPawn`, `GM_Sequence` or any of the widgets, make sure to save your files in your project directory,
+because the SDK no longer includes these files, and you will lose any changes you made.
+
+- For an integrated Login UI, switch to our [Login Boilerplate](/sdk/unreal/bootstrap#login)
+- Remove all references in your pawn that uses the `SequenceAuthenticator` and `SequenceBackendManager`.
+- Make sure to exchange existing function calls to our Subsystems as mentioned in the next sections.
+
+### Account Federation
+
+We have removed separate functions for federation. Instead of calling `ConfirmEmailFederationWithCode` you call the
+regular `ConfirmEmailLoginWithCode` node which will use the existing session to federate to.
+
+### Blueprint Integration
+
+Our Blueprint Subsystems have no separate event nodes anymore. Instead, they are included as function parameters.
+You will see ‘OnSuccess’ and ‘OnFailure’ events in any async node such as ‘GetTokenBalances’. Please make sure to switch your existing nodes to the new structure.
+
+Examples:
+- Remove delegate assigners such as `Assign OnApiSendTransaction`
+- Create event listeners directly from the `SendTransaction` node
+- Switch Indexer calls like `GetTokenBalances` from `SequenceWalletBP` to `SequenceIndexerBP`
+
+### C++ Integration
+
+We renamed some of our classes for consistency. Please make sure to change your class references if you are using
+any of the following.
+
+- `UTransak` -> `USequencePay`
+- `USequenceAuthenticator` -> `USequenceSessions`
+- For Indexer calls: `USequenceWallet` -> `USequenceIndexer`
+

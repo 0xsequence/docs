@@ -1,0 +1,50 @@
+---
+title: Guía rápida del SDK de Unity
+description: Agregue un smart wallet impulsado por Sequence a su app de Unity.
+sidebarTitle: Guía rápida de Unity
+---
+
+## 🛠️ Paso 1: Instale el SDK de Unity de Sequence
+Descargue la [v5 desde los lanzamientos de GitHub del SDK](https://github.com/0xsequence/sequence-unity/releases/tag/v5-beta)
+para acceder a las Ecosystem Wallets. Puede descargarlo como un archivo `.unitypackage` y simplemente agregarlo a su proyecto de Unity.
+
+Para ver las Ecosystem Wallets en acción, [pruebe nuestra Demo Integrada.](/sdk/unity/wallets/ecosystem-wallet/setup#try-our-built-in-demo)
+
+## 🔑 Paso 2: Configure su proyecto de Unity
+Vaya a [sequence.build](https://sequence.build), regístrese o inicie sesión y cree un nuevo proyecto. Puede seguir la guía [Builder Getting Started](/solutions/builder/getting-started) para ver el flujo paso a paso.
+
+Siga nuestra [Guía de Configuración para Unity](/sdk/unity/wallets/ecosystem-wallet/setup) para configurar el SDK de Unity.
+
+## 💼 Paso 3: Cree una sesión con permisos
+Para enviar una transacción a un contrato específico, primero debe crear una sesión con los permisos requeridos.
+
+```csharp
+Chain chain = Chain.TestnetAbitrumSepolia;
+Address contractAddress = new Address("0x33985d320809E26274a72E03268c8a29927Bc6dA");
+BigInteger deadline = new BigInteger(DateTimeOffset.UtcNow.ToUnixTimeSeconds() * 1000 + 1000 * 60 * 5000);
+BigInteger valueLimit = 0;
+
+IPermissions permissions = new ContractPermissions(chain, contractAddress, deadline, valueLimit);
+```
+
+A continuación, creemos la interfaz `SequenceConnect` con estos permisos para crear una sesión de wallet. Vea otras [opciones de inicio de sesión aquí.](/sdk/unity/wallets/ecosystem-wallet/setup#try-our-built-in-demo)
+
+```csharp
+SequenceConnect connect = new SequenceConnect();
+IWallet wallet = await connect.SignInWithGoogle(permissions);
+```
+
+## 📨 Paso 4: Envíe transacciones
+Por último, usemos nuestra sesión de wallet para enviar una transacción a la dirección del contrato especificada en nuestros permisos.
+
+```csharp
+Chain chain = Chain.TestnetAbitrumSepolia;
+Address to = new Address("0x33985d320809E26274a72E03268c8a29927Bc6dA");
+
+ITransaction[] transactions = new Transaction[]
+{
+    new Transaction(to, 0, "explicitEmit()")
+};
+
+string txnHash = await wallet.SendTransaction(chain, transactions);
+```
