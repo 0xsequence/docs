@@ -1,6 +1,30 @@
 ---
-title: "Migrate from v1 to v2"
+title: "Migrate from a previous Major Version"
+sidebarTitle: Version Migration
 ---
+
+## From v2 to v3
+
+### Unreal Engine Version
+
+Starting with v3, we are not supporting Unreal Engine 5.2 and 5.3 any longer. Please update to Unreal Engine 5.4 or later.
+
+### SequenceWallet class
+
+When you used the `SequenceWallet` (C++) or `SequenceWalletBP` (Blueprint) classes in 2.x.x, those referred to our Embedded Wallet Architecture.
+If you’re using version 3, use the `SequenceEmbeddedWallet` (C++) and `SequenceEmbeddedWalletBP` (Blueprints) classes instead.
+`SequenceWallet` classes now refer to our Ecosystem Wallet architecture.
+
+### Large Numbers (BigInteger)
+
+When defining values such as tokenId, amount, or chainId, they were previously referenced as `uint64`.
+This imposed a limitation, because uint64 cannot represent the full range of `uint256` values used in blockchain interactions.
+
+We have now replaced all BigInteger references with string types. Please update your code and Blueprints to reflect this change.
+
+If you need to perform mathematical operations on BigIntegers, use our `FBigInt.h` class in C++.
+
+## From v1 to v2
 
 Sequence Unreal SDK v2 adds a lot structural improvements. Here is everything you need to know on how to migrate
 from a previous 1.x.x version. If you have any questions or concerns, please reach out to us.
