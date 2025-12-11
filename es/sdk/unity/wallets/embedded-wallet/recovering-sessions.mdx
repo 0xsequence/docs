@@ -1,0 +1,26 @@
+---
+title: Recuperar sesiones de Embedded Wallet
+sidebarTitle: Recuperación de sesiones
+---
+
+Una vez que haya autenticado a su usuario con las APIs de Sequence y establecido una sesión, tiene disponibles varios métodos para gestionar la sesión.
+
+## Configuración
+Si habilita `StoreSessionPrivateKeyInSecureStorage` en su ScriptableObject `SequenceConfig`, almacenaremos automáticamente la información de la wallet de la sesión por usted (en las plataformas compatibles) y le daremos la opción de intentar recuperar la sesión en `SequenceLogin`. La ventana predeterminada `SequenceLoginWindow` también gestionará automáticamente el flujo de la interfaz para esto (consulte [Autenticación](/sdk/unity/wallets/embedded-wallet/onboard/authentication/intro)). Si la plataforma no es compatible, esta opción no tendrá ningún efecto.
+
+Lea nuestra página [Recuperación de sesiones](/sdk/unity/advanced/recovering-sessions) para obtener más detalles sobre las herramientas de plataforma que usamos para almacenar de forma segura los datos del jugador.
+
+## Integración
+Tiene dos opciones para recuperar una wallet desde el almacenamiento. La primera es usar la clase `EmbeddedWalletAdapter`. Si esta llamada tiene éxito, el `EmbeddedWalletAdapter` contendrá la instancia de Wallet.
+
+```csharp
+bool recovered = await EmbeddedWalletAdapter.GetInstance().TryRecoverWalletFromStorage();
+```
+
+De lo contrario, utilice la clase subyacente `SequenceLogin`.
+
+```csharp
+(bool storageEnabled, IWallet wallet) = await SequenceLogin.GetInstance().TryToRestoreSessionAsync();
+```
+
+En ambos casos, puede escuchar el evento `SequenceWallet.OnWalletCreated` cada vez que una wallet se recupere del almacenamiento o se cree durante el proceso de inicio de sesión.

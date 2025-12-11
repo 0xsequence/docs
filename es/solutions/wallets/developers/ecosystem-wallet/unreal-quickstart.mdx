@@ -8,12 +8,12 @@ sidebarTitle: Guía rápida de Unreal
 Descargue la [versión v3 desde los lanzamientos de GitHub del SDK](https://github.com/0xsequence/sequence-unreal/releases/tag/v3.0.0-beta)
 para acceder a los Ecosystem Wallets. Puede descargar uno de los archivos `.zip`, según la versión de Unreal Engine que esté utilizando.
 
-Para ver los Ecosystem Wallets en funcionamiento, [pruebe nuestra demo integrada.](/sdk/unreal/ecosystem-wallet/setup#try-our-built-in-demo)
+Para ver las Ecosystem Wallets en acción, [pruebe nuestra demo integrada.](/sdk/unreal/wallets/ecosystem-wallet/setup#try-our-built-in-demo)
 
 ## 🔑 Paso 2: Configure su proyecto de Unreal
 Vaya a [sequence.build](https://sequence.build), regístrese o inicie sesión y cree un nuevo proyecto. Puede seguir la guía [Builder Getting Started](/solutions/builder/getting-started) para ver el flujo paso a paso.
 
-Siga nuestra [Guía de configuración de Unreal](/sdk/unreal/ecosystem-wallet/setup) para configurar el Unreal SDK.
+Siga nuestra [Guía de configuración para Unreal](/sdk/unreal/wallets/ecosystem-wallet/setup) para configurar el SDK de Unreal.
 
 ## 💼 Paso 3: Cree una sesión con permisos
 Para enviar una transacción a un contrato específico, primero debe crear una sesión con los permisos requeridos.
@@ -21,7 +21,7 @@ Para enviar una transacción a un contrato específico, primero debe crear una s
 <Tabs>
   <Tab title="Blueprint">
     <Frame>
-      <img src="/images/unreal/ecosystem/sign_in_google.png" />
+      <img src="/images/unreal/ecosystem/contract_permissions.png" />
     </Frame>
   </Tab>
 
@@ -33,7 +33,22 @@ Para enviar una transacción a un contrato específico, primero debe crear una s
     const int64 ValueLimit = 0;
 
     UContractPermissions* Permissions = UContractPermissions::CreateContractPermissions(ChainId, Target, Deadline, ValueLimit);
+    ```
+  </Tab>
+</Tabs>
 
+Luego, utilice el objeto de permisos para llamar a una función de autenticación — por ejemplo, iniciar sesión con Google.
+Si lo prefiere, también puede dejar los permisos vacíos para crear una sesión implícita.
+
+<Tabs>
+  <Tab title="Blueprint">
+    <Frame>
+      <img src="/images/unreal/ecosystem/sign_in_google.png" />
+    </Frame>
+  </Tab>
+
+  <Tab title="C++">
+    ```cpp
     const TSuccessCallback<bool> SuccessCallback = [this, OnSuccess](bool Result) { };
     const FFailureCallback FailureCallback = [OnFailure](const FSequenceError& Error) { };
 
@@ -49,7 +64,7 @@ Por último, usemos nuestra sesión de wallet para enviar una transacción a la 
 <Tabs>
   <Tab title="Blueprint">
     <Frame>
-      <img src="/images/unreal/ecosystem/send_transaction.png" />
+      <img src="/images/unreal/ecosystem/contract_transaction.png" />
     </Frame>
   </Tab>
 
@@ -61,7 +76,22 @@ Por último, usemos nuestra sesión de wallet para enviar una transacción a la 
     const TArray<FString> Values = { };
 
     UContractTransaction* Transaction = UContractTransaction::CreateContractTransaction(To, Value, FunctionSignature, Values);
+    ```
+  </Tab>
+</Tabs>
 
+Después, utilice el objeto de transacción y páselo a la función SendTransaction.
+Opcionalmente, si está interactuando en una mainnet sin patrocinio de gas, puede [obtener opciones de comisión](/sdk/unreal/wallets/ecosystem-wallet/blockchain-interactions#get-fee-options) primero.
+
+<Tabs>
+  <Tab title="Blueprint">
+    <Frame>
+      <img src="/images/unreal/ecosystem/send_transaction.png" />
+    </Frame>
+  </Tab>
+
+  <Tab title="C++">
+    ```cpp
     const TSuccessCallback<FString> SuccessCallback = [OnSuccess](const FString& Result) { };
     const FFailureCallback FailureCallback = [OnFailure](const FSequenceError& Error) { };
 
