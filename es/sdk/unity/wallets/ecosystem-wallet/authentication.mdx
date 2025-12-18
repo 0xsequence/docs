@@ -1,0 +1,64 @@
+---
+title: Autenticación de Ecosystem Wallet en Unity
+description: Documentación de Ecosystem Wallet para el SDK de Unity de Sequence.
+sidebarTitle: Autenticación
+---
+
+Comience con una sesión implícita, la cual está restringida a contratos creados por Sequence.
+Como alternativa, puede agregar un objeto `IPermissions` en cada llamada de inicio de sesión si desea conectarse directamente a una sesión explícita.
+
+[Aprenda cómo construir permisos.](/sdk/unity/wallets/ecosystem-wallet/permissions)
+
+### Recuperar wallet desde el almacenamiento
+Esta función devuelve `null` cuando no se encuentra ninguna wallet.
+
+```csharp
+IWallet wallet = SequenceWallet.RecoverFromStorage();
+```
+
+### Cree una interfaz para iniciar sesión
+
+```csharp
+SequenceConnect connect = new SequenceConnect();
+```
+
+### Obtener configuración del Ecosystem
+Obtenga datos de configuración del Ecosystem. Esto incluye datos como el nombre, la descripción, las cadenas habilitadas y los proveedores de autenticación.
+
+```csharp
+EcosystemConfig config = await connect.GetEcosystemConfig();
+
+string name = config.name;
+EcosystemAuthProvider[] authProviders = config.enabledProviders;
+```
+
+### Iniciar sesión con correo electrónico
+
+```csharp
+string email = "your.mail@example.com";
+IWallet wallet = await connect.SignInWithEmail(email);
+```
+
+### Iniciar sesión con Google
+
+```csharp
+IWallet wallet = await connect.SignInWithGoogle();
+```
+
+### Iniciar sesión con Apple
+
+```csharp
+IWallet wallet = await connect.SignInWithApple();
+```
+
+### Iniciar sesión con Passkey
+
+```csharp
+IWallet wallet = await connect.SignInWithPasskey();
+```
+
+### Iniciar sesión con frase mnemotécnica
+
+```csharp
+IWallet wallet = await connect.SignInWithMnemonic();
+```

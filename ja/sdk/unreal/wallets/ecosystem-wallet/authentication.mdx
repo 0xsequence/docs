@@ -1,0 +1,135 @@
+---
+title: Unreal エコシステムウォレット認証
+description: エコシステムウォレット ドキュメント for SequenceのUnreal SDK
+sidebarTitle: 認証
+---
+
+Sequence で構築されたコントラクトに限定された暗黙的なセッションから始めます。
+または、[Permissions](/sdk/unreal/wallets/ecosystem-wallet/permissions) オブジェクトを各サインイン呼び出しに追加して、明示的なセッションに直接接続することもできます。
+
+### エコシステム設定の取得
+エコシステムから設定データを取得します。これには、名前、説明、有効なチェーンや認証プロバイダーなどの情報が含まれます。
+
+<Tabs>
+  <Tab title="ブループリント">
+    <Frame>
+      <img src="/images/unreal/ecosystem/get_ecosystem_config.png" />
+    </Frame>
+  </Tab>
+
+  <Tab title="C++">
+    ```cpp
+    const TSuccessCallback<FEcosystemConfig> SuccessCallback = [this, OnSuccess](const FEcosystemConfig& Config)
+    {
+        // Ecosystem Name: Config.Name
+        // Supported Chains: Config.SupportedChains
+        // Auth Providers: Config.EnabledProviders
+    };
+
+    const FFailureCallback FailureCallback = [OnFailure](const FSequenceError& Error) { };
+
+    USequenceConnect* Connect = NewObject<USequenceConnect>();
+    Connect->GetEcosystemConfig(SuccessCallback, FailureCallback);
+    ```
+  </Tab>
+</Tabs>
+
+## メールでサインイン
+
+<Tabs>
+  <Tab title="ブループリント">
+    <Frame>
+      <img src="/images/unreal/ecosystem/sign_in_email.png" />
+    </Frame>
+  </Tab>
+
+  <Tab title="C++">
+    ```cpp
+    const TSuccessCallback<bool> SuccessCallback = [this, OnSuccess](bool Result) { };
+    const FFailureCallback FailureCallback = [OnFailure](const FSequenceError& Error) { };
+
+    USequenceConnect* Connect = NewObject<USequenceConnect>();
+    Connect->SignInWithEmail(Email, Permissions, SuccessCallback, FailureCallback);
+    ```
+  </Tab>
+</Tabs>
+
+## Google でサインイン
+
+<Tabs>
+  <Tab title="ブループリント">
+    <Frame>
+      <img src="/images/unreal/ecosystem/sign_in_google.png" />
+    </Frame>
+  </Tab>
+
+  <Tab title="C++">
+    ```cpp
+    const TSuccessCallback<bool> SuccessCallback = [this, OnSuccess](bool Result) { };
+    const FFailureCallback FailureCallback = [OnFailure](const FSequenceError& Error) { };
+
+    USequenceConnect* Connect = NewObject<USequenceConnect>();
+    Connect->SignInWithGoogle(Permissions, SuccessCallback, FailureCallback);
+    ```
+  </Tab>
+</Tabs>
+
+## Apple でサインイン
+
+<Tabs>
+  <Tab title="ブループリント">
+    <Frame>
+      <img src="/images/unreal/ecosystem/sign_in_apple.png" />
+    </Frame>
+  </Tab>
+
+  <Tab title="C++">
+    ```cpp
+    const TSuccessCallback<bool> SuccessCallback = [this, OnSuccess](bool Result) { };
+    const FFailureCallback FailureCallback = [OnFailure](const FSequenceError& Error) { };
+
+    USequenceConnect* Connect = NewObject<USequenceConnect>();
+    Connect->SignInWithApple(Permissions, SuccessCallback, FailureCallback);
+    ```
+  </Tab>
+</Tabs>
+
+## パスキーでサインイン
+
+<Tabs>
+  <Tab title="ブループリント">
+    <Frame>
+      <img src="/images/unreal/ecosystem/sign_in_passkey.png" />
+    </Frame>
+  </Tab>
+
+  <Tab title="C++">
+    ```cpp
+    const TSuccessCallback<bool> SuccessCallback = [this, OnSuccess](bool Result) { };
+    const FFailureCallback FailureCallback = [OnFailure](const FSequenceError& Error) { };
+
+    USequenceConnect* Connect = NewObject<USequenceConnect>();
+    Connect->SignInWithPasskey(Permissions, SuccessCallback, FailureCallback);
+    ```
+  </Tab>
+</Tabs>
+
+## ニーモニックでサインイン
+
+<Tabs>
+  <Tab title="ブループリント">
+    <Frame>
+      <img src="/images/unreal/ecosystem/sign_in_mnemonic.png" />
+    </Frame>
+  </Tab>
+
+  <Tab title="C++">
+    ```cpp
+    const TSuccessCallback<bool> SuccessCallback = [this, OnSuccess](bool Result) { };
+    const FFailureCallback FailureCallback = [OnFailure](const FSequenceError& Error) { };
+
+    USequenceConnect* Connect = NewObject<USequenceConnect>();
+    Connect->SignInWithMnemonic(Permissions, SuccessCallback, FailureCallback);
+    ```
+  </Tab>
+</Tabs>
