@@ -1,0 +1,64 @@
+---
+title: Unity エコシステムウォレット認証
+description: SequenceのUnity SDK用エコシステムウォレットのドキュメント
+sidebarTitle: 認証
+---
+
+Sequenceによって構築されたコントラクトに限定されたインプリシットセッションから始めます。
+または、明示的なセッションに直接接続したい場合は、各サインイン呼び出しに `IPermissions` オブジェクトを追加することもできます。
+
+[権限の構築方法はこちらをご覧ください。](/sdk/unity/wallets/ecosystem-wallet/permissions)
+
+### ストレージからウォレットを復元する
+ウォレットが見つからない場合、この関数は `null` を返します。
+
+```csharp
+IWallet wallet = SequenceWallet.RecoverFromStorage();
+```
+
+### サインイン用インターフェースを作成する
+
+```csharp
+SequenceConnect connect = new SequenceConnect();
+```
+
+### エコシステム設定の取得
+エコシステムから設定データを取得します。これには、名前、説明、有効なチェーンや認証プロバイダーなどの情報が含まれます。
+
+```csharp
+EcosystemConfig config = await connect.GetEcosystemConfig();
+
+string name = config.name;
+EcosystemAuthProvider[] authProviders = config.enabledProviders;
+```
+
+### メールでサインイン
+
+```csharp
+string email = "your.mail@example.com";
+IWallet wallet = await connect.SignInWithEmail(email);
+```
+
+### Google でサインイン
+
+```csharp
+IWallet wallet = await connect.SignInWithGoogle();
+```
+
+### Apple でサインイン
+
+```csharp
+IWallet wallet = await connect.SignInWithApple();
+```
+
+### パスキーでサインイン
+
+```csharp
+IWallet wallet = await connect.SignInWithPasskey();
+```
+
+### ニーモニックでサインイン
+
+```csharp
+IWallet wallet = await connect.SignInWithMnemonic();
+```

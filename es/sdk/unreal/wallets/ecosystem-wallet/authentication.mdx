@@ -1,0 +1,135 @@
+---
+title: Autenticación de Ecosystem Wallet en Unreal
+description: Documentación de Ecosystem Wallet para el SDK de Unreal de Sequence.
+sidebarTitle: Autenticación
+---
+
+Comience con una sesión implícita que está restringida a contratos creados por Sequence.
+Alternativamente, puede agregar un objeto de [Permisos](/sdk/unreal/wallets/ecosystem-wallet/permissions) a cada llamada de inicio de sesión si desea conectarse directamente a una sesión explícita.
+
+### Obtener configuración del Ecosystem
+Obtenga datos de configuración del Ecosystem. Esto incluye datos como el nombre, la descripción, las cadenas habilitadas y los proveedores de autenticación.
+
+<Tabs>
+  <Tab title="Blueprint">
+    <Frame>
+      <img src="/images/unreal/ecosystem/get_ecosystem_config.png" />
+    </Frame>
+  </Tab>
+
+  <Tab title="C++">
+    ```cpp
+    const TSuccessCallback<FEcosystemConfig> SuccessCallback = [this, OnSuccess](const FEcosystemConfig& Config)
+    {
+        // Ecosystem Name: Config.Name
+        // Supported Chains: Config.SupportedChains
+        // Auth Providers: Config.EnabledProviders
+    };
+
+    const FFailureCallback FailureCallback = [OnFailure](const FSequenceError& Error) { };
+
+    USequenceConnect* Connect = NewObject<USequenceConnect>();
+    Connect->GetEcosystemConfig(SuccessCallback, FailureCallback);
+    ```
+  </Tab>
+</Tabs>
+
+## Iniciar sesión con correo electrónico
+
+<Tabs>
+  <Tab title="Blueprint">
+    <Frame>
+      <img src="/images/unreal/ecosystem/sign_in_email.png" />
+    </Frame>
+  </Tab>
+
+  <Tab title="C++">
+    ```cpp
+    const TSuccessCallback<bool> SuccessCallback = [this, OnSuccess](bool Result) { };
+    const FFailureCallback FailureCallback = [OnFailure](const FSequenceError& Error) { };
+
+    USequenceConnect* Connect = NewObject<USequenceConnect>();
+    Connect->SignInWithEmail(Email, Permissions, SuccessCallback, FailureCallback);
+    ```
+  </Tab>
+</Tabs>
+
+## Iniciar sesión con Google
+
+<Tabs>
+  <Tab title="Blueprint">
+    <Frame>
+      <img src="/images/unreal/ecosystem/sign_in_google.png" />
+    </Frame>
+  </Tab>
+
+  <Tab title="C++">
+    ```cpp
+    const TSuccessCallback<bool> SuccessCallback = [this, OnSuccess](bool Result) { };
+    const FFailureCallback FailureCallback = [OnFailure](const FSequenceError& Error) { };
+
+    USequenceConnect* Connect = NewObject<USequenceConnect>();
+    Connect->SignInWithGoogle(Permissions, SuccessCallback, FailureCallback);
+    ```
+  </Tab>
+</Tabs>
+
+## Iniciar sesión con Apple
+
+<Tabs>
+  <Tab title="Blueprint">
+    <Frame>
+      <img src="/images/unreal/ecosystem/sign_in_apple.png" />
+    </Frame>
+  </Tab>
+
+  <Tab title="C++">
+    ```cpp
+    const TSuccessCallback<bool> SuccessCallback = [this, OnSuccess](bool Result) { };
+    const FFailureCallback FailureCallback = [OnFailure](const FSequenceError& Error) { };
+
+    USequenceConnect* Connect = NewObject<USequenceConnect>();
+    Connect->SignInWithApple(Permissions, SuccessCallback, FailureCallback);
+    ```
+  </Tab>
+</Tabs>
+
+## Iniciar sesión con Passkey
+
+<Tabs>
+  <Tab title="Blueprint">
+    <Frame>
+      <img src="/images/unreal/ecosystem/sign_in_passkey.png" />
+    </Frame>
+  </Tab>
+
+  <Tab title="C++">
+    ```cpp
+    const TSuccessCallback<bool> SuccessCallback = [this, OnSuccess](bool Result) { };
+    const FFailureCallback FailureCallback = [OnFailure](const FSequenceError& Error) { };
+
+    USequenceConnect* Connect = NewObject<USequenceConnect>();
+    Connect->SignInWithPasskey(Permissions, SuccessCallback, FailureCallback);
+    ```
+  </Tab>
+</Tabs>
+
+## Iniciar sesión con frase mnemotécnica
+
+<Tabs>
+  <Tab title="Blueprint">
+    <Frame>
+      <img src="/images/unreal/ecosystem/sign_in_mnemonic.png" />
+    </Frame>
+  </Tab>
+
+  <Tab title="C++">
+    ```cpp
+    const TSuccessCallback<bool> SuccessCallback = [this, OnSuccess](bool Result) { };
+    const FFailureCallback FailureCallback = [OnFailure](const FSequenceError& Error) { };
+
+    USequenceConnect* Connect = NewObject<USequenceConnect>();
+    Connect->SignInWithMnemonic(Permissions, SuccessCallback, FailureCallback);
+    ```
+  </Tab>
+</Tabs>
