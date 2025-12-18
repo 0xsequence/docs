@@ -8,6 +8,33 @@ Start with an implicit session which is restricted to contracts built by Sequenc
 Alternatively, you can choose to add a [Permissions](/sdk/unreal/wallets/ecosystem-wallet/permissions) object to each Sign In call, if you want to connect to an
 explicit session directly.
 
+### Get Ecosystem Config
+
+Get configuration data from the Ecosystem. This includes data such as the name, description, enabled chains and auth providers.
+
+<Tabs>
+    <Tab title="Blueprint">
+        <Frame>
+            <img src="/images/unreal/ecosystem/get_ecosystem_config.png" />
+        </Frame>
+    </Tab>
+    <Tab title="C++">
+        ```cpp
+        const TSuccessCallback<FEcosystemConfig> SuccessCallback = [this, OnSuccess](const FEcosystemConfig& Config)
+        {
+            // Ecosystem Name: Config.Name
+            // Supported Chains: Config.SupportedChains
+            // Auth Providers: Config.EnabledProviders
+        };
+
+        const FFailureCallback FailureCallback = [OnFailure](const FSequenceError& Error) { };
+
+        USequenceConnect* Connect = NewObject<USequenceConnect>();
+        Connect->GetEcosystemConfig(SuccessCallback, FailureCallback);
+        ```
+    </Tab>
+</Tabs>
+
 ## Sign In with Email
 
 <Tabs>
