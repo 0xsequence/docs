@@ -8,23 +8,48 @@ sidebarTitle: Configuración
   <Step title={"Configure your Unity Project"}>
     Inicie sesión y cree un proyecto en [Sequence Builder](https://sequence.build).
 
-    Descargue su archivo de configuración desde Builder como se muestra a continuación.
+    A continuación, cree un ScriptableObject SequenceConfig en Unity: `Assets` > `Create` > `Sequence` > `SequenceConfig` y colóquelo dentro de su directorio `Resources`.
 
-    <Frame>
-      <img src="/images/unity/builder_config_file.png" />
-    </Frame>
-
-    Asegúrese de tener los campos requeridos:
+    Asegúrese de ingresar los campos requeridos:
 
     - **Builder API Key:** Su clave de acceso al proyecto desde su [proyecto en Builder.](https://sequence.build/)
     - **Wallet App Url:** La URL del Ecosistema al que desea conectarse. Si no está seguro, use `https://v3.sequence-dev.app` como valor predeterminado.
   </Step>
 
-  <Step title={"Try our Built-In Demo"}>
-    Importe el ejemplo `Ecosystem Wallet Demo` desde el Package Manager de Unity. Además, revise nuestro script base
-    `SequenceEcosystemWalletWindow` para ver detalles de integración.
+  <Step title={"Create your own Sign-In flow"}>
+    Opcionalmente, puede obtener los proveedores de autenticación configurados directamente desde el Ecosystem y verificar si su método de autenticación objetivo, como Email o Google, está soportado.
+    Ahora, llamemos a un método de autenticación como Google. Esto redirigirá al usuario a un navegador externo para autenticarse con el Ecosystem.
 
-    Si ha instalado el SDK como un archivo `.unitypackage`, por favor ubique la escena Demo en la ventana `Project` de Unity, bajo `Packages > Sequence Embedded Wallet SDK > Sequence > Samples > Demo`
+    Tiene dos opciones para autenticarse. Puede crear una sesión implícita o explícita. Se crea una sesión implícita dejando vacío el campo `Permissions`.
+    La sesión implícita solo permitirá transacciones a contratos del Ecosystem. Para este demo, en su lugar, creemos una sesión explícita para un contrato específico.
+
+    ```csharp
+    // Let's create the permissions object
+    Chain chain = Chain.TestnetAbitrumSepolia;
+    Address contractAddress = new Address("0x33985d320809E26274a72E03268c8a29927Bc6dA");
+    BigInteger deadline = new BigInteger(DateTimeOffset.UtcNow.ToUnixTimeSeconds() * 1000 + 1000 * 60 * 5000);
+    BigInteger valueLimit = 0;
+
+    IPermissions permissions = new ContractPermissions(chain, contractAddress, deadline, valueLimit);
+
+    // Let's call the Sign-In method
+    SequenceConnect connect = new SequenceConnect();
+    IWallet wallet = await connect.SignInWithGoogle(permissions);
+
+    // Optionally, get the Ecosystem config to check your auth providers
+    EcosystemConfig config = await connect.GetEcosystemConfig();
+    ```
+  </Step>
+
+  <Step title={"Try our Built-In Demo (optional)"}>
+    Importe el ejemplo `Demo` desde el Package Manager de Unity. Además, revise nuestro script base
+    [EcosystemWalletLoginWindow](https://github.com/0xsequence/sequence-unity/blob/master/Packages/Sequence-Unity/Sequence/SequenceBoilerplates/Scripts/EcosystemWallet/EcosystemWalletLoginWindow.cs) para detalles de integración.
+
+    Puede usar este Boilerplate dentro de su proyecto después de importar los Demo Samples. Luego, simplemente llame a esta función:
+    `BoilerplateFactory.OpenEcosystemWalletLogin(parent)`
+
+    Si ha instalado el SDK como un archivo `.unitypackage`, por favor ubique la escena Demo dentro de
+    la ventana `Project` de Unity bajo `Packages > Sequence SDK > Sequence > Samples > Demo`
 
     <Frame>
       <img src="/images/unity/ecosystem-wallet-demo.png" />

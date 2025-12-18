@@ -8,22 +8,46 @@ sidebarTitle: セットアップ
   <Step title={"Configure your Unity Project"}>
     [Sequence Builder](https://sequence.build) にサインインし、プロジェクトを作成します。
 
-    下記の手順で Builder から設定ファイルをダウンロードしてください。
+    次に、UnityでSequenceConfigのScriptableObjectを作成します：`Assets` > `Create` > `Sequence` > `SequenceConfig` を選択し、`Resources` ディレクトリ内に配置してください。
 
-    <Frame>
-      <img src="/images/unity/builder_config_file.png" />
-    </Frame>
-
-    必要なフィールドが揃っていることを確認してください。
+    必要な項目を必ず入力してください：
 
     - **Builder API キー：** [Builder プロジェクト](https://sequence.build/)から取得したプロジェクトアクセスキー。
     - **Wallet App Url：** 接続したいエコシステムの URL。不明な場合は、デフォルトで `https://v3.sequence-dev.app` をご利用ください。
   </Step>
 
-  <Step title={"Try our Built-In Demo"}>
-    Unity のパッケージマネージャーから `Ecosystem Wallet Demo` サンプルをインポートしてください。また、統合の詳細については、ボイラープレートスクリプト `SequenceEcosystemWalletWindow` もご参照ください。
+  <Step title={"Create your own Sign-In flow"}>
+    必要に応じて、Ecosystemから設定済みの認証プロバイダーを取得し、EmailやGoogleなど、目的の認証方法がサポートされているか確認できます。
+    次に、Googleなどの認証方法を呼び出してみましょう。これにより、ユーザーは外部ブラウザにリダイレクトされ、Ecosystemで認証されます。
 
-    SDKを`.unitypackage`ファイルとしてインストールした場合は、Unityの`Project`ウィンドウで`Packages > Sequence Embedded Wallet SDK > Sequence > Samples > Demo`内にあるデモシーンを探してください。
+    認証方法は2つあります。暗黙的セッションまたは明示的セッションを作成できます。`Permissions` フィールドにノードを渡さないことで暗黙的セッションを作成します。
+    暗黙的セッションでは、Ecosystem内のコントラクトへのトランザクションのみ許可されます。このデモでは、特定のコントラクト用に明示的セッションを作成してみましょう。
+
+    ```csharp
+    // Let's create the permissions object
+    Chain chain = Chain.TestnetAbitrumSepolia;
+    Address contractAddress = new Address("0x33985d320809E26274a72E03268c8a29927Bc6dA");
+    BigInteger deadline = new BigInteger(DateTimeOffset.UtcNow.ToUnixTimeSeconds() * 1000 + 1000 * 60 * 5000);
+    BigInteger valueLimit = 0;
+
+    IPermissions permissions = new ContractPermissions(chain, contractAddress, deadline, valueLimit);
+
+    // Let's call the Sign-In method
+    SequenceConnect connect = new SequenceConnect();
+    IWallet wallet = await connect.SignInWithGoogle(permissions);
+
+    // Optionally, get the Ecosystem config to check your auth providers
+    EcosystemConfig config = await connect.GetEcosystemConfig();
+    ```
+  </Step>
+
+  <Step title={"Try our Built-In Demo (optional)"}>
+    Unityのパッケージマネージャーから`Demo`サンプルをインポートしてください。また、統合の詳細については、弊社のボイラープレートスクリプト [EcosystemWalletLoginWindow](https://github.com/0xsequence/sequence-unity/blob/master/Packages/Sequence-Unity/Sequence/SequenceBoilerplates/Scripts/EcosystemWallet/EcosystemWalletLoginWindow.cs) もご覧ください。
+
+    Demoサンプルをインポートした後、このボイラープレートをプロジェクト内で利用できます。次の関数を呼び出すだけです：
+    `BoilerplateFactory.OpenEcosystemWalletLogin(parent)`
+
+    SDKを`.unitypackage`ファイルとしてインストールした場合は、Unityの`Project`ウィンドウで `Packages > Sequence SDK > Sequence > Samples > Demo` 内にあるDemoシーンを探してください。
 
     <Frame>
       <img src="/images/unity/ecosystem-wallet-demo.png" />

@@ -8,12 +8,19 @@ sidebarTitle: セットアップ
   <Step title={"Configure your Unreal Project"}>
     [Sequence Builder](https://sequence.build)でプロジェクトを作成し、下記のように設定ファイルをダウンロードしてください。
 
-    <Frame>
-      <img src="/images/unreal/builder_config_file.png" />
-    </Frame>
+    次に、`SequenceConfig.ini`ファイルを作成し、Unrealプロジェクトの`Config`ディレクトリ内に配置します。以下の内容をSequenceConfig.iniファイルに貼り付けてください:
+
+    ```
+    [/Script/Sequence.Config]
+    DefaultChain = "421614" // Arbitrum Sepolia
+    ProjectAccessKey = "<Get your access key from https://sequence.build/>"
+    WalletAppUrl = "https://v3.sequence-dev.app"
+    UrlScheme = "your-scheme"
+    ```
 
     設定ファイルに必要な項目が含まれていることを確認してください。
 
+    - **DefaultChain:** デフォルトで使用したいチェーンIDです。後から[実行時にチェーンIDを変更](/sdk/unreal/indexer/read-from-blockchain#set-chain-by-id)することも可能です。
     - **ProjectAccessKey:** [Builder プロジェクト](https://sequence.build/)から取得したプロジェクトアクセスキーです。
     - **WalletAppUrl:** 接続したいエコシステムのURLです。不明な場合は、デフォルトとして `https://v3.sequence-dev.app` をご利用ください。
 
@@ -22,9 +29,45 @@ sidebarTitle: セットアップ
     - **UrlScheme:** これはAndroidのマニフェストとXcodeプロジェクトの両方で設定する必要があります。
   </Step>
 
-  <Step title={"Try our Built-In Demo"}>
-    Unreal SDK には、すぐに使えるウィジェットがセットで付属しています。
-    Content Browser の設定で「Enable Plugin Content」を有効にしてください。
+  <Step title={"Create your own Sign-In flow"}>
+    必要に応じて、Ecosystemから設定済みの認証プロバイダーを取得し、EmailやGoogleなど、目的の認証方法がサポートされているか確認できます。
+    次に、Googleなどの認証方法を呼び出してみましょう。これにより、ユーザーは外部ブラウザにリダイレクトされ、Ecosystemで認証されます。
+
+    認証方法は2つあります。暗黙的セッションまたは明示的セッションを作成できます。`Permissions` フィールドにノードを渡さないことで暗黙的セッションを作成します。
+    暗黙的セッションでは、Ecosystem内のコントラクトへのトランザクションのみ許可されます。このデモでは、特定のコントラクト用に明示的セッションを作成してみましょう。
+
+    <Tabs>
+      <Tab title="ブループリント">
+        <Frame>
+          <img src="/images/unreal/ecosystem/ecosystem_auth_demo.png" />
+        </Frame>
+      </Tab>
+
+      <Tab title="C++">
+        ```cpp
+        // Create the permissions object
+        const FString Target = TEXT("0x33985d320809E26274a72E03268c8a29927Bc6dA");
+        const int64 ChainId = 421614;
+        const int64 Deadline = 1856724472000;
+        const int64 ValueLimit = 0;
+
+        UContractPermissions* Permissions = UContractPermissions::CreateContractPermissions(ChainId, Target, Deadline, ValueLimit);
+
+        // Let's call the Sign-in method
+        const TSuccessCallback<bool> SuccessCallback = [OnSuccess](const bool& Result) { };
+        const FFailureCallback FailureCallback = [OnFailure](const FSequenceError& Error) { };
+
+        USequenceConnect* Connect = NewObject<USequenceConnect>();
+        Connect->GetEcosystemConfig(...);
+        Connect->SignInWithGoogle(Permissions, SuccessCallback, FailureCallback);
+        ```
+      </Tab>
+    </Tabs>
+  </Step>
+
+  <Step title={"Try our Built-In Demo (optional)"}>
+    Unreal SDKには、すぐに使える[ボイラープレートウィジェット](/sdk/unreal/bootstrap)が用意されています。
+    Content Browserの設定で`Enable Plugin Content`を有効にしてください。
 
     <Frame>
       <img src="/images/unreal/ecosystem/ecosystem-wallet-demo.png" />

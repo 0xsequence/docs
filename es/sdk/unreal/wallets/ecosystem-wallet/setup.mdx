@@ -8,12 +8,19 @@ sidebarTitle: Configuración
   <Step title={"Configure your Unreal Project"}>
     Cree un proyecto en [Sequence Builder](https://sequence.build) y descargue su archivo de configuración como se muestra a continuación.
 
-    <Frame>
-      <img src="/images/unreal/builder_config_file.png" />
-    </Frame>
+    A continuación, cree un archivo `SequenceConfig.ini` y colóquelo dentro del directorio `Config` de su proyecto de Unreal. Pegue el siguiente contenido en el archivo SequenceConfig.ini:
+
+    ```
+    [/Script/Sequence.Config]
+    DefaultChain = "421614" // Arbitrum Sepolia
+    ProjectAccessKey = "<Get your access key from https://sequence.build/>"
+    WalletAppUrl = "https://v3.sequence-dev.app"
+    UrlScheme = "your-scheme"
+    ```
 
     Asegúrese de que su archivo de configuración incluya los campos requeridos:
 
+    - **DefaultChain:** El chain id que desea usar por defecto. También puede [cambiar el chain id en tiempo de ejecución](/sdk/unreal/indexer/read-from-blockchain#set-chain-by-id) más adelante.
     - **ProjectAccessKey:** Su Project Access Key de su [proyecto en Builder.](https://sequence.build/)
     - **WalletAppUrl:** La URL del Ecosistema al que desea conectarse. Si no está seguro, use `https://v3.sequence-dev.app` como valor predeterminado.
 
@@ -22,8 +29,44 @@ sidebarTitle: Configuración
     - **UrlScheme:** También debe configurar esto en su Android Manifest y en su proyecto de Xcode.
   </Step>
 
-  <Step title={"Try our Built-In Demo"}>
-    El Unreal SDK incluye un conjunto de widgets prediseñados para que pueda comenzar rápidamente.
+  <Step title={"Create your own Sign-In flow"}>
+    Opcionalmente, puede obtener los proveedores de autenticación configurados directamente desde el Ecosystem y verificar si su método de autenticación objetivo, como Email o Google, está soportado.
+    Ahora, llamemos a un método de autenticación como Google. Esto redirigirá al usuario a un navegador externo para autenticarse con el Ecosystem.
+
+    Tiene dos opciones para autenticarse. Puede crear una sesión implícita o explícita. Se crea una sesión implícita dejando vacío el campo `Permissions`.
+    La sesión implícita solo permitirá transacciones a contratos del Ecosystem. Para este demo, en su lugar, creemos una sesión explícita para un contrato específico.
+
+    <Tabs>
+      <Tab title="Blueprint">
+        <Frame>
+          <img src="/images/unreal/ecosystem/ecosystem_auth_demo.png" />
+        </Frame>
+      </Tab>
+
+      <Tab title="C++">
+        ```cpp
+        // Create the permissions object
+        const FString Target = TEXT("0x33985d320809E26274a72E03268c8a29927Bc6dA");
+        const int64 ChainId = 421614;
+        const int64 Deadline = 1856724472000;
+        const int64 ValueLimit = 0;
+
+        UContractPermissions* Permissions = UContractPermissions::CreateContractPermissions(ChainId, Target, Deadline, ValueLimit);
+
+        // Let's call the Sign-in method
+        const TSuccessCallback<bool> SuccessCallback = [OnSuccess](const bool& Result) { };
+        const FFailureCallback FailureCallback = [OnFailure](const FSequenceError& Error) { };
+
+        USequenceConnect* Connect = NewObject<USequenceConnect>();
+        Connect->GetEcosystemConfig(...);
+        Connect->SignInWithGoogle(Permissions, SuccessCallback, FailureCallback);
+        ```
+      </Tab>
+    </Tabs>
+  </Step>
+
+  <Step title={"Try our Built-In Demo (optional)"}>
+    El SDK de Unreal incluye un conjunto de [widgets base](/sdk/unreal/bootstrap) para que pueda comenzar rápidamente.
     Asegúrese de habilitar `Enable Plugin Content` en la configuración de su Content Browser.
 
     <Frame>
