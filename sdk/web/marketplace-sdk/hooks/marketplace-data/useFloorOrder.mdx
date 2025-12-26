@@ -1,0 +1,46 @@
+---
+title: useFloorOrder
+description: Hook to fetch the floor order for a collection Retrieves the lowest priced order (listing) currently available for any token in the specified collection from the marketplace
+sidebarTitle: useFloorOrder
+---
+
+## Parameters
+
+| Name                       | Type                        | Description                                                                                  |
+|----------------------------|-----------------------------|----------------------------------------------------------------------------------------------|
+| `params.config`            | `SdkConfig`                 | Configuration parameters                                                                     |
+| `params.chainId`           | `number`                    | The chain ID (must be a number, e.g., 1 for Ethereum, 137 for Polygon)                       |
+| `params.collectionAddress` | `string`                    | The collection contract address                                                              |
+| `params.filter`            | `OrdersFilter`              | Optional filter criteria for collectibles                                                    |
+| `params.query`             | `StandardQueryOptions`      | Optional React Query configuration (from TanStack Query)                                     |
+
+## Returns
+
+Query result containing the floor order data for the collection
+
+## Example
+
+Basic usage:
+
+```typescript
+const { data, isLoading } = useFloorOrder({
+  chainId: 137,
+  collectionAddress: '0x...'
+});
+```
+
+With filters and custom query options:
+
+```typescript
+const { data, isLoading } = useFloorOrder({
+  chainId: 1,
+  collectionAddress: '0x...',
+  filter: {
+    minPrice: '1000000000000000000' // 1 ETH in wei
+  },
+  query: {
+    refetchInterval: 30000,
+    enabled: hasCollectionAddress
+  }
+});
+```

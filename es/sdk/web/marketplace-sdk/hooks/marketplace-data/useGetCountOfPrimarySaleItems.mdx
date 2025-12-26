@@ -1,0 +1,37 @@
+---
+title: useGetCountOfPrimarySaleItems
+description: El hook useGetCountOfPrimarySaleItems retorna la cantidad de ítems de venta primaria filtrados en una colección
+sidebarTitle: useGetCountOfPrimarySaleItems
+---
+
+## Parámetros
+
+| Nombre                     | Tipo                   | Descripción                                                         |
+| -------------------------- | ---------------------- | ------------------------------------------------------------------- |
+| `params.chainId`           | `number`               | El ID de la cadena (por ejemplo, 1 para Ethereum, 137 para Polygon) |
+| `params.collectionAddress` | `string`               | La dirección del contrato de la colección                           |
+| `params.config`            | `SdkConfig`            | Parámetros opcionales de configuración del SDK                      |
+| `params.side`              | `OrderSide`            | El lado de la orden a contar (listing u oferta)                     |
+| `params.filter`            | `OrdersFilter`         | Filtro opcional para las órdenes                                    |
+| `params.query`             | `StandardQueryOptions` | Configuración opcional de React Query (de TanStack Query)           |
+
+## Devuelve
+Un resultado de consulta que contiene un objeto con una propiedad `count` que representa la cantidad de ítems de venta primaria filtrados en una colección.
+
+## Importar
+
+```typescript
+import { useGetCountOfPrimarySaleItems } from "@0xsequence/marketplace-sdk/react";
+```
+
+## Ejemplo
+Uso básico:
+
+```typescript
+const { data: countOfPrimarySalesItems } = useGetCountOfPrimarySaleItems({
+	chainId: 1,
+	primarySaleContractAddress: "0x00"
+});
+
+console.log(countOfPrimarySalesItems?.count);
+```
