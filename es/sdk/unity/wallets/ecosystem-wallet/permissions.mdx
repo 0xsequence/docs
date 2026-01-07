@@ -1,17 +1,18 @@
 ---
-title: 権限
-description: SequenceのUnity SDK用エコシステムウォレットのドキュメント
+title: Permisos de la Wallet del Ecosistema de Unity
+description: Documentación de Ecosystem Wallet para el SDK de Unity de Sequence.
+sidebarTitle: Permisos
 ---
 
-### パラメータ
+### Parámetros
 
-- **チェーン:** この署名者が操作できるチェーン。
-- **ターゲット:** この署名者が操作できるコントラクトアドレス。
-- **期限:** この権限の有効期限（UTCミリ秒単位のタイムスタンプ）。
-- **送信上限:** この署名者が送信できるネイティブトークンの最大合計額。
-- **パラメータルール:** この署名者がターゲットコントラクトとどのようにやり取りできるかを定義するルール。
+- **Chain:** La cadena con la que este firmante puede interactuar.
+- **Target:** La dirección del contrato con la que este firmante puede interactuar.
+- **Deadline:** La fecha límite para este permiso como timestamp UTC en milisegundos.
+- **Value Limit:** El monto máximo total de tokens nativos que este firmante puede enviar.
+- **Parameter Rules:** Las reglas que definen cómo este firmante puede interactuar con el contrato objetivo.
 
-### 単一コントラクトへの権限付与
+### Permiso para un solo contrato
 
 ```csharp
 Chain chain = Chain.TestnetAbitrumSepolia;
@@ -22,7 +23,7 @@ BigInteger valueLimit = 0;
 IPermissions permissions = new ContractPermissions(chain, contractAddress, deadline, valueLimit);
 ```
 
-### 複数ターゲットへの権限付与
+### Permisos con múltiples objetivos
 
 ```csharp
 Chain chain = Chain.TestnetAbitrumSepolia;
@@ -34,7 +35,7 @@ IPermissions permissions = new Permissions(chain,
     new ContractPermissions(contractAddress2, deadline, valueLimit));
 ```
 
-### パラメータルール
+### Reglas de parámetros
 
 ```csharp
 var rule = new ParameterRule
