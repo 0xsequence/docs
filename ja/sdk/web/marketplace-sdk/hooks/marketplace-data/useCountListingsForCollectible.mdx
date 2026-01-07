@@ -1,0 +1,43 @@
+---
+title: useCountListingsForCollectible
+description: 特定のコレクティブルの出品数を取得するフックです。指定したコレクティブルの有効な出品数をマーケットプレイスからカウントします。UIコンポーネントで出品数を表示する際などに便利です。
+sidebarTitle: useCountListingsForCollectible
+---
+
+## パラメータ
+
+| 名前                         | 型                      | 説明                                     |
+| -------------------------- | ---------------------- | -------------------------------------- |
+| `params.config`            | `SdkConfig`            | 設定パラメータ                                |
+| `params.chainId`           | `number`               | チェーンID（数値で指定、例：Ethereumは1、Polygonは137） |
+| `params.collectionAddress` | `string`               | コレクションコントラクトのアドレス                      |
+| `params.collectibleId`     | `string`               | 対象となるコレクティブル／トークンID                    |
+| `params.filter`            | `OrdersFilter`         | 出品のためのオプションのフィルター条件                    |
+| `params.query`             | `StandardQueryOptions` | オプションのReact Query設定（TanStack Query由来）  |
+
+## 戻り値
+出品数を含むクエリ結果
+
+## 例
+基本的な使い方：
+
+```typescript
+const { data: listingCount, isLoading } = useCountListingsForCollectible({
+  chainId: 137,
+  collectionAddress: '0x...',
+  collectibleId: '123'
+});
+```
+
+フィルターを使う場合：
+
+```typescript
+const { data: filteredCount } = useCountListingsForCollectible({
+  chainId: 137,
+  collectionAddress: '0x...',
+  collectibleId: '123',
+  filter: { 
+    priceRange: { min: '1000000000000000000' } 
+  }
+});
+```

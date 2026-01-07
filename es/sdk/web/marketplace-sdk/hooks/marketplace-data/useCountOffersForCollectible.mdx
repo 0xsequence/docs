@@ -1,0 +1,43 @@
+---
+title: useCountOffersForCollectible
+description: Hook para obtener la cantidad de ofertas para un coleccionable específico. Cuenta el número de ofertas activas para un coleccionable dado en el marketplace. Útil para mostrar la cantidad de ofertas en componentes de la interfaz.
+sidebarTitle: useCountOffersForCollectible
+---
+
+## Parámetros
+
+| Nombre                     | Tipo                   | Descripción                                                                             |
+| -------------------------- | ---------------------- | --------------------------------------------------------------------------------------- |
+| `params.config`            | `SdkConfig`            | Parámetros de configuración                                                             |
+| `params.chainId`           | `number`               | El ID de la cadena (debe ser un número, por ejemplo, 1 para Ethereum, 137 para Polygon) |
+| `params.collectionAddress` | `string`               | La dirección del contrato de la colección                                               |
+| `params.collectibleId`     | `string`               | El ID específico del coleccionable/token                                                |
+| `params.filter`            | `OrdersFilter`         | Criterios de filtro opcionales para las ofertas                                         |
+| `params.query`             | `StandardQueryOptions` | Configuración opcional de React Query (de TanStack Query)                               |
+
+## Devuelve
+Resultado de la consulta que contiene la cantidad de ofertas
+
+## Ejemplo
+Uso básico:
+
+```typescript
+const { data: offerCount, isLoading } = useCountOffersForCollectible({
+  chainId: 137,
+  collectionAddress: '0x...',
+  collectibleId: '123'
+});
+```
+
+Con filtro:
+
+```typescript
+const { data: filteredCount } = useCountOffersForCollectible({
+  chainId: 137,
+  collectionAddress: '0x...',
+  collectibleId: '123',
+  filter: { 
+    priceRange: { min: '1000000000000000000' } 
+  }
+});
+```

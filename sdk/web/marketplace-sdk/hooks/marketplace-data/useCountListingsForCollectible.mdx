@@ -1,0 +1,45 @@
+---
+title: useCountListingsForCollectible
+description: Hook to get the count of listings for a specific collectible Counts the number of active listings for a given collectible in the marketplace. Useful for displaying listing counts in UI components
+sidebarTitle: useCountListingsForCollectible
+---
+
+## Parameters
+
+| Name                       | Type                        | Description                                                                                  |
+|----------------------------|-----------------------------|----------------------------------------------------------------------------------------------|
+| `params.config`            | `SdkConfig`                 | Configuration parameters                                                                     |
+| `params.chainId`           | `number`                    | The chain ID (must be a number, e.g., 1 for Ethereum, 137 for Polygon)                      |
+| `params.collectionAddress` | `string`                    | The collection contract address                                                              |
+| `params.collectibleId`     | `string`                    | The specific collectible/token ID                                                           |
+| `params.filter`            | `OrdersFilter`              | Optional filter criteria for listings                                                       |
+| `params.query`             | `StandardQueryOptions`      | Optional React Query configuration (from TanStack Query)                                     |
+
+## Returns
+
+Query result containing the count of listings
+
+## Example
+
+Basic usage:
+
+```typescript
+const { data: listingCount, isLoading } = useCountListingsForCollectible({
+  chainId: 137,
+  collectionAddress: '0x...',
+  collectibleId: '123'
+});
+```
+
+With filter:
+
+```typescript
+const { data: filteredCount } = useCountListingsForCollectible({
+  chainId: 137,
+  collectionAddress: '0x...',
+  collectibleId: '123',
+  filter: { 
+    priceRange: { min: '1000000000000000000' } 
+  }
+});
+```

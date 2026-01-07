@@ -1,0 +1,40 @@
+---
+title: useGetCountOfFilteredOrders
+description: useGetCountOfFilteredOrdersフックは、コレクション内のフィルター済み注文数を返します。
+sidebarTitle: useGetCountOfFilteredOrders
+---
+
+## パラメータ
+
+| 名前                         | 型                      | 説明                                      |
+| -------------------------- | ---------------------- | --------------------------------------- |
+| `params.chainId`           | `number`               | チェーンID（例：Ethereum は 1、Polygon は 137 など） |
+| `params.collectionAddress` | `string`               | コレクションコントラクトのアドレス                       |
+| `params.config`            | `SdkConfig`            | オプションのSDK設定パラメータ                        |
+| `params.side`              | `OrderSide`            | カウント対象の注文サイド（出品またはオファー）                 |
+| `params.filter`            | `OrdersFilter`         | 注文のためのオプションのフィルター                       |
+| `params.query`             | `StandardQueryOptions` | オプションのReact Query設定（TanStack Query由来）   |
+
+## 戻り値
+コレクション内のフィルター済み注文数を含むクエリ結果
+
+## インポート
+
+```typescript
+import { useGetCountOfFilteredOrders } from "@0xsequence/marketplace-sdk/react";
+```
+
+## 例
+基本的な使い方：
+
+```typescript
+const { data: countOfOrders } = useGetCountOfFilteredOrders({
+	chainId,
+	collectionAddress,
+	side: OrderSide.listing,
+	filter: {
+		searchText,
+		properties: filterOptions,
+	}
+});
+```
