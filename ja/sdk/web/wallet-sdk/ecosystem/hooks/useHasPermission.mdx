@@ -1,0 +1,79 @@
+---
+title: useHasPermission
+description: 現在のSequence V3セッションが一連のトランザクションを実行できるかどうかを確認するフック
+sidebarTitle: useHasPermission
+---
+
+## インポート
+
+```tsx
+import { useHasPermission } from '@0xsequence/connect'
+```
+
+## 使い方
+
+```tsx
+import { useHasPermission } from '@0xsequence/connect'
+import { encodeFunctionData, type TransactionRequest } from 'viem'
+
+function App() {
+  const { checkPermission, isLoading, error, data } = useHasPermission()
+
+  const check = async () => {
+    const txs: TransactionRequest[] = [
+      {
+        to: '0x0000000000000000000000000000000000000000',
+        data: encodeFunctionData({
+          abi: [
+            {
+              type: 'function',
+              name: 'foo',
+              stateMutability: 'nonpayable',
+              inputs: [],
+              outputs: []
+            }
+          ],
+          functionName: 'foo'
+        })
+      }
+    ]
+
+    const allowed = await checkPermission({ chainId: 42161, transactions: txs })
+    console.log('Allowed:', allowed)
+  }
+
+  return (
+    <div>
+      <button onClick={check}>Check permission</button>
+      {isLoading && <div>Checking...</div>}
+      {error && <div>Error: {error.message}</div>}
+      {data !== undefined && <div>Allowed: {data ? 'Yes' : 'No'}</div>}
+    </div>
+  )
+}
+```
+
+## パラメータ
+
+```tsx
+type HasPermissionParams = {
+  chainId: number
+  transactions: TransactionRequest[]
+}
+```
+
+## 返り値の型
+
+```tsx
+type UseHasPermissionReturnType = {
+  isLoading: boolean
+  error: Error | null
+  data: boolean | undefined
+  checkPermission: (params: HasPermissionParams) => Promise<boolean>
+}
+```
+
+## 補足
+
+- このフックは内部的にSequence V3コネクタを使用しています。
+- 各トランザクションには`to`アドレスが必要です。

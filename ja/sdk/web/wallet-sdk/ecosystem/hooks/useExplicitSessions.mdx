@@ -13,7 +13,7 @@ import { useExplicitSessions } from '@0xsequence/connect'
 ## 使い方
 
 ```tsx
-import { createContractPermission, createExplicitSession, useExplicitSessions, type Permission, type Session } from '@0xsequence/connect'
+import { createContractPermission, useExplicitSessions, type ExplicitSessionParams, type ExplicitSession } from '@0xsequence/connect'
 import { useEffect, useState } from 'react'
 import { parseUnits } from 'viem'
 
@@ -22,10 +22,11 @@ function App() {
     isLoading,
     error,
     addExplicitSession,
+    modifyExplicitSession,
     getExplicitSessions
   } = useExplicitSessions()
 
-  const [sessions, setSessions] = useState<Session[]>([])
+  const [sessions, setSessions] = useState<ExplicitSession[]>([])
 
   // Load existing sessions
   useEffect(() => {
@@ -47,7 +48,7 @@ function App() {
       address: '0x...',
       functionSignature: 'function testContract() public'
     })
-    const currentSession = sessions[0];
+    const currentSession = sessions[0]
     const modifiedSession = { ...currentSession, permissions: [...currentSession.permissions!, newPermission] }
     modifyExplicitSession(modifiedSession)
   }
@@ -55,7 +56,7 @@ function App() {
   // Handle creating a new explicit session
   const handleCreateSession = async () => {
     try {
-      const tokenSpendingSession = createExplicitSession({
+      const tokenSpendingSession: ExplicitSessionParams = {
         chainId: 42161,
         nativeTokenSpending: {
           valueLimit: 0n,
@@ -78,9 +79,9 @@ function App() {
               ]
           })
         ]
-      })
+      }
 
-      await addExplicitSession(42161, tokenSpendingSession)
+      await addExplicitSession(tokenSpendingSession)
 
       // Refresh sessions after creating a new one
       const updatedSessions = await getExplicitSessions()
@@ -113,10 +114,9 @@ function App() {
         <h3>Existing Sessions ({sessions.length})</h3>
         {sessions.map((session, index) => (
           <div key={index}>
-            <p>Session Address: {session.address}</p>
+            <p>Session Address: {session.sessionAddress}</p>
             <p>Chain ID: {session.chainId}</p>
-            <p>Is Implicit: {session.isImplicit ? 'Yes' : 'No'}</p>
-            <p>Permissions: {session.permissions?.permissions?.map((permission: Permission) => permission.target).join(', ')}</p>
+            <p>Permissions: {session.permissions?.map(permission => permission.target).join(', ')}</p>
           </div>
         ))}
       </div>
@@ -132,8 +132,9 @@ function App() {
 type UseExplicitSessionsReturnType = {
   isLoading: boolean
   error: Error | null
-  addExplicitSession: (chainId: ChainId, explicitSession: ExplicitSession) => Promise<void>
-  getExplicitSessions: () => Promise<Session[]>
+  addExplicitSession: (params: ExplicitSessionParams, includeFeeOptionPermissions?: boolean) => Promise<void>
+  modifyExplicitSession: (explicitSession: ExplicitSession) => Promise<void>
+  getExplicitSessions: () => Promise<ExplicitSession[]>
 }
 ```
 
@@ -150,7 +151,7 @@ type UseExplicitSessionsReturnType = {
 直近の操作が失敗した場合はエラーオブジェクト、それ以外は`null`です。
 
 #### addExplicitSession
-`(chainId: ChainId, explicitSession: ExplicitSession) => Promise<void>`
+`(params: ExplicitSessionParams, includeFeeOptionPermissions?: boolean) => Promise<void>`
 
 ```typescript
 type ExplicitSession = {
@@ -182,20 +183,9 @@ type ExplicitSession = {
 既存の明示的セッションを変更するための関数です。
 
 #### getExplicitSessions
-`() => Promise<Session[]>`
+`() => Promise<ExplicitSession[]>`
 
-```typescript
-type Session = {
-  type: 'explicit' | 'implicit'
-  sessionAddress: Address.Address
-  valueLimit?: bigint
-  deadline?: bigint
-  permissions?: Permission.Permission[]
-  chainId?: number
-}
-```
-
-接続中のウォレットの全セッションを取得する関数です。
+接続されているウォレットのすべての明示的セッションを取得する関数です。
 
 ## 補足
 このフックは、Sequence V3ウォレット接続の明示的セッション管理機能を提供します。

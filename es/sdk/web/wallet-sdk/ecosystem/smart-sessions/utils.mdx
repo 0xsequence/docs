@@ -118,23 +118,42 @@ import { createContractPermissions } from "@0xsequence/connect";
 
 const permissions = createContractPermissions({
     address: AAVE_V3_POOL_ADDRESS_ARBITRUM,
-    functionSignatures: [
-        'function supply(address asset, uint256 amount, address onBehalfOf, uint16 referralCode)',
-        'function withdraw(address asset, uint256 amount, address to)',
-    ],
-    rules: [
+    functions: [
         {
-            param: 'asset',
-            type: 'address',
-            condition: 'EQUAL',
-            value: USDC_ADDRESS_ARBITRUM
-        }
+            functionSignature: 'function supply(address asset, uint256 amount, address onBehalfOf, uint16 referralCode)',
+            rules: [
+                {
+                    param: 'asset',
+                    type: 'address',
+                    condition: 'EQUAL',
+                    value: USDC_ADDRESS_ARBITRUM
+                },
+                {
+                    param: 'amount',
+                    type: 'uint256',
+                    condition: 'LESS_THAN_OR_EQUAL',
+                    value: parseUnits('1', 6),
+                    cumulative: true
+                }
+            ]
+        },
         {
-            param: 'amount',
-            type: 'uint256',
-            condition: 'LESS_THAN_OR_EQUAL',
-            value: parseUnits('1', 6),
-            cumulative: true
+            functionSignature: 'function withdraw(address asset, uint256 amount, address to)',
+            rules: [
+                {
+                    param: 'asset',
+                    type: 'address',
+                    condition: 'EQUAL',
+                    value: USDC_ADDRESS_ARBITRUM
+                },
+                {
+                    param: 'amount',
+                    type: 'uint256',
+                    condition: 'LESS_THAN_OR_EQUAL',
+                    value: parseUnits('1', 6),
+                    cumulative: true
+                }
+            ]
         }
     ]
 });

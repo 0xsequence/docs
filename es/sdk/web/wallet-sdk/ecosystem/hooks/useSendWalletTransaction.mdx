@@ -1,0 +1,75 @@
+---
+title: useSendWalletTransaction
+description: Hook para enviar una transacción mediante el popup de la wallet de Sequence (acción de wallet)
+sidebarTitle: useSendWalletTransaction
+---
+
+## Importar
+
+```tsx
+import { useSendWalletTransaction } from '@0xsequence/connect'
+```
+
+## Uso
+
+```tsx
+import { useSendWalletTransaction } from '@0xsequence/connect'
+
+function App() {
+  const {
+    sendTransactionAsync,
+    isLoading,
+    error,
+    data,
+    reset
+  } = useSendWalletTransaction()
+
+  const send = async () => {
+    const hash = await sendTransactionAsync({
+      chainId: 42161,
+      transaction: {
+        to: '0x0000000000000000000000000000000000000000',
+        data: '0x'
+      }
+    })
+    console.log('tx hash', hash)
+  }
+
+  return (
+    <div>
+      <button onClick={send}>Send via wallet popup</button>
+      {isLoading && <div>Sending...</div>}
+      {error && <div>Error: {error.message}</div>}
+      {data && <div>Hash: {data}</div>}
+      <button onClick={reset}>Reset</button>
+    </div>
+  )
+}
+```
+
+## Parámetros
+
+```tsx
+type SendWalletTransactionParams = {
+  chainId: number
+  transaction: TransactionRequest
+}
+```
+
+## Tipo de retorno
+
+```tsx
+type UseSendWalletTransactionReturnType = {
+  isLoading: boolean
+  error: Error | null
+  data: string | undefined
+  sendTransaction: (params: SendWalletTransactionParams) => void
+  sendTransactionAsync: (params: SendWalletTransactionParams) => Promise<string>
+  reset: () => void
+}
+```
+
+## Notas
+
+- Este hook utiliza el conector de Sequence V3 y abre el popup de la wallet para la aprobación del usuario.
+- `transaction.to` es obligatorio.
