@@ -8,6 +8,7 @@ sidebarTitle: useFeeOptions
 
 ```tsx
 import { useFeeOptions } from '@0xsequence/connect'
+import { zeroAddress } from 'viem'
 ```
 
 ## Usage
@@ -69,8 +70,8 @@ function App() {
               <input
                 type="radio"
                 name="feeOption"
-                checked={selectedFeeOptionTokenAddress === (option.token.contractAddress || '')}
-                onChange={() => setSelectedFeeOptionTokenAddress(option.token.contractAddress || '')}
+                checked={selectedFeeOptionTokenAddress === (option.token.contractAddress || zeroAddress)}
+                onChange={() => setSelectedFeeOptionTokenAddress(option.token.contractAddress || zeroAddress)}
               />
               <label>
                 {option.token.symbol} - {option.token.contractAddress || 'Native Token'}
@@ -85,7 +86,7 @@ function App() {
         </div>
         <div>
           <button 
-            onClick={() => handleConfirmFee(selectedFeeOptionTokenAddress || '')}
+            onClick={() => handleConfirmFee(selectedFeeOptionTokenAddress || zeroAddress)}
             disabled={!selectedFeeOptionTokenAddress}
           >
             Confirm
@@ -161,7 +162,7 @@ Function to confirm the selected fee option.
 | Parameter | Type | Description |
 | --------- | ---- | ----------- |
 | `id` | `string` | The fee confirmation ID |
-| `feeTokenAddress` | `string` | The address of the token to use for fee payment (use empty string for native token) |
+| `feeTokenAddress` | `string` | The address of the token to use for fee payment (use `zeroAddress` for native token) |
 
 #### rejectPendingFeeOption
 

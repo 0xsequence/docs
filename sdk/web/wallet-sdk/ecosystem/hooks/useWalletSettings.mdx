@@ -16,7 +16,14 @@ import { useWalletSettings } from '@0xsequence/connect'
 import { useWalletSettings } from '@0xsequence/connect'
 
 function WalletConfigPanel() {
-  const { displayedAssets, readOnlyNetworks, setDisplayedAssets } = useWalletSettings()
+  const {
+    displayedAssets,
+    readOnlyNetworks,
+    setDisplayedAssets,
+    hideExternalConnectOptions,
+    hideConnectedWallets,
+    hideSocialConnectOptions
+  } = useWalletSettings()
   
   // Example function to add a new asset
   const addNewAsset = (contractAddress: string, chainId: number) => {
@@ -81,6 +88,9 @@ interface WalletSettingsReturn {
     contractAddress: string
     chainId: number
   }>) => void
+  hideExternalConnectOptions?: boolean
+  hideConnectedWallets?: boolean
+  hideSocialConnectOptions?: boolean
 }
 ```
 
@@ -105,6 +115,24 @@ Array of network IDs where transactions are disabled. These networks are availab
 `(assets: Array<{ contractAddress: string, chainId: number }>) => void`
 
 Function to update the list of displayed assets. Takes an array of asset objects, each containing a contract address and chain ID.
+
+#### hideExternalConnectOptions
+
+`boolean | undefined`
+
+Whether external wallets are hidden in the Connect Modal.
+
+#### hideConnectedWallets
+
+`boolean | undefined`
+
+Whether connected wallets are hidden in the Connect Modal.
+
+#### hideSocialConnectOptions
+
+`boolean | undefined`
+
+Whether social wallets (email/social logins) are hidden in the Connect Modal.
 
 ## Notes
 

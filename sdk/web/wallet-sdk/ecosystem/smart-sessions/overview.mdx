@@ -22,15 +22,13 @@ When you configure a Smart Session, there are a few important concepts that the 
 
 ### Paying for Gas with Native Tokens (ETH, MATIC, etc.)
 
-To enable your dApp to pay for transaction fees using the user's native tokens, a budget must be set.
+To allow session-signed transactions to include native token value, set a budget using `nativeTokenSpending.valueLimit`.
 
-You define this budget in the `nativeTokenSpending.valueLimit` property of your session configuration. To make this possible, the SDK **automatically adds a permission** for the `Sequence Trusted Forwarder` contract (`0xABAAd93EeE2a569cF0632f39B10A9f5D734777ca`). This special contract securely handles the gas payment on the user's behalf, and its spending is strictly limited by the `valueLimit` you set.
+If you want the wallet to present fee token options (including native token fees), enable fee option permissions (for example, by using `includeFeeOptionPermissions` when creating explicit sessions). This will request the additional permissions needed for fee payments.
 
 ### Paying for Gas with ERC-20 Tokens (USDC, etc.)
 
-Our SDK simplifies paying for gas with ERC-20 tokens immensely. You do not need to configure any special permissions for this.
-
-When a transaction requires a fee and the user selects the fee option, the SDK automatically handles the payment using that token.
+Fee token options are provided through the fee-options flow. When enabled, the SDK can request the necessary permissions for ERC-20 fee payments and handle the selected fee token automatically.
 
 ### Security Best Practice: The Principle of Least Privilege
 

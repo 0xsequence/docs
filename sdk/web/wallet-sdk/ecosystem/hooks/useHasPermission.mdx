@@ -1,0 +1,79 @@
+---
+title: "useHasPermission"
+description: Hook to check whether the current Sequence V3 session can execute a set of transactions
+sidebarTitle: useHasPermission
+---
+
+## Import
+
+```tsx
+import { useHasPermission } from '@0xsequence/connect'
+```
+
+## Usage
+
+```tsx
+import { useHasPermission } from '@0xsequence/connect'
+import { encodeFunctionData, type TransactionRequest } from 'viem'
+
+function App() {
+  const { checkPermission, isLoading, error, data } = useHasPermission()
+
+  const check = async () => {
+    const txs: TransactionRequest[] = [
+      {
+        to: '0x0000000000000000000000000000000000000000',
+        data: encodeFunctionData({
+          abi: [
+            {
+              type: 'function',
+              name: 'foo',
+              stateMutability: 'nonpayable',
+              inputs: [],
+              outputs: []
+            }
+          ],
+          functionName: 'foo'
+        })
+      }
+    ]
+
+    const allowed = await checkPermission({ chainId: 42161, transactions: txs })
+    console.log('Allowed:', allowed)
+  }
+
+  return (
+    <div>
+      <button onClick={check}>Check permission</button>
+      {isLoading && <div>Checking...</div>}
+      {error && <div>Error: {error.message}</div>}
+      {data !== undefined && <div>Allowed: {data ? 'Yes' : 'No'}</div>}
+    </div>
+  )
+}
+```
+
+## Parameters
+
+```tsx
+type HasPermissionParams = {
+  chainId: number
+  transactions: TransactionRequest[]
+}
+```
+
+## Return Type
+
+```tsx
+type UseHasPermissionReturnType = {
+  isLoading: boolean
+  error: Error | null
+  data: boolean | undefined
+  checkPermission: (params: HasPermissionParams) => Promise<boolean>
+}
+```
+
+## Notes
+
+- This hook uses the Sequence V3 connector internally.
+- Each transaction must include a `to` address.

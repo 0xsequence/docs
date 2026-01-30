@@ -28,23 +28,39 @@ yarn add @0xsequence/connect@v6-beta wagmi viem
 
 Next, create the Ecosystem Wallet configuration.
 
+**Required for Ecosystem Wallet**
+
+- `projectAccessKey`
+- `walletUrl`
+
+**Optional**
+
+- `dappOrigin`
+- `signIn.projectName`, `appName`
+- `chainIds`, `defaultChainId`
+- `explicitSessionParams` (optional; `nativeTokenSpending` defaults to `valueLimit: 0`)
+- `includeFeeOptionPermissions`, `enableImplicitSession`
+- `nodesUrl`, `relayerUrl`
+- `walletConnect`
+
 ```typescript [config.ts]
 import { createConfig } from "@0xsequence/connect";
 
 export const config: any = createConfig({
   projectAccessKey: "AQAAAAAAAABtDHG1It7lxRF_9bbxw4diip8",
-  signIn: {
-    projectName: 'Sequence Web SDK Demo',
-  },
   walletUrl: 'https://next-acme-wallet.sequence-dev.app',
+  // Optional
   dappOrigin: window.location.origin,
+  signIn: {
+    projectName: 'Sequence Web SDK Demo'
+  },
   appName: 'Sequence Web SDK Demo',
   chainIds: [42161],
   defaultChainId: 42161,
   google: true,
   apple: true,
   email: true,
-  explicitSessionParams: {...}
+  explicitSessionParams: { ... }
 });
 ```
 
@@ -54,6 +70,8 @@ The `dappOrigin` is the origin of your dapp, used to verify where the user is co
 
 The `explicitSessionParams` object allows your dapp to request specific permissions from the user upon connection. 
 These permissions can authorize your dapp to perform certain actions on the user's behalf for a defined period, creating a more seamless user experience with no transaction prompts or allowing automations.
+
+`nativeTokenSpending` is optional. If omitted, the session will default to a native token `valueLimit` of `0`.
 
 For example, let's create an explicit session that allows your dapp to `deposit 100 USDC into the AAVE V3 pool on Arbitrum, on behalf of the user for the next 24 hours`
 
@@ -66,11 +84,12 @@ export const AAVE_V3_POOL_ADDRESS_ARBITRUM = '0x794a61358D6845594F94dc1DB02A252b
 
 export const config: any = createConfig({
   projectAccessKey: "AQAAAAAAAABtDHG1It7lxRF_9bbxw4diip8",
+  walletUrl: 'https://next-acme-wallet.sequence-dev.app',
+  // Optional
+  dappOrigin: window.location.origin,
   signIn: {
     projectName: 'Sequence Web SDK Demo',
   },
-  walletUrl: 'https://next-acme-wallet.sequence-dev.app',
-  dappOrigin: window.location.origin,
   appName: 'Sequence Web SDK Demo',
   chainIds: [42161],
   defaultChainId: 42161,
@@ -200,6 +219,21 @@ yarn add @0xsequence/connect@v6-beta wagmi viem
 
 Next, create the Ecosystem Wallet configuration.
 
+**Required for Ecosystem Wallet**
+
+- `projectAccessKey`
+- `walletUrl`
+
+**Optional**
+
+- `dappOrigin`
+- `signIn.projectName`, `appName`
+- `chainIds`, `defaultChainId`
+- `explicitSessionParams` (optional; `nativeTokenSpending` defaults to `valueLimit: 0`)
+- `includeFeeOptionPermissions`, `enableImplicitSession`
+- `nodesUrl`, `relayerUrl`
+- `walletConnect`
+
 ```typescript [config.ts]
 import { createConfig } from "@0xsequence/connect";
 
@@ -226,6 +260,8 @@ The `dappOrigin` is the origin of your dapp, used to verify where the user is co
 
 The `explicitSessionParams` object allows your dapp to request specific permissions from the user upon connection. 
 These permissions can authorize your dapp to perform certain actions on the user's behalf for a defined period, creating a more seamless user experience with no transaction prompts.
+
+`nativeTokenSpending` is optional. If omitted, the session will default to a native token `valueLimit` of `0`.
 
 For example, let's create an explicit session that allows your dapp to `deposit 100 USDC into the AAVE V3 pool on Arbitrum, on behalf of the user for the next 24 hours`
 
@@ -390,5 +426,3 @@ The user will be prompted to approve the permissions when connecting.
 </Steps>
 </Tab>
 </Tabs>
-
-
