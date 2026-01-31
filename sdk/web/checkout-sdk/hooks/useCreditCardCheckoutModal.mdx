@@ -1,0 +1,102 @@
+---
+
+title: "useCreditCardCheckoutModal"
+description: Hook for managing a credit card checout flow
+sidebarTitle: useCreditCardCheckoutModal
+---
+
+## Import
+
+```tsx
+import { useCreditCardCheckoutModal } from '@0xsequence/checkout'
+```
+
+## Usage
+
+```tsx
+import { useCreditCardCheckoutModal } from '@0xsequence/checkout'
+import { polygon } from 'viem/chains'
+import { useAccount } from 'wagmi'
+
+function Home() {
+  const { address } = useAccount()
+  const { initiateCreditCardCheckout, closeCreditCardCheckout, settings } = useCheckoutModal()
+
+  const handleCheckout = () => {
+    // NFT purchase settings
+    const chainId = polygon.id
+    const orderbookAddress = '0xfdb42A198a932C8D3B506Ffa5e855bC4b348a712'
+    const nftQuantity = '1'
+    const tokenContractAddress = '0xabcdef...' // NFT contract address
+    const tokenId = '123' // NFT token ID
+
+    initiateCreditCardCheckout({
+      chainId,
+      contractAddress: orderbookAddress,
+      recipientAddress: address || '',
+      currencyQuantity: '100000',
+      currencySymbol: 'USDC',
+      currencyAddress: '0x3c499c542cef5e3811e1192ce70d8cc03d5c3359',
+      currencyDecimals: '6',
+      nftId: tokenId,
+      nftAddress: tokenContractAddress,
+      nftQuantity,
+      approvedSpenderAddress: orderbookAddress,
+      calldata: "0x...",
+      onSuccess: (txHash) => console.log('Success!', txHash)
+    })
+  }
+
+  return (
+    <button onClick={handleCheckout}>
+      Checkout
+    </button>
+  )
+}
+
+export default Home
+```
+
+### Properties
+
+#### initiateCreditCardCheckout
+
+`(settings: CreditCardCheckoutSettings) => void`
+
+Opens the Credit Card Checkout modal with the specified parameters.
+
+**Parameters:**
+
+The `settings` object can include the following properties:
+
+| Parameter | Type | Description |
+| --------- | ---- | ----------- |
+| `chainId` | `number` | The blockchain network ID |
+| `contractAddress` | `string` | The address of the contract to interact with |
+| `recipientAddress` | `string` | The address to receive the purchased item |
+| `currencyQuantity` | `string` | The quantity of currency to use for payment |
+| `currencySymbol` | `string` | The symbol of the currency (e.g., 'USDC') |
+| `currencyAddress` | `string` | The address of the currency token contract |
+| `currencyDecimals` | `string` | The number of decimals for the currency |
+| `nftId` | `string` | The ID of the NFT being purchased |
+| `nftAddress` | `string` | The address of the NFT contract |
+| `nftQuantity` | `string` | The quantity of NFTs to purchase |
+| `approvedSpenderAddress` | `string` | The address allowed to spend tokens |
+| `calldata` | `string` | The encoded function call data for the transaction |
+| `onSuccess` | `(txHash: string) => void` | Callback when transaction succeeds |
+
+#### closeCreditCardCheckout
+
+`() => void`
+
+Closes the Credit Card Checkout modal.
+
+#### settings
+
+`CreditCardCheckoutSettings | undefined`
+
+The current settings configuration for the Credit Card Checkout modal.
+
+## Notes
+
+This hook provides methods to control the Credit Card Checkout modal that allows users to complete purchases using a credit card.
