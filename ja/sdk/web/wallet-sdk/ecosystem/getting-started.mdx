@@ -25,23 +25,39 @@ sidebarTitle: はじめに
       <Step title="ウォレット設定を作成します">
         次に、Ecosystem Walletの設定を作成します。
 
+        **Ecosystem Walletに必須**
+
+        - `projectAccessKey`
+        - `walletUrl`
+
+        **オプション**
+
+        - `dappOrigin`
+        - `signIn.projectName`, `appName`
+        - `chainIds`, `defaultChainId`
+        - `explicitSessionParams`（オプション；`nativeTokenSpending`はデフォルトで`valueLimit: 0`）
+        - `includeFeeOptionPermissions`, `enableImplicitSession`
+        - `nodesUrl`, `relayerUrl`
+        - `walletConnect`
+
         ```typescript [config.ts]
         import { createConfig } from "@0xsequence/connect";
 
         export const config: any = createConfig({
           projectAccessKey: "AQAAAAAAAABtDHG1It7lxRF_9bbxw4diip8",
-          signIn: {
-            projectName: 'Sequence Web SDK Demo',
-          },
           walletUrl: 'https://next-acme-wallet.sequence-dev.app',
+          // Optional
           dappOrigin: window.location.origin,
+          signIn: {
+            projectName: 'Sequence Web SDK Demo'
+          },
           appName: 'Sequence Web SDK Demo',
           chainIds: [42161],
           defaultChainId: 42161,
           google: true,
           apple: true,
           email: true,
-          explicitSessionParams: {...}
+          explicitSessionParams: { ... }
         });
         ```
 
@@ -51,6 +67,8 @@ sidebarTitle: はじめに
 
         `explicitSessionParams` オブジェクトを使うことで、dapp は接続時にユーザーから特定の権限をリクエストできます。
         これらの権限により、dapp は一定期間ユーザーに代わって特定の操作を実行できるようになり、トランザクションの確認画面なしで自動処理やシームレスな体験を実現します。
+
+        `nativeTokenSpending`はオプションです。省略した場合、セッションはネイティブトークンの`valueLimit`が`0`に設定されます。
 
         例として、「次の24時間、ユーザーの代理でArbitrum上のAAVE V3プールに100 USDCを入金する」ための明示的セッションを作成してみましょう。
 
@@ -63,11 +81,12 @@ sidebarTitle: はじめに
 
         export const config: any = createConfig({
           projectAccessKey: "AQAAAAAAAABtDHG1It7lxRF_9bbxw4diip8",
+          walletUrl: 'https://next-acme-wallet.sequence-dev.app',
+          // Optional
+          dappOrigin: window.location.origin,
           signIn: {
             projectName: 'Sequence Web SDK Demo',
           },
-          walletUrl: 'https://next-acme-wallet.sequence-dev.app',
-          dappOrigin: window.location.origin,
           appName: 'Sequence Web SDK Demo',
           chainIds: [42161],
           defaultChainId: 42161,
@@ -182,6 +201,21 @@ sidebarTitle: はじめに
       <Step title="ウォレット設定を作成します">
         次に、Ecosystem Walletの設定を作成します。
 
+        **Ecosystem Walletに必須**
+
+        - `projectAccessKey`
+        - `walletUrl`
+
+        **オプション**
+
+        - `dappOrigin`
+        - `signIn.projectName`, `appName`
+        - `chainIds`, `defaultChainId`
+        - `explicitSessionParams`（オプション；`nativeTokenSpending`はデフォルトで`valueLimit: 0`）
+        - `includeFeeOptionPermissions`, `enableImplicitSession`
+        - `nodesUrl`, `relayerUrl`
+        - `walletConnect`
+
         ```typescript [config.ts]
         import { createConfig } from "@0xsequence/connect";
 
@@ -208,6 +242,8 @@ sidebarTitle: はじめに
 
         `explicitSessionParams` オブジェクトを使うことで、dapp は接続時にユーザーから特定の権限をリクエストできます。
         これらの権限により、dapp は一定期間ユーザーに代わって特定の操作を実行できるようになり、トランザクションの確認画面なしでよりスムーズなユーザー体験を提供できます。
+
+        `nativeTokenSpending`はオプションです。省略した場合、セッションはネイティブトークンの`valueLimit`が`0`に設定されます。
 
         例として、「次の24時間、ユーザーの代理でArbitrum上のAAVE V3プールに100 USDCを入金する」ための明示的セッションを作成してみましょう。
 

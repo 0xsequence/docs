@@ -1,16 +1,16 @@
 ---
-title: "useWalletSettings"
-description: Hook to access and modify wallet configuration settings
+title: useWalletSettings
+description: Hook para acceder y modificar la configuración del wallet
 sidebarTitle: useWalletSettings
 ---
 
-## Import
+## Importar
 
 ```tsx
 import { useWalletSettings } from '@0xsequence/connect'
 ```
 
-## Usage
+## Uso
 
 ```tsx
 import { useWalletSettings } from '@0xsequence/connect'
@@ -75,7 +75,7 @@ function WalletConfigPanel() {
 }
 ```
 
-## Return Type
+## Tipo de retorno
 
 ```tsx
 interface WalletSettingsReturn {
@@ -94,63 +94,56 @@ interface WalletSettingsReturn {
 }
 ```
 
-### Properties
+### Propiedades
 
 #### displayedAssets
-
 `Array<{ contractAddress: string, chainId: number }>`
 
-Array of assets to display in the wallet interface. Each asset is defined by:
-- `contractAddress`: The token contract address
-- `chainId`: The network ID where the token exists
+Arreglo de activos a mostrar en la interfaz del wallet. Cada activo se define por:
+- `contractAddress`: Dirección del contrato del token
+- `chainId`: El ID de la red donde existe el token
 
 #### readOnlyNetworks
-
 `number[] | undefined`
 
-Array of network IDs where transactions are disabled. These networks are available for viewing balances and transaction history, but users cannot initiate new transactions.
+Arreglo de IDs de red donde las transacciones están deshabilitadas. Estas redes están disponibles para ver saldos e historial de transacciones, pero los usuarios no pueden iniciar nuevas transacciones.
 
 #### setDisplayedAssets
-
 `(assets: Array<{ contractAddress: string, chainId: number }>) => void`
 
-Function to update the list of displayed assets. Takes an array of asset objects, each containing a contract address and chain ID.
+Función para actualizar la lista de activos mostrados. Recibe un arreglo de objetos de activos, cada uno con una dirección de contrato y el chain ID.
 
 #### hideExternalConnectOptions
-
 `boolean | undefined`
 
-Whether external wallets are hidden in the Connect Modal.
+Indica si las wallets externas están ocultas en el Connect Modal.
 
 #### hideConnectedWallets
-
 `boolean | undefined`
 
-Whether connected wallets are hidden in the Connect Modal.
+Indica si las wallets conectadas están ocultas en el Connect Modal.
 
 #### hideSocialConnectOptions
-
 `boolean | undefined`
 
-Whether social wallets (email/social logins) are hidden in the Connect Modal.
+Indica si las wallets sociales (inicio de sesión con redes sociales o correo) están ocultas en el Connect Modal.
 
-## Notes
+## Notas
+Este hook da acceso a la configuración de visualización del wallet e información de estado de red.
 
-This hook provides access to wallet display settings and network status information.
+Características principales:
+- Gestión de la lista de activos mostrados
+- Información de estado de redes de solo lectura
+- Actualizaciones de configuración con tipado seguro
 
-Key features:
-- Asset display list management
-- Read-only network status information
-- Type-safe configuration updates
+Casos de uso comunes:
+- Gestionar la lista de tokens visibles
+- Verificar si las redes son de solo lectura
+- Construir interfaces de configuración
 
-Common use cases:
-- Managing visible token list
-- Checking if networks are read-only
-- Building settings interfaces
+Buenas prácticas:
+- Validar direcciones de contrato antes de agregarlas a los activos mostrados
+- Verificar el estado de solo lectura de la red antes de intentar transacciones
+- Mantener la lista de activos mostrados actualizada
 
-Best practices:
-- Validate contract addresses before adding to displayed assets
-- Check network read-only status before attempting transactions
-- Keep displayed assets list up to date
-
-The hook is commonly used in wallet configuration interfaces to manage which assets are displayed and check network status.
+El hook se usa comúnmente en interfaces de configuración de wallet para gestionar qué activos se muestran y verificar el estado de la red.

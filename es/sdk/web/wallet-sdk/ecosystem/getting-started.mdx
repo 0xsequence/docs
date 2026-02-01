@@ -26,23 +26,39 @@ Primero, asegúrese de haber creado una cuenta de Sequence Project. Si aún no t
       <Step title="Cree su configuración de Wallet">
         A continuación, cree la configuración de Ecosystem Wallet.
 
+        **Requerido para Ecosystem Wallet**
+
+        - `projectAccessKey`
+        - `walletUrl`
+
+        **Opcional**
+
+        - `dappOrigin`
+        - `signIn.projectName`, `appName`
+        - `chainIds`, `defaultChainId`
+        - `explicitSessionParams` (opcional; `nativeTokenSpending` por defecto es `valueLimit: 0`)
+        - `includeFeeOptionPermissions`, `enableImplicitSession`
+        - `nodesUrl`, `relayerUrl`
+        - `walletConnect`
+
         ```typescript [config.ts]
         import { createConfig } from "@0xsequence/connect";
 
         export const config: any = createConfig({
           projectAccessKey: "AQAAAAAAAABtDHG1It7lxRF_9bbxw4diip8",
-          signIn: {
-            projectName: 'Sequence Web SDK Demo',
-          },
           walletUrl: 'https://next-acme-wallet.sequence-dev.app',
+          // Optional
           dappOrigin: window.location.origin,
+          signIn: {
+            projectName: 'Sequence Web SDK Demo'
+          },
           appName: 'Sequence Web SDK Demo',
           chainIds: [42161],
           defaultChainId: 42161,
           google: true,
           apple: true,
           email: true,
-          explicitSessionParams: {...}
+          explicitSessionParams: { ... }
         });
         ```
 
@@ -52,6 +68,8 @@ Primero, asegúrese de haber creado una cuenta de Sequence Project. Si aún no t
 
         El objeto `explicitSessionParams` permite que su dapp solicite permisos específicos al usuario al conectarse.
         Estos permisos pueden autorizar a su dapp a realizar ciertas acciones en nombre del usuario durante un período definido, creando una experiencia más fluida sin solicitudes de transacción o permitiendo automatizaciones.
+
+        `nativeTokenSpending` es opcional. Si se omite, la sesión tendrá por defecto un `valueLimit` de token nativo de `0`.
 
         Por ejemplo, creemos una sesión explícita que permita a su dapp `depositar 100 USDC en el pool de AAVE V3 en Arbitrum, en nombre del usuario durante las próximas 24 horas`
 
@@ -64,11 +82,12 @@ Primero, asegúrese de haber creado una cuenta de Sequence Project. Si aún no t
 
         export const config: any = createConfig({
           projectAccessKey: "AQAAAAAAAABtDHG1It7lxRF_9bbxw4diip8",
+          walletUrl: 'https://next-acme-wallet.sequence-dev.app',
+          // Optional
+          dappOrigin: window.location.origin,
           signIn: {
             projectName: 'Sequence Web SDK Demo',
           },
-          walletUrl: 'https://next-acme-wallet.sequence-dev.app',
-          dappOrigin: window.location.origin,
           appName: 'Sequence Web SDK Demo',
           chainIds: [42161],
           defaultChainId: 42161,
@@ -184,6 +203,21 @@ Primero, asegúrese de haber creado una cuenta de Sequence Project. Si aún no t
       <Step title="Cree su configuración de Wallet">
         A continuación, cree la configuración de Ecosystem Wallet.
 
+        **Requerido para Ecosystem Wallet**
+
+        - `projectAccessKey`
+        - `walletUrl`
+
+        **Opcional**
+
+        - `dappOrigin`
+        - `signIn.projectName`, `appName`
+        - `chainIds`, `defaultChainId`
+        - `explicitSessionParams` (opcional; `nativeTokenSpending` por defecto es `valueLimit: 0`)
+        - `includeFeeOptionPermissions`, `enableImplicitSession`
+        - `nodesUrl`, `relayerUrl`
+        - `walletConnect`
+
         ```typescript [config.ts]
         import { createConfig } from "@0xsequence/connect";
 
@@ -210,6 +244,8 @@ Primero, asegúrese de haber creado una cuenta de Sequence Project. Si aún no t
 
         El objeto `explicitSessionParams` permite que su dapp solicite permisos específicos al usuario al conectarse.
         Estos permisos pueden autorizar a su dapp a realizar ciertas acciones en nombre del usuario durante un período definido, creando una experiencia más fluida sin solicitudes de transacción.
+
+        `nativeTokenSpending` es opcional. Si se omite, la sesión tendrá por defecto un `valueLimit` de token nativo de `0`.
 
         Por ejemplo, creemos una sesión explícita que permita a su dapp `depositar 100 USDC en el pool de AAVE V3 en Arbitrum, en nombre del usuario durante las próximas 24 horas`
 

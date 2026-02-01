@@ -8,6 +8,7 @@ sidebarTitle: useFeeOptions
 
 ```tsx
 import { useFeeOptions } from '@0xsequence/connect'
+import { zeroAddress } from 'viem'
 ```
 
 ## Uso
@@ -69,8 +70,8 @@ function App() {
               <input
                 type="radio"
                 name="feeOption"
-                checked={selectedFeeOptionTokenAddress === (option.token.contractAddress || '')}
-                onChange={() => setSelectedFeeOptionTokenAddress(option.token.contractAddress || '')}
+                checked={selectedFeeOptionTokenAddress === (option.token.contractAddress || zeroAddress)}
+                onChange={() => setSelectedFeeOptionTokenAddress(option.token.contractAddress || zeroAddress)}
               />
               <label>
                 {option.token.symbol} - {option.token.contractAddress || 'Native Token'}
@@ -85,7 +86,7 @@ function App() {
         </div>
         <div>
           <button 
-            onClick={() => handleConfirmFee(selectedFeeOptionTokenAddress || '')}
+            onClick={() => handleConfirmFee(selectedFeeOptionTokenAddress || zeroAddress)}
             disabled={!selectedFeeOptionTokenAddress}
           >
             Confirm
@@ -109,7 +110,7 @@ interface FeeOptionsConfig {
 }
 ```
 
-| Parámetro             | Type      | Description                                                                     |
+| Parámetro             | Tipo      | Descripción                                                                     |
 | --------------------- | --------- | ------------------------------------------------------------------------------- |
 | `skipFeeBalanceCheck` | `boolean` | Indica si se omite la verificación de balances de tokens (por defecto: `false`) |
 
@@ -154,17 +155,17 @@ type FeeOptionExtended = Relayer.FeeOption & {
 
 Función para confirmar la opción de tarifa seleccionada.
 
-| Parámetro         | Type     | Description                                                                                       |
+| Parámetro         | Tipo     | Descripción                                                                                       |
 | ----------------- | -------- | ------------------------------------------------------------------------------------------------- |
 | `id`              | `string` | El ID de confirmación de tarifa                                                                   |
-| `feeTokenAddress` | `string` | La dirección del token a usar para el pago de la comisión (use cadena vacía para el token nativo) |
+| `feeTokenAddress` | `string` | La dirección del token a usar para el pago de comisiones (use `zeroAddress` para el token nativo) |
 
 #### rejectPendingFeeOption
 `(id: string) => void`
 
 Función para rechazar la selección de la opción de tarifa actual.
 
-| Parámetro | Type     | Description                                |
+| Parámetro | Tipo     | Descripción                                |
 | --------- | -------- | ------------------------------------------ |
 | `id`      | `string` | El ID de confirmación de tarifa a rechazar |
 
