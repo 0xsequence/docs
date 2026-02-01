@@ -18,14 +18,12 @@ Esto es sumamente útil para habilitar funciones avanzadas como:
 Al configurar una Smart Session, hay algunos conceptos importantes que el SDK gestiona para simplificar la experiencia del desarrollador.
 
 ### Pago de gas con tokens nativos (ETH, MATIC, etc.)
-Para permitir que su dApp pague las comisiones de transacción usando los tokens nativos del usuario, debe establecer un presupuesto.
+Para permitir que las transacciones firmadas por sesión incluyan valor de token nativo, establezca un presupuesto usando `nativeTokenSpending.valueLimit`.
 
-Este presupuesto se define en la propiedad `nativeTokenSpending.valueLimit` de la configuración de la sesión. Para hacerlo posible, el SDK **agrega automáticamente un permiso** para el contrato `Sequence Trusted Forwarder` (`0xABAAd93EeE2a569cF0632f39B10A9f5D734777ca`). Este contrato especial gestiona de forma segura el pago de gas en nombre del usuario, y su gasto está estrictamente limitado por el `valueLimit` que usted defina.
+Si desea que la wallet muestre opciones de tokens para comisiones (incluyendo comisiones con token nativo), habilite los permisos de opciones de comisión (por ejemplo, usando `includeFeeOptionPermissions` al crear sesiones explícitas). Esto solicitará los permisos adicionales necesarios para pagos de comisiones.
 
 ### Pago de gas con tokens ERC-20 (USDC, etc.)
-Nuestro SDK facilita enormemente el pago de gas con tokens ERC-20. No necesita configurar permisos especiales para esto.
-
-Cuando una transacción requiere una comisión y el usuario selecciona la opción de pago, el SDK gestiona automáticamente el pago usando ese token.
+Las opciones de tokens para comisiones se proporcionan a través del flujo de fee-options. Cuando está habilitado, el SDK puede solicitar los permisos necesarios para pagos de comisiones con ERC-20 y manejar automáticamente el token de comisión seleccionado.
 
 ### Mejor práctica de seguridad: Principio de mínimo privilegio
 

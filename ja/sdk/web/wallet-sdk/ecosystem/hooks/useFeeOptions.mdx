@@ -8,6 +8,7 @@ sidebarTitle: useFeeOptions
 
 ```tsx
 import { useFeeOptions } from '@0xsequence/connect'
+import { zeroAddress } from 'viem'
 ```
 
 ## 使い方
@@ -69,8 +70,8 @@ function App() {
               <input
                 type="radio"
                 name="feeOption"
-                checked={selectedFeeOptionTokenAddress === (option.token.contractAddress || '')}
-                onChange={() => setSelectedFeeOptionTokenAddress(option.token.contractAddress || '')}
+                checked={selectedFeeOptionTokenAddress === (option.token.contractAddress || zeroAddress)}
+                onChange={() => setSelectedFeeOptionTokenAddress(option.token.contractAddress || zeroAddress)}
               />
               <label>
                 {option.token.symbol} - {option.token.contractAddress || 'Native Token'}
@@ -85,7 +86,7 @@ function App() {
         </div>
         <div>
           <button 
-            onClick={() => handleConfirmFee(selectedFeeOptionTokenAddress || '')}
+            onClick={() => handleConfirmFee(selectedFeeOptionTokenAddress || zeroAddress)}
             disabled={!selectedFeeOptionTokenAddress}
           >
             Confirm
@@ -154,10 +155,10 @@ type FeeOptionExtended = Relayer.FeeOption & {
 
 選択した手数料オプションを確定する関数です。
 
-| パラメータ             | 型        | 説明                                         |
-| ----------------- | -------- | ------------------------------------------ |
-| `id`              | `string` | 手数料確認ID                                    |
-| `feeTokenAddress` | `string` | 手数料支払いに使用するトークンのアドレス（ネイティブトークンの場合は空文字列を使用） |
+| パラメータ             | 型        | 説明                                                  |
+| ----------------- | -------- | --------------------------------------------------- |
+| `id`              | `string` | 手数料確認ID                                             |
+| `feeTokenAddress` | `string` | 手数料支払いに使用するトークンのアドレス（ネイティブトークンの場合は`zeroAddress`を使用） |
 
 #### rejectPendingFeeOption
 `(id: string) => void`
