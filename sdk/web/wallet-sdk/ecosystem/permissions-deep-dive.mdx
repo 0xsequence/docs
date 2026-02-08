@@ -1,0 +1,100 @@
+---
+description: Practical guidance for constructing explicit session permissions for Ecosystem Wallet (Web SDK)
+sidebarTitle: Permissions Deep Dive
+---
+
+This page collects practical guidance and common gotchas when constructing **explicit session permissions** for the Ecosystem Wallet (Web SDK / `@0xsequence/connect`).
+
+If you haven’t set up Connect yet, start with [Getting Started](/sdk/web/wallet-sdk/ecosystem/getting-started).
+
+---
+
+## Mental model
+
+An explicit session is a *bounded authority grant*:
+
+- **Scope:** what calls are allowed (targets + function signatures + parameter rules)
+- **Budget:** how much value can move (native spend limit, ERC20 limits)
+- **Time:** expiration window
+
+When you request an explicit session, the user approves that permission set in the wallet UI. After approval, your dApp (or server-side automation, depending on your architecture) can execute transactions within those boundaries without repeatedly prompting the user.
+
+---
+
+## Permission construction patterns
+
+### 1) Target-specific permissions (recommended when possible)
+
+If your use case has a known contract target (e.g. “deposit into Aave pool”, “mint from this NFT contract”), prefer a tight permission with:
+
+- a single `address`
+- a concrete `functionSignature`
+- parameter rules
+
+This is the most secure and easiest to reason about.
+
+### 2) Open-ended recipient transfers (requires different construction)
+
+If your UX is “send tokens to **any** recipient” (e.g. a wallet app experience), you are granting broader authority.
+
+**Guidance:**
+
+- For open-ended **ERC20 transfers**, the canonical approach is allowing the token contract `transfer(address to, uint256 value)` with a **value limit** rule (and *no* `to=EQUAL` rule).
+- For open-ended **native token sends**, use a **forwarder** pattern. In Sequence wallet configurations, a common approach is granting a target permission for the chain’s `ValueForwarder` and sending native via a forward call.
+
+> If your dApp does not need open-ended recipients, don’t grant them.
+
+---
+
+## Fee options & why they matter (dispatch behavior)
+
+When sending a transaction via Sequence relaying, a **fee option** is selected to pay for execution.
+
+### Key behaviors
+
+- If your app relies on relayed transactions, the relayer must be able to determine *how fees are paid*.
+- In practice, your app should either:
+  - enable automatic fee permission inclusion (see `includeFeeOptionPermissions`), or
+  - explicitly include the required fee-related permissions in the session.
+
+### Common gotcha
+
+Developers often construct a perfectly valid call permission (e.g. ERC20 `transfer`) but omit fee-related permissions. The transaction may then fail at dispatch time because the relayer cannot select a valid fee payment path.
+
+**Recommendation:** for most dApps, enable `includeFeeOptionPermissions` unless you have a reason to fully control the fee-permission shape.
+
+---
+
+## Lower-level debugging with `@0xsequence/dapp-client-cli`
+
+The Web SDK abstracts much of the underlying machinery. When you need to debug "what is the relayer doing?", the CLI can be a useful lens.
+
+### Helpful workflows
+
+1) **Inspect fee options** for a transaction bundle:
+
+```bash
+npx @0xsequence/dapp-client-cli fee-options \
+  --chain-id <chainId> \
+  --transactions '<json array of {to,data,value}>'
+```
+
+2) **Send a transaction** with an explicitly chosen fee option:
+
+```bash
+npx @0xsequence/dapp-client-cli send-transaction \
+  --chain-id <chainId> \
+  --transactions '<json array of {to,data,value}>' \
+  --fee-option '<json object from fee-options>'
+```
+
+3) **Compare the permission set** you requested vs the calls you are attempting to make.
+
+Tip: start from a target-specific permission set, then progressively widen scope as needed.
+
+---
+
+## Recommended next reading
+
+- [Token address resolution with the Sequence Token Directory](/sdk/web/wallet-sdk/ecosystem/token-directory)
+- [Getting Started](/sdk/web/wallet-sdk/ecosystem/getting-started)

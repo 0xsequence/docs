@@ -38,13 +38,13 @@ Next, create the Ecosystem Wallet configuration.
 - `dappOrigin`
 - `signIn.projectName`, `appName`
 - `chainIds`, `defaultChainId`
-- `explicitSessionParams` (optional; `nativeTokenSpending` defaults to `valueLimit: 0`)
+- `explicitSession` (optional; request explicit session permissions + limits)
 - `includeFeeOptionPermissions`, `enableImplicitSession`
 - `nodesUrl`, `relayerUrl`
 - `walletConnect`
 
 ```typescript [config.ts]
-import { createConfig } from "@0xsequence/connect";
+import { createConfig, createExplicitSession } from "@0xsequence/connect";
 
 export const config: any = createConfig({
   projectAccessKey: "AQAAAAAAAABtDHG1It7lxRF_9bbxw4diip8",
@@ -60,7 +60,7 @@ export const config: any = createConfig({
   google: true,
   apple: true,
   email: true,
-  explicitSessionParams: { ... }
+  explicitSession: createExplicitSession({ ... })
 });
 ```
 
@@ -68,10 +68,21 @@ The `walletUrl` is the URL of the Ecosystem Wallet your dApp will use, for our d
 
 The `dappOrigin` is the origin of your dapp, used to verify where the user is coming from.
 
-The `explicitSessionParams` object allows your dapp to request specific permissions from the user upon connection.
+The `explicitSession` object allows your dapp to request specific permissions from the user upon connection.
 These permissions can authorize your dapp to perform certain actions on the user's behalf for a defined period, creating a more seamless user experience with no transaction prompts or allowing automations.
 
-`nativeTokenSpending` is optional. If omitted, the session will default to a native token `valueLimit` of `0`.
+See: [Permissions Deep Dive](/sdk/web/wallet-sdk/ecosystem/permissions-deep-dive) and [Token Directory](/sdk/web/wallet-sdk/ecosystem/token-directory).
+
+### Fee options behavior (important)
+
+When your app sends transactions via Sequence relaying, the relayer needs to determine **how fees are paid**.
+
+- If you want the SDK to automatically request the necessary fee-related permissions when creating an explicit session, enable `includeFeeOptionPermissions`.
+- If you disable it, you are responsible for including whatever fee-related permissions are required for the fee option you expect to use.
+
+If fee payment cannot be satisfied, transactions may fail at dispatch time even if the core contract-call permission looks correct.
+
+`nativeTokenSpending` is optional. If omitted, the session will default to no native-token spending allowance.
 
 For example, let's create an explicit session that allows your dapp to `deposit 100 USDC into the AAVE V3 pool on Arbitrum, on behalf of the user for the next 24 hours`
 
@@ -96,7 +107,7 @@ export const config: any = createConfig({
   google: true,
   apple: true,
   email: true,
-  explicitSessionParams: {
+  explicitSession: createExplicitSession({
     chainId: 42161,
     nativeTokenSpending: {
       valueLimit: parseEther('0.01'), // Allow spending up to 0.01 ETH for gas fees
@@ -125,7 +136,7 @@ export const config: any = createConfig({
         ]
       })
     ]
-  }
+  })
 });
 ```
 
@@ -229,13 +240,13 @@ Next, create the Ecosystem Wallet configuration.
 - `dappOrigin`
 - `signIn.projectName`, `appName`
 - `chainIds`, `defaultChainId`
-- `explicitSessionParams` (optional; `nativeTokenSpending` defaults to `valueLimit: 0`)
+- `explicitSession` (optional; request explicit session permissions + limits)
 - `includeFeeOptionPermissions`, `enableImplicitSession`
 - `nodesUrl`, `relayerUrl`
 - `walletConnect`
 
 ```typescript [config.ts]
-import { createConfig } from "@0xsequence/connect";
+import { createConfig, createExplicitSession } from "@0xsequence/connect";
 
 export const config: any = createConfig({
   projectAccessKey: "AQAAAAAAAABtDHG1It7lxRF_9bbxw4diip8",
@@ -250,7 +261,7 @@ export const config: any = createConfig({
   google: true,
   apple: true,
   email: true,
-  explicitSessionParams: { ... }
+  explicitSession: createExplicitSession({ ... })
 });
 ```
 
@@ -258,10 +269,10 @@ The `walletUrl` is the URL of the Ecosystem Wallet you dApp will use, for our de
 
 The `dappOrigin` is the origin of your dapp, used to verify where the user is coming from.
 
-The `explicitSessionParams` object allows your dapp to request specific permissions from the user upon connection.
+The `explicitSession` object allows your dapp to request specific permissions from the user upon connection.
 These permissions can authorize your dapp to perform certain actions on the user's behalf for a defined period, creating a more seamless user experience with no transaction prompts.
 
-`nativeTokenSpending` is optional. If omitted, the session will default to a native token `valueLimit` of `0`.
+`nativeTokenSpending` is optional. If omitted, the session will default to no native-token spending allowance.
 
 For example, let's create an explicit session that allows your dapp to `deposit 100 USDC into the AAVE V3 pool on Arbitrum, on behalf of the user for the next 24 hours`
 
@@ -285,7 +296,7 @@ export const config: any = createConfig({
   google: true,
   apple: true,
   email: true,
-  explicitSessionParams: {
+  explicitSession: createExplicitSession({
     chainId: 42161,
     nativeTokenSpending: {
       valueLimit: parseEther('0.01'), // Allow spending up to 0.01 ETH for gas fees
@@ -314,7 +325,7 @@ export const config: any = createConfig({
         ]
       })
     ]
-  }
+  })
 });
 ```
 
