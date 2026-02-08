@@ -1,0 +1,91 @@
+---
+description: Guía práctica para construir permisos de sesión explícitos para Ecosystem Wallet (Web SDK)
+sidebarTitle: Análisis profundo de permisos
+---
+
+Esta página recopila orientación práctica y errores comunes al construir **permisos de sesión explícitos** para Ecosystem Wallet (Web SDK / `@0xsequence/connect`).
+
+Si aún no ha configurado Connect, comience con [Primeros pasos](/sdk/web/wallet-sdk/ecosystem/getting-started).
+
+---
+
+## Modelo mental
+Una sesión explícita es una _concesión de autoridad limitada_:
+- **Alcance:** qué llamadas están permitidas (destinos + firmas de función + reglas de parámetros)
+- **Presupuesto:** cuánto valor puede moverse (límite de gasto nativo, límites ERC20)
+- **Tiempo:** ventana de expiración
+
+Cuando solicita una sesión explícita, el usuario aprueba ese conjunto de permisos en la interfaz de la wallet. Después de la aprobación, su dApp (o una automatización del lado del servidor, según su arquitectura) puede ejecutar transacciones dentro de esos límites sin solicitar repetidamente la aprobación del usuario.
+
+---
+
+## Patrones para construir permisos
+
+### 1) Permisos específicos por destino (recomendado cuando sea posible)
+Si su caso de uso tiene un contrato de destino conocido (por ejemplo, “depositar en un pool de Aave”, “mintear desde este contrato NFT”), prefiera un permiso restringido con:
+- una sola `address`
+- una `functionSignature` concreta
+- reglas de parámetros
+
+Este es el método más seguro y fácil de razonar.
+
+### 2) Transferencias a destinatarios abiertos (requiere una construcción diferente)
+Si su experiencia de usuario es “enviar tokens a **cualquier** destinatario” (por ejemplo, una app de wallet), está otorgando una autoridad más amplia.
+
+**Recomendación:**
+- Para **transferencias ERC20** abiertas, el enfoque estándar es permitir el contrato de token `transfer(address to, uint256 value)` con una regla de **límite de valor** (y _sin_ regla `to=EQUAL`).
+- Para **envíos de tokens nativos** abiertos, use un patrón de **forwarder**. En configuraciones de wallet Sequence, un enfoque común es otorgar permiso de destino al `ValueForwarder` de la cadena y enviar tokens nativos mediante una llamada forward.
+
+> Si su dApp no necesita destinatarios abiertos, no los otorgue.
+
+---
+
+## Opciones de comisión y por qué importan (comportamiento de envío)
+Al enviar una transacción mediante el relay de Sequence, se selecciona una **opción de comisión** para pagar la ejecución.
+
+### Comportamientos clave
+
+- Si su aplicación depende de transacciones relayed, el relayer debe poder determinar _cómo se pagan las comisiones_.
+- En la práctica, su aplicación debe hacer una de las siguientes:
+  - activar la inclusión automática de permisos de comisión (ver `includeFeeOptionPermissions`), o
+  - incluir explícitamente los permisos necesarios relacionados con comisiones en la sesión.
+
+### Error común
+Los desarrolladores suelen construir un permiso de llamada válido (por ejemplo, ERC20 `transfer`) pero omiten los permisos relacionados con comisiones. La transacción puede fallar al enviarse porque el relayer no puede seleccionar una vía válida de pago de comisión.
+
+**Recomendación:** para la mayoría de las dApps, active `includeFeeOptionPermissions` a menos que tenga una razón para controlar completamente la forma de los permisos de comisión.
+
+---
+
+## Depuración de bajo nivel con `@0xsequence/dapp-client-cli`
+El Web SDK abstrae gran parte de la maquinaria subyacente. Cuando necesite depurar "¿qué está haciendo el relayer?", la CLI puede ser una herramienta útil.
+
+### Flujos de trabajo útiles
+
+1. **Inspeccionar opciones de comisión** para un paquete de transacciones:
+
+```bash
+npx @0xsequence/dapp-client-cli fee-options \
+  --chain-id <chainId> \
+  --transactions '<json array of {to,data,value}>'
+```
+
+2. **Enviar una transacción** con una opción de comisión elegida explícitamente:
+
+```bash
+npx @0xsequence/dapp-client-cli send-transaction \
+  --chain-id <chainId> \
+  --transactions '<json array of {to,data,value}>' \
+  --fee-option '<json object from fee-options>'
+```
+
+3. **Comparar el conjunto de permisos** que solicitó versus las llamadas que intenta realizar.
+
+Consejo: comience con un conjunto de permisos específicos por destino y amplíe el alcance según sea necesario.
+
+---
+
+## Lecturas recomendadas
+
+- [Resolución de direcciones de tokens con el Sequence Token Directory](/sdk/web/wallet-sdk/ecosystem/token-directory)
+- [Primeros pasos](/sdk/web/wallet-sdk/ecosystem/getting-started)

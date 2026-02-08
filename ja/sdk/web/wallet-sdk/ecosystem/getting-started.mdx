@@ -14,11 +14,11 @@ sidebarTitle: はじめに
     <Steps>
       <Step title="必要なライブラリをインストールします">
         ```bash
-        npm install @0xsequence/connect@v6-beta wagmi viem 
+        npm install @0xsequence/connect@v6-beta wagmi viem
         # or
-        pnpm install @0xsequence/connect@v6-beta wagmi viem 
+        pnpm install @0xsequence/connect@v6-beta wagmi viem
         # or
-        yarn add @0xsequence/connect@v6-beta wagmi viem 
+        yarn add @0xsequence/connect@v6-beta wagmi viem
         ```
       </Step>
 
@@ -35,17 +35,17 @@ sidebarTitle: はじめに
         - `dappOrigin`
         - `signIn.projectName`, `appName`
         - `chainIds`, `defaultChainId`
-        - `explicitSessionParams`（オプション；`nativeTokenSpending`はデフォルトで`valueLimit: 0`）
+        - `explicitSession`（オプション；明示的なセッション権限と制限をリクエスト）
         - `includeFeeOptionPermissions`, `enableImplicitSession`
         - `nodesUrl`, `relayerUrl`
         - `walletConnect`
 
         ```typescript [config.ts]
-        import { createConfig } from "@0xsequence/connect";
+        import { createConfig, createExplicitSession } from "@0xsequence/connect";
 
         export const config: any = createConfig({
           projectAccessKey: "AQAAAAAAAABtDHG1It7lxRF_9bbxw4diip8",
-          walletUrl: 'https://next-acme-wallet.sequence-dev.app',
+          walletUrl: 'https://acme-wallet.ecosystem-demo.xyz',
           // Optional
           dappOrigin: window.location.origin,
           signIn: {
@@ -57,18 +57,29 @@ sidebarTitle: はじめに
           google: true,
           apple: true,
           email: true,
-          explicitSessionParams: { ... }
+          explicitSession: createExplicitSession({ ... })
         });
         ```
 
-        `walletUrl`は、dAppが利用するEcosystem WalletのURLです。デモでは[Acme Ecosystem Wallet](https://next-acme-wallet.sequence-dev.app)を使用しています。
+        `walletUrl` は、dApp が利用するエコシステムウォレットのURLです。デモでは、[Acme エコシステムウォレット](https://acme-wallet.ecosystem-demo.xyz) を使用しています。
 
         `dappOrigin`はdappのオリジンで、ユーザーのアクセス元を確認するために使われます。
 
-        `explicitSessionParams` オブジェクトを使うことで、dapp は接続時にユーザーから特定の権限をリクエストできます。
-        これらの権限により、dapp は一定期間ユーザーに代わって特定の操作を実行できるようになり、トランザクションの確認画面なしで自動処理やシームレスな体験を実現します。
+        `explicitSession`オブジェクトを使うことで、dAppが接続時にユーザーから特定の権限をリクエストできます。
+        これらの権限により、ユーザーに取引確認を求めずに一定期間dAppが特定の操作を代行でき、よりシームレスな体験や自動化が可能になります。
 
-        `nativeTokenSpending`はオプションです。省略した場合、セッションはネイティブトークンの`valueLimit`が`0`に設定されます。
+        参照：[権限の詳細解説](/sdk/web/wallet-sdk/ecosystem/permissions-deep-dive) および [トークンディレクトリ](/sdk/web/wallet-sdk/ecosystem/token-directory)。
+
+        ### 手数料オプションの挙動（重要）
+
+        アプリがSequenceリレーを通じてトランザクションを送信する際、リレーラーは**手数料の支払い方法**を判断する必要があります。
+
+        - 明示的なセッション作成時にSDKが自動で必要な手数料関連の権限をリクエストするようにしたい場合は、`includeFeeOptionPermissions`を有効にしてください。
+        - これを無効にした場合、利用する手数料オプションに必要な手数料関連の権限を自分で含める必要があります。
+
+        手数料の支払いが満たされない場合、コアのコントラクトコール権限が正しくても、トランザクションは送信時に失敗することがあります。
+
+        `nativeTokenSpending`はオプションです。省略した場合、セッションはネイティブトークンの支出許可なしがデフォルトとなります。
 
         例として、「次の24時間、ユーザーの代理でArbitrum上のAAVE V3プールに100 USDCを入金する」ための明示的セッションを作成してみましょう。
 
@@ -81,7 +92,7 @@ sidebarTitle: はじめに
 
         export const config: any = createConfig({
           projectAccessKey: "AQAAAAAAAABtDHG1It7lxRF_9bbxw4diip8",
-          walletUrl: 'https://next-acme-wallet.sequence-dev.app',
+          walletUrl: 'https://acme-wallet.ecosystem-demo.xyz',
           // Optional
           dappOrigin: window.location.origin,
           signIn: {
@@ -93,7 +104,7 @@ sidebarTitle: はじめに
           google: true,
           apple: true,
           email: true,
-          explicitSessionParams: {
+          explicitSession: createExplicitSession({
             chainId: 42161,
             nativeTokenSpending: {
               valueLimit: parseEther('0.01'), // Allow spending up to 0.01 ETH for gas fees
@@ -122,7 +133,7 @@ sidebarTitle: はじめに
                 ]
               })
             ]
-          }
+          })
         });
         ```
 
@@ -211,20 +222,20 @@ sidebarTitle: はじめに
         - `dappOrigin`
         - `signIn.projectName`, `appName`
         - `chainIds`, `defaultChainId`
-        - `explicitSessionParams`（オプション；`nativeTokenSpending`はデフォルトで`valueLimit: 0`）
+        - `explicitSession`（オプション；明示的なセッション権限と制限をリクエスト）
         - `includeFeeOptionPermissions`, `enableImplicitSession`
         - `nodesUrl`, `relayerUrl`
         - `walletConnect`
 
         ```typescript [config.ts]
-        import { createConfig } from "@0xsequence/connect";
+        import { createConfig, createExplicitSession } from "@0xsequence/connect";
 
         export const config: any = createConfig({
           projectAccessKey: "AQAAAAAAAABtDHG1It7lxRF_9bbxw4diip8",
           signIn: {
             projectName: 'Sequence Web SDK Demo',
           },
-          walletUrl: 'https://next-acme-wallet.sequence-dev.app',
+          walletUrl: 'https://acme-wallet.ecosystem-demo.xyz',
           dappOrigin: window.location.origin,
           appName: 'Sequence Web SDK Demo',
           chainIds: [42161],
@@ -232,18 +243,18 @@ sidebarTitle: はじめに
           google: true,
           apple: true,
           email: true,
-          explicitSessionParams: { ... }
+          explicitSession: createExplicitSession({ ... })
         });
         ```
 
-        `walletUrl`は、dAppが利用するEcosystem WalletのURLです。デモでは[Acme Ecosystem Wallet](https://next-acme-wallet.sequence-dev.app)を使用しています。
+        `walletUrl` は、dApp が利用するエコシステムウォレットのURLです。デモでは、[Acme エコシステムウォレット](https://acme-wallet.ecosystem-demo.xyz) を使用しています。
 
         `dappOrigin`はdappのオリジンで、ユーザーのアクセス元を確認するために使われます。
 
-        `explicitSessionParams` オブジェクトを使うことで、dapp は接続時にユーザーから特定の権限をリクエストできます。
-        これらの権限により、dapp は一定期間ユーザーに代わって特定の操作を実行できるようになり、トランザクションの確認画面なしでよりスムーズなユーザー体験を提供できます。
+        `explicitSession`オブジェクトを使うと、接続時にユーザーから特定の権限をリクエストできます。
+        これにより、一定期間ユーザーの代理で特定の操作を実行でき、取引プロンプトなしでシームレスな体験を提供します。
 
-        `nativeTokenSpending`はオプションです。省略した場合、セッションはネイティブトークンの`valueLimit`が`0`に設定されます。
+        `nativeTokenSpending`はオプションです。省略した場合、セッションはネイティブトークンの支出許可なしがデフォルトとなります。
 
         例として、「次の24時間、ユーザーの代理でArbitrum上のAAVE V3プールに100 USDCを入金する」ための明示的セッションを作成してみましょう。
 
@@ -259,7 +270,7 @@ sidebarTitle: はじめに
           signIn: {
             projectName: 'Sequence Web SDK Demo',
           },
-          walletUrl: 'https://next-acme-wallet.sequence-dev.app',
+          walletUrl: 'https://acme-wallet.ecosystem-demo.xyz',
           dappOrigin: window.location.origin,
           appName: 'Sequence Web SDK Demo',
           chainIds: [42161],
@@ -267,7 +278,7 @@ sidebarTitle: はじめに
           google: true,
           apple: true,
           email: true,
-          explicitSessionParams: {
+          explicitSession: createExplicitSession({
             chainId: 42161,
             nativeTokenSpending: {
               valueLimit: parseEther('0.01'), // Allow spending up to 0.01 ETH for gas fees
@@ -296,7 +307,7 @@ sidebarTitle: はじめに
                 ]
               })
             ]
-          }
+          })
         });
         ```
 

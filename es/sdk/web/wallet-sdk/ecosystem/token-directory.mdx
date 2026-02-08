@@ -1,0 +1,108 @@
+---
+description: Resuelva direcciones y decimales de tokens por cadena usando el Sequence Token Directory
+sidebarTitle: Directorio de Tokens
+---
+
+Cuando un usuario dice “enviar **USDC en Base**” necesita mapear:
+- `(chainId, symbol)` → `tokenAddress`
+- `symbol` → `decimals` (para `parseUnits`)
+
+Sequence mantiene un registro validado y multichain de tokens: **Sequence Token Directory**:
+- Repositorio: [https://github.com/0xsequence/token-directory](https://github.com/0xsequence/token-directory)
+- Índice: `index/index.json`
+- Lista ERC20 por cadena: `index/<chainName>/erc20.json`
+
+Esta página muestra una implementación mínima y amigable con el caché.
+
+---
+
+## Modelo de datos
+
+### 1) Cargue el índice maestro
+Obtener:
+- `https://raw.githubusercontent.com/0xsequence/token-directory/main/index/index.json`
+
+Este archivo le indica qué carpetas de cadenas existen e incluye hashes de contenido.
+
+### 2) Elija la carpeta de la cadena y obtenga la lista ERC20
+Obtener:
+- `https://raw.githubusercontent.com/0xsequence/token-directory/main/index/<chainName>/erc20.json`
+
+Esta lista sigue el esquema de listas de tokens de Uniswap (los tokens incluyen `address`, `symbol`, `decimals`, etc.).
+
+---
+
+## Ejemplo en Node.js (con caché)
+
+```ts
+import fs from 'node:fs'
+import os from 'node:os'
+import path from 'node:path'
+
+const BASE = 'https://raw.githubusercontent.com/0xsequence/token-directory/main'
+
+function cacheDir() {
+  return path.join(os.homedir(), '.cache', 'sequence-token-directory')
+}
+
+async function fetchJson(url: string) {
+  const res = await fetch(url)
+  if (!res.ok) throw new Error(`fetch failed: ${res.status} ${url}`)
+  return res.json()
+}
+
+export async function resolveErc20BySymbol(chainId: number, symbol: string) {
+  const indexUrl = `${BASE}/index/index.json`
+  const index = await fetchJson(indexUrl)
+
+  // Find chain folder by chainId
+  let chainName: string | null = null
+  let sha256: string | null = null
+
+  for (const [name, meta] of Object.entries<any>(index.index)) {
+    if (name === '_external') continue
+    if (String(meta?.chainId) !== String(chainId)) continue
+    chainName = name
+    sha256 = meta?.tokenLists?.['erc20.json'] || null
+    break
+  }
+
+  if (!chainName || !sha256) throw new Error(`No ERC20 list for chainId=${chainId}`)
+
+  // Cache per-chain list by hash
+  const fp = path.join(cacheDir(), `${chainId}.erc20.${String(sha256).slice(0, 12)}.json`)
+  if (fs.existsSync(fp)) {
+    const cached = JSON.parse(fs.readFileSync(fp, 'utf8'))
+    return cached.tokens.find((t: any) => String(t.symbol).toUpperCase() === symbol.toUpperCase()) || null
+  }
+
+  const listUrl = `${BASE}/index/${chainName}/erc20.json`
+  const list = await fetchJson(listUrl)
+
+  fs.mkdirSync(path.dirname(fp), { recursive: true })
+  fs.writeFileSync(fp, JSON.stringify(list), 'utf8')
+
+  return list.tokens.find((t: any) => String(t.symbol).toUpperCase() === symbol.toUpperCase()) || null
+}
+```
+
+---
+
+## Cómo usarlo en permisos
+Una vez que resuelva:
+- `token.address`
+- `token.decimals`
+
+Puede:
+- construir un permiso para `transfer(address to, uint256 value)`
+- construir una interfaz que acepte símbolos en lugar de direcciones
+
+Ejemplo de regla de permiso (ERC20):
+- permitir `transfer(to=ANY, value<=limit)` usando una regla de límite de valor
+
+---
+
+## Dónde se referencia esto
+
+- [Análisis profundo de permisos](/sdk/web/wallet-sdk/ecosystem/permissions-deep-dive)
+- [Primeros pasos](/sdk/web/wallet-sdk/ecosystem/getting-started)

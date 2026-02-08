@@ -1,0 +1,108 @@
+---
+description: Sequenceトークンディレクトリを使って、チェーンごとにトークンアドレスと小数点を解決できます
+sidebarTitle: トークンディレクトリ
+---
+
+ユーザーが「**Base上のUSDCを送る**」と言った場合、次のようにマッピングする必要があります：
+- `(chainId, symbol)` → `tokenAddress`
+- `symbol` → `decimals`（`parseUnits`用）
+
+Sequenceは検証済みのマルチチェーントークンレジストリ：**Sequenceトークンディレクトリ**を管理しています：
+- リポジトリ：[https://github.com/0xsequence/token-directory](https://github.com/0xsequence/token-directory)
+- インデックス：`index/index.json`
+- チェーンごとのERC20リスト：`index/<chainName>/erc20.json`
+
+このページでは、最小限かつキャッシュに優しい実装例を紹介します。
+
+---
+
+## データモデル
+
+### 1）マスターインデックスを読み込む
+取得：
+- `https://raw.githubusercontent.com/0xsequence/token-directory/main/index/index.json`
+
+このファイルには、どのチェーンフォルダが存在するかや、コンテンツハッシュが含まれています。
+
+### 2）チェーンフォルダを選び、ERC20リストを取得
+取得：
+- `https://raw.githubusercontent.com/0xsequence/token-directory/main/index/<chainName>/erc20.json`
+
+このリストはUniswapトークンリストスキーマに従っています（トークンには`address`、`symbol`、`decimals`などが含まれます）。
+
+---
+
+## Node.jsの例（キャッシュ対応）
+
+```ts
+import fs from 'node:fs'
+import os from 'node:os'
+import path from 'node:path'
+
+const BASE = 'https://raw.githubusercontent.com/0xsequence/token-directory/main'
+
+function cacheDir() {
+  return path.join(os.homedir(), '.cache', 'sequence-token-directory')
+}
+
+async function fetchJson(url: string) {
+  const res = await fetch(url)
+  if (!res.ok) throw new Error(`fetch failed: ${res.status} ${url}`)
+  return res.json()
+}
+
+export async function resolveErc20BySymbol(chainId: number, symbol: string) {
+  const indexUrl = `${BASE}/index/index.json`
+  const index = await fetchJson(indexUrl)
+
+  // Find chain folder by chainId
+  let chainName: string | null = null
+  let sha256: string | null = null
+
+  for (const [name, meta] of Object.entries<any>(index.index)) {
+    if (name === '_external') continue
+    if (String(meta?.chainId) !== String(chainId)) continue
+    chainName = name
+    sha256 = meta?.tokenLists?.['erc20.json'] || null
+    break
+  }
+
+  if (!chainName || !sha256) throw new Error(`No ERC20 list for chainId=${chainId}`)
+
+  // Cache per-chain list by hash
+  const fp = path.join(cacheDir(), `${chainId}.erc20.${String(sha256).slice(0, 12)}.json`)
+  if (fs.existsSync(fp)) {
+    const cached = JSON.parse(fs.readFileSync(fp, 'utf8'))
+    return cached.tokens.find((t: any) => String(t.symbol).toUpperCase() === symbol.toUpperCase()) || null
+  }
+
+  const listUrl = `${BASE}/index/${chainName}/erc20.json`
+  const list = await fetchJson(listUrl)
+
+  fs.mkdirSync(path.dirname(fp), { recursive: true })
+  fs.writeFileSync(fp, JSON.stringify(list), 'utf8')
+
+  return list.tokens.find((t: any) => String(t.symbol).toUpperCase() === symbol.toUpperCase()) || null
+}
+```
+
+---
+
+## 権限での使い方
+次の情報が解決できたら：
+- `token.address`
+- `token.decimals`
+
+以下が可能です：
+- `transfer(address to, uint256 value)`用の権限を構築
+- アドレスの代わりにシンボルを受け付けるUIを作成
+
+権限ルール例（ERC20）：
+- 金額制限ルールを使い、`transfer(to=ANY, value<=limit)`を許可
+
+---
+
+## この内容が参照されている場所
+
+- [権限の詳細解説](/sdk/web/wallet-sdk/ecosystem/permissions-deep-dive)
+- [はじめに](/sdk/web/wallet-sdk/ecosystem/getting-started)
