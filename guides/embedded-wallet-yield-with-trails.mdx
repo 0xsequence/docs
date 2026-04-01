@@ -1,0 +1,592 @@
+---
+title: "Build a Yield Flow with Embedded Wallet + Trails"
+description: "Learn how to build a white-labeled yield deposit flow using Sequence Embedded Wallet for authentication and signing, and Trails intents for routing assets into a target vault."
+sidebarTitle: Embedded Wallet Yield with Trails
+---
+
+Time to complete: 20-30 minutes
+
+In this guide, you'll learn how to build a white-labeled yield deposit flow where users authenticate with Sequence Embedded Wallet, choose an exact `USDC` deposit amount for a vault on `Polygon`, and let Trails figure out how to route funds from the user's current chain and token into that final deposit.
+
+This walkthrough assumes:
+
+- your app owns the full mobile or web UI
+- Sequence Embedded Wallet is your authentication and signing layer
+- Trails is your routing and settlement layer
+- your backend decides which vault or lending market to target
+- the user may fund the deposit from a different supported token or chain
+
+<Note>
+This guide focuses on a practical v1 implementation:
+
+- one destination market or vault
+- `USDC` as the destination deposit asset
+- `Polygon` as the destination chain
+- a user-initiated deposit flow
+
+If you later want recurring deposits or delegated actions, you can layer Smart Sessions on top. They are not required for the first version.
+</Note>
+
+This can be accomplished with 8 steps:
+
+1. [Create your Builder project and collect keys](/guides/embedded-wallet-yield-with-trails#1-create-your-builder-project-and-collect-keys)
+2. [Install dependencies](/guides/embedded-wallet-yield-with-trails#2-install-dependencies)
+3. [Initialize Sequence Embedded Wallet](/guides/embedded-wallet-yield-with-trails#3-initialize-sequence-embedded-wallet)
+4. [Read the user's balances](/guides/embedded-wallet-yield-with-trails#4-read-the-users-balances)
+5. [Define and encode the destination deposit call](/guides/embedded-wallet-yield-with-trails#5-define-and-encode-the-destination-deposit-call)
+6. [Quote and commit the Trails intent](/guides/embedded-wallet-yield-with-trails#6-quote-and-commit-the-trails-intent)
+7. [Fund the intent from the embedded wallet](/guides/embedded-wallet-yield-with-trails#7-fund-the-intent-from-the-embedded-wallet)
+8. [Execute the intent and wait for the receipt](/guides/embedded-wallet-yield-with-trails#8-execute-the-intent-and-wait-for-the-receipt)
+
+## 1. Create your Builder project and collect keys
+
+First, create or open a Sequence Builder project and configure Embedded Wallet for your app.
+
+You will need:
+
+- a `PROJECT_ACCESS_KEY`
+- a `WAAS_CONFIG_KEY`
+- a `TRAILS_API_KEY`
+
+Sequence setup references:
+
+- [Embedded Wallet configuration](/solutions/builder/embedded-wallet/configuration)
+- [Initialization and Authentication](/sdk/headless-wallet/authentication)
+
+Trails references:
+
+- [Trails overview](/solutions/payments/trails)
+- [Trails API Getting Started](https://docs.trails.build/api-reference/introduction)
+
+## 2. Install dependencies
+
+Install the Sequence WaaS SDK, Trails API SDK, and `viem` for calldata encoding.
+
+<CodeGroup>
+```bash pnpm
+pnpm add @0xsequence/waas @0xtrails/api viem
+```
+
+```bash npm
+npm install @0xsequence/waas @0xtrails/api viem
+```
+
+```bash yarn
+yarn add @0xsequence/waas @0xtrails/api viem
+```
+</CodeGroup>
+
+Create environment variables for both your frontend and backend:
+
+```bash
+VITE_PROJECT_ACCESS_KEY=your_sequence_project_access_key
+VITE_WAAS_CONFIG_KEY=your_sequence_waas_config_key
+TRAILS_API_KEY=your_trails_api_key
+```
+
+<Note>
+Keep your `TRAILS_API_KEY` on the backend. Your client should call your backend for quote, commit, execute, and receipt polling.
+</Note>
+
+## 3. Initialize Sequence Embedded Wallet
+
+Initialize the Sequence WaaS SDK and authenticate the user.
+
+```ts [lib/sequence.ts]
+import { SequenceWaaS } from "@0xsequence/waas"
+
+export const sequence = new SequenceWaaS({
+  projectAccessKey: import.meta.env.VITE_PROJECT_ACCESS_KEY,
+  waasConfigKey: import.meta.env.VITE_WAAS_CONFIG_KEY,
+  network: "polygon",
+})
+```
+
+After your user completes sign-in, retrieve the wallet address:
+
+```ts
+await sequence.signIn({ idToken }, "yield-session")
+
+const ownerAddress = await sequence.getAddress()
+console.log(ownerAddress)
+```
+
+You can use any supported Embedded Wallet authentication method here:
+
+- social `idToken`
+- email
+- guest wallet
+
+See [Initialization and Authentication](/sdk/headless-wallet/authentication) for the full authentication options.
+
+## 4. Read the user's balances
+
+Before you can construct a useful deposit quote, you need to know which token and chain the user will fund from.
+
+Use the Sequence indexer to fetch the user's balances:
+
+```ts [server/getBalances.ts]
+export async function getBalances(ownerAddress: string) {
+  const response = await fetch(
+    "https://indexer.sequence.app/rpc/IndexerGateway/GetTokenBalances",
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-Access-Key": process.env.TRAILS_API_KEY!,
+      },
+      body: JSON.stringify({
+        accountAddress: ownerAddress,
+        includeMetadata: true,
+      }),
+    }
+  )
+
+  return response.json()
+}
+```
+
+For this guide, keep the usage simple:
+
+- show the user supported balances
+- let them choose a source token and chain
+- pass `originChainId`, `originTokenAddress`, and the desired deposit amount into your quote request
+
+This gives Trails the origin context it needs while keeping the walkthrough compact.
+
+## 5. Define and encode the destination deposit call
+
+For a white-labeled flow, your backend should decide which target contract is valid for deposits.
+
+For example, you might support a single ERC-4626 vault and store:
+
+- `chainId`
+- `vaultAddress`
+- `depositTokenAddress`
+- protocol display name
+- ABI fragment required for deposit
+
+Then encode the deposit calldata using `viem`:
+
+```ts [server/encodeVaultDeposit.ts]
+import { encodeFunctionData } from "viem"
+
+export function encodeVaultDeposit(
+  destinationAmountAtomic: bigint,
+  ownerAddress: `0x${string}`
+) {
+  return encodeFunctionData({
+    abi: [
+      {
+        type: "function",
+        name: "deposit",
+        stateMutability: "nonpayable",
+        inputs: [
+          { name: "assets", type: "uint256" },
+          { name: "receiver", type: "address" },
+        ],
+        outputs: [{ name: "shares", type: "uint256" }],
+      },
+    ],
+    functionName: "deposit",
+    args: [destinationAmountAtomic, ownerAddress],
+  })
+}
+```
+
+If you are targeting Aave instead, Trails' `earn` docs use the pool's `supply(asset, amount, onBehalfOf, referralCode)` method.
+
+<Note>
+This walkthrough uses a fixed destination amount. The user chooses how much `USDC` should arrive at the destination vault on `Polygon`, and Trails computes how much source liquidity is required.
+
+Even with that simplified setup, Trails is still doing the important work in this architecture:
+
+- expressing the deposit as an intent
+- routing user funds from the origin chain and token to the final destination
+- executing the destination contract call
+- returning a receipt model your app can track
+
+This is the cleanest way to showcase Trails in a yield flow without adding extra UI complexity.
+</Note>
+
+## 6. Quote and commit the Trails intent
+
+Once you know the owner address, source token, amount, and target vault call, your backend can request a Trails quote.
+
+```ts [server/trails.ts]
+import { TradeType, TrailsApi } from "@0xtrails/api"
+
+const trails = new TrailsApi(process.env.TRAILS_API_KEY!)
+const USDC_POLYGON = "0x..." as const
+const VAULT_ADDRESS = "0x..." as const
+
+export async function quoteYieldDeposit({
+  ownerAddress,
+  originChainId,
+  originTokenAddress,
+  destinationAmountAtomic,
+  destinationCallData,
+}: {
+  ownerAddress: `0x${string}`
+  originChainId: number
+  originTokenAddress: `0x${string}`
+  destinationAmountAtomic: bigint
+  destinationCallData: `0x${string}`
+}) {
+  return trails.quoteIntent({
+    ownerAddress,
+    originChainId,
+    originTokenAddress,
+    destinationChainId: 137,
+    destinationTokenAddress: USDC_POLYGON,
+    destinationTokenAmount: destinationAmountAtomic,
+    destinationToAddress: VAULT_ADDRESS,
+    destinationCallData,
+    destinationCallValue: 0n,
+    tradeType: TradeType.EXACT_OUTPUT,
+  })
+}
+```
+
+In this version of the flow, your app fixes the destination:
+
+- a vault on `Polygon`
+- `USDC` as the destination token
+- an exact amount of `USDC` to deposit
+
+Trails then computes:
+
+- how much source liquidity is required
+- whether a swap is needed
+- whether a bridge is needed
+- how to settle the final contract call on the destination chain
+
+After quoting, commit the exact returned intent:
+
+```ts
+const { intent } = await quoteYieldDeposit({
+  ownerAddress,
+  originChainId,
+  originTokenAddress,
+  destinationAmountAtomic,
+  destinationCallData,
+})
+
+const { intentId } = await trails.commitIntent({
+  intent,
+})
+```
+
+<Warning>
+Do not mutate the returned `intent` object before calling `commitIntent`. Commit the exact quote returned by Trails.
+</Warning>
+
+## 7. Fund the intent from the embedded wallet
+
+Trails returns a `depositTransaction` on the quoted intent. That is the transaction your user must fund from their embedded wallet.
+
+Read the funding information from the intent:
+
+```ts
+const intentAddress = intent.depositTransaction.toAddress
+const depositTokenAddress = intent.depositTransaction.tokenAddress
+const depositAmount = intent.depositTransaction.amount
+const depositChainId = intent.originChainId
+```
+
+Then submit the token transfer from the user's Sequence wallet with `sendERC20`:
+
+```ts [client/fundIntent.ts]
+import { isSentTransactionResponse } from "@0xsequence/waas"
+import { sequence } from "./sequence"
+
+export async function fundIntent({
+  depositChainId,
+  depositTokenAddress,
+  intentAddress,
+  depositAmount,
+}: {
+  depositChainId: number
+  depositTokenAddress: string
+  intentAddress: string
+  depositAmount: string
+}) {
+  const tx = await sequence.sendERC20({
+    chainId: depositChainId,
+    token: depositTokenAddress,
+    to: intentAddress,
+    value: depositAmount,
+  })
+
+  if (!isSentTransactionResponse(tx)) {
+    throw new Error("Intent funding transaction failed")
+  }
+
+  return tx.data.txHash
+}
+```
+
+The returned transaction hash is your `depositTransactionHash`.
+
+<Note>
+This is the point where the Trails-powered flow becomes visible to the user: they can fund a deposit from the origin asset returned by the quote, while your app still guarantees the final deposit lands in the target `Polygon` vault as `USDC`.
+</Note>
+
+## 8. Execute the intent and wait for the receipt
+
+Once the funding transaction has been submitted, execute the Trails intent on your backend:
+
+```ts [server/executeIntent.ts]
+export async function executeYieldDeposit({
+  intentId,
+  depositTransactionHash,
+}: {
+  intentId: string
+  depositTransactionHash: string
+}) {
+  await trails.executeIntent({
+    intentId,
+    depositTransactionHash,
+  })
+
+  return trails.waitIntentReceipt({
+    intentId,
+  })
+}
+```
+
+Use the receipt to drive your user experience:
+
+- show pending and completed states
+- link to the origin and destination transactions
+- reconcile deposits in your backend
+- surface support information if execution fails
+
+## Suggested API shape
+
+If you want this to feel like a product-level yield API inside your app, create a thin backend layer on top of Sequence and Trails.
+
+Recommended endpoints:
+
+- `POST /yield/quote`
+- `POST /yield/commit`
+- `POST /yield/execute`
+- `GET /yield/receipt/:intentId`
+- `GET /yield/opportunities`
+- `GET /yield/positions`
+
+This keeps the client simple while letting your backend own:
+
+- supported vault metadata
+- calldata encoding
+- Trails API access
+- receipt monitoring
+- APY and earnings data
+
+This keeps your client integration stable while Trails handles:
+
+- route construction
+- bridge and swap orchestration
+- destination execution
+- completion tracking
+
+## Testnet path
+
+Before wiring a production vault, it is useful to validate the full intent lifecycle on testnet.
+
+The safest way to do that is:
+
+1. query Trails for supported chains
+2. filter for testnets
+3. fetch supported tokens for the selected testnet
+4. swap the production addresses in this guide for testnet addresses
+
+For example:
+
+```ts [server/getTestnetChains.ts]
+const chains = await trails.getChains()
+
+const testnetChains = chains.chains.filter((chain) => chain.isTestnet)
+```
+
+Then fetch supported tokens for the chain you want to use:
+
+```ts [server/getTestnetTokens.ts]
+const tokenList = await trails.getTokenList({
+  chainIds: [selectedTestnetChainId],
+})
+```
+
+At that point, replace the production constants in the guide with:
+
+- a testnet `originChainId`
+- a supported testnet source token
+- a testnet destination token
+- a testnet vault or lending market address
+
+If you want a public protocol target for testing, Aave V3 is usually the easiest place to start because its pool interface is public and it exposes both `supply(...)` and `withdraw(...)` methods.
+
+For Morpho, do not assume there is a public official testnet vault you can target. Morpho vaults are permissionless and you can deploy your own ERC-4626-style test vault, but the public Morpho vault documentation and addresses pages do not provide a general official testnet vault catalog in the same way you might expect for mainnet integrations.
+
+<Note>
+Keep the integration model exactly the same on testnet:
+
+- quote the Trails intent
+- fund the returned deposit transaction
+- execute the intent
+- wait for the receipt
+
+Use testnet to validate the integration flow, not the economic behavior.
+
+In practice, the safest test targets are:
+
+- an Aave V3 testnet market with published addresses
+- your own test ERC-4626 vault
+
+That validates the product flow before you introduce production assets.
+</Note>
+
+## Withdrawals
+
+For a first release, keep withdrawals as a two-stage flow:
+
+1. call the vault's `withdraw(...)` or `redeem(...)` method directly from the user's Sequence wallet
+2. if needed, create a second Trails intent to move the withdrawn funds into another token or chain
+
+For an ERC-4626-style vault:
+
+```ts
+const tx = await sequence.callContract({
+  to: VAULT_ADDRESS,
+  abi: "withdraw(uint256 assets, address receiver, address owner)",
+  func: "withdraw",
+  args: {
+    assets: amountAtomic,
+    receiver: ownerAddress,
+    owner: ownerAddress,
+  },
+  value: 0,
+})
+```
+
+For Aave V3, the public pool interface exposes:
+
+- `supply(address asset, uint256 amount, address onBehalfOf, uint16 referralCode)`
+- `withdraw(address asset, uint256 amount, address to)`
+
+You can review the user-facing Aave flow here:
+
+- [Supply Tokens | Aave](https://aave.com/help/supplying/supply-tokens)
+
+So the same model applies there:
+
+- deposit with a Trails destination call to `supply(...)`
+- withdraw directly with the user's wallet by calling `withdraw(...)`
+
+If the withdrawn asset is already on the correct chain and in the correct token, stop there.
+
+If not, follow the withdrawal with a second Trails intent:
+
+```ts
+const quoteResponse = await trails.quoteIntent({
+  ownerAddress,
+  originChainId: withdrawalChainId,
+  originTokenAddress: withdrawnTokenAddress,
+  originTokenAmount: withdrawnAmount,
+  destinationChainId: preferredChainId,
+  destinationTokenAddress: preferredTokenAddress,
+  destinationToAddress: ownerAddress,
+  tradeType: TradeType.EXACT_INPUT,
+})
+```
+
+This keeps position exits and post-withdrawal routing separate, which is easier to reason about and easier to support.
+
+## Positions and earnings backend design
+
+Once deposits are live, your backend needs to answer product questions such as:
+
+- how much has the user deposited
+- what is their current position value
+- what is the current APY
+- how much has the user earned
+
+The cleanest architecture is to split this into two layers.
+
+### 1. Execution history
+
+Use Trails for transaction lifecycle data:
+
+- `GetIntent`
+- `GetIntentReceipt`
+- `WaitIntentReceipt`
+- `GetIntentHistory`
+
+This tells you:
+
+- which deposits were initiated
+- whether they completed
+- which chains and tokens were involved
+- the final execution receipts
+
+### 2. Live position state
+
+Use protocol reads or protocol data services for current position state:
+
+- ERC-4626 share balances and conversion helpers
+- Aave aToken balances and reserve data
+- protocol APIs or subgraphs where available
+
+This tells you:
+
+- current underlying balance
+- current share balance
+- realized and unrealized earnings
+- current APY or rate inputs
+
+If you want a minimal production model, store the following per user position:
+
+- `protocol`
+- `vaultAddress`
+- `depositAsset`
+- `shareToken`
+- `destinationChainId`
+- `latestPrincipal`
+- `latestPositionValue`
+- `latestApy`
+- `lastSyncedAt`
+
+Then build a sync job that:
+
+1. reads completed Trails intents for the wallet
+2. groups them by supported vault
+3. fetches live protocol state
+4. computes current value and earnings
+5. caches the result for your app
+
+You can also use Trails token pricing endpoints when you need USD-normalized portfolio summaries.
+
+## APY and earnings
+
+Trails gives you the routing and execution layer. For a white-labeled app, you should plan to own the APY and earnings layer yourself.
+
+Typical sources are:
+
+- protocol contract reads
+- protocol APIs or subgraphs
+- your own indexer or cache
+
+That gives you full control over:
+
+- current APY display
+- earnings summaries
+- in-app badges like "earning"
+- which opportunities are available in your product
+
+## Next steps
+
+- [Configure Embedded Wallet in Builder](/solutions/builder/embedded-wallet/configuration)
+- [Learn Embedded Wallet authentication](/sdk/headless-wallet/authentication)
+- [Send transactions with Embedded Wallet](/sdk/headless-wallet/use-wallets#send-transactions)
+- [Learn more about Trails](/solutions/payments/trails)
+- [Read the full Trails API reference](https://docs.trails.build/api-reference/introduction)
