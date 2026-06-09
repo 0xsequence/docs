@@ -72,3 +72,71 @@ Do not use a Builder contract deployment as your sponsorship test, since deploym
 ## Ecosystem Gas Sponsorship
 
 We also offer the capability to sponsor all transactions for your ecosystem where we orchestrate a number of signers through our relayer at the chain level. This means any developer building on your ecosystem as well as any user of Sequence wallets has the best onboarding and UX experience possible. Please feel free to [contact us](https://support.sequence.xyz) to set this up for your ecosystem.
+
+## Conditional Sponsorship via Webhook
+
+If you need to make per-transaction sponsorship decisions — for example to apply per-wallet spend caps, KYC gates, or user-tier rules — you can attach a webhook to any gas sponsor. When a sponsored transaction arrives, the Relayer POSTs the transaction details to your endpoint and only sponsors it if you approve.
+
+### Configuration
+
+When creating or updating a gas sponsor, set:
+
+- `webhookUrl` — your HTTPS endpoint. HTTPS is required.
+- `webhookAuthToken` *(optional, recommended)* — a shared secret of at least 32 characters. The Relayer sends it as `Authorization: Bearer <token>` on every call. Without a token, anyone who learns the URL can invoke it.
+
+### Request
+
+The Relayer POSTs a JSON body to your `webhookUrl`:
+
+```json
+{
+  "chainId": 137,
+  "projectId": 12345,
+  "gasSponsorId": 678,
+  "walletAddress": "0x70236ffbAd7b70c2C65928c7Ca413AEa639FA0dE",
+  "transactions": [
+    { "to": "0xA0b8...", "value": "0x0", "data": "0xa9059cbb..." }
+  ]
+}
+```
+
+Headers sent on every call:
+
+- `Content-Type: application/json`
+- `Authorization: Bearer <token>` — only if you configured a `webhookAuthToken`
+- `X-Sequence-Request-Id: <uuid>` — stable per-call identifier; use it for logging or deduplication
+
+`transactions[].value` and `data` are hex-encoded. A single decision can cover multiple batched calls — apply your rules to the array as a whole.
+
+### Response
+
+Return **HTTP 200** with exactly this JSON body:
+
+```json
+{ "sponsor": true }
+```
+
+or
+
+```json
+{ "sponsor": false }
+```
+
+<Warning>
+**The HTTP status code matters.** The Relayer treats only `200 OK` as a valid decision — any other status (including `201`, `202`, `400`, `500`) is treated as a transport-level failure and the transaction is sponsored (see "Fail-open" below).
+
+Do not encode a deny as `400` or an approve as `201`. Always return `200` and put the decision in the `sponsor` field.
+</Warning>
+
+### Timeout and fail-open behavior
+
+The Relayer waits up to **2 seconds** for your response. If your endpoint is slow, unreachable, returns a non-200 status, returns malformed JSON, or omits the `sponsor` field, the Relayer falls back to sponsoring the transaction.
+
+This fail-open behavior is deliberate: a broken webhook should not silently break sponsorship for your users. Denying a transaction requires an explicit `{"sponsor": false}` over HTTP 200.
+
+### Security
+
+- HTTPS is required. The Relayer will not follow redirects, so an HTTPS endpoint that redirects to `http://` is rejected.
+- Configure a `webhookAuthToken` unless your endpoint enforces auth at a different layer (IP allowlist, edge proxy).
+- The token is sent verbatim in the `Authorization` header — do not log this header.
+- To rotate the token, call `UpdateGasSponsor` with a new value. To stop gating entirely, clear `webhookUrl`.

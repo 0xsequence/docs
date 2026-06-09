@@ -67,3 +67,64 @@ Patrocinar gas es sencillo y funciona en todas las redes que soportamos con un s
 
 ## Patrocinio de gas para ecosistemas
 También ofrecemos la posibilidad de patrocinar todas las transacciones de su ecosistema, donde orquestamos varios signers a través de nuestro relayer a nivel de cadena. Esto significa que cualquier desarrollador que construya en su ecosistema, así como cualquier usuario de wallets Sequence, tendrá la mejor experiencia de incorporación y UX posible. No dude en [contactarnos](https://support.sequence.xyz) para configurar esto en su ecosistema.
+
+## Patrocinio condicional mediante Webhook
+Si necesita tomar decisiones de patrocinio por transacción — por ejemplo, para aplicar límites de gasto por wallet, filtros KYC o reglas según el nivel de usuario — puede adjuntar un webhook a cualquier patrocinador de gas. Cuando llega una transacción patrocinada, el Relayer envía los detalles de la transacción a su endpoint mediante POST y solo la patrocina si usted la aprueba.
+
+### Configuración
+Al crear o actualizar un patrocinador de gas, configure:
+- `webhookUrl` — su endpoint HTTPS. Se requiere HTTPS.
+- `webhookAuthToken` _(opcional, recomendado)_ — un secreto compartido de al menos 32 caracteres. El Relayer lo envía como `Authorization: Bearer <token>` en cada llamada. Sin un token, cualquiera que conozca la URL puede invocarla.
+
+### Solicitud
+El Relayer envía un cuerpo JSON mediante POST a su `webhookUrl`:
+
+```json
+{
+  "chainId": 137,
+  "projectId": 12345,
+  "gasSponsorId": 678,
+  "walletAddress": "0x70236ffbAd7b70c2C65928c7Ca413AEa639FA0dE",
+  "transactions": [
+    { "to": "0xA0b8...", "value": "0x0", "data": "0xa9059cbb..." }
+  ]
+}
+```
+
+Encabezados enviados en cada llamada:
+- `Content-Type: application/json`
+- `Authorization: Bearer <token>` — solo si configuró un `webhookAuthToken`
+- `X-Sequence-Request-Id: <uuid>` — identificador estable por llamada; úselo para registros o deduplicación
+
+`transactions[].value` y `data` están codificados en hexadecimal. Una sola decisión puede cubrir varias llamadas agrupadas — aplique sus reglas al arreglo completo.
+
+### Respuesta
+Devuelva **HTTP 200** con exactamente este cuerpo JSON:
+
+```json
+{ "sponsor": true }
+```
+
+o
+
+```json
+{ "sponsor": false }
+```
+
+<Warning>
+  **El código de estado HTTP es importante.** El Relayer solo considera `200 OK` como una decisión válida — cualquier otro estado (incluyendo `201`, `202`, `400`, `500`) se trata como un fallo de transporte y la transacción se patrocina (ver "Fail-open" abajo).
+
+  No codifique una denegación como `400` ni una aprobación como `201`. Siempre devuelva `200` y coloque la decisión en el campo `sponsor`.
+</Warning>
+
+### Tiempo de espera y comportamiento fail-open
+El Relayer espera hasta **2 segundos** por su respuesta. Si su endpoint es lento, inalcanzable, devuelve un estado distinto de 200, devuelve un JSON mal formado u omite el campo `sponsor`, el Relayer patrocina la transacción por defecto.
+
+Este comportamiento fail-open es intencional: un webhook defectuoso no debe interrumpir silenciosamente el patrocinio para sus usuarios. Para denegar una transacción, debe enviar explícitamente `{"sponsor": false}` con HTTP 200.
+
+### Seguridad
+
+- Se requiere HTTPS. El Relayer no sigue redirecciones, por lo que un endpoint HTTPS que redirige a `http://` será rechazado.
+- Configure un `webhookAuthToken` a menos que su endpoint aplique autenticación en otra capa (lista de IP permitidas, proxy perimetral).
+- El token se envía tal cual en el encabezado `Authorization` — no registre este encabezado.
+- Para rotar el token, llame a `UpdateGasSponsor` con un nuevo valor. Para eliminar el control completamente, borre `webhookUrl`.
