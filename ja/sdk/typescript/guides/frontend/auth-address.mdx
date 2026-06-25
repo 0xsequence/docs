@@ -13,9 +13,9 @@ console.log(address)
 ```
 
 ## ウォレット認証
-多くの場合、ユーザーにウォレットを接続してもらい、そのアドレスを本当に管理しているか確認したい場面があります。アプリケーションでは、ユーザーにウォレットでメッセージに署名してもらい、その署名を検証することで本人確認を行うのが一般的です。
+多くの場合、ユーザーに接続してもらった後、そのウォレットアドレスを本当に管理しているかを確認したいことがあります。アプリケーションでは通常、ユーザーにウォレットでメッセージへ署名してもらい、その署名を検証することで本人確認を行います。
 
-このようなワークフローは非常に一般的なため、Sequenceではウォレット接続時にアカウントアドレスの認証も自動で行えます。これにより、ユーザー体験がよりシンプルかつスムーズになります。
+このような一般的なワークフローのため、Sequenceではユーザーがアプリにウォレットを接続する際に、アカウントアドレスの認証も自動で行うことができます。これにより、ユーザー体験がよりシンプルでスムーズになります。
 
 ```ts
 import { sequence } from '0xsequence'
@@ -34,16 +34,16 @@ const connectDetails = await wallet.connect({
   <img src="/images/authorize_connect.png" />
 </Frame>
 
-上記の例では、`connect()`関数に`authorize: true`を渡しています。これにより、ユーザーは自分の身元を証明するために**EIP712署名メッセージ**にサインします。これによって、接続されたウォレットアドレスを確実に認証することができます。
+上記の例では、`connect()`関数に`authorize: true`を渡すことで、ユーザーに**EIP712署名メッセージ**で本人確認をしてもらいます。これにより、接続されたウォレットアドレスを確実に認証できます。
 
-署名済みメッセージの証明は`connectDetails.proof`で取得できます。これは[ethauth](https://github.com/0xsequence/ethauth.js)のシンプルな規約を使ったEIP712署名オブジェクトです。
+署名済みメッセージの証明は`connectDetails.proof`に返されます。これは[ethauth](https://github.com/0xsequence/ethauth.js)のシンプルな規約を使ったEIP712署名オブジェクトです。
 
 <Note>
   EIP712では、単なるプレーンテキストの文字列ではなく、実際のオブジェクトを使って署名することができます。
 </Note>
 
 ## ウォレットのサーバーサイド認証
-上記の例は、クライアント側でユーザーの本人確認を行う方法を示していますが、サーバー側でSequenceの認証証明を検証したい場合は、以下のスニペットで実現できます。
+上記の例は、クライアント側でユーザーの接続と本人確認を行う方法を示していますが、サーバー側でSequenceの認証証明を検証したい場合は、以下のスニペットを利用できます。
 
 ```ts
 import { ValidateSequenceWalletProof } from '@0xsequence/auth'
@@ -76,6 +76,6 @@ try {
 
 GoアプリケーションでSequenceを利用する方法については、[Go Sequence SDK](https://github.com/0xsequence/go-sequence)をご覧ください。
 
-サーバーがJavascript/TypescriptやGo以外の言語で書かれている場合でも、[EIP1271（スマートウォレットの署名メッセージ検証標準）](https://eips.ethereum.org/EIPS/eip-1271)で署名を検証するだけです。
+サーバーがJavascript/TypescriptやGo以外の言語で書かれている場合でも、[EIP1271（スマートウォレットの署名メッセージ検証標準）](https://eips.ethereum.org/EIPS/eip-1271)を使って署名を検証するだけで対応できます。
 
 ご質問やサポートが必要な場合は、いつでも[Discord](https://discord.com/invite/YnGKP7d3vS)でご連絡ください。

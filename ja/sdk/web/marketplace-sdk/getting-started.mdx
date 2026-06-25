@@ -1,0 +1,248 @@
+---
+title: Marketplace SDK のはじめ方
+description: Marketplace SDK をアプリケーションに統合する方法について、インストールや設定、オファー作成機能の実装手順を解説します。
+sidebarTitle: はじめに
+---
+
+# はじめに
+コレクティブルを表示・操作できるシンプルなReactアプリケーションを作成します。ウォレット接続と基本的なコレクティブル閲覧機能を設定しましょう。
+
+<Steps>
+  <Step title="Sequence Builder でプロジェクトを作成">
+    コーディングを始める前に、プロジェクトのセットアップが必要です。
+
+    1. [Sequence Builder](https://sequence.build) にアクセスします。
+    2. 新しいプロジェクトを作成します。
+    3. ホワイトラベルマーケットプレイスガイドは[こちら](https://docs.sequence.xyz/solutions/payments/marketplace/overview)をご覧ください。
+    4. プロジェクト ID と API アクセスキーをメモしておきましょう。
+  </Step>
+
+  <Step title="新しい React プロジェクトを作成">
+    このガイドでは Vite、React、TypeScript を使用します。パッケージマネージャーは何でも構いませんが、例では pnpm を使います。
+
+    ```bash
+    # Create a new project
+    pnpm create vite@latest my-marketplace-app -- --template react-ts
+
+    # Navigate to the project directory
+    cd my-marketplace-app
+
+    # Install dependencies
+    pnpm install
+    ```
+  </Step>
+
+  <Step title="必要な依存パッケージのインストール">
+    Marketplace SDK とそのピア依存パッケージをインストールします。
+
+    ```bash
+    pnpm add @0xsequence/marketplace-sdk @0xsequence/connect wagmi viem @tanstack/react-query
+    ```
+  </Step>
+
+  <Step title="SDK設定の作成">
+    新しいファイル `src/config/sdk.ts` を作成し、SDKの設定を保存します。
+
+    ```tsx
+    import type { SdkConfig } from "@0xsequence/marketplace-sdk";
+
+    export const sdkConfig = {
+      projectId: "YOUR_PROJECT_ID",
+      projectAccessKey: "YOUR_PROJECT_ACCESS_KEY",
+    } satisfies SdkConfig;
+    ```
+
+    <Check>
+      `YOUR_PROJECT_ID` と `YOUR_PROJECT_ACCESS_KEY` を実際のプロジェクト情報に置き換えてください。Project ID は `https://sequence.build/project/{YOUR_PROJECT_ID}/overview`、Project Access Key は `https://sequence.build/project/{YOUR_PROJECT_ID}/settings/apikeys` で [Sequence Builder](https://sequence.build) ダッシュボードから確認できます。
+    </Check>
+  </Step>
+
+  <Step title="プロバイダーのセットアップ">
+    必要なプロバイダーを設定するために、新しいファイル `src/providers.tsx` を作成します。
+
+    ```tsx
+    import {
+      MarketplaceProvider,
+      MarketplaceQueryClientProvider,
+      ModalProvider,
+      createWagmiConfig,
+      getQueryClient,
+      marketplaceConfigOptions,
+    } from "@0xsequence/marketplace-sdk/react";
+    import { useQuery } from "@tanstack/react-query";
+    import { WagmiProvider } from "wagmi";
+    import {
+      SequenceConnectProvider,
+      type ConnectConfig,
+    } from "@0xsequence/connect";
+    import { sdkConfig } from "./config/sdk";
+
+    interface ProvidersProps {
+      children: React.ReactNode;
+    }
+
+    export default function Providers({ children }: ProvidersProps) {
+      const queryClient = getQueryClient();
+      const { data: marketplaceConfig, isLoading } = useQuery(
+        marketplaceConfigOptions(sdkConfig),
+        queryClient
+      );
+
+      if (isLoading) {
+        return <div>Loading configuration...</div>;
+      }
+
+      if (!marketplaceConfig) {
+        return <div>Failed to load marketplace configuration</div>;
+      }
+
+      const connectConfig: ConnectConfig = {
+        projectAccessKey: sdkConfig.projectAccessKey,
+        signIn: {
+          projectName: marketplaceConfig.settings.title,
+        },
+      };
+
+      const wagmiConfig = createWagmiConfig(marketplaceConfig, sdkConfig);
+
+      return (
+        <WagmiProvider config={wagmiConfig}>
+          <MarketplaceQueryClientProvider>
+            <SequenceConnectProvider config={connectConfig}>
+              <MarketplaceProvider config={sdkConfig}>
+                {children}
+                <ModalProvider />
+              </MarketplaceProvider>
+            </SequenceConnectProvider>
+          </MarketplaceQueryClientProvider>
+        </WagmiProvider>
+      );
+    }
+    ```
+  </Step>
+
+  <Step title="メインエントリーポイントの更新">
+    `main.tsx` を更新して Providers コンポーネントを利用します。
+
+    ```tsx
+    import React from 'react'
+    import ReactDOM from 'react-dom/client'
+    import App from './App'
+    import Providers from './providers'
+    import './index.css'
+
+    ReactDOM.createRoot(document.getElementById('root')!).render(
+      <React.StrictMode>
+        <Providers>
+          <App />
+        </Providers>
+      </React.StrictMode>
+    )
+    ```
+  </Step>
+
+  <Step title="コレクティブルカードコンポーネントの作成">
+    コレクティブルを表示・操作するための新しいコンポーネント `src/components/CollectibleCard.tsx` を作成します。
+
+    ```tsx
+    import {
+    useCollectible,
+    useMakeOfferModal,
+    useMarketplaceConfig,
+    useOpenConnectModal,
+    } from "@0xsequence/marketplace-sdk/react";
+    import type { Address } from "viem";
+    import { useAccount } from "wagmi";
+
+    export default function CollectibleCard() {
+    const { data: marketplaceConfig, isLoading: isMarketplaceConfigLoading } = useMarketplaceConfig();
+    const { isConnected } = useAccount()
+    const { openConnectModal } = useOpenConnectModal()
+
+    const collection = marketplaceConfig?.market.collections[0];
+    const chainId = collection?.chainId as number;
+    const collectionAddress = collection?.itemsAddress as Address;
+    const collectibleId = "0";
+
+    const { data: collectible, isLoading: isCollectibleLoading, error: collectibleError } = useCollectible({
+    chainId,
+    collectionAddress,
+    collectibleId,
+    });
+
+    const { show } = useMakeOfferModal();
+
+    if (isMarketplaceConfigLoading || isCollectibleLoading) return <div>Loading...</div>;
+    if (collectibleError) return <div>Error: {collectibleError.message}</div>;
+    if (!collectible) return <div>No collectible found</div>;
+
+    return (
+    <div>
+      <img width={200} height={200} src={collectible.image} alt={collectible.name} />
+      <h3>{collectible.name}</h3>
+      {isConnected ? (
+        <button
+          onClick={() => {
+            show({
+              chainId,
+              collectionAddress,
+              collectibleId,
+            });
+          }}
+        >
+          Make Offer
+        </button>
+      ) : (
+        <button onClick={() => openConnectModal()}>Connect Wallet</button>
+      )}
+    </div>
+    );
+    }
+    ```
+
+    <Note>
+      コレクション内で少なくとも 1 つコレクティブルをミントし、そのコレクティブルの ID を `collectibleId` として使用してください。
+    </Note>
+
+    <Tip>
+      最適な体験にはSequence Connectを推奨しますが、Marketplace SDKでは他のウォレットプロバイダーも利用可能です。カスタムウォレットコネクタについては、[カスタムコネクタのガイド](/sdk/web/wallet-sdk/embedded/custom-connectors)をご覧ください。
+    </Tip>
+  </Step>
+
+  <Step title="App コンポーネントの更新">
+    `App.tsx` を更新して新しいコンポーネントを利用します。
+
+    ```tsx
+    import NFTCard from "./nft-card";
+
+    export default function App() {
+    return (
+        <NFTCard />
+    );
+    }
+    ```
+  </Step>
+
+  <Step title="アプリケーションの実行">
+    開発サーバーを起動します。
+
+    ```bash
+    pnpm run dev
+    ```
+
+    マーケットプレイスアプリケーションが `http://localhost:5173` で動作します。次のことができます：
+
+    1. Connect ボタンでウォレットを接続
+    2. コレクティブルの詳細を表示する
+    3. 「オファーする」ボタンを使ってコレクティブルにオファーを出す
+  </Step>
+</Steps>
+
+## 次のステップ
+基本的な機能が動作したら、次のことにも挑戦できます：
+- コレクティブルのリスティングを作成する
+- 注文の管理
+- UI のカスタマイズ
+- さらに多くの機能については他のガイドもご覧ください。
+
+お困りの際は、[Discordコミュニティ](https://discord.com/invite/YnGKP7d3vS)にご参加ください。
