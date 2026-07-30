@@ -68,6 +68,41 @@ sidebarTitle: ガススポンサーシップ
 ## エコシステム全体のガススポンサーシップ
 また、エコシステム全体のトランザクションをスポンサーする機能も提供しています。これは、リレイヤーを通じて複数の署名者をチェーンレベルで調整する仕組みです。これにより、エコシステム上で開発する開発者やSequenceウォレットのユーザーが、最高のオンボーディングとUXを体験できます。ご希望の場合は、[こちらからお問い合わせ](https://support.sequence.xyz)ください。
 
+## APIによるガススポンサーの管理
+Builderを使わずに、プログラムからガススポンサーを追加・一覧取得することもできます。バックエンドからアドレスをスポンサーしたい場合（例：新規ユーザーのオンボーディングや、コントラクトのデプロイ時に追加する場合）に便利です。
+
+関連するエンドポイントは各チェーンのリレイヤーサービスにあります：
+- [`AddGasSponsor`](/api-references/transactions/endpoints/add-gas-sponsor) — スポンサー対象のウォレット、コントラクト、またはアドレスを登録します。
+- [`ListGasSponsors`](/api-references/transactions/endpoints/list-gas-sponsors) — プロジェクトの既存スポンサーを一覧表示します。
+
+### 必要なヘッダー
+`AddGasSponsor` は特権のある書き込み呼び出しです。すべてのリクエストに**以下の2つ**のヘッダーが必要です：
+- `X-Access-Key: <public-api-access-key>` — Builder の **設定 → APIキー → Public API Access Keys** から取得します。
+- `Authorization: Bearer <admin-api-secret-key>` — Builder の **設定 → APIキー → Admin API Secret Keys** から取得します。
+
+どちらか一方のみ送信した場合は、`401 AccessKeyNotFound`（アクセスキー不足）または `403 PermissionDenied`（シークレットキー不足）が返されます。APIキーのページでどちらかが空の場合は、先にキーを作成してください。
+
+<Warning>
+  Admin API Secret Key は特権的なJWT認証情報です。信頼できるバックエンドのみで使用し、ブラウザやモバイルアプリ、公開リポジトリでは絶対に公開しないでください。
+</Warning>
+
+### 例
+
+```bash cURL
+curl -X POST https://base-relayer.sequence.app/rpc/Relayer/AddGasSponsor \
+  -H "Content-Type: application/json" \
+  -H "X-Access-Key: $SEQUENCE_ACCESS_KEY" \
+  -H "Authorization: Bearer $SEQUENCE_ADMIN_SECRET_KEY" \
+  -d '{
+    "projectId": 43551,
+    "address": "0xYourContractOrWalletAddress",
+    "name": "Free mint contract",
+    "active": true
+  }'
+```
+
+各リレイヤーホストはチェーンごとに異なります。Baseには `base-relayer.sequence.app`、Polygonには `polygon-relayer.sequence.app` などを使用してください。全リストは [Transactions API overview](/api-references/transactions/overview) をご覧ください。
+
 ## Webhookによる条件付きスポンサーシップ
 取引ごとにスポンサーシップの判断が必要な場合（例：ウォレットごとの利用上限、KYC制限、ユーザー階層ルールなど）、任意のガススポンサーにWebhookを設定できます。スポンサー付き取引が届くと、Relayerが取引詳細をあなたのエンドポイントにPOSTし、あなたが承認した場合のみスポンサーします。
 
