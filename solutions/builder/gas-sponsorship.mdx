@@ -73,6 +73,45 @@ Do not use a Builder contract deployment as your sponsorship test, since deploym
 
 We also offer the capability to sponsor all transactions for your ecosystem where we orchestrate a number of signers through our relayer at the chain level. This means any developer building on your ecosystem as well as any user of Sequence wallets has the best onboarding and UX experience possible. Please feel free to [contact us](https://support.sequence.xyz) to set this up for your ecosystem.
 
+## Managing Gas Sponsors via API
+
+You can also add and list gas sponsors programmatically instead of using Builder — useful when you need to sponsor addresses from your backend (e.g. onboarding new users, adding contracts as they're deployed).
+
+The relevant endpoints live on the Relayer service for each chain:
+
+- [`AddGasSponsor`](/api-references/transactions/endpoints/add-gas-sponsor) — register a wallet, contract, or address to be sponsored.
+- [`ListGasSponsors`](/api-references/transactions/endpoints/list-gas-sponsors) — list existing sponsors for a project.
+
+### Required headers
+
+`AddGasSponsor` is a privileged write call. Every request must include **both** of the following headers:
+
+- `X-Access-Key: <public-api-access-key>` — from **Settings → API Keys → Public API Access Keys** in Builder.
+- `Authorization: Bearer <admin-api-secret-key>` — from **Settings → API Keys → Admin API Secret Keys** in Builder.
+
+Sending only one of them returns `401 AccessKeyNotFound` (missing access key) or `403 PermissionDenied` (missing secret key). If either section on the API Keys page is empty, create the missing key first.
+
+<Warning>
+The Admin API Secret Key is a privileged JWT credential. Only use it from a trusted backend — never expose it in a browser, mobile app, or public repository.
+</Warning>
+
+### Example
+
+```bash cURL
+curl -X POST https://base-relayer.sequence.app/rpc/Relayer/AddGasSponsor \
+  -H "Content-Type: application/json" \
+  -H "X-Access-Key: $SEQUENCE_ACCESS_KEY" \
+  -H "Authorization: Bearer $SEQUENCE_ADMIN_SECRET_KEY" \
+  -d '{
+    "projectId": 43551,
+    "address": "0xYourContractOrWalletAddress",
+    "name": "Free mint contract",
+    "active": true
+  }'
+```
+
+Each Relayer host is chain-specific — use `base-relayer.sequence.app` for Base, `polygon-relayer.sequence.app` for Polygon, etc. See the [Transactions API overview](/api-references/transactions/overview) for the full list.
+
 ## Conditional Sponsorship via Webhook
 
 If you need to make per-transaction sponsorship decisions — for example to apply per-wallet spend caps, KYC gates, or user-tier rules — you can attach a webhook to any gas sponsor. When a sponsored transaction arrives, the Relayer POSTs the transaction details to your endpoint and only sponsors it if you approve.

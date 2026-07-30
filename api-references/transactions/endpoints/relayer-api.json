@@ -2012,7 +2012,8 @@
     },
     "/rpc/Relayer/AddGasSponsor": {
       "post": {
-        "summary": "",
+        "summary": "AddGasSponsor",
+        "description": "Registers a new gas sponsor (wallet, contract, or arbitrary address) for the given project on the Relayer's chain. This is a privileged write call: it requires **both** a Public API Access Key (sent as `X-Access-Key`) **and** an Admin API Secret Key (sent as `Authorization: Bearer <jwt>`) — sending only one returns `401 AccessKeyNotFound` or `403 PermissionDenied`. Both keys are generated from the project's Settings → API Keys page in Sequence Builder and should only be used from a trusted backend.",
         "requestBody": {
           "content": {
             "application/json": {
@@ -2078,7 +2079,10 @@
           }
         },
         "security": [
-          { "ApiKeyAuth": [ "AQAAAAAAAEGvyZiWA9FMslYeG_yayXaHnSI" ] }
+          {
+            "ApiKeyAuth": [ "AQAAAAAAAEGvyZiWA9FMslYeG_yayXaHnSI" ],
+            "BearerAuth": []
+          }
         ]
       }
     }
