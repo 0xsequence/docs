@@ -2,3 +2,60 @@
 title: ガススポンサーを追加
 openapi: ./relayer-api.json post /rpc/Relayer/AddGasSponsor
 ---
+
+## 概要
+`AddGasSponsor` は、リレイヤーのチェーン上でプロジェクトの新しいガススポンサーを登録します。スポンサーが有効になると、Transactions API はユーザーからの該当するトランザクションをガス代なしで中継し、費用はプロジェクトのガスタンク残高から差し引かれます。
+
+スポンサーできる対象：
+- **ウォレットアドレス** — このチェーン上でそのウォレットから送信されるすべてのトランザクションがスポンサーされます。
+- **コントラクトアドレス** — このチェーン上でそのコントラクトとやり取りするすべてのユーザーのトランザクションがスポンサーされます。
+- **任意のアドレス** — そのアドレスへのネイティブトークンの送金がスポンサーされます。
+
+同じ機能は Sequence Builder の **Gas Sponsorship** でも利用できます。API はこの機能の基盤であり、スポンサーをプログラムで管理したい場合（例：バックエンドから新しいユーザーグループをオンボーディングする場合）に最適です。
+
+## 認証
+`AddGasSponsor` は特権のある書き込みエンドポイントです。すべてのリクエストには**両方**のヘッダーが必要です：
+
+| ヘッダー            | 値                               | 確認場所                                                       |
+| --------------- | ------------------------------- | ---------------------------------------------------------- |
+| `X-Access-Key`  | Public API Access Key           | Sequence Builder → **設定 → APIキー → Public API Access Keys** |
+| `Authorization` | `Bearer <admin-api-secret-key>` | Sequence Builder → **設定 → APIキー → Admin API Secret Keys**  |
+
+アクセスキーのみ送信した場合は `403 PermissionDenied` が返されます。シークレットキーのみ送信した場合は `401 AccessKeyNotFound` が返されます。両方のキーが必要です。
+
+<Warning>
+  Admin API Secret Key は特権的なJWT認証情報です。信頼できるバックエンドのみで使用し、ブラウザやモバイルアプリ、公開リポジトリでは絶対に公開しないでください。
+</Warning>
+
+APIキーのページでどちらかのセクションが空の場合（`You have no API Keys`）、このエンドポイントを呼び出す前に **+ Add Public API Access Key** または **+ Add Admin API Secret Key** でキーを作成してください。
+
+## エンドポイントURL
+`AddGasSponsor` は各ネットワークのリレイヤーホストで提供されています。スポンサーしたいチェーンに対応するホストを使用してください。例：
+- Baseメインネット：`https://base-relayer.sequence.app/rpc/Relayer/AddGasSponsor`
+- Polygonメインネット：`https://polygon-relayer.sequence.app/rpc/Relayer/AddGasSponsor`
+- Arbitrumメインネット：`https://arbitrum-relayer.sequence.app/rpc/Relayer/AddGasSponsor`
+
+リレイヤーホストの全リストは [Transactions API overview](/api-references/transactions/overview) に掲載されています。
+
+## リクエスト例
+
+```bash cURL
+curl -X POST https://base-relayer.sequence.app/rpc/Relayer/AddGasSponsor \
+  -H "Content-Type: application/json" \
+  -H "X-Access-Key: $SEQUENCE_ACCESS_KEY" \
+  -H "Authorization: Bearer $SEQUENCE_ADMIN_SECRET_KEY" \
+  -d '{
+    "projectId": 43551,
+    "address": "0xYourContractOrWalletAddress",
+    "name": "Free mint contract",
+    "active": true
+  }'
+```
+
+## よくあるエラー
+
+| ステータス | `error`             | 意味                                                                 |
+| ----- | ------------------- | ------------------------------------------------------------------ |
+| `401` | `AccessKeyNotFound` | `X-Access-Key` ヘッダーがない、またはこのプロジェクトの Public API Access Key と一致しません。 |
+| `403` | `PermissionDenied`  | リクエストに Admin API Secret Key が含まれていない、またはこのプロジェクトに対する書き込み権限がありません。  |
+| `400` | `InvalidArgument`   | `projectId` または `address` が不足しているか、形式が正しくありません。                    |

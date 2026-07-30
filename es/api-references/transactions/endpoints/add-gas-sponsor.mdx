@@ -2,3 +2,60 @@
 title: AgregarPatrocinadorDeGas
 openapi: ./relayer-api.json post /rpc/Relayer/AddGasSponsor
 ---
+
+## Descripción general
+`AddGasSponsor` registra un nuevo patrocinador de gas para su proyecto en la cadena del Relayer. Una vez que un patrocinador está activo, la API de Transacciones retransmite las transacciones correspondientes de sus usuarios sin cobrarles gas: el costo se descuenta del saldo del tanque de gas de su proyecto.
+
+Puede patrocinar:
+- Una **dirección de wallet**: cualquier transacción enviada desde esa wallet en esta cadena será patrocinada.
+- Una **dirección de contrato**: cualquier interacción de un usuario con ese contrato en esta cadena será patrocinada.
+- Una **dirección arbitraria**: las transferencias de tokens nativos a esa dirección serán patrocinadas.
+
+La misma función está disponible en Sequence Builder bajo **Gas Sponsorship**; la API es la que la impulsa y es la opción adecuada cuando necesita gestionar patrocinadores de forma programática (por ejemplo, al incorporar una nueva cohorte de usuarios desde su backend).
+
+## Autenticación
+`AddGasSponsor` es un endpoint de escritura privilegiado. Cada solicitud debe incluir **ambos** encabezados:
+
+| Encabezado      | Valor                             | Dónde encontrarlo                                                   |
+| --------------- | --------------------------------- | ------------------------------------------------------------------- |
+| `X-Access-Key`  | Clave de Acceso Pública de la API | Sequence Builder → **Settings → API Keys → Public API Access Keys** |
+| `Authorization` | `Bearer <admin-api-secret-key>`   | Sequence Builder → **Settings → API Keys → Admin API Secret Keys**  |
+
+Enviar solo la clave de acceso devuelve `403 PermissionDenied`. Enviar solo la clave secreta devuelve `401 AccessKeyNotFound`. Ambas claves deben estar presentes.
+
+<Warning>
+  La Admin API Secret Key es una credencial JWT privilegiada. Úsela solo desde un backend confiable; nunca la exponga en un navegador, aplicación móvil o repositorio público.
+</Warning>
+
+Si alguna de las secciones en la página de API Keys está vacía (`You have no API Keys`), cree la clave faltante con **+ Add Public API Access Key** o **+ Add Admin API Secret Key** antes de llamar a este endpoint.
+
+## URL del endpoint
+`AddGasSponsor` está disponible en el host del Relayer de cada red. Use el host que corresponda a la cadena en la que desea patrocinar, por ejemplo:
+- Base mainnet: `https://base-relayer.sequence.app/rpc/Relayer/AddGasSponsor`
+- Polygon mainnet: `https://polygon-relayer.sequence.app/rpc/Relayer/AddGasSponsor`
+- Arbitrum mainnet: `https://arbitrum-relayer.sequence.app/rpc/Relayer/AddGasSponsor`
+
+La lista completa de hosts de Relayer está en la [Descripción general de la API de Transacciones](/api-references/transactions/overview).
+
+## Ejemplo de solicitud
+
+```bash cURL
+curl -X POST https://base-relayer.sequence.app/rpc/Relayer/AddGasSponsor \
+  -H "Content-Type: application/json" \
+  -H "X-Access-Key: $SEQUENCE_ACCESS_KEY" \
+  -H "Authorization: Bearer $SEQUENCE_ADMIN_SECRET_KEY" \
+  -d '{
+    "projectId": 43551,
+    "address": "0xYourContractOrWalletAddress",
+    "name": "Free mint contract",
+    "active": true
+  }'
+```
+
+## Errores comunes
+
+| Estado | `error`             | Significado                                                                                                   |
+| ------ | ------------------- | ------------------------------------------------------------------------------------------------------------- |
+| `401`  | `AccessKeyNotFound` | El encabezado `X-Access-Key` falta o no coincide con una Clave de Acceso Pública de la API en este proyecto.  |
+| `403`  | `PermissionDenied`  | La solicitud no incluye la Admin API Secret Key, o la clave no tiene permiso de escritura para este proyecto. |
+| `400`  | `InvalidArgument`   | Falta o está mal formado el `projectId` o la `address`.                                                       |

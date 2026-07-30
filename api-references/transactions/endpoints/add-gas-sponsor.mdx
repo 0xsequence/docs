@@ -3,4 +3,64 @@ title: AddGasSponsor
 openapi: ./relayer-api.json post /rpc/Relayer/AddGasSponsor
 ---
 
+## Overview
 
+`AddGasSponsor` registers a new gas sponsor for your project on the Relayer's chain. Once a sponsor is active, the Transactions API relays matching transactions from your users without charging them gas — the cost is drawn from your project's gas tank balance.
+
+You can sponsor:
+
+- A **wallet address** — any transaction sent from that wallet on this chain is sponsored.
+- A **contract address** — any user's interaction with that contract on this chain is sponsored.
+- An **arbitrary address** — native-token transfers to that address are sponsored.
+
+The same feature is available in Sequence Builder under **Gas Sponsorship** — the API is what powers it, and is the right choice when you need to manage sponsors programmatically (e.g. onboarding a new user cohort from your backend).
+
+## Authentication
+
+`AddGasSponsor` is a privileged write endpoint. Every request must include **both** headers:
+
+| Header | Value | Where to find it |
+| --- | --- | --- |
+| `X-Access-Key` | Public API Access Key | Sequence Builder → **Settings → API Keys → Public API Access Keys** |
+| `Authorization` | `Bearer <admin-api-secret-key>` | Sequence Builder → **Settings → API Keys → Admin API Secret Keys** |
+
+Sending only the access key returns `403 PermissionDenied`. Sending only the secret key returns `401 AccessKeyNotFound`. Both keys must be present.
+
+<Warning>
+The Admin API Secret Key is a privileged JWT credential. Only use it from a trusted backend — never expose it in a browser, mobile app, or public repository.
+</Warning>
+
+If either section on the API Keys page is empty (`You have no API Keys`), create the missing key with **+ Add Public API Access Key** or **+ Add Admin API Secret Key** before calling this endpoint.
+
+## Endpoint URL
+
+`AddGasSponsor` is exposed on each network's Relayer host. Use the host matching the chain you want to sponsor on — for example:
+
+- Base mainnet: `https://base-relayer.sequence.app/rpc/Relayer/AddGasSponsor`
+- Polygon mainnet: `https://polygon-relayer.sequence.app/rpc/Relayer/AddGasSponsor`
+- Arbitrum mainnet: `https://arbitrum-relayer.sequence.app/rpc/Relayer/AddGasSponsor`
+
+The full list of Relayer hosts is on the [Transactions API overview](/api-references/transactions/overview).
+
+## Example request
+
+```bash cURL
+curl -X POST https://base-relayer.sequence.app/rpc/Relayer/AddGasSponsor \
+  -H "Content-Type: application/json" \
+  -H "X-Access-Key: $SEQUENCE_ACCESS_KEY" \
+  -H "Authorization: Bearer $SEQUENCE_ADMIN_SECRET_KEY" \
+  -d '{
+    "projectId": 43551,
+    "address": "0xYourContractOrWalletAddress",
+    "name": "Free mint contract",
+    "active": true
+  }'
+```
+
+## Common errors
+
+| Status | `error` | Meaning |
+| --- | --- | --- |
+| `401` | `AccessKeyNotFound` | The `X-Access-Key` header is missing or does not match a Public API Access Key on this project. |
+| `403` | `PermissionDenied` | The request is missing the Admin API Secret Key, or the key does not have write permission for this project. |
+| `400` | `InvalidArgument` | `projectId` or `address` is missing or malformed. |

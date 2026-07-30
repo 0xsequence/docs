@@ -68,6 +68,41 @@ Patrocinar gas es sencillo y funciona en todas las redes que soportamos con un s
 ## Patrocinio de gas para ecosistemas
 También ofrecemos la posibilidad de patrocinar todas las transacciones de su ecosistema, donde orquestamos varios signers a través de nuestro relayer a nivel de cadena. Esto significa que cualquier desarrollador que construya en su ecosistema, así como cualquier usuario de wallets Sequence, tendrá la mejor experiencia de incorporación y UX posible. No dude en [contactarnos](https://support.sequence.xyz) para configurar esto en su ecosistema.
 
+## Gestión de patrocinadores de gas vía API
+También puede agregar y listar patrocinadores de gas de forma programática en lugar de usar Builder; esto es útil cuando necesita patrocinar direcciones desde su backend (por ejemplo, al incorporar nuevos usuarios o agregar contratos a medida que se implementan).
+
+Los endpoints relevantes están en el servicio Relayer para cada cadena:
+- [`AddGasSponsor`](/api-references/transactions/endpoints/add-gas-sponsor) — registre una wallet, contrato o dirección para ser patrocinado.
+- [`ListGasSponsors`](/api-references/transactions/endpoints/list-gas-sponsors) — liste los patrocinadores existentes para un proyecto.
+
+### Encabezados requeridos
+`AddGasSponsor` es una llamada de escritura privilegiada. Cada solicitud debe incluir **ambos** de los siguientes encabezados:
+- `X-Access-Key: <public-api-access-key>` — desde **Settings → API Keys → Public API Access Keys** en Builder.
+- `Authorization: Bearer <admin-api-secret-key>` — desde **Settings → API Keys → Admin API Secret Keys** en Builder.
+
+Enviar solo uno de ellos devuelve `401 AccessKeyNotFound` (falta la clave de acceso) o `403 PermissionDenied` (falta la clave secreta). Si alguna de las secciones en la página de API Keys está vacía, cree primero la clave faltante.
+
+<Warning>
+  La Admin API Secret Key es una credencial JWT privilegiada. Úsela solo desde un backend confiable; nunca la exponga en un navegador, aplicación móvil o repositorio público.
+</Warning>
+
+### Ejemplo
+
+```bash cURL
+curl -X POST https://base-relayer.sequence.app/rpc/Relayer/AddGasSponsor \
+  -H "Content-Type: application/json" \
+  -H "X-Access-Key: $SEQUENCE_ACCESS_KEY" \
+  -H "Authorization: Bearer $SEQUENCE_ADMIN_SECRET_KEY" \
+  -d '{
+    "projectId": 43551,
+    "address": "0xYourContractOrWalletAddress",
+    "name": "Free mint contract",
+    "active": true
+  }'
+```
+
+Cada host de Relayer es específico de la cadena: use `base-relayer.sequence.app` para Base, `polygon-relayer.sequence.app` para Polygon, etc. Consulte la [Descripción general de la API de Transacciones](/api-references/transactions/overview) para ver la lista completa.
+
 ## Patrocinio condicional mediante Webhook
 Si necesita tomar decisiones de patrocinio por transacción — por ejemplo, para aplicar límites de gasto por wallet, filtros KYC o reglas según el nivel de usuario — puede adjuntar un webhook a cualquier patrocinador de gas. Cuando llega una transacción patrocinada, el Relayer envía los detalles de la transacción a su endpoint mediante POST y solo la patrocina si usted la aprueba.
 
