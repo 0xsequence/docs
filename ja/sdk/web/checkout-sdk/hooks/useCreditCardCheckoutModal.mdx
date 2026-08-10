@@ -1,0 +1,97 @@
+---
+title: useCreditCardCheckoutModal
+description: クレジットカード決済フローを管理するためのフック
+sidebarTitle: useCreditCardCheckoutModal
+---
+
+## インポート
+
+```tsx
+import { useCreditCardCheckoutModal } from '@0xsequence/checkout'
+```
+
+## 使い方
+
+```tsx
+import { useCreditCardCheckoutModal } from '@0xsequence/checkout'
+import { polygon } from 'viem/chains'
+import { useAccount } from 'wagmi'
+
+function Home() {
+  const { address } = useAccount()
+  const { initiateCreditCardCheckout, closeCreditCardCheckout, settings } = useCheckoutModal()
+
+  const handleCheckout = () => {
+    // NFT purchase settings
+    const chainId = polygon.id
+    const orderbookAddress = '0xfdb42A198a932C8D3B506Ffa5e855bC4b348a712'
+    const nftQuantity = '1'
+    const tokenContractAddress = '0xabcdef...' // NFT contract address
+    const tokenId = '123' // NFT token ID
+
+    initiateCreditCardCheckout({
+      chainId,
+      contractAddress: orderbookAddress,
+      recipientAddress: address || '',
+      currencyQuantity: '100000',
+      currencySymbol: 'USDC',
+      currencyAddress: '0x3c499c542cef5e3811e1192ce70d8cc03d5c3359',
+      currencyDecimals: '6',
+      nftId: tokenId,
+      nftAddress: tokenContractAddress,
+      nftQuantity,
+      approvedSpenderAddress: orderbookAddress,
+      calldata: "0x...",
+      onSuccess: (txHash) => console.log('Success!', txHash)
+    })
+  }
+
+  return (
+    <button onClick={handleCheckout}>
+      Checkout
+    </button>
+  )
+}
+
+export default Home
+```
+
+### プロパティ
+
+#### initiateCreditCardCheckout
+`(settings: CreditCardCheckoutSettings) => void`
+
+指定したパラメータでクレジットカード決済モーダルを開きます。
+
+**パラメータ：**
+
+`settings`オブジェクトには以下のプロパティを含めることができます:
+
+| パラメータ                    | 型                          | 説明                        |
+| ------------------------ | -------------------------- | ------------------------- |
+| `chainId`                | `number`                   | ブロックチェーンネットワークID          |
+| `contractAddress`        | `string`                   | 操作対象となるコントラクトのアドレス        |
+| `recipientAddress`       | `string`                   | 購入したアイテムの受取先アドレス          |
+| `currencyQuantity`       | `string`                   | 支払いに使用する通貨の数量             |
+| `currencySymbol`         | `string`                   | 通貨のシンボル（例: 'USDC'）        |
+| `currencyAddress`        | `string`                   | 通貨トークンコントラクトのアドレス         |
+| `currencyDecimals`       | `string`                   | 通貨の小数点以下の桁数               |
+| `nftId`                  | `string`                   | 購入するNFTのID                |
+| `nftAddress`             | `string`                   | NFTコントラクトのアドレス            |
+| `nftQuantity`            | `string`                   | 購入するNFTの数量                |
+| `approvedSpenderAddress` | `string`                   | トークンの支払いを許可されたアドレス        |
+| `calldata`               | `string`                   | トランザクションのエンコード済み関数呼び出しデータ |
+| `onSuccess`              | `(txHash: string) => void` | トランザクションが成功した際のコールバック     |
+
+#### closeCreditCardCheckout
+`() => void`
+
+クレジットカード決済モーダルを閉じます。
+
+#### settings
+`CreditCardCheckoutSettings | undefined`
+
+クレジットカード決済モーダルの現在の設定構成です。
+
+## 補足
+このフックは、ユーザーがクレジットカードで購入を完了できるクレジットカード決済モーダルを制御するためのメソッドを提供します。
